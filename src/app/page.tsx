@@ -15,43 +15,72 @@ export default function Home() {
 
       <main>
         <section className="text-center py-16 px-4">
-          <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
-            Tailored covers that slip on in seconds<br />
-            and shrug off every forecast
+          <h1 className="text-2xl md:text-3xl font-medium text-gray-700 mb-12">
+            Apparel for Your Patio Furniture
           </h1>
-          <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-            Custom patio furniture covers designed for hassle-free protection
-          </p>
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 md:gap-8 max-w-4xl mx-auto mb-12">
+            <div className="text-center">
+              <div className="text-sm font-medium text-gray-900">Hassle Free</div>
+            </div>
+            <div className="text-center">
+              <div className="text-sm font-medium text-gray-900">Unique Design</div>
+            </div>
+            <div className="text-center">
+              <div className="text-sm font-medium text-gray-900">Heavy Duty</div>
+            </div>
+            <div className="text-center">
+              <div className="text-sm font-medium text-gray-900">Weather Proof</div>
+            </div>
+            <div className="text-center">
+              <div className="text-sm font-medium text-gray-900">Mildew Resistant</div>
+            </div>
+          </div>
           <button className="bg-black text-white px-8 py-3 rounded-lg text-lg font-semibold hover:bg-gray-800 transition-colors">
             Design my Cover
           </button>
         </section>
 
-        <section className="py-16 bg-gray-50">
+        <section className="py-16">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              <div className="text-center">
-                <div className="h-64 bg-gray-200 rounded-lg mb-4 flex items-center justify-center">
-                  <span className="text-gray-500">Hassle Free Image</span>
-                </div>
-                <h3 className="text-xl font-semibold mb-2">Hassle Free</h3>
-                <p className="text-gray-600">Slip on in seconds with our innovative design</p>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center mb-16">
+              <div>
+                <h2 className="text-3xl font-bold text-gray-900 mb-6">
+                  Snap Straps & Bungee System
+                </h2>
+                <p className="text-lg text-gray-600 mb-6">
+                  Our innovative snap strap and bungee system makes covering your furniture effortless. 
+                  Simply snap on in seconds and your furniture is protected from the elements.
+                </p>
+                <ul className="space-y-3 text-gray-700">
+                  <li>• Quick snap-on design</li>
+                  <li>• Secure bungee system</li>
+                  <li>• No tools required</li>
+                  <li>• Fits perfectly every time</li>
+                </ul>
               </div>
-              
-              <div className="text-center">
-                <div className="h-64 bg-gray-200 rounded-lg mb-4 flex items-center justify-center">
-                  <span className="text-gray-500">Unique Design Image</span>
-                </div>
-                <h3 className="text-xl font-semibold mb-2">Unique Design</h3>
-                <p className="text-gray-600">Tailored specifically for your patio furniture</p>
+              <div className="h-96 bg-gray-200 rounded-lg flex items-center justify-center">
+                <span className="text-gray-500">Snap Straps & Bungee Demo</span>
               </div>
-              
-              <div className="text-center">
-                <div className="h-64 bg-gray-200 rounded-lg mb-4 flex items-center justify-center">
-                  <span className="text-gray-500">Heavy Duty Image</span>
-                </div>
-                <h3 className="text-xl font-semibold mb-2">Heavy Duty</h3>
-                <p className="text-gray-600">Marine-grade materials built to last</p>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+              <div className="h-96 bg-gray-200 rounded-lg flex items-center justify-center lg:order-1">
+                <span className="text-gray-500">Marine-Grade Material</span>
+              </div>
+              <div className="lg:order-2">
+                <h2 className="text-3xl font-bold text-gray-900 mb-6">
+                  Marine-Grade Materials
+                </h2>
+                <p className="text-lg text-gray-600 mb-6">
+                  Built with the same materials used in marine applications, our covers are designed 
+                  to withstand the harshest weather conditions while maintaining their appearance.
+                </p>
+                <ul className="space-y-3 text-gray-700">
+                  <li>• UV resistant fabric</li>
+                  <li>• Waterproof construction</li>
+                  <li>• Tear and puncture resistant</li>
+                  <li>• Fade resistant colors</li>
+                </ul>
               </div>
             </div>
           </div>
@@ -90,26 +119,26 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="py-16 bg-gray-900 text-white">
+        <section className="py-16 bg-gray-50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-              <div className="h-96 bg-gray-700 rounded-lg flex items-center justify-center">
-                <span className="text-gray-400">Mildew Resistant Image</span>
-              </div>
               <div>
-                <h2 className="text-3xl font-bold mb-6">
-                  Mildew Resistant
+                <h2 className="text-3xl font-bold text-gray-900 mb-6">
+                  Breathable Design
                 </h2>
-                <p className="text-lg text-gray-300 mb-6">
-                  Breathable design prevents moisture buildup, keeping your covers fresh and 
-                  mildew-free season after season.
+                <p className="text-lg text-gray-600 mb-6">
+                  Our breathable design allows air circulation while keeping moisture out, 
+                  preventing mildew and maintaining the quality of your furniture underneath.
                 </p>
-                <ul className="space-y-3 text-gray-300">
-                  <li>• Breathable fabric technology</li>
-                  <li>• Prevents moisture trapped underneath</li>
-                  <li>• Long-lasting freshness</li>
-                  <li>• Easy maintenance</li>
+                <ul className="space-y-3 text-gray-700">
+                  <li>• Advanced breathable fabric</li>
+                  <li>• Prevents condensation buildup</li>
+                  <li>• Mildew and mold resistant</li>
+                  <li>• Maintains furniture freshness</li>
                 </ul>
+              </div>
+              <div className="h-96 bg-gray-200 rounded-lg flex items-center justify-center">
+                <span className="text-gray-500">Breathable Design Features</span>
               </div>
             </div>
           </div>
