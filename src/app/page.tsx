@@ -35,9 +35,12 @@ export default function Home() {
               <div className="text-sm font-medium text-gray-900">Mildew Resistant</div>
             </div>
           </div>
-          <button className="bg-black text-white px-8 py-3 rounded-lg text-lg font-semibold hover:bg-gray-800 transition-colors">
+          <a 
+            href="https://castawaycovers.com/design-my-cover/" 
+            className="inline-block bg-black text-white px-8 py-3 rounded-lg text-lg font-semibold hover:bg-gray-800 transition-colors"
+          >
             Design my Cover
-          </button>
+          </a>
         </section>
 
         <section className="py-16">
