@@ -31,6 +31,7 @@ export default function CartPage() {
         customAttributes: [
           { key: 'productType', value: item.productType },
           { key: 'sku', value: item.coverSKU },
+          { key: 'yards', value: item.yards.toString() },
           { key: 'color', value: item.selectedColor },
           { key: 'snapStraps', value: item.snapStraps.toString() },
           { key: 'handles', value: item.handles.toString() },

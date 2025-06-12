@@ -7,6 +7,7 @@ interface CartItem {
   coverSKU: string;
   coverVariantId: string;
   coverPrice: number;
+  yards: number;
   snapStraps: boolean;
   handles: boolean;
   magnets: boolean;

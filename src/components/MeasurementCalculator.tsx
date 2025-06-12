@@ -192,7 +192,16 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
       const yards = calculateYards(measurements);
       const shopifySKU = generateShopifySKU(yards); // New Shopify SKU format
       const price = calculatePrice(yards);
+      
+      // Log calculations for debugging
+      console.log('Measurements:', measurements);
+      console.log('Calculated yards:', yards);
+      console.log('Shopify SKU:', shopifySKU);
+      console.log('Display SKU:', displaySKU);
+      console.log('Price:', price);
+      
       const variantId = await lookupVariantIdBySKU(shopifySKU); // Lookup by SKU
+      console.log('Found variant ID:', variantId);
       
       // Pass the display SKU for showing in order summary, but use Shopify SKU for lookup
       onCalculate(displaySKU, variantId, price, yards);

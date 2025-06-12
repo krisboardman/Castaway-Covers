@@ -62,6 +62,7 @@ export default function ProductPage() {
       coverSKU,
       coverVariantId,
       coverPrice,
+      yards,
       snapStraps,
       handles,
       magnets,
@@ -171,6 +172,7 @@ export default function ProductPage() {
               customAttributes={{
                 productType,
                 sku: coverSKU,
+                yards: yards.toString(),
                 snapStraps: snapStraps.toString(),
                 handles: handles.toString(),
                 magnets: magnets.toString(),
