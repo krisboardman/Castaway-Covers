@@ -1,18 +1,9 @@
 import Image from "next/image";
+import Link from "next/link";
 
 export default function Home() {
   return (
     <div className="min-h-screen bg-white">
-      <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-center items-center py-6">
-            <div className="text-2xl font-bold text-gray-900">
-              CASTAWAY COVERS
-            </div>
-          </div>
-        </div>
-      </header>
-
       <main>
         <section className="text-center py-16 px-4">
           <h1 className="text-2xl md:text-3xl font-medium text-gray-700 mb-12">
@@ -35,12 +26,35 @@ export default function Home() {
               <div className="text-sm font-medium text-gray-900">Mildew Resistant</div>
             </div>
           </div>
-          <a 
-            href="https://castawaycovers.com/design-my-cover/" 
-            className="inline-block bg-black text-white px-8 py-3 rounded-lg text-lg font-semibold hover:bg-gray-800 transition-colors"
-          >
-            Design my Cover
-          </a>
+          <div className="space-y-6">
+            <h2 className="text-xl font-semibold text-gray-800">Shop by Product Type</h2>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 max-w-6xl mx-auto mb-8">
+              <Link href="/products/sofa" className="bg-gray-100 hover:bg-gray-200 p-4 rounded-lg text-center transition-colors">
+                <div className="text-lg font-medium">Sofa</div>
+              </Link>
+              <Link href="/products/chair" className="bg-gray-100 hover:bg-gray-200 p-4 rounded-lg text-center transition-colors">
+                <div className="text-lg font-medium">Chair</div>
+              </Link>
+              <Link href="/products/table" className="bg-gray-100 hover:bg-gray-200 p-4 rounded-lg text-center transition-colors">
+                <div className="text-lg font-medium">Table</div>
+              </Link>
+              <Link href="/products/ottoman" className="bg-gray-100 hover:bg-gray-200 p-4 rounded-lg text-center transition-colors">
+                <div className="text-lg font-medium">Ottoman</div>
+              </Link>
+              <Link href="/products/loveseat" className="bg-gray-100 hover:bg-gray-200 p-4 rounded-lg text-center transition-colors">
+                <div className="text-lg font-medium">Loveseat</div>
+              </Link>
+              <Link href="/products/sectional" className="bg-gray-100 hover:bg-gray-200 p-4 rounded-lg text-center transition-colors">
+                <div className="text-lg font-medium">Sectional</div>
+              </Link>
+            </div>
+            <a 
+              href="https://castawaycovers.com/design-my-cover/" 
+              className="inline-block bg-black text-white px-8 py-3 rounded-lg text-lg font-semibold hover:bg-gray-800 transition-colors"
+            >
+              Or Use Our Design Tool
+            </a>
+          </div>
         </section>
 
         <section className="py-16">
