@@ -146,18 +146,8 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
   };
 
   const calculatePrice = (yards: number): number => {
-    const basePrices = {
-      sofa: 60,
-      chair: 45,
-      table: 40,
-      ottoman: 35,
-      loveseat: 55,
-      sectional: 80
-    };
-    
-    const basePrice = basePrices[productType as keyof typeof basePrices] || 50;
     const pricePerYard = 25;
-    return basePrice + (yards * pricePerYard);
+    return yards * pricePerYard;
   };
 
   const lookupVariantIdBySKU = async (sku: string): Promise<string> => {
