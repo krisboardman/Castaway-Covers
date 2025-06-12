@@ -154,26 +154,29 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
 
   const lookupVariantIdBySKU = async (sku: string): Promise<string> => {
     if (!shopifyClient) {
-      console.log(`No Shopify client available to lookup SKU: ${sku}`);
+      alert(`No Shopify client available to lookup SKU: ${sku}`);
       return '';
     }
     
     try {
+      alert('Fetching products from Shopify...');
       // Fetch all products
       const products = await shopifyClient.product.fetchAll();
+      alert(`Found ${products.length} products in Shopify`);
       
       // Search through all products and their variants for matching SKU
       for (const product of products) {
         const variant = product.variants.find((v: any) => v.sku === sku);
         if (variant) {
+          alert(`Found variant! ID: ${variant.id}`);
           return variant.id;
         }
       }
       
-      console.warn(`No variant found with SKU: ${sku}`);
+      alert(`No variant found with SKU: ${sku}`);
       return '';
     } catch (error) {
-      console.error('Error looking up variant:', error);
+      alert(`Error looking up variant: ${error}`);
       return '';
     }
   };
