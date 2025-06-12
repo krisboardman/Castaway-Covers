@@ -103,6 +103,10 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
     return `${baseCode}-${measurements.length}x${measurements.width}x${measurements.height}`;
   };
 
+  const generateShopifySKU = (yards: number): string => {
+    return `${productType}-${yards}`;
+  };
+
   const calculateYards = (measurements: any): number => {
     let surfaceArea;
     
@@ -156,12 +160,13 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
     const hasAllMeasurements = requiredFields.every(field => measurements[field] > 0);
     
     if (hasAllMeasurements) {
-      const sku = calculateSKU(measurements);
+      const sku = calculateSKU(measurements); // Keep existing SKU for display
       const yards = calculateYards(measurements);
+      const shopifySKU = generateShopifySKU(yards); // New Shopify SKU format
       const price = calculatePrice(yards);
-      const variantId = lookupVariantId(sku);
+      const variantId = lookupVariantId(shopifySKU); // Use Shopify SKU for variant lookup
       
-      onCalculate(sku, variantId, price, yards);
+      onCalculate(shopifySKU, variantId, price, yards);
     }
   };
 
