@@ -22,11 +22,13 @@ const ShopifyBuyButton: React.FC<ShopifyBuyButtonProps> = ({
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const shopifyClient = ShopifyBuy.buildClient({
-      domain: process.env.NEXT_PUBLIC_SHOPIFY_DOMAIN!,
-      storefrontAccessToken: process.env.NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN!,
-    });
-    setClient(shopifyClient);
+    if (typeof window !== 'undefined') {
+      const shopifyClient = ShopifyBuy.buildClient({
+        domain: process.env.NEXT_PUBLIC_SHOPIFY_DOMAIN!,
+        storefrontAccessToken: process.env.NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN!,
+      });
+      setClient(shopifyClient);
+    }
   }, []);
 
   const handleBuyNow = async () => {

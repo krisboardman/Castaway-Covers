@@ -96,11 +96,13 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
   const [shopifyClient, setShopifyClient] = useState<any>(null);
 
   useEffect(() => {
-    const client = ShopifyBuy.buildClient({
-      domain: process.env.NEXT_PUBLIC_SHOPIFY_DOMAIN!,
-      storefrontAccessToken: process.env.NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN!,
-    });
-    setShopifyClient(client);
+    if (typeof window !== 'undefined') {
+      const client = ShopifyBuy.buildClient({
+        domain: process.env.NEXT_PUBLIC_SHOPIFY_DOMAIN!,
+        storefrontAccessToken: process.env.NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN!,
+      });
+      setShopifyClient(client);
+    }
   }, []);
 
   const config = productConfigs[productType as keyof typeof productConfigs] || productConfigs.sofa;
