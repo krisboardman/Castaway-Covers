@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
+import ShopifyBuy from '@shopify/buy-button-js';
 
 interface MeasurementCalculatorProps {
   productType: string;
@@ -92,6 +93,15 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
     seatDepth: 0
   });
   const [showGuide, setShowGuide] = useState(false);
+  const [shopifyClient, setShopifyClient] = useState<any>(null);
+
+  useEffect(() => {
+    const client = ShopifyBuy.buildClient({
+      domain: process.env.NEXT_PUBLIC_SHOPIFY_DOMAIN!,
+      storefrontAccessToken: process.env.NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN!,
+    });
+    setShopifyClient(client);
+  }, []);
 
   const config = productConfigs[productType as keyof typeof productConfigs] || productConfigs.sofa;
 
@@ -150,30 +160,42 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
     return basePrice + (yards * pricePerYard);
   };
 
-  const lookupVariantId = (sku: string): string => {
-    // For testing with your table variants
-    // You'll need to replace these with actual variant IDs from your Shopify products
-    const variantMap: Record<string, string> = {
-      'table-1': 'YOUR_TABLE_1_VARIANT_ID',
-      'table-2': 'YOUR_TABLE_2_VARIANT_ID',
-      // Add more as you create them in Shopify
-    };
+  const lookupVariantIdBySKU = async (sku: string): Promise<string> => {
+    if (!shopifyClient) return '';
     
-    return variantMap[sku] || '';
+    try {
+      // Fetch all products
+      const products = await shopifyClient.product.fetchAll();
+      
+      // Search through all products and their variants for matching SKU
+      for (const product of products) {
+        const variant = product.variants.find((v: any) => v.sku === sku);
+        if (variant) {
+          return variant.id;
+        }
+      }
+      
+      console.warn(`No variant found with SKU: ${sku}`);
+      return '';
+    } catch (error) {
+      console.error('Error looking up variant:', error);
+      return '';
+    }
   };
 
-  const handleCalculate = () => {
+  const handleCalculate = async () => {
     const requiredFields = config.fields;
     const hasAllMeasurements = requiredFields.every(field => measurements[field] > 0);
     
     if (hasAllMeasurements) {
-      const sku = calculateSKU(measurements); // Keep existing SKU for display
+      const displaySKU = calculateSKU(measurements); // Keep existing SKU for display
       const yards = calculateYards(measurements);
       const shopifySKU = generateShopifySKU(yards); // New Shopify SKU format
       const price = calculatePrice(yards);
-      const variantId = lookupVariantId(shopifySKU); // Use Shopify SKU for variant lookup
+      const variantId = await lookupVariantIdBySKU(shopifySKU); // Lookup by SKU
       
-      onCalculate(shopifySKU, variantId, price, yards);
+      // Pass the display SKU for showing in order summary, but use Shopify SKU for lookup
+      onCalculate(displaySKU, variantId, price, yards);
     }
   };
 
