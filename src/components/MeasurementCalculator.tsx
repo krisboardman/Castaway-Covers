@@ -2,13 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import dynamic from 'next/dynamic';
-
-// Temporarily disabled for deployment
-// let ShopifyBuy: any;
-// if (typeof window !== 'undefined') {
-//   ShopifyBuy = require('@shopify/buy-button-js');
-// }
+import { getShopifyClient } from '@/lib/shopify-client';
 
 interface MeasurementCalculatorProps {
   productType: string;
@@ -102,14 +96,13 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
   const [shopifyClient, setShopifyClient] = useState<any>(null);
 
   useEffect(() => {
-    // Temporarily disabled for deployment
-    // if (typeof window !== 'undefined' && ShopifyBuy) {
-    //   const client = ShopifyBuy.buildClient({
-    //     domain: process.env.NEXT_PUBLIC_SHOPIFY_DOMAIN!,
-    //     storefrontAccessToken: process.env.NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN!,
-    //   });
-    //   setShopifyClient(client);
-    // }
+    const initClient = async () => {
+      const client = await getShopifyClient();
+      if (client) {
+        setShopifyClient(client);
+      }
+    };
+    initClient();
   }, []);
 
   const config = productConfigs[productType as keyof typeof productConfigs] || productConfigs.sofa;
@@ -160,30 +153,29 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
   };
 
   const lookupVariantIdBySKU = async (sku: string): Promise<string> => {
-    // Temporarily return empty string for deployment
-    console.log(`Would lookup SKU: ${sku}`);
-    return '';
+    if (!shopifyClient) {
+      console.log(`No Shopify client available to lookup SKU: ${sku}`);
+      return '';
+    }
     
-    // if (!shopifyClient) return '';
-    
-    // try {
-    //   // Fetch all products
-    //   const products = await shopifyClient.product.fetchAll();
+    try {
+      // Fetch all products
+      const products = await shopifyClient.product.fetchAll();
       
-    //   // Search through all products and their variants for matching SKU
-    //   for (const product of products) {
-    //     const variant = product.variants.find((v: any) => v.sku === sku);
-    //     if (variant) {
-    //       return variant.id;
-    //     }
-    //   }
+      // Search through all products and their variants for matching SKU
+      for (const product of products) {
+        const variant = product.variants.find((v: any) => v.sku === sku);
+        if (variant) {
+          return variant.id;
+        }
+      }
       
-    //   console.warn(`No variant found with SKU: ${sku}`);
-    //   return '';
-    // } catch (error) {
-    //   console.error('Error looking up variant:', error);
-    //   return '';
-    // }
+      console.warn(`No variant found with SKU: ${sku}`);
+      return '';
+    } catch (error) {
+      console.error('Error looking up variant:', error);
+      return '';
+    }
   };
 
   const handleCalculate = async () => {

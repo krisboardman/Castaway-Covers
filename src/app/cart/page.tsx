@@ -4,12 +4,7 @@ import { useCartStore } from '@/store/cartStore';
 import Link from 'next/link';
 import { useState } from 'react';
 import Image from 'next/image';
-
-// Temporarily disabled for deployment
-// let ShopifyBuy: any;
-// if (typeof window !== 'undefined') {
-//   ShopifyBuy = require('@shopify/buy-button-js');
-// }
+import { getShopifyClient } from '@/lib/shopify-client';
 
 export default function CartPage() {
   const items = useCartStore((state) => state.items);
@@ -23,21 +18,15 @@ export default function CartPage() {
 
     setLoading(true);
     try {
-      // Temporarily disabled for deployment
-      alert('Checkout temporarily disabled while we fix deployment issues');
-      setLoading(false);
-      return;
+      const client = await getShopifyClient();
       
-      // if (typeof window === 'undefined' || !ShopifyBuy) {
-      //   return;
-      // }
-      
-      // const client = ShopifyBuy.buildClient({
-      //   domain: process.env.NEXT_PUBLIC_SHOPIFY_DOMAIN!,
-      //   storefrontAccessToken: process.env.NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN!,
-      // });
+      if (!client) {
+        alert('Unable to connect to checkout. Please try again.');
+        setLoading(false);
+        return;
+      }
 
-      // const checkout = await client.checkout.create();
+      const checkout = await client.checkout.create();
       
       const lineItems = items.map(item => ({
         variantId: item.coverVariantId,
