@@ -2,6 +2,7 @@
 
 import { useCartStore } from '@/store/cartStore';
 import Link from 'next/link';
+// @ts-ignore
 import ShopifyBuy from '@shopify/buy-button-js';
 import { useState } from 'react';
 import Image from 'next/image';

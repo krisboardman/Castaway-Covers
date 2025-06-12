@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+// @ts-ignore
 import ShopifyBuy from '@shopify/buy-button-js';
 
 interface ShopifyBuyButtonProps {
