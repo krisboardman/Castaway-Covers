@@ -1,7 +1,11 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import ShopifyBuy from '@shopify/buy-button-js';
+
+let ShopifyBuy: any;
+if (typeof window !== 'undefined') {
+  ShopifyBuy = require('@shopify/buy-button-js');
+}
 
 interface ShopifyBuyButtonProps {
   variantId: string;
@@ -22,7 +26,7 @@ const ShopifyBuyButton: React.FC<ShopifyBuyButtonProps> = ({
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== 'undefined' && ShopifyBuy) {
       const shopifyClient = ShopifyBuy.buildClient({
         domain: process.env.NEXT_PUBLIC_SHOPIFY_DOMAIN!,
         storefrontAccessToken: process.env.NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN!,

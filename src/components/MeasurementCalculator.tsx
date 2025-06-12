@@ -2,7 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import ShopifyBuy from '@shopify/buy-button-js';
+import dynamic from 'next/dynamic';
+
+let ShopifyBuy: any;
+if (typeof window !== 'undefined') {
+  ShopifyBuy = require('@shopify/buy-button-js');
+}
 
 interface MeasurementCalculatorProps {
   productType: string;
@@ -96,7 +101,7 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
   const [shopifyClient, setShopifyClient] = useState<any>(null);
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== 'undefined' && ShopifyBuy) {
       const client = ShopifyBuy.buildClient({
         domain: process.env.NEXT_PUBLIC_SHOPIFY_DOMAIN!,
         storefrontAccessToken: process.env.NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN!,

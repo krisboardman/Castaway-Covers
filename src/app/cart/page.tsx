@@ -3,8 +3,12 @@
 import { useCartStore } from '@/store/cartStore';
 import Link from 'next/link';
 import { useState } from 'react';
-import ShopifyBuy from '@shopify/buy-button-js';
 import Image from 'next/image';
+
+let ShopifyBuy: any;
+if (typeof window !== 'undefined') {
+  ShopifyBuy = require('@shopify/buy-button-js');
+}
 
 export default function CartPage() {
   const items = useCartStore((state) => state.items);
@@ -18,7 +22,7 @@ export default function CartPage() {
 
     setLoading(true);
     try {
-      if (typeof window === 'undefined') {
+      if (typeof window === 'undefined' || !ShopifyBuy) {
         return;
       }
       
