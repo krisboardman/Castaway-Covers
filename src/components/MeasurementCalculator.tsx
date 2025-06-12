@@ -200,6 +200,8 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
       
       const variantId = await lookupVariantIdBySKU(shopifySKU); // Lookup by SKU
       console.log('Found variant ID:', variantId);
+      console.log('Variant ID empty?', !variantId);
+      console.log('Shopify client available?', !!shopifyClient);
       
       // Pass the display SKU for showing in order summary, but use Shopify SKU for lookup
       onCalculate(displaySKU, variantId, price, yards);
