@@ -200,6 +200,9 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
       console.log('Display SKU:', displaySKU);
       console.log('Price:', price);
       
+      // Temporary alert to verify calculations
+      alert(`Calculated: ${yards} yards, SKU: ${shopifySKU}`);
+      
       const variantId = await lookupVariantIdBySKU(shopifySKU); // Lookup by SKU
       console.log('Found variant ID:', variantId);
       
