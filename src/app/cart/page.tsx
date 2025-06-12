@@ -3,6 +3,7 @@
 import { useCartStore } from '@/store/cartStore';
 import Link from 'next/link';
 import { useState } from 'react';
+import ShopifyBuy from '@shopify/buy-button-js';
 import Image from 'next/image';
 
 export default function CartPage() {
@@ -17,13 +18,31 @@ export default function CartPage() {
 
     setLoading(true);
     try {
-      // Shopify checkout temporarily disabled for deployment
-      alert('Checkout functionality will be available once Shopify is configured.');
+      const client = ShopifyBuy.buildClient({
+        domain: process.env.NEXT_PUBLIC_SHOPIFY_DOMAIN!,
+        storefrontAccessToken: process.env.NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN!,
+      });
+
+      const checkout = await client.checkout.create();
       
-      // For now, just log the items that would be checked out
-      console.log('Items to checkout:', items);
+      const lineItems = items.map(item => ({
+        variantId: item.coverVariantId,
+        quantity: item.quantity,
+        customAttributes: [
+          { key: 'productType', value: item.productType },
+          { key: 'sku', value: item.coverSKU },
+          { key: 'color', value: item.selectedColor },
+          { key: 'snapStraps', value: item.snapStraps.toString() },
+          { key: 'handles', value: item.handles.toString() },
+          { key: 'magnets', value: item.magnets.toString() },
+          { key: 'premiumColorCharge', value: item.premiumColorCharge.toString() }
+        ]
+      }));
+
+      const newCheckout = await client.checkout.addLineItems(checkout.id, lineItems);
       
       clearCart();
+      window.location.href = newCheckout.webUrl;
     } catch (error) {
       console.error('Error creating checkout:', error);
       alert('Error processing checkout. Please try again.');

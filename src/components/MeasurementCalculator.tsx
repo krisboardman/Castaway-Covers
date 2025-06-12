@@ -151,8 +151,15 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
   };
 
   const lookupVariantId = (sku: string): string => {
-    // This would normally do a real lookup to your Shopify variants
-    return `gid://shopify/ProductVariant/${sku}`;
+    // For testing with your table variants
+    // You'll need to replace these with actual variant IDs from your Shopify products
+    const variantMap: Record<string, string> = {
+      'table-1': 'YOUR_TABLE_1_VARIANT_ID',
+      'table-2': 'YOUR_TABLE_2_VARIANT_ID',
+      // Add more as you create them in Shopify
+    };
+    
+    return variantMap[sku] || '';
   };
 
   const handleCalculate = () => {

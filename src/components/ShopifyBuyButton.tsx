@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import ShopifyBuy from '@shopify/buy-button-js';
 
 interface ShopifyBuyButtonProps {
   variantId: string;
@@ -21,12 +22,11 @@ const ShopifyBuyButton: React.FC<ShopifyBuyButtonProps> = ({
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    // Shopify client setup temporarily disabled for deployment
-    // const shopifyClient = ShopifyBuy.buildClient({
-    //   domain: process.env.NEXT_PUBLIC_SHOPIFY_DOMAIN!,
-    //   storefrontAccessToken: process.env.NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN!,
-    // });
-    // setClient(shopifyClient);
+    const shopifyClient = ShopifyBuy.buildClient({
+      domain: process.env.NEXT_PUBLIC_SHOPIFY_DOMAIN!,
+      storefrontAccessToken: process.env.NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN!,
+    });
+    setClient(shopifyClient);
   }, []);
 
   const handleBuyNow = async () => {
