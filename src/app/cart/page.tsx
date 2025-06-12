@@ -5,10 +5,11 @@ import Link from 'next/link';
 import { useState } from 'react';
 import Image from 'next/image';
 
-let ShopifyBuy: any;
-if (typeof window !== 'undefined') {
-  ShopifyBuy = require('@shopify/buy-button-js');
-}
+// Temporarily disabled for deployment
+// let ShopifyBuy: any;
+// if (typeof window !== 'undefined') {
+//   ShopifyBuy = require('@shopify/buy-button-js');
+// }
 
 export default function CartPage() {
   const items = useCartStore((state) => state.items);
@@ -22,16 +23,21 @@ export default function CartPage() {
 
     setLoading(true);
     try {
-      if (typeof window === 'undefined' || !ShopifyBuy) {
-        return;
-      }
+      // Temporarily disabled for deployment
+      alert('Checkout temporarily disabled while we fix deployment issues');
+      setLoading(false);
+      return;
       
-      const client = ShopifyBuy.buildClient({
-        domain: process.env.NEXT_PUBLIC_SHOPIFY_DOMAIN!,
-        storefrontAccessToken: process.env.NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN!,
-      });
+      // if (typeof window === 'undefined' || !ShopifyBuy) {
+      //   return;
+      // }
+      
+      // const client = ShopifyBuy.buildClient({
+      //   domain: process.env.NEXT_PUBLIC_SHOPIFY_DOMAIN!,
+      //   storefrontAccessToken: process.env.NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN!,
+      // });
 
-      const checkout = await client.checkout.create();
+      // const checkout = await client.checkout.create();
       
       const lineItems = items.map(item => ({
         variantId: item.coverVariantId,

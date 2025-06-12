@@ -4,10 +4,11 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import dynamic from 'next/dynamic';
 
-let ShopifyBuy: any;
-if (typeof window !== 'undefined') {
-  ShopifyBuy = require('@shopify/buy-button-js');
-}
+// Temporarily disabled for deployment
+// let ShopifyBuy: any;
+// if (typeof window !== 'undefined') {
+//   ShopifyBuy = require('@shopify/buy-button-js');
+// }
 
 interface MeasurementCalculatorProps {
   productType: string;
@@ -101,13 +102,14 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
   const [shopifyClient, setShopifyClient] = useState<any>(null);
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && ShopifyBuy) {
-      const client = ShopifyBuy.buildClient({
-        domain: process.env.NEXT_PUBLIC_SHOPIFY_DOMAIN!,
-        storefrontAccessToken: process.env.NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN!,
-      });
-      setShopifyClient(client);
-    }
+    // Temporarily disabled for deployment
+    // if (typeof window !== 'undefined' && ShopifyBuy) {
+    //   const client = ShopifyBuy.buildClient({
+    //     domain: process.env.NEXT_PUBLIC_SHOPIFY_DOMAIN!,
+    //     storefrontAccessToken: process.env.NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN!,
+    //   });
+    //   setShopifyClient(client);
+    // }
   }, []);
 
   const config = productConfigs[productType as keyof typeof productConfigs] || productConfigs.sofa;
@@ -158,26 +160,30 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
   };
 
   const lookupVariantIdBySKU = async (sku: string): Promise<string> => {
-    if (!shopifyClient) return '';
+    // Temporarily return empty string for deployment
+    console.log(`Would lookup SKU: ${sku}`);
+    return '';
     
-    try {
-      // Fetch all products
-      const products = await shopifyClient.product.fetchAll();
+    // if (!shopifyClient) return '';
+    
+    // try {
+    //   // Fetch all products
+    //   const products = await shopifyClient.product.fetchAll();
       
-      // Search through all products and their variants for matching SKU
-      for (const product of products) {
-        const variant = product.variants.find((v: any) => v.sku === sku);
-        if (variant) {
-          return variant.id;
-        }
-      }
+    //   // Search through all products and their variants for matching SKU
+    //   for (const product of products) {
+    //     const variant = product.variants.find((v: any) => v.sku === sku);
+    //     if (variant) {
+    //       return variant.id;
+    //     }
+    //   }
       
-      console.warn(`No variant found with SKU: ${sku}`);
-      return '';
-    } catch (error) {
-      console.error('Error looking up variant:', error);
-      return '';
-    }
+    //   console.warn(`No variant found with SKU: ${sku}`);
+    //   return '';
+    // } catch (error) {
+    //   console.error('Error looking up variant:', error);
+    //   return '';
+    // }
   };
 
   const handleCalculate = async () => {
