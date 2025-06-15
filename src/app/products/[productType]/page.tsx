@@ -144,9 +144,9 @@ export default function ProductPage() {
                 </div>
               )}
               
-              {magnets && productType === 'sofa' && (
+              {magnets && productType === 'sofas-loveseats' && (
                 <div className="flex justify-between">
-                  <span>Magnets ({quantity}x)</span>
+                  <span>Magnetic Closure ({quantity}x)</span>
                   <span>${(20 * quantity).toFixed(2)}</span>
                 </div>
               )}
@@ -175,7 +175,7 @@ export default function ProductPage() {
                 yards: yards.toString(),
                 snapStraps: snapStraps.toString(),
                 handles: handles.toString(),
-                magnets: magnets.toString(),
+                magneticClosure: magnets.toString(),
                 color: selectedColor,
                 premiumColorCharge: premiumColorCharge.toString()
               }}

@@ -38,7 +38,7 @@ export default function CartPage() {
           { key: 'color', value: item.selectedColor },
           { key: 'snapStraps', value: item.snapStraps.toString() },
           { key: 'handles', value: item.handles.toString() },
-          { key: 'magnets', value: item.magnets.toString() },
+          { key: 'magneticClosure', value: item.magnets.toString() },
           { key: 'premiumColorCharge', value: item.premiumColorCharge.toString() }
         ]
       }));
@@ -101,7 +101,7 @@ export default function CartPage() {
                     <div className="mt-2 space-y-1">
                       {item.snapStraps && <p className="text-sm">✓ Snap Straps</p>}
                       {item.handles && <p className="text-sm">✓ Handles</p>}
-                      {item.magnets && <p className="text-sm">✓ Magnets</p>}
+                      {item.magnets && <p className="text-sm">✓ Magnetic Closure</p>}
                     </div>
                   </div>
                   

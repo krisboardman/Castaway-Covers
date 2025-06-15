@@ -18,76 +18,93 @@ const AddOnOptions: React.FC<AddOnOptionsProps> = ({
   const [showSnapStrapImage, setShowSnapStrapImage] = useState(false);
   const [showHandlesImage, setShowHandlesImage] = useState(false);
   const [showMagnetsImage, setShowMagnetsImage] = useState(false);
+
+  // Define which options are available for each product type
+  const productOptions = {
+    'chairs-recliners': { snapStraps: true, handles: true, magneticClosure: false },
+    'sofas-loveseats': { snapStraps: true, handles: true, magneticClosure: true },
+    'chaise-lounge': { snapStraps: true, handles: true, magneticClosure: false },
+    'ottomans': { snapStraps: false, handles: true, magneticClosure: false },
+    'tables': { snapStraps: false, handles: true, magneticClosure: false },
+    'table-sets': { snapStraps: false, handles: true, magneticClosure: false }
+  };
+  
+  const options = productOptions[productType as keyof typeof productOptions] || 
+                  { snapStraps: false, handles: true, magneticClosure: false };
   return (
     <div className="bg-white p-6 rounded-lg shadow">
       <h3 className="text-lg font-semibold mb-4">Optional Add-Ons</h3>
       
       <div className="space-y-3">
-        <div>
-          <label className="flex items-center space-x-3 cursor-pointer">
-            <input
-              type="checkbox"
-              onChange={(e) => onSnapStrapsChange(e.target.checked)}
-              className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
-            />
-            <div className="flex-1">
-              <span className="font-medium">Snap Straps</span>
-              <span className="text-gray-500 ml-2">+$20 per cover</span>
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.preventDefault();
-                  setShowSnapStrapImage(!showSnapStrapImage);
-                }}
-                className="ml-2 text-blue-600 hover:text-blue-800 text-sm underline"
-              >
-                {showSnapStrapImage ? 'Hide' : 'View'} Example
-              </button>
-              <p className="text-sm text-gray-600">Secure your cover with adjustable snap straps</p>
-            </div>
-          </label>
-          {showSnapStrapImage && (
-            <div className="mt-3 ml-8 p-3 bg-gray-50 rounded">
-              <div className="h-32 bg-gray-200 rounded flex items-center justify-center">
-                <span className="text-gray-500">Snap Straps Example</span>
+        {options.snapStraps && (
+          <div>
+            <label className="flex items-center space-x-3 cursor-pointer">
+              <input
+                type="checkbox"
+                onChange={(e) => onSnapStrapsChange(e.target.checked)}
+                className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
+              />
+              <div className="flex-1">
+                <span className="font-medium">Snap Straps</span>
+                <span className="text-gray-500 ml-2">+$20 per cover</span>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setShowSnapStrapImage(!showSnapStrapImage);
+                  }}
+                  className="ml-2 text-blue-600 hover:text-blue-800 text-sm underline"
+                >
+                  {showSnapStrapImage ? 'Hide' : 'View'} Example
+                </button>
+                <p className="text-sm text-gray-600">Secure your cover with adjustable snap straps</p>
               </div>
-            </div>
-          )}
-        </div>
-        
-        <div>
-          <label className="flex items-center space-x-3 cursor-pointer">
-            <input
-              type="checkbox"
-              onChange={(e) => onHandlesChange(e.target.checked)}
-              className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
-            />
-            <div className="flex-1">
-              <span className="font-medium">Handles</span>
-              <span className="text-gray-500 ml-2">+$20 per cover</span>
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.preventDefault();
-                  setShowHandlesImage(!showHandlesImage);
-                }}
-                className="ml-2 text-blue-600 hover:text-blue-800 text-sm underline"
-              >
-                {showHandlesImage ? 'Hide' : 'View'} Example
-              </button>
-              <p className="text-sm text-gray-600">Easy-grip handles for convenient removal</p>
-            </div>
-          </label>
-          {showHandlesImage && (
-            <div className="mt-3 ml-8 p-3 bg-gray-50 rounded">
-              <div className="h-32 bg-gray-200 rounded flex items-center justify-center">
-                <span className="text-gray-500">Handles Example</span>
+            </label>
+            {showSnapStrapImage && (
+              <div className="mt-3 ml-8 p-3 bg-gray-50 rounded">
+                <div className="h-32 bg-gray-200 rounded flex items-center justify-center">
+                  <span className="text-gray-500">Snap Straps Example</span>
+                </div>
               </div>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        )}
         
-        {productType === 'sofa' && (
+        {options.handles && (
+          <div>
+            <label className="flex items-center space-x-3 cursor-pointer">
+              <input
+                type="checkbox"
+                onChange={(e) => onHandlesChange(e.target.checked)}
+                className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
+              />
+              <div className="flex-1">
+                <span className="font-medium">Handles</span>
+                <span className="text-gray-500 ml-2">+$20 per cover</span>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setShowHandlesImage(!showHandlesImage);
+                  }}
+                  className="ml-2 text-blue-600 hover:text-blue-800 text-sm underline"
+                >
+                  {showHandlesImage ? 'Hide' : 'View'} Example
+                </button>
+                <p className="text-sm text-gray-600">Easy-grip handles for convenient removal</p>
+              </div>
+            </label>
+            {showHandlesImage && (
+              <div className="mt-3 ml-8 p-3 bg-gray-50 rounded">
+                <div className="h-32 bg-gray-200 rounded flex items-center justify-center">
+                  <span className="text-gray-500">Handles Example</span>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+        
+        {options.magneticClosure && (
           <div>
             <label className="flex items-center space-x-3 cursor-pointer">
               <input
@@ -96,7 +113,7 @@ const AddOnOptions: React.FC<AddOnOptionsProps> = ({
                 className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
               />
               <div className="flex-1">
-                <span className="font-medium">Magnets</span>
+                <span className="font-medium">Magnetic Closure</span>
                 <span className="text-gray-500 ml-2">+$20 per cover</span>
                 <button
                   type="button"
@@ -114,7 +131,7 @@ const AddOnOptions: React.FC<AddOnOptionsProps> = ({
             {showMagnetsImage && (
               <div className="mt-3 ml-8 p-3 bg-gray-50 rounded">
                 <div className="h-32 bg-gray-200 rounded flex items-center justify-center">
-                  <span className="text-gray-500">Magnets Example</span>
+                  <span className="text-gray-500">Magnetic Closure Example</span>
                 </div>
               </div>
             )}
