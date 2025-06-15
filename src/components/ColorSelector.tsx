@@ -11,7 +11,7 @@ const standardColors = [
   { name: 'Classic Blue', image: 'classic blue.webp', premium: false },
   { name: 'Grey', image: 'grey.webp', premium: false },
   { name: 'Lemon', image: 'lemon.webp', premium: false },
-  { name: 'Navy', image: 'navy.webp', premium: false },
+  { name: 'Navy', image: 'Navy.webp', premium: false },
   { name: 'Wine', image: 'wine.webp', premium: false }
 ];
 
