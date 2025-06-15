@@ -34,7 +34,7 @@ const productConfigs = {
       armrestHeight: 'Ground to Top of Armrest'
     },
     hasAngle: true,
-    measurementImage: '/images/chair-measurement-guide.jpg'
+    measurementImage: '/images/Measurements/chair measurements.jpg'
   },
   'sofas-loveseats': {
     fields: ['width', 'length', 'height', 'backrestDepth', 'armrestHeight'],
@@ -46,7 +46,7 @@ const productConfigs = {
       armrestHeight: 'Ground to Top of Armrest'
     },
     hasAngle: true,
-    measurementImage: '/images/sofa-measurement-guide.jpg'
+    measurementImage: '/images/Measurements/sofa_measurements_text.jpg'
   },
   'chaise-lounge': {
     fields: ['width', 'length', 'height', 'backrestDepth', 'armrestHeight'],
@@ -58,7 +58,7 @@ const productConfigs = {
       armrestHeight: 'Ground to Top of Armrest'
     },
     hasAngle: true,
-    measurementImage: '/images/chaise-measurement-guide.jpg'
+    measurementImage: null // No image available yet
   },
   'ottomans': {
     fields: ['width', 'length', 'height'],
@@ -68,7 +68,7 @@ const productConfigs = {
       height: 'Height'
     },
     hasAngle: false,
-    measurementImage: '/images/ottoman-measurement-guide.jpg'
+    measurementImage: '/images/Measurements/ottoman measurements.jpg'
   },
   'tables': {
     fields: ['width', 'length', 'height'],
@@ -78,7 +78,7 @@ const productConfigs = {
       height: 'Height'
     },
     hasAngle: false,
-    measurementImage: '/images/table-measurement-guide.jpg'
+    measurementImage: '/images/Measurements/table measurements.jpg'
   },
   'table-sets': {
     fields: ['width', 'length', 'height'],
@@ -88,7 +88,7 @@ const productConfigs = {
       height: 'Height'
     },
     hasAngle: false,
-    measurementImage: '/images/table-measurement-guide.jpg'
+    measurementImage: '/images/Measurements/tableset measurements.jpg'
   }
 };
 
@@ -259,13 +259,24 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
       
       {showGuide && (
         <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-          <div className="h-64 bg-gray-200 rounded flex items-center justify-center">
-            <span className="text-gray-500">
-              {productType.charAt(0).toUpperCase() + productType.slice(1)} Measurement Guide
-            </span>
-          </div>
+          {config.measurementImage ? (
+            <div className="relative h-64 md:h-96 rounded overflow-hidden">
+              <Image
+                src={config.measurementImage}
+                alt={`${productType} measurement guide`}
+                fill
+                className="object-contain"
+              />
+            </div>
+          ) : (
+            <div className="h-64 bg-gray-200 rounded flex items-center justify-center">
+              <span className="text-gray-500">
+                Measurement guide not available yet
+              </span>
+            </div>
+          )}
           <p className="text-sm text-gray-600 mt-2">
-            Measure your {productType} at the widest points for each dimension
+            Measure your furniture at the widest points for each dimension
           </p>
         </div>
       )}
