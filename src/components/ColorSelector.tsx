@@ -8,7 +8,7 @@ interface ColorSelectorProps {
 }
 
 const standardColors = [
-  { name: 'Classic Blue', image: 'claasic blue.webp', premium: false },
+  { name: 'Classic Blue', image: 'classic blue.webp', premium: false },
   { name: 'Grey', image: 'grey.webp', premium: false },
   { name: 'Lemon', image: 'lemon.webp', premium: false },
   { name: 'Navy', image: 'navy.webp', premium: false },
@@ -46,7 +46,7 @@ const ColorSelector: React.FC<ColorSelectorProps> = ({ onColorSelect }) => {
             >
               <div className="relative w-full h-24">
                 <Image
-                  src={`/images/colors/${color.image}`}
+                  src={`/Colors/${color.image}`}
                   alt={color.name}
                   fill
                   className="object-cover"
