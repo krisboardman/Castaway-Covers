@@ -24,62 +24,71 @@ interface ChairMeasurements extends BaseMeasurements {
 type Measurements = BaseMeasurements | ChairMeasurements;
 
 const productConfigs = {
-  sofa: {
-    fields: ['length', 'width', 'height'],
+  'chairs-recliners': {
+    fields: ['width', 'length', 'height', 'backrestDepth', 'armrestHeight'],
     labels: {
-      length: 'Length (side to side)',
-      width: 'Width (front to back)',
-      height: 'Height (bottom to top)'
+      width: 'Width',
+      length: 'Length',
+      height: 'Height',
+      backrestDepth: 'Backrest Depth',
+      armrestHeight: 'Ground to Top of Armrest'
     },
-    measurementImage: '/images/sofa-measurement-guide.jpg'
-  },
-  chair: {
-    fields: ['length', 'width', 'height', 'backHeight', 'armHeight', 'seatDepth'],
-    labels: {
-      length: 'Width (arm to arm)',
-      width: 'Depth (front to back)',
-      height: 'Total Height',
-      backHeight: 'Back Height',
-      armHeight: 'Arm Height',
-      seatDepth: 'Seat Depth'
-    },
+    hasAngle: true,
     measurementImage: '/images/chair-measurement-guide.jpg'
   },
-  table: {
-    fields: ['length', 'width', 'height'],
+  'sofas-loveseats': {
+    fields: ['width', 'length', 'height', 'backrestDepth', 'armrestHeight'],
     labels: {
-      length: 'Length',
       width: 'Width',
-      height: 'Height'
+      length: 'Length',
+      height: 'Height',
+      backrestDepth: 'Backrest Depth',
+      armrestHeight: 'Ground to Top of Armrest'
     },
-    measurementImage: '/images/table-measurement-guide.jpg'
+    hasAngle: true,
+    measurementImage: '/images/sofa-measurement-guide.jpg'
   },
-  ottoman: {
-    fields: ['length', 'width', 'height'],
+  'chaise-lounge': {
+    fields: ['width', 'length', 'height', 'backrestDepth', 'armrestHeight'],
     labels: {
-      length: 'Length',
       width: 'Width',
+      length: 'Length',
+      height: 'Height',
+      backrestDepth: 'Backrest Depth',
+      armrestHeight: 'Ground to Top of Armrest'
+    },
+    hasAngle: true,
+    measurementImage: '/images/chaise-measurement-guide.jpg'
+  },
+  'ottomans': {
+    fields: ['width', 'length', 'height'],
+    labels: {
+      width: 'Width',
+      length: 'Length',
       height: 'Height'
     },
+    hasAngle: false,
     measurementImage: '/images/ottoman-measurement-guide.jpg'
   },
-  loveseat: {
-    fields: ['length', 'width', 'height'],
+  'tables': {
+    fields: ['width', 'length', 'height'],
     labels: {
-      length: 'Length (side to side)',
-      width: 'Width (front to back)',
-      height: 'Height (bottom to top)'
+      width: 'Width',
+      length: 'Length',
+      height: 'Height'
     },
-    measurementImage: '/images/loveseat-measurement-guide.jpg'
+    hasAngle: false,
+    measurementImage: '/images/table-measurement-guide.jpg'
   },
-  sectional: {
-    fields: ['length', 'width', 'height'],
+  'table-sets': {
+    fields: ['width', 'length', 'height'],
     labels: {
-      length: 'Total Length (all sections)',
-      width: 'Width (front to back)',
-      height: 'Height (bottom to top)'
+      width: 'Width',
+      length: 'Length',
+      height: 'Height'
     },
-    measurementImage: '/images/sectional-measurement-guide.jpg'
+    hasAngle: false,
+    measurementImage: '/images/table-measurement-guide.jpg'
   }
 };
 
@@ -88,12 +97,21 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
     length: 0,
     width: 0,
     height: 0,
-    backHeight: 0,
-    armHeight: 0,
-    seatDepth: 0
+    backrestDepth: 0,
+    armrestHeight: 0
   });
   const [showGuide, setShowGuide] = useState(false);
   const [shopifyClient, setShopifyClient] = useState<any>(null);
+
+  // Calculate angle for furniture with backrests
+  const calculateAngle = () => {
+    if (measurements.backrestDepth > 0 && measurements.height > 0 && measurements.armrestHeight > 0) {
+      const vertical = measurements.height - measurements.armrestHeight;
+      const horizontal = measurements.backrestDepth;
+      return Math.sqrt(vertical * vertical + horizontal * horizontal);
+    }
+    return 0;
+  };
 
   useEffect(() => {
     const initClient = async () => {
@@ -120,31 +138,64 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
   };
 
   const calculateYards = (measurements: any): number => {
-    let surfaceArea;
+    const { width, length, height, backrestDepth, armrestHeight } = measurements;
     
-    switch (productType) {
-      case 'chair':
-        // More complex calculation for chairs
-        surfaceArea = (measurements.length * measurements.height) + 
-                     (measurements.width * measurements.height * 2) + 
-                     (measurements.length * measurements.width) +
-                     (measurements.backHeight * measurements.length);
-        break;
-      case 'sectional':
-        // Sectionals need more fabric
-        surfaceArea = 2.5 * (measurements.length * measurements.width + 
-                           measurements.length * measurements.height + 
-                           measurements.width * measurements.height);
-        break;
-      default:
-        // Standard calculation for sofas, tables, ottomans, loveseats
-        surfaceArea = 2 * (measurements.length * measurements.width + 
-                          measurements.length * measurements.height + 
-                          measurements.width * measurements.height);
+    // Complex calculation for chairs/recliners, sofas/loveseats, and chaise lounge
+    if (productType === 'chairs-recliners' || productType === 'sofas-loveseats' || productType === 'chaise-lounge') {
+      if (!width || !length || !height || !backrestDepth || !armrestHeight) return 0;
+      
+      const angle = calculateAngle();
+      const heightAdjusted = (height - 6) * 2;
+      
+      let yardsNeeded;
+      if (width <= 54) {
+        yardsNeeded = (length + backrestDepth + angle + heightAdjusted + 
+                      (width + heightAdjusted - 54 + 1) + 1) / 36;
+      } else {
+        yardsNeeded = (length + backrestDepth + angle + heightAdjusted + 
+                      ((width + heightAdjusted - 54 + 1) * 2) + 1) / 36;
+      }
+      
+      return Math.ceil(yardsNeeded);
     }
     
-    const yardsNeeded = Math.ceil(surfaceArea / (36 * 36));
-    return Math.max(2, Math.min(10, yardsNeeded));
+    // Calculation for ottomans
+    if (productType === 'ottomans') {
+      if (!width || !length || !height) return 0;
+      
+      const lengthAdjusted = (length - 3) * 2;
+      
+      let yardsNeeded;
+      if (width <= 54) {
+        yardsNeeded = (height + lengthAdjusted + 
+                      (width + lengthAdjusted - 54 + 1) + 1) / 36;
+      } else {
+        yardsNeeded = (height + lengthAdjusted + 
+                      ((width + lengthAdjusted - 54 + 1) * 2) + 1) / 36;
+      }
+      
+      return Math.ceil(yardsNeeded);
+    }
+    
+    // Calculation for tables and table sets
+    if (productType === 'tables' || productType === 'table-sets') {
+      if (!width || !length || !height) return 0;
+      
+      const lengthAdjusted = (length - 6) * 2;
+      
+      let yardsNeeded;
+      if (width <= 54) {
+        yardsNeeded = (height + lengthAdjusted + 
+                      (width + lengthAdjusted - 54 + 1) + 1) / 36;
+      } else {
+        yardsNeeded = (height + lengthAdjusted + 
+                      ((width + lengthAdjusted - 54 + 1) * 2) + 1) / 36;
+      }
+      
+      return Math.ceil(yardsNeeded);
+    }
+    
+    return 0;
   };
 
   const calculatePrice = (yards: number): number => {
@@ -261,6 +312,21 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
             />
           </div>
         ))}
+        
+        {/* Show angle as read-only for furniture with backrests */}
+        {config.hasAngle && measurements.backrestDepth > 0 && measurements.height > 0 && measurements.armrestHeight > 0 && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Angle (calculated)
+            </label>
+            <input
+              type="text"
+              value={calculateAngle().toFixed(2)}
+              readOnly
+              className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100"
+            />
+          </div>
+        )}
       </div>
       
       <button

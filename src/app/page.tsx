@@ -29,23 +29,23 @@ export default function Home() {
           <div className="space-y-6">
             <h2 className="text-xl font-semibold text-gray-800">Shop by Product Type</h2>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 max-w-6xl mx-auto mb-8">
-              <Link href="/products/sofa" className="bg-gray-100 hover:bg-gray-200 p-4 rounded-lg text-center transition-colors">
-                <div className="text-lg font-medium">Sofa</div>
+              <Link href="/products/chairs-recliners" className="bg-gray-100 hover:bg-gray-200 p-4 rounded-lg text-center transition-colors">
+                <div className="text-lg font-medium">Chairs / Recliners</div>
               </Link>
-              <Link href="/products/chair" className="bg-gray-100 hover:bg-gray-200 p-4 rounded-lg text-center transition-colors">
-                <div className="text-lg font-medium">Chair</div>
+              <Link href="/products/sofas-loveseats" className="bg-gray-100 hover:bg-gray-200 p-4 rounded-lg text-center transition-colors">
+                <div className="text-lg font-medium">Sofas / Loveseats</div>
               </Link>
-              <Link href="/products/table" className="bg-gray-100 hover:bg-gray-200 p-4 rounded-lg text-center transition-colors">
-                <div className="text-lg font-medium">Table</div>
+              <Link href="/products/chaise-lounge" className="bg-gray-100 hover:bg-gray-200 p-4 rounded-lg text-center transition-colors">
+                <div className="text-lg font-medium">Chaise Lounge</div>
               </Link>
-              <Link href="/products/ottoman" className="bg-gray-100 hover:bg-gray-200 p-4 rounded-lg text-center transition-colors">
-                <div className="text-lg font-medium">Ottoman</div>
+              <Link href="/products/ottomans" className="bg-gray-100 hover:bg-gray-200 p-4 rounded-lg text-center transition-colors">
+                <div className="text-lg font-medium">Ottomans</div>
               </Link>
-              <Link href="/products/loveseat" className="bg-gray-100 hover:bg-gray-200 p-4 rounded-lg text-center transition-colors">
-                <div className="text-lg font-medium">Loveseat</div>
+              <Link href="/products/tables" className="bg-gray-100 hover:bg-gray-200 p-4 rounded-lg text-center transition-colors">
+                <div className="text-lg font-medium">Tables</div>
               </Link>
-              <Link href="/products/sectional" className="bg-gray-100 hover:bg-gray-200 p-4 rounded-lg text-center transition-colors">
-                <div className="text-lg font-medium">Sectional</div>
+              <Link href="/products/table-sets" className="bg-gray-100 hover:bg-gray-200 p-4 rounded-lg text-center transition-colors">
+                <div className="text-lg font-medium">Table Sets</div>
               </Link>
             </div>
             <a 

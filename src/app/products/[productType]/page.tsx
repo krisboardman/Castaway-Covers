@@ -9,12 +9,12 @@ import ShopifyBuyButton from '@/components/ShopifyBuyButton';
 import { useCartStore } from '@/store/cartStore';
 
 const productTypes = {
-  sofa: 'Sofa Covers',
-  chair: 'Chair Covers', 
-  table: 'Table Covers',
-  ottoman: 'Ottoman Covers',
-  loveseat: 'Loveseat Covers',
-  sectional: 'Sectional Covers'
+  'chairs-recliners': 'Chairs / Recliners',
+  'sofas-loveseats': 'Sofas / Loveseats',
+  'chaise-lounge': 'Chaise Lounge',
+  'ottomans': 'Ottomans',
+  'tables': 'Tables',
+  'table-sets': 'Table Sets'
 };
 
 export default function ProductPage() {
