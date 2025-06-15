@@ -8,15 +8,15 @@ interface ColorSelectorProps {
 }
 
 const standardColors = [
-  { name: 'Classic Blue', image: 'classic blue.webp', premium: false },
+  { name: 'Classic Blue', image: 'classic-blue.webp', premium: false },
   { name: 'Grey', image: 'grey.webp', premium: false },
   { name: 'Lemon', image: 'lemon.webp', premium: false },
-  { name: 'Navy', image: 'Navy.webp', premium: false },
+  { name: 'Navy', image: 'navy.webp', premium: false },
   { name: 'Wine', image: 'wine.webp', premium: false }
 ];
 
 const premiumColors = [
-  { name: 'Diamond Pacific Blue', image: 'diamond blue.webp', premium: true }
+  { name: 'Diamond Pacific Blue', image: 'diamond-blue.webp', premium: true }
 ];
 
 const ColorSelector: React.FC<ColorSelectorProps> = ({ onColorSelect }) => {
@@ -46,7 +46,7 @@ const ColorSelector: React.FC<ColorSelectorProps> = ({ onColorSelect }) => {
             >
               <div className="relative w-full h-24">
                 <Image
-                  src={`/Colors/${color.image}`}
+                  src={`/images/colors/${color.image}`}
                   alt={color.name}
                   fill
                   className="object-cover"
