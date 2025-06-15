@@ -25,3 +25,50 @@ export async function getShopifyClient() {
     return null;
   }
 }
+
+// Cache for product queries to avoid repeated API calls
+const productCache = new Map();
+
+export async function findVariantBySKU(sku: string) {
+  const client = await getShopifyClient();
+  if (!client) return null;
+
+  try {
+    // Check cache first
+    const cacheKey = `variant-${sku}`;
+    if (productCache.has(cacheKey)) {
+      return productCache.get(cacheKey);
+    }
+
+    console.log(`Searching for variant with SKU: ${sku}`);
+    
+    // Fetch all products (you might want to filter by collection if you have many products)
+    const products = await client.product.fetchAll(250); // Fetch up to 250 products
+    
+    // Search through all products and their variants
+    for (const product of products) {
+      for (const variant of product.variants) {
+        if (variant.sku === sku) {
+          console.log(`Found variant for SKU ${sku}:`, variant.id);
+          
+          // Cache the result
+          const result = {
+            variantId: variant.id,
+            price: variant.price.amount,
+            title: variant.title,
+            productTitle: product.title
+          };
+          productCache.set(cacheKey, result);
+          
+          return result;
+        }
+      }
+    }
+    
+    console.warn(`No variant found for SKU: ${sku}`);
+    return null;
+  } catch (error) {
+    console.error('Error finding variant by SKU:', error);
+    return null;
+  }
+}

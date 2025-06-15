@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { getShopifyClient } from '@/lib/shopify-client';
+import { getShopifyClient, findVariantBySKU } from '@/lib/shopify-client';
 
 interface MeasurementCalculatorProps {
   productType: string;
@@ -101,7 +101,6 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
     armrestHeight: 0
   });
   const [showGuide, setShowGuide] = useState(false);
-  const [shopifyClient, setShopifyClient] = useState<any>(null);
 
   // Calculate angle for furniture with backrests
   const calculateAngle = () => {
@@ -112,16 +111,6 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
     }
     return 0;
   };
-
-  useEffect(() => {
-    const initClient = async () => {
-      const client = await getShopifyClient();
-      if (client) {
-        setShopifyClient(client);
-      }
-    };
-    initClient();
-  }, []);
 
   const config = productConfigs[productType as keyof typeof productConfigs] || productConfigs.sofa;
 
@@ -134,7 +123,18 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
   };
 
   const generateShopifySKU = (yards: number): string => {
-    return `${productType}-${yards}`;
+    // Map our product types to Shopify SKU formats based on the CSV
+    const skuMappings: { [key: string]: string } = {
+      'chairs-recliners': 'chairs/recliners',
+      'sofas-loveseats': 'sofas-loveseats',
+      'chaise-lounge': 'Chaiselounges',
+      'ottomans': 'Ottomans',
+      'tables': 'tables',
+      'table-sets': 'tablesets'
+    };
+    
+    const shopifyProductType = skuMappings[productType] || productType;
+    return `${shopifyProductType}-${yards}`;
   };
 
   const calculateYards = (measurements: any): number => {
@@ -203,34 +203,6 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
     return yards * pricePerYard;
   };
 
-  const lookupVariantIdBySKU = async (sku: string): Promise<string> => {
-    if (!shopifyClient) {
-      alert(`No Shopify client available to lookup SKU: ${sku}`);
-      return '';
-    }
-    
-    try {
-      alert('Fetching products from Shopify...');
-      // Fetch all products
-      const products = await shopifyClient.product.fetchAll();
-      alert(`Found ${products.length} products in Shopify`);
-      
-      // Search through all products and their variants for matching SKU
-      for (const product of products) {
-        const variant = product.variants.find((v: any) => v.sku === sku);
-        if (variant) {
-          alert(`Found variant! ID: ${variant.id}`);
-          return variant.id;
-        }
-      }
-      
-      alert(`No variant found with SKU: ${sku}`);
-      return '';
-    } catch (error) {
-      alert(`Error looking up variant: ${error}`);
-      return '';
-    }
-  };
 
   const handleCalculate = async () => {
     const requiredFields = config.fields;
@@ -249,16 +221,19 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
       console.log('Display SKU:', displaySKU);
       console.log('Price:', price);
       
-      // Temporary alert to verify calculations
-      alert(`Calculated: ${yards} yards, SKU: ${shopifySKU}`);
+      // Look up the variant in Shopify
+      const variantInfo = await findVariantBySKU(shopifySKU);
       
-      const variantId = await lookupVariantIdBySKU(shopifySKU); // Lookup by SKU
-      console.log('Found variant ID:', variantId);
-      console.log('Variant ID empty?', !variantId);
-      console.log('Shopify client available?', !!shopifyClient);
-      
-      // Pass the display SKU for showing in order summary, but use Shopify SKU for lookup
-      onCalculate(displaySKU, variantId, price, yards);
+      if (variantInfo) {
+        console.log('Found variant:', variantInfo);
+        // Use the actual price from Shopify if available
+        const finalPrice = parseFloat(variantInfo.price) || price;
+        onCalculate(displaySKU, variantInfo.variantId, finalPrice, yards);
+      } else {
+        console.error('No variant found for SKU:', shopifySKU);
+        alert(`Product variant not found for ${yards} yards. Please contact support.`);
+        onCalculate(displaySKU, '', price, yards);
+      }
     }
   };
 
