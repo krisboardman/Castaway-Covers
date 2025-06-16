@@ -111,13 +111,44 @@ export default function ProductPage() {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Quantity
               </label>
-              <input
-                type="number"
-                min="1"
-                value={quantity}
-                onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md"
-              />
+              <div className="flex items-center justify-center space-x-4">
+                <button
+                  type="button"
+                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                  className="w-10 h-10 rounded-full border-2 border-gray-300 flex items-center justify-center hover:bg-gray-100 transition-colors"
+                  aria-label="Decrease quantity"
+                >
+                  <span className="text-xl">−</span>
+                </button>
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  min="1"
+                  value={quantity}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (value === '') {
+                      setQuantity(1);
+                    } else {
+                      const num = parseInt(value);
+                      if (!isNaN(num) && num > 0) {
+                        setQuantity(num);
+                      }
+                    }
+                  }}
+                  onFocus={(e) => e.target.select()}
+                  className="w-20 px-3 py-2 border border-gray-300 rounded-md text-center text-lg font-semibold"
+                />
+                <button
+                  type="button"
+                  onClick={() => setQuantity(quantity + 1)}
+                  className="w-10 h-10 rounded-full border-2 border-gray-300 flex items-center justify-center hover:bg-gray-100 transition-colors"
+                  aria-label="Increase quantity"
+                >
+                  <span className="text-xl">+</span>
+                </button>
+              </div>
             </div>
           </div>
           
