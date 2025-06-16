@@ -23,9 +23,9 @@ export default function Header() {
           </a>
           
           <nav className="flex items-center space-x-6">
-            <Link href="/" className="text-gray-700 hover:text-gray-900">
+            <a href="https://castawaycovers.com/" className="text-gray-700 hover:text-gray-900">
               Home
-            </Link>
+            </a>
             <Link href="/cart" className="relative text-gray-700 hover:text-gray-900">
               Cart
               {itemCount > 0 && (
