@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
+import Image from 'next/image';
 import MeasurementCalculator from '@/components/MeasurementCalculator';
 import AddOnOptions from '@/components/AddOnOptions';
 import ColorSelector from '@/components/ColorSelector';
