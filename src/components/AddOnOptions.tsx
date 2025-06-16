@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 
 interface AddOnOptionsProps {
   productType: string;
@@ -62,8 +63,13 @@ const AddOnOptions: React.FC<AddOnOptionsProps> = ({
             </label>
             {showSnapStrapImage && (
               <div className="mt-3 ml-8 p-3 bg-gray-50 rounded">
-                <div className="h-32 bg-gray-200 rounded flex items-center justify-center">
-                  <span className="text-gray-500">Snap Straps Example</span>
+                <div className="relative h-48 rounded overflow-hidden">
+                  <Image
+                    src="/images/Options/snap strap.JPEG"
+                    alt="Snap straps example"
+                    fill
+                    className="object-contain"
+                  />
                 </div>
               </div>
             )}
@@ -96,8 +102,13 @@ const AddOnOptions: React.FC<AddOnOptionsProps> = ({
             </label>
             {showHandlesImage && (
               <div className="mt-3 ml-8 p-3 bg-gray-50 rounded">
-                <div className="h-32 bg-gray-200 rounded flex items-center justify-center">
-                  <span className="text-gray-500">Handles Example</span>
+                <div className="relative h-48 rounded overflow-hidden">
+                  <Image
+                    src="/images/Options/handles.JPEG"
+                    alt="Handles example"
+                    fill
+                    className="object-contain"
+                  />
                 </div>
               </div>
             )}
@@ -130,8 +141,13 @@ const AddOnOptions: React.FC<AddOnOptionsProps> = ({
             </label>
             {showMagnetsImage && (
               <div className="mt-3 ml-8 p-3 bg-gray-50 rounded">
-                <div className="h-32 bg-gray-200 rounded flex items-center justify-center">
-                  <span className="text-gray-500">Magnetic Closure Example</span>
+                <div className="relative h-48 rounded overflow-hidden">
+                  <Image
+                    src="/images/Options/Magnetic-closure.png"
+                    alt="Magnetic closure example"
+                    fill
+                    className="object-contain"
+                  />
                 </div>
               </div>
             )}
