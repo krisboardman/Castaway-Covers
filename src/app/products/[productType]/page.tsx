@@ -229,49 +229,54 @@ export default function ProductPage() {
 // Product showcase component for furniture-specific images
 const ProductShowcase = ({ productType }: { productType: string }) => {
   const showcaseImages = {
-    sofa: [
-      { src: '/images/sofa-covered.jpg', alt: 'Sofa with Castaway Cover' },
-      { src: '/images/sofa-before-after.jpg', alt: 'Before and After Protection' },
-      { src: '/images/sofa-features.jpg', alt: 'Cover Features Detail' }
+    'chairs-recliners': [
+      { src: '/images/Chairs-Recliners/chair front.JPEG', alt: 'Chair with Castaway Cover - Front View' },
+      { src: '/images/Chairs-Recliners/chair back.png', alt: 'Chair Cover - Back View' },
+      { src: '/images/Chairs-Recliners/chair side bungee.JPEG', alt: 'Chair Cover - Bungee System' }
     ],
-    chair: [
-      { src: '/images/chair-covered.jpg', alt: 'Chair with Castaway Cover' },
-      { src: '/images/chair-features.jpg', alt: 'Chair Cover Features' },
-      { src: '/images/chair-installation.jpg', alt: 'Easy Installation' }
+    'sofas-loveseats': [
+      { src: '/images/Sofas-Loveseats/couch covered.png', alt: 'Sofa with Castaway Cover' },
+      { src: '/images/Sofas-Loveseats/couch bungee handle.png', alt: 'Sofa Cover - Bungee & Handle Detail' },
+      { src: '/images/Sofas-Loveseats/couch magnetic closure.PNG', alt: 'Sofa Cover - Magnetic Closure' }
     ],
-    table: [
-      { src: '/images/table-covered.jpg', alt: 'Table with Castaway Cover' },
-      { src: '/images/table-weatherproof.jpg', alt: 'Weather Protection' },
-      { src: '/images/table-features.jpg', alt: 'Table Cover Features' }
+    'chaise-lounge': [
+      { src: '/images/ChaiseLounges/chaise front side.png', alt: 'Chaise Lounge Cover - Front Side View' },
+      { src: '/images/ChaiseLounges/chaise handle.png', alt: 'Chaise Cover - Handle Detail' },
+      { src: '/images/ChaiseLounges/chaise bungee.png', alt: 'Chaise Cover - Bungee System' }
     ],
-    ottoman: [
-      { src: '/images/ottoman-covered.jpg', alt: 'Ottoman with Castaway Cover' },
-      { src: '/images/ottoman-compact.jpg', alt: 'Compact Storage' },
-      { src: '/images/ottoman-features.jpg', alt: 'Ottoman Cover Features' }
+    'ottomans': [
+      { src: '/images/Ottomans/ottoman side.jpg', alt: 'Ottoman with Castaway Cover' },
+      { src: '/images/Ottomans/ottoman handle.jpg', alt: 'Ottoman Cover - Handle Detail' },
+      { src: '/images/Ottomans/ottoman bungee.jpg', alt: 'Ottoman Cover - Bungee System' }
     ],
-    loveseat: [
-      { src: '/images/loveseat-covered.jpg', alt: 'Loveseat with Castaway Cover' },
-      { src: '/images/loveseat-protection.jpg', alt: 'Complete Protection' },
-      { src: '/images/loveseat-features.jpg', alt: 'Loveseat Cover Features' }
+    'tables': [
+      { src: '/images/Tables/table side.JPEG', alt: 'Table with Castaway Cover' },
+      { src: '/images/Tables/table handle.JPEG', alt: 'Table Cover - Handle Detail' },
+      { src: '/images/Tables/table bungee.JPEG', alt: 'Table Cover - Bungee System' }
     ],
-    sectional: [
-      { src: '/images/sectional-covered.jpg', alt: 'Sectional with Castaway Cover' },
-      { src: '/images/sectional-modular.jpg', alt: 'Modular Coverage System' },
-      { src: '/images/sectional-features.jpg', alt: 'Sectional Cover Features' }
+    'table-sets': [
+      { src: '/images/Tablesets/tableset side.JPEG', alt: 'Table Set with Castaway Cover' },
+      { src: '/images/Tablesets/tableset handle.JPEG', alt: 'Table Set Cover - Handle Detail' },
+      { src: '/images/Tablesets/tableset bungee.JPEG', alt: 'Table Set Cover - Bungee System' }
     ]
   };
 
-  const images = showcaseImages[productType as keyof typeof showcaseImages] || showcaseImages.sofa;
+  const images = showcaseImages[productType as keyof typeof showcaseImages] || showcaseImages['chairs-recliners'];
 
   return (
     <div className="grid grid-cols-1 gap-4">
       {images.map((image, index) => (
-        <div key={index} className="rounded-lg overflow-hidden">
-          <div className="h-48 bg-gray-200 flex items-center justify-center">
-            <div className="text-center">
-              <span className="text-gray-500 text-sm">{image.alt}</span>
-              <p className="text-xs text-gray-400 mt-1">Image: {image.src}</p>
-            </div>
+        <div key={index} className="rounded-lg overflow-hidden shadow-md">
+          <div className="relative h-48 md:h-64">
+            <Image
+              src={image.src}
+              alt={image.alt}
+              fill
+              className="object-cover"
+            />
+          </div>
+          <div className="p-2 bg-gray-50">
+            <p className="text-sm text-gray-600">{image.alt}</p>
           </div>
         </div>
       ))}
