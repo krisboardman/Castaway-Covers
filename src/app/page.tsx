@@ -160,6 +160,23 @@ export default function Home() {
             </div>
           </div>
         </section>
+
+        <section className="py-16 text-center">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">
+              Ready to Protect Your Furniture?
+            </h2>
+            <p className="text-lg text-gray-600 mb-8">
+              Use our custom design tool to create the perfect cover for your patio furniture
+            </p>
+            <a 
+              href="https://castawaycovers.com/design-my-cover/" 
+              className="inline-block bg-black text-white px-8 py-3 rounded-lg text-lg font-semibold hover:bg-gray-800 transition-colors"
+            >
+              Design My Cover
+            </a>
+          </div>
+        </section>
       </main>
 
       <footer className="bg-gray-50 py-12">
