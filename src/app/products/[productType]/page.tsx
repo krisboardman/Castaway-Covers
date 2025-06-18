@@ -28,6 +28,7 @@ export default function ProductPage() {
   const [coverPrice, setCoverPrice] = useState(0);
   const [yards, setYards] = useState(0);
   const [angle, setAngle] = useState(0);
+  const [measurements, setMeasurements] = useState<any>({});
   
   const [snapStraps, setSnapStraps] = useState(false);
   const [handles, setHandles] = useState(false);
@@ -87,12 +88,13 @@ export default function ProductPage() {
           <div className="space-y-6">
             <MeasurementCalculator
               productType={productType}
-              onCalculate={(sku, variantId, price, yardsNeeded, calculatedAngle) => {
+              onCalculate={(sku, variantId, price, yardsNeeded, calculatedAngle, allMeasurements) => {
                 setCoverSKU(sku);
                 setCoverVariantId(variantId);
                 setCoverPrice(price);
                 setYards(yardsNeeded);
                 setAngle(calculatedAngle);
+                setMeasurements(allMeasurements);
               }}
             />
             
@@ -208,6 +210,11 @@ export default function ProductPage() {
                 sku: coverSKU,
                 yards: yards.toString(),
                 angle: angle.toFixed(2),
+                width: measurements.width?.toString() || '0',
+                length: measurements.length?.toString() || '0',
+                height: measurements.height?.toString() || '0',
+                backrestDepth: measurements.backrestDepth?.toString() || '0',
+                armrestHeight: measurements.armrestHeight?.toString() || '0',
                 snapStraps: snapStraps.toString(),
                 handles: handles.toString(),
                 magneticClosure: magnets.toString(),

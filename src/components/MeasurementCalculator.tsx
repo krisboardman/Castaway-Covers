@@ -6,7 +6,7 @@ import { getShopifyClient, findVariantBySKU } from '@/lib/shopify-client';
 
 interface MeasurementCalculatorProps {
   productType: string;
-  onCalculate: (sku: string, variantId: string, price: number, yards: number, angle: number) => void;
+  onCalculate: (sku: string, variantId: string, price: number, yards: number, angle: number, measurements: any) => void;
 }
 
 interface BaseMeasurements {
@@ -229,12 +229,12 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
         // Use the actual price from Shopify if available
         const finalPrice = parseFloat(variantInfo.price) || price;
         const angle = config.hasAngle ? calculateAngle() : 0;
-        onCalculate(displaySKU, variantInfo.variantId, finalPrice, yards, angle);
+        onCalculate(displaySKU, variantInfo.variantId, finalPrice, yards, angle, measurements);
       } else {
         console.error('No variant found for SKU:', shopifySKU);
         alert(`Product variant not found for ${yards} yards. Please contact support.`);
         const angle = config.hasAngle ? calculateAngle() : 0;
-        onCalculate(displaySKU, '', price, yards, angle);
+        onCalculate(displaySKU, '', price, yards, angle, measurements);
       }
     }
   };
