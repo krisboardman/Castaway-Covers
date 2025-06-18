@@ -27,6 +27,7 @@ export default function ProductPage() {
   const [coverVariantId, setCoverVariantId] = useState('');
   const [coverPrice, setCoverPrice] = useState(0);
   const [yards, setYards] = useState(0);
+  const [angle, setAngle] = useState(0);
   
   const [snapStraps, setSnapStraps] = useState(false);
   const [handles, setHandles] = useState(false);
@@ -86,11 +87,12 @@ export default function ProductPage() {
           <div className="space-y-6">
             <MeasurementCalculator
               productType={productType}
-              onCalculate={(sku, variantId, price, yardsNeeded) => {
+              onCalculate={(sku, variantId, price, yardsNeeded, calculatedAngle) => {
                 setCoverSKU(sku);
                 setCoverVariantId(variantId);
                 setCoverPrice(price);
                 setYards(yardsNeeded);
+                setAngle(calculatedAngle);
               }}
             />
             
@@ -205,6 +207,7 @@ export default function ProductPage() {
                 productType,
                 sku: coverSKU,
                 yards: yards.toString(),
+                angle: angle.toFixed(2),
                 snapStraps: snapStraps.toString(),
                 handles: handles.toString(),
                 magneticClosure: magnets.toString(),
@@ -231,7 +234,7 @@ export default function ProductPage() {
 const ProductShowcase = ({ productType }: { productType: string }) => {
   const showcaseImages = {
     'chairs-recliners': [
-      { src: '/images/Chairs-Recliners/chair front.JPEG', alt: 'Chair with Castaway Cover - Front View' },
+      { src: '/images/Chairs-Recliners/chair front.jpg', alt: 'Chair with Castaway Cover - Front View' },
       { src: '/images/Chairs-Recliners/chair back.png', alt: 'Chair Cover - Back View' },
       { src: '/images/Chairs-Recliners/chair side bungee.JPEG', alt: 'Chair Cover - Bungee System' }
     ],

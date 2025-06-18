@@ -6,7 +6,7 @@ import { getShopifyClient, findVariantBySKU } from '@/lib/shopify-client';
 
 interface MeasurementCalculatorProps {
   productType: string;
-  onCalculate: (sku: string, variantId: string, price: number, yards: number) => void;
+  onCalculate: (sku: string, variantId: string, price: number, yards: number, angle: number) => void;
 }
 
 interface BaseMeasurements {
@@ -228,11 +228,13 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
         console.log('Found variant:', variantInfo);
         // Use the actual price from Shopify if available
         const finalPrice = parseFloat(variantInfo.price) || price;
-        onCalculate(displaySKU, variantInfo.variantId, finalPrice, yards);
+        const angle = config.hasAngle ? calculateAngle() : 0;
+        onCalculate(displaySKU, variantInfo.variantId, finalPrice, yards, angle);
       } else {
         console.error('No variant found for SKU:', shopifySKU);
         alert(`Product variant not found for ${yards} yards. Please contact support.`);
-        onCalculate(displaySKU, '', price, yards);
+        const angle = config.hasAngle ? calculateAngle() : 0;
+        onCalculate(displaySKU, '', price, yards, angle);
       }
     }
   };
@@ -299,20 +301,7 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
           </div>
         ))}
         
-        {/* Show angle as read-only for furniture with backrests */}
-        {config.hasAngle && measurements.backrestDepth > 0 && measurements.height > 0 && measurements.armrestHeight > 0 && (
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Angle (calculated)
-            </label>
-            <input
-              type="text"
-              value={calculateAngle().toFixed(2)}
-              readOnly
-              className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100"
-            />
-          </div>
-        )}
+        {/* Angle is calculated internally but not shown to customers */}
       </div>
       
       <button
