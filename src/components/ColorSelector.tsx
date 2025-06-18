@@ -9,9 +9,14 @@ interface ColorSelectorProps {
 
 const standardColors = [
   { name: 'Classic Blue', image: 'classic-blue.webp', premium: false },
+  { name: 'Cream', image: 'cream.webp', premium: false },
+  { name: 'Green', image: 'green.webp', premium: false },
   { name: 'Grey', image: 'grey.webp', premium: false },
   { name: 'Lemon', image: 'lemon.webp', premium: false },
+  { name: 'Light Brown', image: 'light-brown.webp', premium: false },
+  { name: 'Mist Grey', image: 'mist-grey.webp', premium: false },
   { name: 'Navy', image: 'navy.webp', premium: false },
+  { name: 'Sand Dune', image: 'sand-dune.webp', premium: false },
   { name: 'Wine', image: 'wine.webp', premium: false }
 ];
 
