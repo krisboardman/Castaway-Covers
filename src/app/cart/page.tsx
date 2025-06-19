@@ -26,65 +26,84 @@ export default function CartPage() {
         });
       });
       
-      // Create a form to submit multiple items
-      const form = document.createElement('form');
-      form.method = 'POST';
-      form.action = `https://${process.env.NEXT_PUBLIC_SHOPIFY_DOMAIN}/cart/add`;
+      // For multiple items, we need to submit them individually
+      // Create a hidden iframe to submit forms without redirecting
+      const iframe = document.createElement('iframe');
+      iframe.style.display = 'none';
+      iframe.name = 'hidden-frame';
+      document.body.appendChild(iframe);
       
-      // Add each item to the form
-      items.forEach((item, index) => {
-        // Skip items without variant IDs
-        if (!item.coverVariantId) {
-          console.error('Missing variant ID for item:', item);
-          return;
+      // Function to add items sequentially
+      const addItemsSequentially = async () => {
+        for (let i = 0; i < items.length; i++) {
+          const item = items[i];
+          
+          if (!item.coverVariantId) {
+            console.error('Missing variant ID for item:', item);
+            continue;
+          }
+          
+          console.log(`Adding item ${i} to Shopify cart:`, item.coverVariantId);
+          
+          // Create a form for this single item
+          const itemForm = document.createElement('form');
+          itemForm.method = 'POST';
+          itemForm.action = `https://${process.env.NEXT_PUBLIC_SHOPIFY_DOMAIN}/cart/add`;
+          itemForm.target = 'hidden-frame'; // Submit to hidden iframe
+          
+          // Add variant ID
+          const idInput = document.createElement('input');
+          idInput.type = 'hidden';
+          idInput.name = 'id';
+          idInput.value = item.coverVariantId;
+          itemForm.appendChild(idInput);
+          
+          // Add quantity
+          const qtyInput = document.createElement('input');
+          qtyInput.type = 'hidden';
+          qtyInput.name = 'quantity';
+          qtyInput.value = item.quantity.toString();
+          itemForm.appendChild(qtyInput);
+          
+          // Add custom properties
+          const properties = {
+            productType: item.productType,
+            sku: item.coverSKU,
+            yards: item.yards.toString(),
+            color: item.selectedColor,
+            snapStraps: item.snapStraps.toString(),
+            handles: item.handles.toString(),
+            magneticClosure: item.magnets.toString(),
+            premiumColorCharge: item.premiumColorCharge.toString()
+          };
+          
+          Object.entries(properties).forEach(([key, value]) => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = `properties[${key}]`;
+            input.value = value;
+            itemForm.appendChild(input);
+          });
+          
+          // Submit this item
+          document.body.appendChild(itemForm);
+          itemForm.submit();
+          
+          // Wait a bit before submitting next item
+          await new Promise(resolve => setTimeout(resolve, 500));
+          
+          // Clean up
+          document.body.removeChild(itemForm);
         }
         
-        console.log(`Adding to form - Item ${index} variant ID:`, item.coverVariantId);
-        
-        // Variant ID
-        const idInput = document.createElement('input');
-        idInput.type = 'hidden';
-        idInput.name = `items[${index}][id]`;
-        idInput.value = item.coverVariantId;
-        form.appendChild(idInput);
-        
-        // Quantity
-        const qtyInput = document.createElement('input');
-        qtyInput.type = 'hidden';
-        qtyInput.name = `items[${index}][quantity]`;
-        qtyInput.value = item.quantity.toString();
-        form.appendChild(qtyInput);
-        
-        // Custom properties
-        const properties = {
-          productType: item.productType,
-          sku: item.coverSKU,
-          yards: item.yards.toString(),
-          color: item.selectedColor,
-          snapStraps: item.snapStraps.toString(),
-          handles: item.handles.toString(),
-          magneticClosure: item.magnets.toString(),
-          premiumColorCharge: item.premiumColorCharge.toString()
-        };
-        
-        Object.entries(properties).forEach(([key, value]) => {
-          const input = document.createElement('input');
-          input.type = 'hidden';
-          input.name = `items[${index}][properties][${key}]`;
-          input.value = value;
-          form.appendChild(input);
-        });
-      });
+        // After all items are added, redirect to cart
+        setTimeout(() => {
+          window.location.href = `https://${process.env.NEXT_PUBLIC_SHOPIFY_DOMAIN}/cart`;
+        }, 1000);
+      };
       
-      // Don't add return_to - let Shopify handle the redirect
-      // This should keep us on the cart page with items added
-      
-      // Don't clear cart here - let user do it manually after successful checkout
-      // clearCart();
-      
-      // Submit the form
-      document.body.appendChild(form);
-      form.submit();
+      // Start adding items
+      addItemsSequentially();
     } catch (error) {
       console.error('Error creating checkout:', error);
       alert('Error processing checkout. Please try again.');
