@@ -17,6 +17,8 @@ export default function CartPage() {
 
     setLoading(true);
     try {
+      console.log('Cart items to submit:', items);
+      
       // Create a form to submit multiple items
       const form = document.createElement('form');
       form.method = 'POST';
@@ -24,6 +26,12 @@ export default function CartPage() {
       
       // Add each item to the form
       items.forEach((item, index) => {
+        // Skip items without variant IDs
+        if (!item.coverVariantId) {
+          console.error('Missing variant ID for item:', item);
+          return;
+        }
+        
         // Variant ID
         const idInput = document.createElement('input');
         idInput.type = 'hidden';
@@ -66,8 +74,8 @@ export default function CartPage() {
       returnInput.value = '/cart';
       form.appendChild(returnInput);
       
-      // Clear local cart
-      clearCart();
+      // Don't clear cart here - let user do it manually after successful checkout
+      // clearCart();
       
       // Submit the form
       document.body.appendChild(form);
