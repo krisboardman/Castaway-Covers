@@ -34,6 +34,9 @@ const ShopifyBuyButton: React.FC<ShopifyBuyButtonProps> = ({
   const handleBuyNow = async () => {
     if (!variantId || disabled) return;
 
+    console.log('Variant ID:', variantId);
+    console.log('Variant ID type:', typeof variantId);
+
     setLoading(true);
     try {
       // Create a form and submit it to avoid CORS issues

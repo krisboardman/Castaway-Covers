@@ -51,9 +51,17 @@ export async function findVariantBySKU(sku: string) {
         if (variant.sku === sku) {
           console.log(`Found variant for SKU ${sku}:`, variant.id);
           
+          // Extract numeric ID from the base64 encoded variant ID
+          // Shopify returns IDs like "gid://shopify/ProductVariant/1234567890"
+          const variantIdString = variant.id.toString();
+          const numericId = variantIdString.split('/').pop() || variantIdString;
+          
+          console.log('Full variant ID:', variant.id);
+          console.log('Extracted numeric ID:', numericId);
+          
           // Cache the result
           const result = {
-            variantId: variant.id,
+            variantId: numericId,
             price: variant.price.amount,
             title: variant.title,
             productTitle: product.title
