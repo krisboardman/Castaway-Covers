@@ -59,11 +59,11 @@ export default function CartPage() {
         });
       });
       
-      // Add return_to parameter to go to checkout
+      // Add return_to parameter to go to cart
       const returnInput = document.createElement('input');
       returnInput.type = 'hidden';
       returnInput.name = 'return_to';
-      returnInput.value = '/checkout';
+      returnInput.value = '/cart';
       form.appendChild(returnInput);
       
       // Clear local cart
