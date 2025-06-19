@@ -48,28 +48,18 @@ export default function CartPage() {
         };
       }).filter(Boolean);
       
-      // Build query string for cart
-      const params = new URLSearchParams();
+      // Use Shopify's cart permalink format: /cart/variantId:quantity,variantId:quantity
+      const cartString = cartItems.map(item => `${item.id}:${item.quantity}`).join(',');
       
-      cartItems.forEach((item, index) => {
-        params.append(`items[${index}][id]`, item.id);
-        params.append(`items[${index}][quantity]`, item.quantity.toString());
-        
-        // Add properties
-        Object.entries(item.properties).forEach(([key, value]) => {
-          params.append(`items[${index}][properties][${key}]`, value);
-        });
-      });
-      
-      // Use Shopify's cart add URL with GET parameters
-      const cartUrl = `https://${process.env.NEXT_PUBLIC_SHOPIFY_DOMAIN}/cart/add?${params.toString()}`;
+      // Create the cart URL
+      const cartUrl = `https://${process.env.NEXT_PUBLIC_SHOPIFY_DOMAIN}/cart/${cartString}`;
       
       console.log('Redirecting to cart URL:', cartUrl);
       
-      // Don't clear cart yet - wait for successful checkout
-      // clearCart();
+      // Clear local cart
+      clearCart();
       
-      // Redirect to add items and go to cart
+      // Redirect directly to cart with items
       window.location.href = cartUrl;
     } catch (error) {
       console.error('Error creating checkout:', error);
