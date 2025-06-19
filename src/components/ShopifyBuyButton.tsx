@@ -67,15 +67,13 @@ const ShopifyBuyButton: React.FC<ShopifyBuyButtonProps> = ({
         form.appendChild(input);
       });
       
-      // Add return_to parameter to go directly to cart (checkout is deprecated)
-      const returnInput = document.createElement('input');
-      returnInput.type = 'hidden';
-      returnInput.name = 'return_to';
-      returnInput.value = '/cart';
-      form.appendChild(returnInput);
+      // Don't add return_to - let Shopify handle the redirect
       
       // Add to local cart before submitting
       onAddToCart();
+      
+      console.log('Submitting to Shopify - Variant ID:', variantId);
+      console.log('Form action:', form.action);
       
       // Submit the form
       document.body.appendChild(form);

@@ -18,6 +18,13 @@ export default function CartPage() {
     setLoading(true);
     try {
       console.log('Cart items to submit:', items);
+      items.forEach((item, index) => {
+        console.log(`Item ${index}:`, {
+          variantId: item.coverVariantId,
+          quantity: item.quantity,
+          productType: item.productType
+        });
+      });
       
       // Create a form to submit multiple items
       const form = document.createElement('form');
@@ -31,6 +38,8 @@ export default function CartPage() {
           console.error('Missing variant ID for item:', item);
           return;
         }
+        
+        console.log(`Adding to form - Item ${index} variant ID:`, item.coverVariantId);
         
         // Variant ID
         const idInput = document.createElement('input');
@@ -67,12 +76,8 @@ export default function CartPage() {
         });
       });
       
-      // Add return_to parameter to go to cart
-      const returnInput = document.createElement('input');
-      returnInput.type = 'hidden';
-      returnInput.name = 'return_to';
-      returnInput.value = '/cart';
-      form.appendChild(returnInput);
+      // Don't add return_to - let Shopify handle the redirect
+      // This should keep us on the cart page with items added
       
       // Don't clear cart here - let user do it manually after successful checkout
       // clearCart();
