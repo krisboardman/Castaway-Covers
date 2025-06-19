@@ -17,44 +17,64 @@ export default function CartPage() {
 
     setLoading(true);
     try {
-      // Clear existing cart first
-      await fetch(`https://${process.env.NEXT_PUBLIC_SHOPIFY_DOMAIN}/cart/clear.js`, {
-        method: 'POST'
-      });
-
-      // Add all items to Shopify cart
-      for (const item of items) {
-        const formData = new FormData();
-        formData.append('id', item.coverVariantId);
-        formData.append('quantity', item.quantity.toString());
-        
-        // Add custom properties
-        formData.append('properties[productType]', item.productType);
-        formData.append('properties[sku]', item.coverSKU);
-        formData.append('properties[yards]', item.yards.toString());
-        formData.append('properties[color]', item.selectedColor);
-        formData.append('properties[snapStraps]', item.snapStraps.toString());
-        formData.append('properties[handles]', item.handles.toString());
-        formData.append('properties[magneticClosure]', item.magnets.toString());
-        formData.append('properties[premiumColorCharge]', item.premiumColorCharge.toString());
-
-        const response = await fetch(`https://${process.env.NEXT_PUBLIC_SHOPIFY_DOMAIN}/cart/add.js`, {
-          method: 'POST',
-          body: formData
-        });
-
-        if (!response.ok) {
-          throw new Error('Failed to add item to cart');
-        }
-      }
+      // Create a form to submit multiple items
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = `https://${process.env.NEXT_PUBLIC_SHOPIFY_DOMAIN}/cart/add`;
       
+      // Add each item to the form
+      items.forEach((item, index) => {
+        // Variant ID
+        const idInput = document.createElement('input');
+        idInput.type = 'hidden';
+        idInput.name = `items[${index}][id]`;
+        idInput.value = item.coverVariantId;
+        form.appendChild(idInput);
+        
+        // Quantity
+        const qtyInput = document.createElement('input');
+        qtyInput.type = 'hidden';
+        qtyInput.name = `items[${index}][quantity]`;
+        qtyInput.value = item.quantity.toString();
+        form.appendChild(qtyInput);
+        
+        // Custom properties
+        const properties = {
+          productType: item.productType,
+          sku: item.coverSKU,
+          yards: item.yards.toString(),
+          color: item.selectedColor,
+          snapStraps: item.snapStraps.toString(),
+          handles: item.handles.toString(),
+          magneticClosure: item.magnets.toString(),
+          premiumColorCharge: item.premiumColorCharge.toString()
+        };
+        
+        Object.entries(properties).forEach(([key, value]) => {
+          const input = document.createElement('input');
+          input.type = 'hidden';
+          input.name = `items[${index}][properties][${key}]`;
+          input.value = value;
+          form.appendChild(input);
+        });
+      });
+      
+      // Add return_to parameter to go to checkout
+      const returnInput = document.createElement('input');
+      returnInput.type = 'hidden';
+      returnInput.name = 'return_to';
+      returnInput.value = '/checkout';
+      form.appendChild(returnInput);
+      
+      // Clear local cart
       clearCart();
-      // Redirect to Shopify checkout
-      window.location.href = `https://${process.env.NEXT_PUBLIC_SHOPIFY_DOMAIN}/checkout`;
+      
+      // Submit the form
+      document.body.appendChild(form);
+      form.submit();
     } catch (error) {
       console.error('Error creating checkout:', error);
       alert('Error processing checkout. Please try again.');
-    } finally {
       setLoading(false);
     }
   };

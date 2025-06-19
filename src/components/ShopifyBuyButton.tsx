@@ -36,35 +36,50 @@ const ShopifyBuyButton: React.FC<ShopifyBuyButtonProps> = ({
 
     setLoading(true);
     try {
-      // Create form data for direct checkout
-      const formData = new FormData();
-      formData.append('id', variantId);
-      formData.append('quantity', quantity.toString());
+      // Create a form and submit it to avoid CORS issues
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = `https://${process.env.NEXT_PUBLIC_SHOPIFY_DOMAIN}/cart/add`;
       
-      // Add custom attributes as properties
+      // Add variant ID
+      const idInput = document.createElement('input');
+      idInput.type = 'hidden';
+      idInput.name = 'id';
+      idInput.value = variantId;
+      form.appendChild(idInput);
+      
+      // Add quantity
+      const qtyInput = document.createElement('input');
+      qtyInput.type = 'hidden';
+      qtyInput.name = 'quantity';
+      qtyInput.value = quantity.toString();
+      form.appendChild(qtyInput);
+      
+      // Add custom attributes
       Object.entries(customAttributes).forEach(([key, value]) => {
-        formData.append(`properties[${key}]`, value);
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = `properties[${key}]`;
+        input.value = value;
+        form.appendChild(input);
       });
-
-      // Post directly to Shopify cart
-      const response = await fetch(`https://${process.env.NEXT_PUBLIC_SHOPIFY_DOMAIN}/cart/add.js`, {
-        method: 'POST',
-        body: formData
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to add to cart');
-      }
-
-      // Also add to local cart
+      
+      // Add return_to parameter to go directly to checkout
+      const returnInput = document.createElement('input');
+      returnInput.type = 'hidden';
+      returnInput.name = 'return_to';
+      returnInput.value = '/checkout';
+      form.appendChild(returnInput);
+      
+      // Add to local cart before submitting
       onAddToCart();
       
-      // Redirect to Shopify checkout
-      window.location.href = `https://${process.env.NEXT_PUBLIC_SHOPIFY_DOMAIN}/checkout`;
+      // Submit the form
+      document.body.appendChild(form);
+      form.submit();
     } catch (error) {
       console.error('Error creating checkout:', error);
       alert('Error adding to cart. Please try again.');
-    } finally {
       setLoading(false);
     }
   };
