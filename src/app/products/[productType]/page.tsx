@@ -66,6 +66,8 @@ export default function ProductPage() {
       coverVariantId,
       coverPrice,
       yards,
+      angle,
+      measurements,
       snapStraps,
       handles,
       magnets,

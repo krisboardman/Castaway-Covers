@@ -19,21 +19,46 @@ export default function CartPage() {
     try {
       console.log('Cart items to submit:', items);
       
-      // Create the checkout URL with all items as URL parameters
-      const checkoutUrl = new URL(`https://${process.env.NEXT_PUBLIC_SHOPIFY_DOMAIN}/cart`);
+      // Create a form to submit to Shopify
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = `https://${process.env.NEXT_PUBLIC_SHOPIFY_DOMAIN}/cart/add`;
       
-      // Build the cart permalink with all items
-      const cartItems = items.map((item, index) => {
+      // Add all items to the form
+      items.forEach((item, index) => {
         if (!item.coverVariantId) {
           console.error('Missing variant ID for item:', item);
-          return null;
+          return;
         }
         
-        // Build properties string
+        // For multiple items, use array notation
+        const prefix = items.length > 1 ? `items[${index}]` : '';
+        
+        // Add variant ID
+        const idInput = document.createElement('input');
+        idInput.type = 'hidden';
+        idInput.name = prefix ? `${prefix}[id]` : 'id';
+        idInput.value = item.coverVariantId;
+        form.appendChild(idInput);
+        
+        // Add quantity
+        const qtyInput = document.createElement('input');
+        qtyInput.type = 'hidden';
+        qtyInput.name = prefix ? `${prefix}[quantity]` : 'quantity';
+        qtyInput.value = item.quantity.toString();
+        form.appendChild(qtyInput);
+        
+        // Add all custom properties including measurements
         const properties = {
           productType: item.productType,
           sku: item.coverSKU,
           yards: item.yards.toString(),
+          width: item.measurements?.width?.toString() || '0',
+          length: item.measurements?.length?.toString() || '0',
+          height: item.measurements?.height?.toString() || '0',
+          backrestDepth: item.measurements?.backrestDepth?.toString() || '0',
+          armrestHeight: item.measurements?.armrestHeight?.toString() || '0',
+          angle: item.angle?.toString() || '0',
           color: item.selectedColor,
           snapStraps: item.snapStraps.toString(),
           handles: item.handles.toString(),
@@ -41,26 +66,30 @@ export default function CartPage() {
           premiumColorCharge: item.premiumColorCharge.toString()
         };
         
-        return {
-          id: item.coverVariantId,
-          quantity: item.quantity,
-          properties
-        };
-      }).filter(Boolean);
+        Object.entries(properties).forEach(([key, value]) => {
+          const input = document.createElement('input');
+          input.type = 'hidden';
+          input.name = prefix ? `${prefix}[properties][${key}]` : `properties[${key}]`;
+          input.value = value;
+          form.appendChild(input);
+        });
+      });
       
-      // Use Shopify's cart permalink format: /cart/variantId:quantity,variantId:quantity
-      const cartString = cartItems.map(item => `${item.id}:${item.quantity}`).join(',');
+      // Add return to cart
+      const returnInput = document.createElement('input');
+      returnInput.type = 'hidden';
+      returnInput.name = 'return_to';
+      returnInput.value = '/cart';
+      form.appendChild(returnInput);
       
-      // Create the cart URL
-      const cartUrl = `https://${process.env.NEXT_PUBLIC_SHOPIFY_DOMAIN}/cart/${cartString}`;
+      console.log('Submitting form with custom properties');
       
-      console.log('Redirecting to cart URL:', cartUrl);
-      
-      // Clear local cart
+      // Clear local cart after form is ready
       clearCart();
       
-      // Redirect directly to cart with items
-      window.location.href = cartUrl;
+      // Submit the form
+      document.body.appendChild(form);
+      form.submit();
     } catch (error) {
       console.error('Error creating checkout:', error);
       alert('Error processing checkout. Please try again.');

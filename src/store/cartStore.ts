@@ -8,6 +8,14 @@ interface CartItem {
   coverVariantId: string;
   coverPrice: number;
   yards: number;
+  angle?: number;
+  measurements?: {
+    width: number;
+    length: number;
+    height: number;
+    backrestDepth?: number;
+    armrestHeight?: number;
+  };
   snapStraps: boolean;
   handles: boolean;
   magnets: boolean;
