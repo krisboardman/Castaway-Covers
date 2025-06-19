@@ -4,7 +4,6 @@ import { useCartStore } from '@/store/cartStore';
 import Link from 'next/link';
 import { useState } from 'react';
 import Image from 'next/image';
-import { getShopifyClient } from '@/lib/shopify-client';
 
 export default function CartPage() {
   const items = useCartStore((state) => state.items);
@@ -18,35 +17,40 @@ export default function CartPage() {
 
     setLoading(true);
     try {
-      const client = await getShopifyClient();
-      
-      if (!client) {
-        alert('Unable to connect to checkout. Please try again.');
-        setLoading(false);
-        return;
+      // Clear existing cart first
+      await fetch(`https://${process.env.NEXT_PUBLIC_SHOPIFY_DOMAIN}/cart/clear.js`, {
+        method: 'POST'
+      });
+
+      // Add all items to Shopify cart
+      for (const item of items) {
+        const formData = new FormData();
+        formData.append('id', item.coverVariantId);
+        formData.append('quantity', item.quantity.toString());
+        
+        // Add custom properties
+        formData.append('properties[productType]', item.productType);
+        formData.append('properties[sku]', item.coverSKU);
+        formData.append('properties[yards]', item.yards.toString());
+        formData.append('properties[color]', item.selectedColor);
+        formData.append('properties[snapStraps]', item.snapStraps.toString());
+        formData.append('properties[handles]', item.handles.toString());
+        formData.append('properties[magneticClosure]', item.magnets.toString());
+        formData.append('properties[premiumColorCharge]', item.premiumColorCharge.toString());
+
+        const response = await fetch(`https://${process.env.NEXT_PUBLIC_SHOPIFY_DOMAIN}/cart/add.js`, {
+          method: 'POST',
+          body: formData
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to add item to cart');
+        }
       }
-
-      const checkout = await client.checkout.create();
-      
-      const lineItems = items.map(item => ({
-        variantId: item.coverVariantId,
-        quantity: item.quantity,
-        customAttributes: [
-          { key: 'productType', value: item.productType },
-          { key: 'sku', value: item.coverSKU },
-          { key: 'yards', value: item.yards.toString() },
-          { key: 'color', value: item.selectedColor },
-          { key: 'snapStraps', value: item.snapStraps.toString() },
-          { key: 'handles', value: item.handles.toString() },
-          { key: 'magneticClosure', value: item.magnets.toString() },
-          { key: 'premiumColorCharge', value: item.premiumColorCharge.toString() }
-        ]
-      }));
-
-      const newCheckout = await client.checkout.addLineItems(checkout.id, lineItems);
       
       clearCart();
-      window.location.href = newCheckout.webUrl;
+      // Redirect to Shopify checkout
+      window.location.href = `https://${process.env.NEXT_PUBLIC_SHOPIFY_DOMAIN}/checkout`;
     } catch (error) {
       console.error('Error creating checkout:', error);
       alert('Error processing checkout. Please try again.');

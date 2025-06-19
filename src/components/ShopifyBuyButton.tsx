@@ -32,28 +32,35 @@ const ShopifyBuyButton: React.FC<ShopifyBuyButtonProps> = ({
   }, []);
 
   const handleBuyNow = async () => {
-    if (!client || !variantId || disabled) return;
+    if (!variantId || disabled) return;
 
     setLoading(true);
     try {
-      const checkout = await client.checkout.create();
+      // Create form data for direct checkout
+      const formData = new FormData();
+      formData.append('id', variantId);
+      formData.append('quantity', quantity.toString());
       
-      const lineItemsToAdd = [{
-        variantId,
-        quantity,
-        customAttributes: Object.entries(customAttributes).map(([key, value]) => ({
-          key,
-          value
-        }))
-      }];
+      // Add custom attributes as properties
+      Object.entries(customAttributes).forEach(([key, value]) => {
+        formData.append(`properties[${key}]`, value);
+      });
 
-      const newCheckout = await client.checkout.addLineItems(checkout.id, lineItemsToAdd);
-      
+      // Post directly to Shopify cart
+      const response = await fetch(`https://${process.env.NEXT_PUBLIC_SHOPIFY_DOMAIN}/cart/add.js`, {
+        method: 'POST',
+        body: formData
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to add to cart');
+      }
+
       // Also add to local cart
       onAddToCart();
       
       // Redirect to Shopify checkout
-      window.location.href = newCheckout.webUrl;
+      window.location.href = `https://${process.env.NEXT_PUBLIC_SHOPIFY_DOMAIN}/checkout`;
     } catch (error) {
       console.error('Error creating checkout:', error);
       alert('Error adding to cart. Please try again.');
