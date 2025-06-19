@@ -19,77 +19,41 @@ export default function CartPage() {
     try {
       console.log('Cart items to submit:', items);
       
-      // Create a form to submit to Shopify
-      const form = document.createElement('form');
-      form.method = 'POST';
-      form.action = `https://${process.env.NEXT_PUBLIC_SHOPIFY_DOMAIN}/cart/add`;
+      // Build cart note with all custom properties
+      const cartNote = items.map((item, index) => {
+        const props = [
+          `Item ${index + 1}:`,
+          `Product Type: ${item.productType}`,
+          `SKU: ${item.coverSKU}`,
+          `Yards: ${item.yards}`,
+          `Width: ${item.measurements?.width || 0}`,
+          `Length: ${item.measurements?.length || 0}`,
+          `Height: ${item.measurements?.height || 0}`,
+          `Backrest Depth: ${item.measurements?.backrestDepth || 0}`,
+          `Armrest Height: ${item.measurements?.armrestHeight || 0}`,
+          `Angle: ${item.angle || 0}`,
+          `Color: ${item.selectedColor}`,
+          `Snap Straps: ${item.snapStraps ? 'Yes' : 'No'}`,
+          `Handles: ${item.handles ? 'Yes' : 'No'}`,
+          `Magnetic Closure: ${item.magnets ? 'Yes' : 'No'}`,
+          `Premium Color Charge: $${item.premiumColorCharge}`,
+          '---'
+        ].join('\n');
+        return props;
+      }).join('\n');
       
-      // Add all items to the form
-      items.forEach((item, index) => {
-        if (!item.coverVariantId) {
-          console.error('Missing variant ID for item:', item);
-          return;
-        }
-        
-        // For multiple items, use array notation
-        const prefix = items.length > 1 ? `items[${index}]` : '';
-        
-        // Add variant ID
-        const idInput = document.createElement('input');
-        idInput.type = 'hidden';
-        idInput.name = prefix ? `${prefix}[id]` : 'id';
-        idInput.value = item.coverVariantId;
-        form.appendChild(idInput);
-        
-        // Add quantity
-        const qtyInput = document.createElement('input');
-        qtyInput.type = 'hidden';
-        qtyInput.name = prefix ? `${prefix}[quantity]` : 'quantity';
-        qtyInput.value = item.quantity.toString();
-        form.appendChild(qtyInput);
-        
-        // Add all custom properties including measurements
-        const properties = {
-          productType: item.productType,
-          sku: item.coverSKU,
-          yards: item.yards.toString(),
-          width: item.measurements?.width?.toString() || '0',
-          length: item.measurements?.length?.toString() || '0',
-          height: item.measurements?.height?.toString() || '0',
-          backrestDepth: item.measurements?.backrestDepth?.toString() || '0',
-          armrestHeight: item.measurements?.armrestHeight?.toString() || '0',
-          angle: item.angle?.toString() || '0',
-          color: item.selectedColor,
-          snapStraps: item.snapStraps.toString(),
-          handles: item.handles.toString(),
-          magneticClosure: item.magnets.toString(),
-          premiumColorCharge: item.premiumColorCharge.toString()
-        };
-        
-        Object.entries(properties).forEach(([key, value]) => {
-          const input = document.createElement('input');
-          input.type = 'hidden';
-          input.name = prefix ? `${prefix}[properties][${key}]` : `properties[${key}]`;
-          input.value = value;
-          form.appendChild(input);
-        });
-      });
+      // Create cart with permalink and note
+      const cartItems = items.map(item => `${item.coverVariantId}:${item.quantity}`).join(',');
+      const encodedNote = encodeURIComponent(cartNote);
+      const cartUrl = `https://${process.env.NEXT_PUBLIC_SHOPIFY_DOMAIN}/cart/${cartItems}?note=${encodedNote}`;
       
-      // Add return to cart
-      const returnInput = document.createElement('input');
-      returnInput.type = 'hidden';
-      returnInput.name = 'return_to';
-      returnInput.value = '/cart';
-      form.appendChild(returnInput);
+      console.log('Redirecting to cart with items and note');
       
-      console.log('Submitting form with custom properties');
-      
-      // Clear local cart after form is ready
+      // Clear local cart
       clearCart();
       
-      // Submit the form
-      document.body.appendChild(form);
-      form.submit();
+      // Redirect to cart with items
+      window.location.href = cartUrl;
     } catch (error) {
       console.error('Error creating checkout:', error);
       alert('Error processing checkout. Please try again.');
