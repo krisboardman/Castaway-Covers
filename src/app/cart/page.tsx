@@ -66,12 +66,12 @@ export default function CartPage() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 mb-4">Your cart is empty</h1>
-          <Link
-            href="/"
+          <a
+            href="https://castawaycovers.com/design-my-cover/"
             className="inline-block bg-blue-600 text-white py-2 px-6 rounded-md hover:bg-blue-700"
           >
             Continue Shopping
-          </Link>
+          </a>
         </div>
       </div>
     );
@@ -149,12 +149,12 @@ export default function CartPage() {
               {loading ? 'Processing...' : 'Proceed to Checkout'}
             </button>
             
-            <Link
-              href="/"
+            <a
+              href="https://castawaycovers.com/design-my-cover/"
               className="block w-full text-center py-3 px-6 rounded-md font-semibold bg-gray-200 text-gray-700 hover:bg-gray-300"
             >
               Continue Shopping
-            </Link>
+            </a>
           </div>
         </div>
       </div>
