@@ -5,8 +5,7 @@ import Image from 'next/image';
 import { useCartStore } from '@/store/cartStore';
 
 export default function Header() {
-  const getTotalItems = useCartStore((state) => state.getTotalItems);
-  const itemCount = getTotalItems();
+  const itemCount = useCartStore((state) => state.getTotalItems());
 
   return (
     <header className="bg-white shadow-sm sticky top-0 z-50">

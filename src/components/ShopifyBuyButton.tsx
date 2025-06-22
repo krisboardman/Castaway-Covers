@@ -90,10 +90,16 @@ const ShopifyBuyButton: React.FC<ShopifyBuyButtonProps> = ({
 
     setLoading(true);
     try {
-      // For now, just add to local cart
-      // In a full implementation, you might also sync with Shopify cart
+      // Add to local cart
       onAddToCart();
-      alert('Added to cart! Continue shopping or proceed to checkout.');
+      
+      // Show success feedback
+      setLoading(false);
+      
+      // Optional: Add a temporary success state
+      setTimeout(() => {
+        // Reset any success states if needed
+      }, 2000);
     } catch (error) {
       console.error('Error adding to cart:', error);
       alert('Error adding to cart. Please try again.');
