@@ -4,12 +4,16 @@
   "private": true,
   "packageManager": "npm@10.2.4",
   "scripts": {
-    "dev": "turbo dev",
-    "build": "turbo build",
+    "dev": "next dev",
+    "build": "next build",
     "start": "next start",
-    "lint": "turbo lint",
+    "lint": "next lint",
     "dev:next": "next dev",
-    "build:next": "next build"
+    "build:next": "next build",
+    "shopify:list": "node shopify-helpers.js list",
+    "shopify:check": "node shopify-helpers.js check-skus",
+    "shopify:export": "node shopify-helpers.js export",
+    "shopify:validate": "node shopify-helpers.js validate"
   },
   "dependencies": {
     "@shopify/buy-button-js": "^2.1.1",
@@ -19,12 +23,15 @@
     "zustand": "^4.5.0"
   },
   "devDependencies": {
+    "@shopify/admin-api-client": "^1.1.1",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "autoprefixer": "^10.0.1",
     "eslint": "^8",
     "eslint-config-next": "14.2.0",
+    "graphql": "^16.11.0",
+    "graphql-request": "^7.2.0",
     "postcss": "^8",
     "tailwindcss": "^3.4.0",
     "turbo": "^2.5.5",
