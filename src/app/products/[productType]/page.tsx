@@ -24,6 +24,7 @@ export default function ProductPage() {
   const productType = params.productType as string;
   const productName = productTypes[productType as keyof typeof productTypes] || 'Custom Covers';
   
+  const [mounted, setMounted] = useState(false);
   const [coverSKU, setCoverSKU] = useState('');
   const [coverVariantId, setCoverVariantId] = useState('');
   const [coverPrice, setCoverPrice] = useState(0);
@@ -42,6 +43,11 @@ export default function ProductPage() {
   const [quantity, setQuantity] = useState(1);
   
   const addToCart = useCartStore((state) => state.addToCart);
+  
+  // Handle client-side mounting
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (isPremiumColor && yards > 0) {
@@ -84,6 +90,17 @@ export default function ProductPage() {
     console.log('Cart after adding:', useCartStore.getState().items);
     alert('Item added to cart! Check the cart page.');
   };
+
+  // Prevent hydration mismatch
+  if (!mounted) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-8">Loading...</h1>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 py-12">
