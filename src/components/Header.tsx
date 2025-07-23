@@ -11,7 +11,7 @@ export default function Header() {
     <header className="bg-white shadow-sm sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center py-3">
-          <a href="https://castawaycovers.com/" className="flex items-center">
+          <Link href="/" className="flex items-center">
             <Image
               src="/images/Logo.png"
               alt="Castaway Covers"
@@ -19,12 +19,18 @@ export default function Header() {
               height={40}
               className="object-contain"
             />
-          </a>
+          </Link>
           
           <nav className="flex items-center space-x-6">
-            <a href="https://castawaycovers.com/" className="text-gray-700 hover:text-gray-900">
+            <Link href="/" className="text-gray-700 hover:text-gray-900">
               Home
-            </a>
+            </Link>
+            <Link href="/#products" className="text-gray-700 hover:text-gray-900">
+              Products
+            </Link>
+            <Link href="/#how-it-works" className="text-gray-700 hover:text-gray-900">
+              How It Works
+            </Link>
             <Link href="/cart" className="relative text-gray-700 hover:text-gray-900">
               Cart
               {itemCount > 0 && (
