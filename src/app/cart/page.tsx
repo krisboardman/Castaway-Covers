@@ -70,29 +70,89 @@ export default function CartPage() {
         return;
       }
       
-      // Create cart with permalink and note
-      const cartItems = items.map(item => `${item.coverVariantId}:${item.quantity}`).join(',');
-      const encodedNote = encodeURIComponent(cartNote);
       const shopifyDomain = process.env.NEXT_PUBLIC_SHOPIFY_DOMAIN;
       
       if (!shopifyDomain) {
         throw new Error('Shopify domain not configured');
       }
       
-      // Try multiple cart URL formats
-      const cartUrl = `https://${shopifyDomain}/cart/${cartItems}?note=${encodedNote}`;
-      
-      console.log('Redirecting to Shopify cart:', cartUrl);
-      console.log('Cart items:', cartItems);
-      console.log('Variant IDs:', items.map(item => item.coverVariantId));
-      
       // Store cart in sessionStorage as backup
       sessionStorage.setItem('castaway-cart-backup', JSON.stringify(items));
       
-      // Redirect to cart with items
+      // Method 1: Try API route first (handles password-protected stores better)
+      try {
+        const apiResponse = await fetch('/api/checkout', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ items, cartNote })
+        });
+        
+        const apiData = await apiResponse.json();
+        
+        if (apiData.checkoutUrl) {
+          clearCart();
+          window.location.href = apiData.checkoutUrl;
+          return;
+        }
+      } catch (apiError) {
+        console.log('API method failed, trying direct method', apiError);
+      }
+      
+      // Method 2: Try direct AJAX
+      try {
+        const formData = new FormData();
+        
+        // Add all items to the form
+        items.forEach((item, index) => {
+          formData.append(`items[${index}][id]`, item.coverVariantId);
+          formData.append(`items[${index}][quantity]`, item.quantity.toString());
+          
+          // Add properties as line items
+          const properties = {
+            'Product Type': item.productType,
+            'SKU': item.coverSKU,
+            'Color': item.selectedColor,
+            'Width': item.measurements?.width || 0,
+            'Length': item.measurements?.length || 0,
+            'Height': item.measurements?.height || 0,
+            'Snap Straps': item.snapStraps ? 'Yes' : 'No',
+            'Handles': item.handles ? 'Yes' : 'No',
+            'Magnetic Closure': item.magnets ? 'Yes' : 'No'
+          };
+          
+          Object.entries(properties).forEach(([key, value]) => {
+            formData.append(`items[${index}][properties][${key}]`, value.toString());
+          });
+        });
+        
+        formData.append('note', cartNote);
+        
+        const response = await fetch(`https://${shopifyDomain}/cart/add.js`, {
+          method: 'POST',
+          body: formData,
+          credentials: 'same-origin'
+        });
+        
+        if (response.ok) {
+          // Successfully added to cart, now redirect to cart page
+          clearCart();
+          window.location.href = `https://${shopifyDomain}/cart`;
+          return;
+        }
+      } catch (ajaxError) {
+        console.log('AJAX method failed, trying permalink method', ajaxError);
+      }
+      
+      // Method 3: Fallback to permalink method
+      const cartItems = items.map(item => `${item.coverVariantId}:${item.quantity}`).join(',');
+      const encodedNote = encodeURIComponent(cartNote);
+      const cartUrl = `https://${shopifyDomain}/cart/${cartItems}?note=${encodedNote}`;
+      
+      console.log('Redirecting to Shopify cart:', cartUrl);
       window.location.href = cartUrl;
       
-      // Don't clear cart here - let Shopify's success callback handle it
     } catch (error) {
       console.error('Error creating checkout:', error);
       alert('Error processing checkout. Please try again.');
