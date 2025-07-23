@@ -37,6 +37,12 @@ export default function CartPage() {
     setLoading(true);
     try {
       console.log('Cart items to submit:', items);
+      console.log('Items details:', items.map(item => ({
+        variantId: item.coverVariantId,
+        sku: item.coverSKU,
+        color: item.selectedColor,
+        total: item.total
+      })));
       
       // Build cart note with all custom properties
       const cartNote = items.map((item, index) => {
@@ -82,11 +88,17 @@ export default function CartPage() {
       // Important: We don't clear the cart here anymore. 
       // Cart is only cleared after successful checkout or on the success page.
       
-      // Method 1: Use form submission to add items with properties (preserves all custom data)
+      // Method 1: Clear Shopify cart first, then add our items
       try {
-        console.log('Attempting Method 3: Form submission with properties');
+        console.log('Clearing Shopify cart and adding current items');
         
-        // Create a form that will submit all items with their properties
+        // First, clear the Shopify cart
+        await fetch(`https://${shopifyDomain}/cart/clear.js`, {
+          method: 'POST',
+          credentials: 'same-origin'
+        });
+        
+        // Now create a form that will submit all items with their properties
         const form = document.createElement('form');
         form.method = 'POST';
         form.action = `https://${shopifyDomain}/cart/add`;
@@ -135,11 +147,11 @@ export default function CartPage() {
           });
         });
         
-        // Add return URL to go to Shopify cart
+        // Add return URL to go directly to checkout
         const returnInput = document.createElement('input');
         returnInput.type = 'hidden';
         returnInput.name = 'return_to';
-        returnInput.value = '/cart';
+        returnInput.value = '/checkout';
         form.appendChild(returnInput);
         
         // Submit the form
