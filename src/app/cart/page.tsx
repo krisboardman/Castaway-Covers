@@ -2,7 +2,7 @@
 
 import { useCartStore } from '@/store/cartStore';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 
 export default function CartPage() {
@@ -11,6 +11,25 @@ export default function CartPage() {
   const getTotalPrice = useCartStore((state) => state.getTotalPrice);
   const clearCart = useCartStore((state) => state.clearCart);
   const [loading, setLoading] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  
+  // Handle client-side hydration
+  useEffect(() => {
+    setMounted(true);
+    console.log('Cart mounted, items:', items);
+    console.log('localStorage:', localStorage.getItem('castaway-covers-cart'));
+  }, [items]);
+  
+  // Prevent hydration mismatch
+  if (!mounted) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">Loading cart...</h1>
+        </div>
+      </div>
+    );
+  }
 
   const handleCheckout = async () => {
     if (items.length === 0) return;

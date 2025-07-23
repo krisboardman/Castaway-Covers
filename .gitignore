@@ -43,3 +43,4 @@ gh_*
 
 # Turborepo
 .turbo
+.env*.local

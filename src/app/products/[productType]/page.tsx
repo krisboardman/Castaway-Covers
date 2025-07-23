@@ -80,6 +80,9 @@ export default function ProductPage() {
     };
     
     addToCart(cartItem);
+    console.log('Item added to cart:', cartItem);
+    console.log('Cart after adding:', useCartStore.getState().items);
+    alert('Item added to cart! Check the cart page.');
   };
 
   return (
