@@ -1,5 +1,6 @@
 {
   "recommendations": [
+    "Vercel.vercel-vscode",
     "esbenp.prettier-vscode",
     "ms-vscode.vscode-typescript-next",
     "bradlc.vscode-tailwindcss",
