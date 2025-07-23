@@ -82,79 +82,72 @@ export default function CartPage() {
       // Important: We don't clear the cart here anymore. 
       // Cart is only cleared after successful checkout or on the success page.
       
-      // Method 1: Try API route first (handles password-protected stores better)
+      // Method 1: Use form submission to add items with properties (preserves all custom data)
       try {
-        console.log('Attempting Method 1: API route checkout');
-        const apiResponse = await fetch('/api/checkout', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ items, cartNote })
-        });
+        console.log('Attempting Method 3: Form submission with properties');
         
-        const apiData = await apiResponse.json();
-        console.log('API response:', apiData);
-        
-        if (apiData.checkoutUrl) {
-          console.log('API checkout URL received:', apiData.checkoutUrl);
-          // Don't clear cart until checkout is confirmed
-          window.location.href = apiData.checkoutUrl;
-          return;
-        }
-      } catch (apiError) {
-        console.error('API method failed:', apiError);
-      }
-      
-      // Method 2: Skip test mode - continue with regular checkout
-      
-      // Method 3: Try direct AJAX for production
-      try {
-        console.log('Attempting Method 3: Direct AJAX cart add');
-        const formData = new FormData();
+        // Create a form that will submit all items with their properties
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `https://${shopifyDomain}/cart/add`;
         
         // Add all items to the form
         items.forEach((item, index) => {
-          formData.append(`items[${index}][id]`, item.coverVariantId);
-          formData.append(`items[${index}][quantity]`, item.quantity.toString());
+          // Add variant ID
+          const idInput = document.createElement('input');
+          idInput.type = 'hidden';
+          idInput.name = `items[${index}][id]`;
+          idInput.value = item.coverVariantId;
+          form.appendChild(idInput);
           
-          // Add properties as line items
+          // Add quantity
+          const qtyInput = document.createElement('input');
+          qtyInput.type = 'hidden';
+          qtyInput.name = `items[${index}][quantity]`;
+          qtyInput.value = item.quantity.toString();
+          form.appendChild(qtyInput);
+          
+          // Add all custom properties
           const properties = {
             'Product Type': item.productType,
             'SKU': item.coverSKU,
             'Color': item.selectedColor,
-            'Width': item.measurements?.width || 0,
-            'Length': item.measurements?.length || 0,
-            'Height': item.measurements?.height || 0,
+            'Width': `${item.measurements?.width || 0}"`,
+            'Length': `${item.measurements?.length || 0}"`,
+            'Height': `${item.measurements?.height || 0}"`,
+            'Backrest Depth': `${item.measurements?.backrestDepth || 0}"`,
+            'Armrest Height': `${item.measurements?.armrestHeight || 0}"`,
+            'Angle': `${item.angle || 0}°`,
+            'Yards': item.yards,
             'Snap Straps': item.snapStraps ? 'Yes' : 'No',
             'Handles': item.handles ? 'Yes' : 'No',
-            'Magnetic Closure': item.magnets ? 'Yes' : 'No'
+            'Magnetic Closure': item.magnets ? 'Yes' : 'No',
+            'Premium Color Charge': `$${item.premiumColorCharge}`,
+            'Total Price': `$${item.total.toFixed(2)}`
           };
           
           Object.entries(properties).forEach(([key, value]) => {
-            formData.append(`items[${index}][properties][${key}]`, value.toString());
+            const propInput = document.createElement('input');
+            propInput.type = 'hidden';
+            propInput.name = `items[${index}][properties][${key}]`;
+            propInput.value = value.toString();
+            form.appendChild(propInput);
           });
         });
         
-        formData.append('note', cartNote);
+        // Add return URL to go to Shopify cart
+        const returnInput = document.createElement('input');
+        returnInput.type = 'hidden';
+        returnInput.name = 'return_to';
+        returnInput.value = '/cart';
+        form.appendChild(returnInput);
         
-        const response = await fetch(`https://${shopifyDomain}/cart/add.js`, {
-          method: 'POST',
-          body: formData,
-          credentials: 'same-origin'
-        });
-        
-        console.log('AJAX response status:', response.status);
-        
-        if (response.ok) {
-          // Successfully added to cart, now redirect to cart page
-          console.log('Cart items added successfully, redirecting...');
-          // Don't clear cart until checkout is confirmed
-          window.location.href = `https://${shopifyDomain}/cart`;
-          return;
-        }
-      } catch (ajaxError) {
-        console.error('AJAX method failed:', ajaxError);
+        // Submit the form
+        document.body.appendChild(form);
+        form.submit();
+        return;
+      } catch (formError) {
+        console.error('Form submission failed:', formError);
       }
       
       // Method 4: Fallback to permalink method
