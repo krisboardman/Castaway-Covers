@@ -12,12 +12,10 @@ export default function Header() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center py-3">
           <Link href="/" className="flex items-center">
-            <Image
-              src="/images/Logo.png"
+            <img
+              src="https://castawaycovers.com/wp-content/uploads/elementor/thumbs/logo6-r6512v076y22m3rl5vemzshr2rxnj9a4uqoceb06q4.png"
               alt="Castaway Covers"
-              width={150}
-              height={40}
-              className="object-contain"
+              className="h-12 object-contain"
             />
           </Link>
           
