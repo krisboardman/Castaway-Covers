@@ -44,3 +44,8 @@ gh_*
 # Turborepo
 .turbo
 .env*.local
+
+# development files
+dev.log
+find-addon-variants.js
+find-color-upcharge-variant.js

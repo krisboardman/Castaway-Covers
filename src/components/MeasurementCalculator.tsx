@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { getShopifyClient, findVariantBySKU } from '@/lib/shopify-client';
+import { getShopifyClient, findVariantBySKU, clearProductCache } from '@/lib/shopify-client';
 
 interface MeasurementCalculatorProps {
   productType: string;
@@ -243,11 +243,30 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
             const products = await client.product.fetchAll(250);
             let foundVariant = null;
             
+            console.log(`Fallback search for ${productType} with ${yards} yards`);
+            
             for (const product of products) {
+              // More flexible product matching
+              const productHandle = product.handle.toLowerCase();
+              const productTitle = product.title.toLowerCase();
+              const searchType = productType.toLowerCase().replace('-', '');
+              
+              console.log(`Checking product: ${product.title} (${product.handle})`);
+              
               // Check if this product matches our type
-              if (product.handle.includes(productType.replace('_', '-'))) {
+              if (productHandle.includes('chair') && productType === 'chairs-recliners' ||
+                  productTitle.includes('chair') && productType === 'chairs-recliners' ||
+                  productHandle.includes(searchType) ||
+                  productTitle.includes(searchType)) {
+                
+                console.log(`Product matches type ${productType}, checking variants...`);
+                
                 for (const variant of product.variants) {
-                  if (variant.title === `${yards} yards` || variant.title === `${yards} Yards`) {
+                  console.log(`  Variant: ${variant.title}, SKU: ${variant.sku}`);
+                  
+                  if (variant.title === `${yards} yards` || 
+                      variant.title === `${yards} Yards` ||
+                      variant.title.toLowerCase() === `${yards} yards`) {
                     console.log('Found variant by title match:', variant);
                     foundVariant = {
                       variantId: variant.id.toString().split('/').pop(),
@@ -292,12 +311,26 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
     <div className="bg-white p-6 rounded-lg shadow">
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-lg font-semibold">Enter Measurements (inches)</h3>
-        <button
-          onClick={() => setShowGuide(!showGuide)}
-          className="text-blue-600 hover:text-blue-800 text-sm underline"
-        >
-          {showGuide ? 'Hide' : 'Show'} Measurement Guide
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setShowGuide(!showGuide)}
+            className="text-blue-600 hover:text-blue-800 text-sm underline"
+          >
+            {showGuide ? 'Hide' : 'Show'} Measurement Guide
+          </button>
+          {/* Debug button - only show in development */}
+          {process.env.NODE_ENV === 'development' && (
+            <button
+              onClick={() => {
+                clearProductCache();
+                alert('Product cache cleared. Try calculating again.');
+              }}
+              className="text-red-600 hover:text-red-800 text-sm underline"
+            >
+              Clear Cache
+            </button>
+          )}
+        </div>
       </div>
       
       {showGuide && (

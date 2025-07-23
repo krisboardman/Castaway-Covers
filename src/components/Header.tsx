@@ -3,9 +3,15 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useCartStore } from '@/store/cartStore';
+import { useEffect, useState } from 'react';
 
 export default function Header() {
+  const [mounted, setMounted] = useState(false);
   const itemCount = useCartStore((state) => state.getTotalItems());
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   return (
     <header className="bg-white shadow-sm sticky top-0 z-50">
@@ -13,7 +19,7 @@ export default function Header() {
         <div className="flex justify-between items-center py-3">
           <Link href="/" className="flex items-center">
             <img
-              src="https://castawaycovers.com/wp-content/uploads/elementor/thumbs/logo6-r6512v076y22m3rl5vemzshr2rxnj9a4uqoceb06q4.png"
+              src="/images/castaway-logo.png"
               alt="Castaway Covers"
               className="h-12 object-contain"
             />
@@ -23,15 +29,15 @@ export default function Header() {
             <Link href="/" className="text-gray-700 hover:text-gray-900">
               Home
             </Link>
-            <Link href="/#products" className="text-gray-700 hover:text-gray-900">
-              Products
-            </Link>
-            <Link href="/#how-it-works" className="text-gray-700 hover:text-gray-900">
-              How It Works
+            <Link 
+              href="/design" 
+              className="bg-white text-black border-2 border-black px-6 py-2 rounded-full hover:bg-gray-100 transition-colors"
+            >
+              Design My Cover
             </Link>
             <Link href="/cart" className="relative text-gray-700 hover:text-gray-900">
               Cart
-              {itemCount > 0 && (
+              {mounted && itemCount > 0 && (
                 <span className="absolute -top-2 -right-2 bg-blue-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
                   {itemCount}
                 </span>

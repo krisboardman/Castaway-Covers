@@ -5,32 +5,32 @@ export default function DesignPage() {
     {
       name: "Chairs / Recliners",
       href: "/products/chairs-recliners",
-      image: "https://castawaycovers.com/wp-content/uploads/2025/05/chair4.png"
+      image: "/images/Chairs-Recliners/chair4.png"
     },
     {
       name: "Sofas / Loveseats",
       href: "/products/sofas-loveseats",
-      image: "https://castawaycovers.com/wp-content/uploads/2025/05/Sofa-New-1.jpg"
+      image: "/images/Sofas-Loveseats/Sofa-New-1.jpg"
     },
     {
       name: "Chaise Lounges",
       href: "/products/chaise-lounge",
-      image: "https://castawaycovers.com/wp-content/uploads/2025/05/CC-chaise-1024x619.png"
+      image: "/images/ChaiseLounges/CC-chaise.png"
     },
     {
       name: "Tables",
       href: "/products/tables",
-      image: "https://castawaycovers.com/wp-content/uploads/2025/05/CC-table-1.png"
+      image: "/images/Tables/CC-table-1.png"
     },
     {
       name: "Table Sets",
       href: "/products/table-sets",
-      image: "https://castawaycovers.com/wp-content/uploads/2025/05/CC-table-set-1024x606.png"
+      image: "/images/Tablesets/CC-table-set.png"
     },
     {
       name: "Ottomans",
       href: "/products/ottomans",
-      image: "https://castawaycovers.com/wp-content/uploads/2025/05/ottoman.jpg"
+      image: "/images/Ottomans/ottoman.jpg"
     }
   ];
 
@@ -41,19 +41,19 @@ export default function DesignPage() {
           Choose Furniture Type
         </h1>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {furnitureTypes.map((type) => (
             <Link 
               key={type.name}
               href={type.href}
               className="group block"
             >
-              <div className="bg-white rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
-                <div className="aspect-w-16 aspect-h-10 bg-gray-100">
+              <div className="bg-white rounded-lg overflow-hidden hover:shadow-lg transition-shadow h-full">
+                <div className="bg-gray-100 h-64 flex items-center justify-center">
                   <img 
                     src={type.image}
                     alt={type.name}
-                    className="w-full h-full object-contain p-8"
+                    className="max-w-full max-h-full object-contain p-8"
                   />
                 </div>
                 <div className="p-6 text-center">

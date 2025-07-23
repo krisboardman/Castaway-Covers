@@ -78,7 +78,18 @@ export const useCartStore = create<CartStore>()(
     }),
     {
       name: 'castaway-covers-cart',
-      storage: createJSONStorage(() => localStorage)
+      storage: createJSONStorage(() => {
+        if (typeof window !== 'undefined') {
+          return localStorage;
+        }
+        // Return a dummy storage for SSR
+        return {
+          getItem: () => null,
+          setItem: () => {},
+          removeItem: () => {}
+        };
+      }),
+      skipHydration: true
     }
   )
 );

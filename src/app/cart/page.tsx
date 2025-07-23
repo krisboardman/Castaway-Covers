@@ -46,24 +46,19 @@ export default function CartPage() {
       
       // Build cart note with all custom properties
       const cartNote = items.map((item, index) => {
+        const addOns = [];
+        if (item.snapStraps) addOns.push('Snap Straps (+$20)');
+        if (item.handles) addOns.push('Handles (+$20)');
+        if (item.magnets) addOns.push('Magnetic Closure (+$20)');
+        
         const props = [
-          `Item ${index + 1}:`,
-          `Product Type: ${item.productType}`,
+          `Item ${index + 1}: ${item.productType} - ${item.selectedColor}`,
+          addOns.length > 0 ? `Add-ons: ${addOns.join(', ')}` : null,
+          `Measurements: ${item.measurements?.width || 0}"W x ${item.measurements?.length || 0}"L x ${item.measurements?.height || 0}"H`,
           `SKU: ${item.coverSKU}`,
           `Yards: ${item.yards}`,
-          `Width: ${item.measurements?.width || 0}`,
-          `Length: ${item.measurements?.length || 0}`,
-          `Height: ${item.measurements?.height || 0}`,
-          `Backrest Depth: ${item.measurements?.backrestDepth || 0}`,
-          `Armrest Height: ${item.measurements?.armrestHeight || 0}`,
-          `Angle: ${item.angle || 0}`,
-          `Color: ${item.selectedColor}`,
-          `Snap Straps: ${item.snapStraps ? 'Yes' : 'No'}`,
-          `Handles: ${item.handles ? 'Yes' : 'No'}`,
-          `Magnetic Closure: ${item.magnets ? 'Yes' : 'No'}`,
-          `Premium Color Charge: $${item.premiumColorCharge}`,
-          '---'
-        ].join('\n');
+          `---`
+        ].filter(Boolean).join('\n');
         return props;
       }).join('\n');
       
@@ -222,12 +217,12 @@ export default function CartPage() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 mb-4">Your cart is empty</h1>
-          <a
-            href="https://castawaycovers.com/design-my-cover/"
+          <Link
+            href="/design"
             className="inline-block bg-blue-600 text-white py-2 px-6 rounded-md hover:bg-blue-700"
           >
-            Continue Shopping
-          </a>
+            Design a Cover
+          </Link>
         </div>
       </div>
     );
@@ -237,15 +232,15 @@ export default function CartPage() {
     <div className="min-h-screen bg-gray-50 py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-center mb-8">
-          <a href="https://castawaycovers.com/">
+          <Link href="/">
             <Image
-              src="/images/Logo.png"
+              src="/images/castaway-logo.png"
               alt="Castaway Covers Logo"
               width={200}
               height={80}
               className="object-contain"
             />
-          </a>
+          </Link>
         </div>
         <h1 className="text-3xl font-bold text-gray-900 mb-8">Shopping Cart</h1>
         
@@ -305,12 +300,12 @@ export default function CartPage() {
               {loading ? 'Processing...' : 'Proceed to Checkout'}
             </button>
             
-            <a
-              href="https://castawaycovers.com/design-my-cover/"
+            <Link
+              href="/design"
               className="block w-full text-center py-3 px-6 rounded-md font-semibold bg-gray-200 text-gray-700 hover:bg-gray-300"
             >
               Continue Shopping
-            </a>
+            </Link>
           </div>
         </div>
       </div>

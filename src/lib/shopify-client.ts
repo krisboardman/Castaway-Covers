@@ -29,16 +29,23 @@ export async function getShopifyClient() {
 // Cache for product queries to avoid repeated API calls
 const productCache = new Map();
 
+// Add a cache clear function for debugging
+export function clearProductCache() {
+  productCache.clear();
+  console.log('Product cache cleared');
+}
+
 export async function findVariantBySKU(sku: string) {
   const client = await getShopifyClient();
   if (!client) return null;
 
   try {
-    // Check cache first
+    // Check cache first - but add a timestamp to prevent stale data
     const cacheKey = `variant-${sku}`;
-    if (productCache.has(cacheKey)) {
+    const cached = productCache.get(cacheKey);
+    if (cached && cached.timestamp && Date.now() - cached.timestamp < 5 * 60 * 1000) { // 5 minute cache
       console.log(`Found cached variant for SKU: ${sku}`);
-      return productCache.get(cacheKey);
+      return cached.data;
     }
 
     console.log(`Searching for variant with SKU: ${sku}`);
@@ -67,14 +74,17 @@ export async function findVariantBySKU(sku: string) {
           console.log('Full variant ID:', variant.id);
           console.log('Extracted numeric ID:', numericId);
           
-          // Cache the result
+          // Cache the result with timestamp
           const result = {
             variantId: numericId,
             price: variant.price.amount,
             title: variant.title,
             productTitle: product.title
           };
-          productCache.set(cacheKey, result);
+          productCache.set(cacheKey, {
+            data: result,
+            timestamp: Date.now()
+          });
           
           return result;
         }
