@@ -13,6 +13,7 @@ const productTypes = {
   'chairs-recliners': 'Chairs / Recliners',
   'sofas-loveseats': 'Sofas / Loveseats',
   'chaise-lounge': 'Chaise Lounge',
+  'chaise-lounges': 'Chaise Lounge',  // Support both singular and plural URLs
   'ottomans': 'Ottomans',
   'tables': 'Tables',
   'table-sets': 'Table Sets'

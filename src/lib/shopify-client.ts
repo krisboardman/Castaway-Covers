@@ -37,6 +37,7 @@ export async function findVariantBySKU(sku: string) {
     // Check cache first
     const cacheKey = `variant-${sku}`;
     if (productCache.has(cacheKey)) {
+      console.log(`Found cached variant for SKU: ${sku}`);
       return productCache.get(cacheKey);
     }
 
@@ -44,12 +45,19 @@ export async function findVariantBySKU(sku: string) {
     
     // Fetch all products (you might want to filter by collection if you have many products)
     const products = await client.product.fetchAll(250); // Fetch up to 250 products
+    console.log(`Fetched ${products.length} products from Shopify`);
+    
+    // Log all available SKUs for debugging
+    const allSKUs: string[] = [];
     
     // Search through all products and their variants
     for (const product of products) {
       for (const variant of product.variants) {
+        allSKUs.push(variant.sku);
+        
         if (variant.sku === sku) {
           console.log(`Found variant for SKU ${sku}:`, variant.id);
+          console.log(`Product: ${product.title}, Variant: ${variant.title}`);
           
           // Extract numeric ID from the base64 encoded variant ID
           // Shopify returns IDs like "gid://shopify/ProductVariant/1234567890"
@@ -73,7 +81,9 @@ export async function findVariantBySKU(sku: string) {
       }
     }
     
+    // If not found, log available SKUs for debugging
     console.warn(`No variant found for SKU: ${sku}`);
+    console.log('Available SKUs:', allSKUs.filter(s => s.includes(sku.split('-')[0])).slice(0, 10));
     return null;
   } catch (error) {
     console.error('Error finding variant by SKU:', error);

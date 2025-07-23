@@ -123,17 +123,19 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
   };
 
   const generateShopifySKU = (yards: number): string => {
-    // Map our product types to Shopify SKU formats based on the CSV
+    // Map our product types to Shopify SKU formats based on the actual CSV/Shopify data
     const skuMappings: { [key: string]: string } = {
       'chairs-recliners': 'chairs/recliners',
       'sofas-loveseats': 'sofas-loveseats',
-      'chaise-lounge': 'Chaiselounges',
+      'chaise-lounge': 'Chaiselounges',  // Note: singular in URL, but SKU uses "Chaiselounges"
+      'chaise-lounges': 'Chaiselounges', // Handle both singular and plural
       'ottomans': 'Ottomans',
       'tables': 'tables',
       'table-sets': 'tablesets'
     };
     
     const shopifyProductType = skuMappings[productType] || productType;
+    console.log(`Generating SKU for productType: ${productType}, yards: ${yards}, result: ${shopifyProductType}-${yards}`);
     return `${shopifyProductType}-${yards}`;
   };
 
