@@ -61,18 +61,38 @@ export default function CartPage() {
         return props;
       }).join('\n');
       
+      // Validate variant IDs
+      const invalidItems = items.filter(item => !item.coverVariantId || item.coverVariantId === 'null');
+      if (invalidItems.length > 0) {
+        console.error('Invalid variant IDs found:', invalidItems);
+        alert('Some items in your cart have invalid product IDs. Please remove them and try again.');
+        setLoading(false);
+        return;
+      }
+      
       // Create cart with permalink and note
       const cartItems = items.map(item => `${item.coverVariantId}:${item.quantity}`).join(',');
       const encodedNote = encodeURIComponent(cartNote);
-      const cartUrl = `https://${process.env.NEXT_PUBLIC_SHOPIFY_DOMAIN}/cart/${cartItems}?note=${encodedNote}`;
+      const shopifyDomain = process.env.NEXT_PUBLIC_SHOPIFY_DOMAIN;
       
-      console.log('Redirecting to cart with items and note');
+      if (!shopifyDomain) {
+        throw new Error('Shopify domain not configured');
+      }
       
-      // Clear local cart
-      clearCart();
+      // Try multiple cart URL formats
+      const cartUrl = `https://${shopifyDomain}/cart/${cartItems}?note=${encodedNote}`;
+      
+      console.log('Redirecting to Shopify cart:', cartUrl);
+      console.log('Cart items:', cartItems);
+      console.log('Variant IDs:', items.map(item => item.coverVariantId));
+      
+      // Store cart in sessionStorage as backup
+      sessionStorage.setItem('castaway-cart-backup', JSON.stringify(items));
       
       // Redirect to cart with items
       window.location.href = cartUrl;
+      
+      // Don't clear cart here - let Shopify's success callback handle it
     } catch (error) {
       console.error('Error creating checkout:', error);
       alert('Error processing checkout. Please try again.');
