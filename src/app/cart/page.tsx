@@ -259,16 +259,6 @@ export default function CartPage() {
               {loading ? 'Processing...' : 'Proceed to Checkout'}
             </button>
             
-            {/* Show test checkout link in development */}
-            {(typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname.includes('vercel'))) && (
-              <a
-                href="/test-checkout"
-                className="block w-full text-center py-2 px-4 rounded-md font-semibold bg-yellow-500 text-white hover:bg-yellow-600 mb-3 text-sm"
-              >
-                Test Checkout (Password Protected)
-              </a>
-            )}
-            
             <a
               href="https://castawaycovers.com/design-my-cover/"
               className="block w-full text-center py-3 px-6 rounded-md font-semibold bg-gray-200 text-gray-700 hover:bg-gray-300"
