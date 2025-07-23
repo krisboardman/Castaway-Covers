@@ -10,26 +10,40 @@ export default function TestCheckoutPage() {
   const [password, setPassword] = useState('');
   
   const handleTestCheckout = () => {
-    if (!password) {
-      alert('Please enter the store password');
-      return;
-    }
-    
-    // Build the checkout URL with password
     const shopifyDomain = process.env.NEXT_PUBLIC_SHOPIFY_DOMAIN;
     const cartItems = items.map(item => `${item.coverVariantId}:${item.quantity}`).join(',');
-    
-    // First navigate to password page with the password
-    const passwordUrl = `https://${shopifyDomain}/password?password=${encodeURIComponent(password)}`;
-    
-    // Then redirect to cart
     const cartUrl = `https://${shopifyDomain}/cart/${cartItems}`;
     
-    // Open password page, then cart
-    window.open(passwordUrl, '_blank');
+    // Create a form that submits to Shopify's password page
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = `https://${shopifyDomain}/password`;
+    form.target = '_blank';
+    
+    // Add password field
+    const passwordInput = document.createElement('input');
+    passwordInput.type = 'hidden';
+    passwordInput.name = 'password';
+    passwordInput.value = password || '';
+    form.appendChild(passwordInput);
+    
+    // Add form_type
+    const formTypeInput = document.createElement('input');
+    formTypeInput.type = 'hidden';
+    formTypeInput.name = 'form_type';
+    formTypeInput.value = 'storefront_password';
+    form.appendChild(formTypeInput);
+    
+    // Submit the form
+    document.body.appendChild(form);
+    form.submit();
+    document.body.removeChild(form);
+    
+    // After authentication, redirect to cart
     setTimeout(() => {
+      alert('If you entered the correct password, you should now be authenticated. Click OK to proceed to checkout.');
       window.location.href = cartUrl;
-    }, 2000);
+    }, 3000);
   };
   
   return (
@@ -64,9 +78,17 @@ export default function TestCheckoutPage() {
         </div>
         
         <div className="mt-8 p-4 bg-yellow-50 border border-yellow-200 rounded-md">
-          <p className="text-sm text-yellow-800">
+          <p className="text-sm text-yellow-800 mb-2">
             <strong>Note:</strong> This page is for testing with password-protected stores. 
             In production, customers will go directly to checkout without needing a password.
+          </p>
+          <p className="text-sm text-yellow-800">
+            <strong>Alternative:</strong> For easier testing, temporarily disable password protection:
+            <br />1. Go to Shopify Admin → Online Store → Preferences
+            <br />2. Uncheck "Restrict access to visitors with the password"
+            <br />3. Save changes
+            <br />4. Test checkout normally
+            <br />5. Re-enable password when done testing
           </p>
         </div>
       </div>

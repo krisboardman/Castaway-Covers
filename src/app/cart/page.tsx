@@ -103,29 +103,7 @@ export default function CartPage() {
         console.error('API method failed:', apiError);
       }
       
-      // Method 2: For development/testing - create a test order summary
-      if (window.location.hostname === 'localhost' || window.location.hostname.includes('vercel')) {
-        console.log('Development mode detected - showing test checkout');
-        
-        // Create a test checkout summary
-        const orderSummary = {
-          items: items,
-          total: getTotalPrice(),
-          cartNote: cartNote,
-          timestamp: new Date().toISOString()
-        };
-        
-        // Store the order for reference
-        localStorage.setItem('test-order', JSON.stringify(orderSummary));
-        
-        // Show success and order details
-        alert(`Test Order Created!\n\nTotal: $${getTotalPrice().toFixed(2)}\nItems: ${items.length}\n\nOrder details saved to localStorage.\n\nIn production, this would redirect to Shopify checkout.`);
-        
-        console.log('Test Order Summary:', orderSummary);
-        clearCart();
-        setLoading(false);
-        return;
-      }
+      // Method 2: Skip test mode - continue with regular checkout
       
       // Method 3: Try direct AJAX for production
       try {
