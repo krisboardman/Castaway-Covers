@@ -88,39 +88,26 @@ export default function CartPage() {
       // Important: We don't clear the cart here anymore. 
       // Cart is only cleared after successful checkout or on the success page.
       
-      // Method 1: Clear Shopify cart first, then add our items
+      // Method 1: Use AJAX to clear cart and add items, then navigate
       try {
-        console.log('Clearing Shopify cart and adding current items');
+        console.log('Clearing Shopify cart and adding current items via AJAX');
         
         // First, clear the Shopify cart
-        await fetch(`https://${shopifyDomain}/cart/clear.js`, {
+        const clearResponse = await fetch(`https://${shopifyDomain}/cart/clear.js`, {
           method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
           credentials: 'same-origin'
         });
         
-        // Now create a form that will submit all items with their properties
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = `https://${shopifyDomain}/cart/add`;
+        console.log('Cart cleared:', clearResponse.ok);
         
-        // Add all items to the form
-        items.forEach((item, index) => {
-          // Add variant ID
-          const idInput = document.createElement('input');
-          idInput.type = 'hidden';
-          idInput.name = `items[${index}][id]`;
-          idInput.value = item.coverVariantId;
-          form.appendChild(idInput);
-          
-          // Add quantity
-          const qtyInput = document.createElement('input');
-          qtyInput.type = 'hidden';
-          qtyInput.name = `items[${index}][quantity]`;
-          qtyInput.value = item.quantity.toString();
-          form.appendChild(qtyInput);
-          
-          // Add all custom properties
-          const properties = {
+        // Prepare items for Shopify's expected format
+        const shopifyItems = items.map(item => ({
+          id: item.coverVariantId,
+          quantity: item.quantity,
+          properties: {
             'Product Type': item.productType,
             'SKU': item.coverSKU,
             'Color': item.selectedColor,
@@ -136,30 +123,34 @@ export default function CartPage() {
             'Magnetic Closure': item.magnets ? 'Yes' : 'No',
             'Premium Color Charge': `$${item.premiumColorCharge}`,
             'Total Price': `$${item.total.toFixed(2)}`
-          };
-          
-          Object.entries(properties).forEach(([key, value]) => {
-            const propInput = document.createElement('input');
-            propInput.type = 'hidden';
-            propInput.name = `items[${index}][properties][${key}]`;
-            propInput.value = value.toString();
-            form.appendChild(propInput);
-          });
+          }
+        }));
+        
+        // Add items using AJAX
+        const addResponse = await fetch(`https://${shopifyDomain}/cart/add.js`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'same-origin',
+          body: JSON.stringify({
+            items: shopifyItems,
+            note: cartNote
+          })
         });
         
-        // Add return URL to go directly to checkout
-        const returnInput = document.createElement('input');
-        returnInput.type = 'hidden';
-        returnInput.name = 'return_to';
-        returnInput.value = '/checkout';
-        form.appendChild(returnInput);
-        
-        // Submit the form
-        document.body.appendChild(form);
-        form.submit();
-        return;
-      } catch (formError) {
-        console.error('Form submission failed:', formError);
+        if (addResponse.ok) {
+          const cartData = await addResponse.json();
+          console.log('Items added to cart:', cartData);
+          
+          // Navigate directly to checkout
+          window.location.href = `https://${shopifyDomain}/checkout`;
+          return;
+        } else {
+          console.error('Failed to add items:', await addResponse.text());
+        }
+      } catch (ajaxError) {
+        console.error('AJAX method failed:', ajaxError);
       }
       
       // Method 4: Fallback to permalink method
@@ -185,7 +176,7 @@ export default function CartPage() {
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 mb-4">Your cart is empty</h1>
           <a
-            href="https://castawaycovers.com/design-my-cover/"
+            href="/"
             className="inline-block bg-blue-600 text-white py-2 px-6 rounded-md hover:bg-blue-700"
           >
             Continue Shopping
@@ -268,7 +259,7 @@ export default function CartPage() {
             </button>
             
             <a
-              href="https://castawaycovers.com/design-my-cover/"
+              href="/"
               className="block w-full text-center py-3 px-6 rounded-md font-semibold bg-gray-200 text-gray-700 hover:bg-gray-300"
             >
               Continue Shopping

@@ -49,7 +49,7 @@ export default function Home() {
               </Link>
             </div>
             <a 
-              href="https://castawaycovers.com/design-my-cover/" 
+              href="#products" 
               className="inline-block bg-black text-white px-8 py-3 rounded-lg text-lg font-semibold hover:bg-gray-800 transition-colors"
             >
               Or Use Our Design Tool
@@ -170,7 +170,7 @@ export default function Home() {
               Use our custom design tool to create the perfect cover for your patio furniture
             </p>
             <a 
-              href="https://castawaycovers.com/design-my-cover/" 
+              href="#products" 
               className="inline-block bg-black text-white px-8 py-3 rounded-lg text-lg font-semibold hover:bg-gray-800 transition-colors"
             >
               Design My Cover
