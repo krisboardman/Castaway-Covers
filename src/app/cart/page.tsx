@@ -79,6 +79,9 @@ export default function CartPage() {
       // Store cart in sessionStorage as backup
       sessionStorage.setItem('castaway-cart-backup', JSON.stringify(items));
       
+      // Important: We don't clear the cart here anymore. 
+      // Cart is only cleared after successful checkout or on the success page.
+      
       // Method 1: Try API route first (handles password-protected stores better)
       try {
         console.log('Attempting Method 1: API route checkout');
@@ -95,7 +98,7 @@ export default function CartPage() {
         
         if (apiData.checkoutUrl) {
           console.log('API checkout URL received:', apiData.checkoutUrl);
-          clearCart();
+          // Don't clear cart until checkout is confirmed
           window.location.href = apiData.checkoutUrl;
           return;
         }
@@ -146,7 +149,7 @@ export default function CartPage() {
         if (response.ok) {
           // Successfully added to cart, now redirect to cart page
           console.log('Cart items added successfully, redirecting...');
-          clearCart();
+          // Don't clear cart until checkout is confirmed
           window.location.href = `https://${shopifyDomain}/cart`;
           return;
         }
