@@ -104,10 +104,16 @@ export default function CartPage() {
         console.log('Cart cleared:', clearResponse.ok);
         
         // Prepare items for Shopify's expected format
-        const shopifyItems = items.map(item => ({
-          id: item.coverVariantId,
-          quantity: item.quantity,
-          properties: {
+        const shopifyItems = items.map(item => {
+          console.log('Processing item:', {
+            variantId: item.coverVariantId,
+            sku: item.coverSKU,
+            hasProperties: true
+          });
+          return {
+            id: item.coverVariantId,
+            quantity: item.quantity,
+            properties: {
             'Product Type': item.productType,
             'SKU': item.coverSKU,
             'Color': item.selectedColor,
@@ -124,7 +130,8 @@ export default function CartPage() {
             'Premium Color Charge': `$${item.premiumColorCharge}`,
             'Total Price': `$${item.total.toFixed(2)}`
           }
-        }));
+        };
+        });
         
         // Add items using AJAX
         const addResponse = await fetch(`https://${shopifyDomain}/cart/add.js`, {
@@ -142,9 +149,24 @@ export default function CartPage() {
         if (addResponse.ok) {
           const cartData = await addResponse.json();
           console.log('Items added to cart:', cartData);
+          console.log('Cart items in response:', cartData.items);
           
-          // Navigate directly to checkout
-          window.location.href = `https://${shopifyDomain}/checkout`;
+          // Wait a moment for cart to update
+          await new Promise(resolve => setTimeout(resolve, 500));
+          
+          // Get the cart to verify items
+          const cartCheck = await fetch(`https://${shopifyDomain}/cart.js`, {
+            credentials: 'same-origin'
+          });
+          const currentCart = await cartCheck.json();
+          console.log('Current cart contents:', currentCart);
+          console.log('Cart item properties:', currentCart.items?.map((item: any) => ({
+            title: item.title,
+            properties: item.properties
+          })));
+          
+          // Navigate to cart first to see what's there
+          window.location.href = `https://${shopifyDomain}/cart`;
           return;
         } else {
           console.error('Failed to add items:', await addResponse.text());
