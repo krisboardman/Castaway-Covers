@@ -83,7 +83,9 @@ export async function findVariantBySKU(sku: string) {
     
     // If not found, log available SKUs for debugging
     console.warn(`No variant found for SKU: ${sku}`);
-    console.log('Available SKUs:', allSKUs.filter(s => s.includes(sku.split('-')[0])).slice(0, 10));
+    console.log('Looking for product type:', sku.split('-')[0]);
+    console.log('All available SKUs:', allSKUs);
+    console.log('Filtered SKUs containing product type:', allSKUs.filter(s => s && s.toLowerCase().includes(sku.split('-')[0].toLowerCase())));
     return null;
   } catch (error) {
     console.error('Error finding variant by SKU:', error);

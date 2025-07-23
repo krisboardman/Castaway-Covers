@@ -234,6 +234,45 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
         onCalculate(displaySKU, variantInfo.variantId, finalPrice, yards, angle, measurements);
       } else {
         console.error('No variant found for SKU:', shopifySKU);
+        console.log('Attempting fallback search for yards:', yards);
+        
+        // Try to find by variant title instead of SKU
+        const client = await getShopifyClient();
+        if (client) {
+          try {
+            const products = await client.product.fetchAll(250);
+            let foundVariant = null;
+            
+            for (const product of products) {
+              // Check if this product matches our type
+              if (product.handle.includes(productType.replace('_', '-'))) {
+                for (const variant of product.variants) {
+                  if (variant.title === `${yards} yards` || variant.title === `${yards} Yards`) {
+                    console.log('Found variant by title match:', variant);
+                    foundVariant = {
+                      variantId: variant.id.toString().split('/').pop(),
+                      price: variant.price.amount,
+                      title: variant.title,
+                      productTitle: product.title
+                    };
+                    break;
+                  }
+                }
+              }
+              if (foundVariant) break;
+            }
+            
+            if (foundVariant) {
+              const finalPrice = parseFloat(foundVariant.price) || price;
+              const angle = config.hasAngle ? calculateAngle() : 0;
+              onCalculate(displaySKU, foundVariant.variantId, finalPrice, yards, angle, measurements);
+              return;
+            }
+          } catch (e) {
+            console.error('Fallback search failed:', e);
+          }
+        }
+        
         alert(`Product variant not found for ${yards} yards. Please contact support.`);
         const angle = config.hasAngle ? calculateAngle() : 0;
         onCalculate(displaySKU, '', price, yards, angle, measurements);
