@@ -81,6 +81,7 @@ export default function CartPage() {
       
       // Method 1: Try API route first (handles password-protected stores better)
       try {
+        console.log('Attempting Method 1: API route checkout');
         const apiResponse = await fetch('/api/checkout', {
           method: 'POST',
           headers: {
@@ -90,18 +91,45 @@ export default function CartPage() {
         });
         
         const apiData = await apiResponse.json();
+        console.log('API response:', apiData);
         
         if (apiData.checkoutUrl) {
+          console.log('API checkout URL received:', apiData.checkoutUrl);
           clearCart();
           window.location.href = apiData.checkoutUrl;
           return;
         }
       } catch (apiError) {
-        console.log('API method failed, trying direct method', apiError);
+        console.error('API method failed:', apiError);
       }
       
-      // Method 2: Try direct AJAX
+      // Method 2: For development/testing - create a test order summary
+      if (window.location.hostname === 'localhost' || window.location.hostname.includes('vercel')) {
+        console.log('Development mode detected - showing test checkout');
+        
+        // Create a test checkout summary
+        const orderSummary = {
+          items: items,
+          total: getTotalPrice(),
+          cartNote: cartNote,
+          timestamp: new Date().toISOString()
+        };
+        
+        // Store the order for reference
+        localStorage.setItem('test-order', JSON.stringify(orderSummary));
+        
+        // Show success and order details
+        alert(`Test Order Created!\n\nTotal: $${getTotalPrice().toFixed(2)}\nItems: ${items.length}\n\nOrder details saved to localStorage.\n\nIn production, this would redirect to Shopify checkout.`);
+        
+        console.log('Test Order Summary:', orderSummary);
+        clearCart();
+        setLoading(false);
+        return;
+      }
+      
+      // Method 3: Try direct AJAX for production
       try {
+        console.log('Attempting Method 3: Direct AJAX cart add');
         const formData = new FormData();
         
         // Add all items to the form
@@ -135,22 +163,27 @@ export default function CartPage() {
           credentials: 'same-origin'
         });
         
+        console.log('AJAX response status:', response.status);
+        
         if (response.ok) {
           // Successfully added to cart, now redirect to cart page
+          console.log('Cart items added successfully, redirecting...');
           clearCart();
           window.location.href = `https://${shopifyDomain}/cart`;
           return;
         }
       } catch (ajaxError) {
-        console.log('AJAX method failed, trying permalink method', ajaxError);
+        console.error('AJAX method failed:', ajaxError);
       }
       
-      // Method 3: Fallback to permalink method
+      // Method 4: Fallback to permalink method
+      console.log('Attempting Method 4: Cart permalink');
       const cartItems = items.map(item => `${item.coverVariantId}:${item.quantity}`).join(',');
       const encodedNote = encodeURIComponent(cartNote);
       const cartUrl = `https://${shopifyDomain}/cart/${cartItems}?note=${encodedNote}`;
       
-      console.log('Redirecting to Shopify cart:', cartUrl);
+      console.log('Cart permalink URL:', cartUrl);
+      console.log('Variant IDs being sent:', items.map(i => i.coverVariantId));
       window.location.href = cartUrl;
       
     } catch (error) {
@@ -247,6 +280,16 @@ export default function CartPage() {
             >
               {loading ? 'Processing...' : 'Proceed to Checkout'}
             </button>
+            
+            {/* Show test checkout link in development */}
+            {(typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname.includes('vercel'))) && (
+              <a
+                href="/test-checkout"
+                className="block w-full text-center py-2 px-4 rounded-md font-semibold bg-yellow-500 text-white hover:bg-yellow-600 mb-3 text-sm"
+              >
+                Test Checkout (Password Protected)
+              </a>
+            )}
             
             <a
               href="https://castawaycovers.com/design-my-cover/"
