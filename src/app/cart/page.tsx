@@ -88,9 +88,34 @@ export default function CartPage() {
       // Important: We don't clear the cart here anymore. 
       // Cart is only cleared after successful checkout or on the success page.
       
-      // Method 1: Use AJAX to clear cart and add items, then navigate
+      // Method 1: Create a fresh checkout with all properties
       try {
-        console.log('Clearing Shopify cart and adding current items via AJAX');
+        console.log('Creating fresh checkout with properties');
+        const checkoutResponse = await fetch('/api/create-checkout', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ items })
+        });
+        
+        const checkoutData = await checkoutResponse.json();
+        console.log('Checkout response:', checkoutData);
+        
+        if (checkoutData.checkoutUrl) {
+          console.log('Fresh checkout created, redirecting to:', checkoutData.checkoutUrl);
+          window.location.href = checkoutData.checkoutUrl;
+          return;
+        } else if (checkoutData.error) {
+          console.error('Checkout creation failed:', checkoutData);
+        }
+      } catch (error) {
+        console.error('Failed to create checkout:', error);
+      }
+      
+      // Method 2: Fallback to clearing cart and adding items
+      try {
+        console.log('Fallback: Clearing Shopify cart and adding current items via AJAX');
         
         // First, clear the Shopify cart
         const clearResponse = await fetch(`https://${shopifyDomain}/cart/clear.js`, {
