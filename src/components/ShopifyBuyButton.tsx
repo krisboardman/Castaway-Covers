@@ -39,45 +39,14 @@ const ShopifyBuyButton: React.FC<ShopifyBuyButtonProps> = ({
 
     setLoading(true);
     try {
-      // Create a form and submit it to avoid CORS issues
-      const form = document.createElement('form');
-      form.method = 'POST';
-      form.action = `https://${process.env.NEXT_PUBLIC_SHOPIFY_DOMAIN}/cart/add`;
-      
-      // Add variant ID
-      const idInput = document.createElement('input');
-      idInput.type = 'hidden';
-      idInput.name = 'id';
-      idInput.value = variantId;
-      form.appendChild(idInput);
-      
-      // Add quantity
-      const qtyInput = document.createElement('input');
-      qtyInput.type = 'hidden';
-      qtyInput.name = 'quantity';
-      qtyInput.value = quantity.toString();
-      form.appendChild(qtyInput);
-      
-      // Add custom attributes
-      Object.entries(customAttributes).forEach(([key, value]) => {
-        const input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = `properties[${key}]`;
-        input.value = value;
-        form.appendChild(input);
-      });
-      
-      // Don't add return_to - let Shopify handle the redirect
-      
-      // Add to local cart before submitting
+      // Add to local cart
       onAddToCart();
       
-      console.log('Submitting to Shopify - Variant ID:', variantId);
-      console.log('Form action:', form.action);
-      
-      // Submit the form
-      document.body.appendChild(form);
-      form.submit();
+      // Wait a moment for cart to update
+      setTimeout(() => {
+        // Redirect to the Vercel app cart page
+        window.location.href = '/cart';
+      }, 100);
     } catch (error) {
       console.error('Error creating checkout:', error);
       alert('Error adding to cart. Please try again.');
