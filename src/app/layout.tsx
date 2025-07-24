@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 import { CartProvider } from "@/providers/cart-provider";
 
 export const metadata: Metadata = {
@@ -18,7 +19,10 @@ export default function RootLayout({
       <body className="antialiased">
         <CartProvider>
           <Header />
-          {children}
+          <main className="min-h-screen">
+            {children}
+          </main>
+          <Footer />
         </CartProvider>
       </body>
     </html>
