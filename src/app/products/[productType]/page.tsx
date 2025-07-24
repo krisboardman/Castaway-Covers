@@ -157,7 +157,10 @@ export default function ProductPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-8">{productName}</h1>
         
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Product Gallery */}
+        <ProductGallery productType={productType} />
+        
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
           <div className="space-y-6">
             <MeasurementCalculator
               productType={productType}
@@ -178,12 +181,14 @@ export default function ProductPage() {
               onMagnetsChange={setMagnets}
             />
             
-            <ColorSelector
-              onColorSelect={(color, isPremium) => {
-                setSelectedColor(color);
-                setIsPremiumColor(isPremium);
-              }}
-            />
+            <div className="lg:col-span-2">
+              <ColorSelector
+                onColorSelect={(color, isPremium) => {
+                  setSelectedColor(color);
+                  setIsPremiumColor(isPremium);
+                }}
+              />
+            </div>
             
             <div className="bg-white p-6 rounded-lg shadow">
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -297,12 +302,6 @@ export default function ProductPage() {
               onAddToCart={handleAddToCart}
               disabled={!coverVariantId || !selectedColor}
             />
-            
-            {/* Product Showcase Images */}
-            <div className="mt-8 pt-6 border-t border-gray-200">
-              <h3 className="text-lg font-semibold mb-4">See It In Action</h3>
-              <ProductShowcase productType={productType} />
-            </div>
           </div>
         </div>
       </div>
@@ -310,60 +309,96 @@ export default function ProductPage() {
   );
 }
 
-// Product showcase component for furniture-specific images
-const ProductShowcase = ({ productType }: { productType: string }) => {
-  const showcaseImages = {
+// Product gallery component with 4-5 images at the top
+const ProductGallery = ({ productType }: { productType: string }) => {
+  const [selectedImage, setSelectedImage] = useState(0);
+  
+  const galleryImages = {
     'chairs-recliners': [
       { src: '/images/Chairs-Recliners/chair front.jpg', alt: 'Chair with Castaway Cover - Front View' },
       { src: '/images/Chairs-Recliners/chair back.png', alt: 'Chair Cover - Back View' },
-      { src: '/images/Chairs-Recliners/chair side bungee.JPEG', alt: 'Chair Cover - Bungee System' }
+      { src: '/images/Chairs-Recliners/chair side bungee.JPEG', alt: 'Chair Cover - Bungee System' },
+      { src: '/images/Chairs-Recliners/chair4.png', alt: 'Chair Cover - Additional View' },
+      { src: '/images/homepage/side-bungee.jpeg', alt: 'Bungee Detail' }
     ],
     'sofas-loveseats': [
       { src: '/images/Sofas-Loveseats/couch covered.png', alt: 'Sofa with Castaway Cover' },
       { src: '/images/Sofas-Loveseats/couch bungee handle.png', alt: 'Sofa Cover - Bungee & Handle Detail' },
-      { src: '/images/Sofas-Loveseats/couch magnetic closure.PNG', alt: 'Sofa Cover - Magnetic Closure' }
+      { src: '/images/Sofas-Loveseats/couch magnetic closure.PNG', alt: 'Sofa Cover - Magnetic Closure' },
+      { src: '/images/Sofas-Loveseats/Sofa-New-1.jpg', alt: 'Sofa Cover - Style View' },
+      { src: '/images/homepage/actual-with-gusset.jpeg', alt: 'Corner Gusset Detail' }
     ],
     'chaise-lounge': [
       { src: '/images/ChaiseLounges/chaise front side.png', alt: 'Chaise Lounge Cover - Front Side View' },
       { src: '/images/ChaiseLounges/chaise handle.png', alt: 'Chaise Cover - Handle Detail' },
-      { src: '/images/ChaiseLounges/chaise bungee.png', alt: 'Chaise Cover - Bungee System' }
+      { src: '/images/ChaiseLounges/chaise bungee.png', alt: 'Chaise Cover - Bungee System' },
+      { src: '/images/ChaiseLounges/CC-chaise.png', alt: 'Chaise Cover - Style View' },
+      { src: '/images/homepage/snap-strap.jpeg', alt: 'Snap Strap Detail' }
+    ],
+    'chaise-lounges': [
+      { src: '/images/ChaiseLounges/chaise front side.png', alt: 'Chaise Lounge Cover - Front Side View' },
+      { src: '/images/ChaiseLounges/chaise handle.png', alt: 'Chaise Cover - Handle Detail' },
+      { src: '/images/ChaiseLounges/chaise bungee.png', alt: 'Chaise Cover - Bungee System' },
+      { src: '/images/ChaiseLounges/CC-chaise.png', alt: 'Chaise Cover - Style View' },
+      { src: '/images/homepage/snap-strap.jpeg', alt: 'Snap Strap Detail' }
     ],
     'ottomans': [
       { src: '/images/Ottomans/ottoman side.jpg', alt: 'Ottoman with Castaway Cover' },
       { src: '/images/Ottomans/ottoman handle.jpg', alt: 'Ottoman Cover - Handle Detail' },
-      { src: '/images/Ottomans/ottoman bungee.jpg', alt: 'Ottoman Cover - Bungee System' }
+      { src: '/images/Ottomans/ottoman bungee.jpg', alt: 'Ottoman Cover - Bungee System' },
+      { src: '/images/Ottomans/ottoman.jpg', alt: 'Ottoman Cover - Full View' },
+      { src: '/images/homepage/bungee.jpeg', alt: 'Heavy Duty Bungee' }
     ],
     'tables': [
       { src: '/images/Tables/table side.JPEG', alt: 'Table with Castaway Cover' },
       { src: '/images/Tables/table handle.JPEG', alt: 'Table Cover - Handle Detail' },
-      { src: '/images/Tables/table bungee.JPEG', alt: 'Table Cover - Bungee System' }
+      { src: '/images/Tables/table bungee.JPEG', alt: 'Table Cover - Bungee System' },
+      { src: '/images/Tables/CC-table-1.png', alt: 'Table Cover - Style View' }
     ],
     'table-sets': [
       { src: '/images/Tablesets/tableset side.JPEG', alt: 'Table Set with Castaway Cover' },
       { src: '/images/Tablesets/tableset handle.JPEG', alt: 'Table Set Cover - Handle Detail' },
-      { src: '/images/Tablesets/tableset bungee.JPEG', alt: 'Table Set Cover - Bungee System' }
+      { src: '/images/Tablesets/tableset bungee.JPEG', alt: 'Table Set Cover - Bungee System' },
+      { src: '/images/Tablesets/CC-table-set.png', alt: 'Table Set - Complete View' }
     ]
   };
 
-  const images = showcaseImages[productType as keyof typeof showcaseImages] || showcaseImages['chairs-recliners'];
+  const images = galleryImages[productType as keyof typeof galleryImages] || galleryImages['chairs-recliners'];
 
   return (
-    <div className="grid grid-cols-1 gap-4">
-      {images.map((image, index) => (
-        <div key={index} className="rounded-lg overflow-hidden shadow-md">
-          <div className="relative h-48 md:h-64">
+    <div className="space-y-4">
+      {/* Main Image Display */}
+      <div className="relative h-96 md:h-[500px] bg-gray-100 rounded-lg overflow-hidden">
+        <Image
+          src={images[selectedImage].src}
+          alt={images[selectedImage].alt}
+          fill
+          className="object-contain"
+          priority
+        />
+      </div>
+      
+      {/* Thumbnail Gallery */}
+      <div className="grid grid-cols-4 md:grid-cols-5 gap-2">
+        {images.map((image, index) => (
+          <button
+            key={index}
+            onClick={() => setSelectedImage(index)}
+            className={`relative h-20 md:h-24 rounded-lg overflow-hidden border-2 transition-all ${
+              selectedImage === index 
+                ? 'border-blue-600 shadow-lg' 
+                : 'border-gray-200 hover:border-gray-400'
+            }`}
+          >
             <Image
               src={image.src}
               alt={image.alt}
               fill
               className="object-cover"
             />
-          </div>
-          <div className="p-2 bg-gray-50">
-            <p className="text-sm text-gray-600">{image.alt}</p>
-          </div>
-        </div>
-      ))}
+          </button>
+        ))}
+      </div>
     </div>
   );
 };

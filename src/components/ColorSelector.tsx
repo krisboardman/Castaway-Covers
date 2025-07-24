@@ -38,7 +38,7 @@ const ColorSelector: React.FC<ColorSelectorProps> = ({ onColorSelect }) => {
       
       <div className="mb-6">
         <h4 className="text-sm font-medium text-gray-700 mb-3">Standard Colors (No Extra Charge)</h4>
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-5 gap-3">
           {standardColors.map((color) => (
             <button
               key={color.name}
@@ -70,7 +70,7 @@ const ColorSelector: React.FC<ColorSelectorProps> = ({ onColorSelect }) => {
           Premium Colors
           <span className="text-gray-500 ml-2">(+$4 per yard)</span>
         </h4>
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-5 gap-3">
           {premiumColors.map((color) => (
             <button
               key={color.name}
