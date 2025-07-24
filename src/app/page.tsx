@@ -27,7 +27,7 @@ export default function Home() {
       {/* 5 Features in a Row */}
       <section className="py-12 px-4">
         <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-5 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
             {/* Hassle Free */}
             <div className="border border-gray-300 rounded-lg overflow-hidden">
               <div className="p-4 text-center bg-white">
