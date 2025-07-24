@@ -157,22 +157,12 @@ export default function ProductPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-8">{productName}</h1>
         
-        {/* Color Selector - Full Width at Top */}
-        <div className="mb-8">
-          <ColorSelector
-            onColorSelect={(color, isPremium) => {
-              setSelectedColor(color);
-              setIsPremiumColor(isPremium);
-            }}
-          />
-        </div>
-        
         {/* Product Gallery */}
         <ProductGallery productType={productType} />
         
-        {/* Configuration Options */}
+        {/* Measurements and Options */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2">
             <MeasurementCalculator
               productType={productType}
               onCalculate={(sku, variantId, price, yardsNeeded, calculatedAngle, allMeasurements) => {
@@ -184,16 +174,15 @@ export default function ProductPage() {
                 setMeasurements(allMeasurements);
               }}
             />
-            
+          </div>
+          
+          <div className="space-y-6">
             <AddOnOptions
               productType={productType}
               onSnapStrapsChange={setSnapStraps}
               onHandlesChange={setHandles}
               onMagnetsChange={setMagnets}
             />
-          </div>
-          
-          <div className="space-y-6">
             <div className="bg-white p-6 rounded-lg shadow">
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Quantity
@@ -238,6 +227,16 @@ export default function ProductPage() {
               </div>
             </div>
           </div>
+        </div>
+        
+        {/* Color Selector - Full Width */}
+        <div className="mt-8">
+          <ColorSelector
+            onColorSelect={(color, isPremium) => {
+              setSelectedColor(color);
+              setIsPremiumColor(isPremium);
+            }}
+          />
         </div>
         
         {/* Order Summary - Bottom */}
