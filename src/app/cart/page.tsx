@@ -18,8 +18,34 @@ export default function CartPage() {
     setMounted(true);
     setLoading(false); // Reset loading state when component mounts
     console.log('Cart mounted, items:', items);
+    console.log('Loading state:', loading);
     console.log('localStorage:', localStorage.getItem('castaway-covers-cart'));
   }, [items]);
+  
+  // Reset loading state when page becomes visible (e.g., back button)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        setLoading(false);
+        console.log('Page visible again, reset loading state');
+      }
+    };
+    
+    const handlePageShow = (event: PageTransitionEvent) => {
+      if (event.persisted) {
+        setLoading(false);
+        console.log('Page restored from cache, reset loading state');
+      }
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('pageshow', handlePageShow);
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('pageshow', handlePageShow);
+    };
+  }, []);
   
   // Prevent hydration mismatch
   if (!mounted) {
