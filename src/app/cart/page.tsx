@@ -16,6 +16,7 @@ export default function CartPage() {
   // Handle client-side hydration
   useEffect(() => {
     setMounted(true);
+    setLoading(false); // Reset loading state when component mounts
     console.log('Cart mounted, items:', items);
     console.log('localStorage:', localStorage.getItem('castaway-covers-cart'));
   }, [items]);
