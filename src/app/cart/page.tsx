@@ -217,12 +217,15 @@ export default function CartPage() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 mb-4">Your cart is empty</h1>
-          <Link
-            href="/design"
+          <button
+            onClick={() => {
+              const lastProduct = sessionStorage.getItem('lastProductType');
+              window.location.href = lastProduct ? `/products/${lastProduct}` : '/design';
+            }}
             className="inline-block bg-blue-600 text-white py-2 px-6 rounded-md hover:bg-blue-700"
           >
-            Design a Cover
-          </Link>
+            {typeof window !== 'undefined' && sessionStorage.getItem('lastProductType') ? 'Continue Designing' : 'Design a Cover'}
+          </button>
         </div>
       </div>
     );
@@ -300,12 +303,15 @@ export default function CartPage() {
               {loading ? 'Processing...' : 'Proceed to Checkout'}
             </button>
             
-            <Link
-              href="/design"
+            <button
+              onClick={() => {
+                const lastProduct = sessionStorage.getItem('lastProductType');
+                window.location.href = lastProduct ? `/products/${lastProduct}` : '/design';
+              }}
               className="block w-full text-center py-3 px-6 rounded-md font-semibold bg-gray-200 text-gray-700 hover:bg-gray-300"
             >
               Continue Shopping
-            </Link>
+            </button>
           </div>
         </div>
       </div>

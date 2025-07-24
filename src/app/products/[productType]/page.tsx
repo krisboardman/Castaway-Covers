@@ -47,7 +47,11 @@ export default function ProductPage() {
   // Handle client-side mounting
   useEffect(() => {
     setMounted(true);
-  }, []);
+    // Store the current product type in sessionStorage for back navigation
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('lastProductType', productType);
+    }
+  }, [productType]);
 
   useEffect(() => {
     if (isPremiumColor && yards > 0) {
