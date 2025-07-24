@@ -2,13 +2,15 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 export function middleware(request: NextRequest) {
-  // Check if coming soon mode is enabled
-  const comingSoonMode = process.env.COMING_SOON_MODE === 'true'
+  // For now, let's use a simple flag approach
+  // In production, this would be controlled by environment variables
+  const COMING_SOON_ENABLED = true; // Set this to false to disable coming soon mode
+  const PREVIEW_TOKEN = 'castaway2025';
   
   // Allow bypass with secret parameter
   const url = request.nextUrl
   const bypassToken = url.searchParams.get('preview')
-  const hasValidBypass = bypassToken === process.env.PREVIEW_TOKEN
+  const hasValidBypass = bypassToken === PREVIEW_TOKEN
   
   // Store bypass in cookie if valid
   if (hasValidBypass) {
@@ -25,7 +27,7 @@ export function middleware(request: NextRequest) {
   // Check if user has valid preview cookie
   const hasPreviewCookie = request.cookies.get('preview-mode')?.value === 'true'
   
-  if (!comingSoonMode || hasPreviewCookie || hasValidBypass) {
+  if (!COMING_SOON_ENABLED || hasPreviewCookie || hasValidBypass) {
     return NextResponse.next()
   }
   
