@@ -41,8 +41,11 @@ export default function ProductPage() {
   const [premiumColorCharge, setPremiumColorCharge] = useState(0);
   
   const [quantity, setQuantity] = useState(1);
+  const [editingItemId, setEditingItemId] = useState<string | null>(null);
   
   const addToCart = useCartStore((state) => state.addToCart);
+  const updateItem = useCartStore((state) => state.updateItem);
+  const removeFromCart = useCartStore((state) => state.removeFromCart);
   
   // Handle client-side mounting
   useEffect(() => {
@@ -50,6 +53,32 @@ export default function ProductPage() {
     // Store the current product type in sessionStorage for back navigation
     if (typeof window !== 'undefined') {
       sessionStorage.setItem('lastProductType', productType);
+      
+      // Check if we're editing an item
+      const editData = sessionStorage.getItem('editCartItem');
+      if (editData) {
+        const item = JSON.parse(editData);
+        if (item.productType === productType) {
+          // Load all the saved data
+          setCoverSKU(item.coverSKU);
+          setCoverVariantId(item.coverVariantId);
+          setCoverPrice(item.coverPrice);
+          setYards(item.yards);
+          setAngle(item.angle);
+          setMeasurements(item.measurements);
+          setSnapStraps(item.snapStraps);
+          setHandles(item.handles);
+          setMagnets(item.magnets);
+          setSelectedColor(item.selectedColor);
+          setIsPremiumColor(item.isPremiumColor);
+          setPremiumColorCharge(item.premiumColorCharge);
+          setQuantity(item.quantity);
+          setEditingItemId(item.id);
+          
+          // Clear the edit data
+          sessionStorage.removeItem('editCartItem');
+        }
+      }
     }
   }, [productType]);
 
@@ -89,15 +118,27 @@ export default function ProductPage() {
       total: calculateTotal()
     };
     
-    addToCart(cartItem);
-    console.log('Item added to cart:', cartItem);
-    console.log('Cart after adding:', useCartStore.getState().items);
-    
-    // Show success message with options
-    const goToCart = window.confirm('Item added to cart! Click OK to view cart or Cancel to continue shopping.');
-    if (goToCart) {
+    if (editingItemId) {
+      // Update existing item
+      updateItem(editingItemId, cartItem);
+      console.log('Item updated in cart:', cartItem);
+      // Go back to cart after updating
       window.location.href = '/cart';
+    } else {
+      // Add new item
+      addToCart(cartItem);
+      console.log('Item added to cart:', cartItem);
+      console.log('Cart after adding:', useCartStore.getState().items);
+      
+      // Show success message with options
+      const goToCart = window.confirm('Item added to cart! Click OK to view cart or Cancel to continue shopping.');
+      if (goToCart) {
+        window.location.href = '/cart';
+      }
     }
+    
+    // Reset editing state
+    setEditingItemId(null);
   };
 
   // Prevent hydration mismatch

@@ -269,12 +269,24 @@ export default function CartPage() {
                   
                   <div className="text-right">
                     <p className="text-xl font-semibold">${item.total.toFixed(2)}</p>
-                    <button
-                      onClick={() => removeFromCart(item.id)}
-                      className="text-red-600 hover:text-red-800 text-sm mt-2"
-                    >
-                      Remove
-                    </button>
+                    <div className="flex gap-2 justify-end mt-2">
+                      <button
+                        onClick={() => {
+                          // Store the item to edit in sessionStorage
+                          sessionStorage.setItem('editCartItem', JSON.stringify(item));
+                          window.location.href = `/products/${item.productType}`;
+                        }}
+                        className="text-blue-600 hover:text-blue-800 text-sm"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => removeFromCart(item.id)}
+                        className="text-red-600 hover:text-red-800 text-sm"
+                      >
+                        Remove
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
