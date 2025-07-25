@@ -8,13 +8,19 @@ interface AddOnOptionsProps {
   onSnapStrapsChange: (value: boolean) => void;
   onHandlesChange: (value: boolean) => void;
   onMagnetsChange: (value: boolean) => void;
+  initialSnapStraps?: boolean;
+  initialHandles?: boolean;
+  initialMagnets?: boolean;
 }
 
 const AddOnOptions: React.FC<AddOnOptionsProps> = ({
   productType,
   onSnapStrapsChange,
   onHandlesChange,
-  onMagnetsChange
+  onMagnetsChange,
+  initialSnapStraps = false,
+  initialHandles = false,
+  initialMagnets = false
 }) => {
   const [showSnapStrapImage, setShowSnapStrapImage] = useState(false);
   const [showHandlesImage, setShowHandlesImage] = useState(false);
@@ -42,6 +48,7 @@ const AddOnOptions: React.FC<AddOnOptionsProps> = ({
             <label className="flex items-center space-x-3 cursor-pointer">
               <input
                 type="checkbox"
+                checked={initialSnapStraps}
                 onChange={(e) => onSnapStrapsChange(e.target.checked)}
                 className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
               />
@@ -81,6 +88,7 @@ const AddOnOptions: React.FC<AddOnOptionsProps> = ({
             <label className="flex items-center space-x-3 cursor-pointer">
               <input
                 type="checkbox"
+                checked={initialHandles}
                 onChange={(e) => onHandlesChange(e.target.checked)}
                 className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
               />
@@ -120,6 +128,7 @@ const AddOnOptions: React.FC<AddOnOptionsProps> = ({
             <label className="flex items-center space-x-3 cursor-pointer">
               <input
                 type="checkbox"
+                checked={initialMagnets}
                 onChange={(e) => onMagnetsChange(e.target.checked)}
                 className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
               />

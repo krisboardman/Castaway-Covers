@@ -182,6 +182,9 @@ export default function ProductPage() {
               onSnapStrapsChange={setSnapStraps}
               onHandlesChange={setHandles}
               onMagnetsChange={setMagnets}
+              initialSnapStraps={snapStraps}
+              initialHandles={handles}
+              initialMagnets={magnets}
             />
             <div className="bg-white p-6 rounded-lg shadow">
               <label className="block text-sm font-medium text-gray-700 mb-2">
