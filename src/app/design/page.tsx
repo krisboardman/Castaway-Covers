@@ -20,7 +20,7 @@ export default function DesignPage() {
     {
       name: "Tables",
       href: "/products/tables",
-      image: "/images/Tables/CC-table-1.png"
+      image: "/images/Tables/sketchtableset.png"
     },
     {
       name: "Table Sets",
