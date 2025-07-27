@@ -48,15 +48,15 @@ export default function DesignPage() {
               href={type.href}
               className="group block"
             >
-              <div className="bg-white rounded-lg overflow-hidden hover:shadow-lg transition-shadow h-full">
-                <div className="bg-gray-100 h-64 flex items-center justify-center">
+              <div className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 h-full">
+                <div className="bg-gray-100 h-64 flex items-center justify-center overflow-hidden">
                   <img 
                     src={type.image}
                     alt={type.name}
-                    className="max-w-full max-h-full object-contain p-8"
+                    className="max-w-full max-h-full object-contain p-8 transition-transform duration-300 group-hover:scale-110"
                   />
                 </div>
-                <div className="p-6 text-center">
+                <div className="p-6 text-center border-t-4 border-transparent group-hover:border-blue-500 transition-all duration-300">
                   <h3 className="text-xl font-medium text-gray-800 group-hover:text-blue-600 transition-colors">
                     {type.name}
                   </h3>
