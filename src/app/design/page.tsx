@@ -5,7 +5,7 @@ export default function DesignPage() {
     {
       name: "Chairs / Recliners",
       href: "/products/chairs-recliners",
-      image: "/images/Chairs-Recliners/chair4.png"
+      image: "/images/Chairs-Recliners/sketchchair.png"
     },
     {
       name: "Sofas / Loveseats",
