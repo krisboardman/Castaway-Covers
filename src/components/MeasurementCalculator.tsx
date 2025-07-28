@@ -102,6 +102,22 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
     armrestHeight: 0
   });
   const [showGuide, setShowGuide] = useState(false);
+  const [hasCalculated, setHasCalculated] = useState(false);
+
+  const config = productConfigs[productType as keyof typeof productConfigs] || productConfigs['sofas-loveseats'];
+
+  // Auto-calculate when initial measurements are provided (editing mode)
+  useEffect(() => {
+    if (initialMeasurements && config.fields.every(field => initialMeasurements[field] > 0)) {
+      // Small delay to ensure component is fully mounted
+      setTimeout(() => handleCalculate(), 100);
+    }
+  }, []); // Only run once on mount
+
+  // Reset calculated state when measurements change
+  useEffect(() => {
+    setHasCalculated(false);
+  }, [measurements]);
 
   // Calculate angle for furniture with backrests
   const calculateAngle = () => {
@@ -112,8 +128,6 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
     }
     return 0;
   };
-
-  const config = productConfigs[productType as keyof typeof productConfigs] || productConfigs.sofa;
 
   const calculateSKU = (measurements: any): string => {
     const baseCode = productType.toUpperCase().slice(0, 3);
@@ -212,6 +226,7 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
     const hasAllMeasurements = requiredFields.every(field => measurements[field] > 0);
     
     if (hasAllMeasurements) {
+      setHasCalculated(true);
       const displaySKU = calculateSKU(measurements); // Keep existing SKU for display
       const yards = calculateYards(measurements);
       const shopifySKU = generateShopifySKU(yards); // New Shopify SKU format
@@ -381,10 +396,16 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
       
       <button
         onClick={handleCalculate}
-        className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors"
+        className={`w-full py-3 px-4 rounded-md font-medium transition-all ${
+          config.fields.every(field => measurements[field] > 0) && !hasCalculated
+            ? 'bg-orange-600 hover:bg-orange-700 text-white animate-pulse'
+            : 'bg-blue-600 hover:bg-blue-700 text-white'
+        }`}
         disabled={!config.fields.every(field => measurements[field] > 0)}
       >
-        Calculate Cover Size & Price
+        {config.fields.every(field => measurements[field] > 0) && !hasCalculated
+          ? '⚠️ Click to Update Price & Size'
+          : 'Calculate Cover Size & Price'}
       </button>
     </div>
   );
