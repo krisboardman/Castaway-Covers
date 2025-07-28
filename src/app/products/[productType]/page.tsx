@@ -430,6 +430,7 @@ const ProductGallery = ({ productType }: { productType: string }) => {
             </div>
           ))}
         </div>
+      </div>
     </div>
   );
 };
