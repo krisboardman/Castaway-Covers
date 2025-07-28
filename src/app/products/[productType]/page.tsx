@@ -65,7 +65,7 @@ export default function ProductPage() {
           setCoverPrice(item.coverPrice);
           setYards(item.yards);
           setAngle(item.angle);
-          setMeasurements(item.measurements);
+          setMeasurements(item.measurements || {});
           setSnapStraps(item.snapStraps);
           setHandles(item.handles);
           setMagnets(item.magnets);
@@ -173,6 +173,7 @@ export default function ProductPage() {
                 setAngle(calculatedAngle);
                 setMeasurements(allMeasurements);
               }}
+              initialMeasurements={measurements}
             />
           </div>
           

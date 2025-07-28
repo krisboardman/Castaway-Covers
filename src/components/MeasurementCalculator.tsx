@@ -7,6 +7,7 @@ import { getShopifyClient, findVariantBySKU, clearProductCache } from '@/lib/sho
 interface MeasurementCalculatorProps {
   productType: string;
   onCalculate: (sku: string, variantId: string, price: number, yards: number, angle: number, measurements: any) => void;
+  initialMeasurements?: any;
 }
 
 interface BaseMeasurements {
@@ -92,8 +93,8 @@ const productConfigs = {
   }
 };
 
-const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productType, onCalculate }) => {
-  const [measurements, setMeasurements] = useState<any>({
+const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productType, onCalculate, initialMeasurements }) => {
+  const [measurements, setMeasurements] = useState<any>(initialMeasurements || {
     length: 0,
     width: 0,
     height: 0,
