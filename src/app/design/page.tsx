@@ -56,8 +56,8 @@ export default function DesignPage() {
                     className="max-w-full max-h-full object-contain p-8 transition-transform duration-300 group-hover:scale-110"
                   />
                 </div>
-                <div className="p-6 text-center border-t-4 border-transparent group-hover:border-blue-500 transition-all duration-300">
-                  <h3 className="text-xl font-medium text-gray-800 group-hover:text-blue-600 transition-colors">
+                <div className="p-6 text-center border-t-4 border-transparent group-hover:border-brand-teal transition-all duration-300">
+                  <h3 className="text-xl font-medium text-gray-800 group-hover:text-brand-teal transition-colors">
                     {type.name}
                   </h3>
                 </div>

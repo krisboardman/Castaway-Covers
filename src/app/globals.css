@@ -5,6 +5,12 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --brand-teal: #2C8B80;
+  --brand-teal-light: #3BA599;
+  --brand-teal-dark: #1F6259;
+  --brand-sand: #F5E6D3;
+  --font-poppins: 'Poppins', sans-serif;
+  --font-playfair: 'Playfair Display', serif;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -17,5 +23,24 @@
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-poppins);
+}
+
+/* Headings use Playfair Display for elegance */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-playfair);
+  font-weight: 700;
+}
+
+/* Custom utility classes for brand colors */
+.text-brand-teal {
+  color: var(--brand-teal);
+}
+
+.bg-brand-teal {
+  background-color: var(--brand-teal);
+}
+
+.hover\:bg-brand-teal-dark:hover {
+  background-color: var(--brand-teal-dark);
 }

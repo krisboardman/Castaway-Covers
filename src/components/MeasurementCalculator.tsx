@@ -399,7 +399,7 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
         className={`w-full py-3 px-4 rounded-md font-medium transition-all ${
           config.fields.every(field => measurements[field] > 0) && !hasCalculated
             ? 'bg-orange-600 hover:bg-orange-700 text-white animate-pulse'
-            : 'bg-blue-600 hover:bg-blue-700 text-white'
+            : 'bg-brand-teal hover:bg-brand-teal-dark text-white'
         }`}
         disabled={!config.fields.every(field => measurements[field] > 0)}
       >

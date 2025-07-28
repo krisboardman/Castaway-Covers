@@ -85,7 +85,7 @@ const ShopifyBuyButton: React.FC<ShopifyBuyButtonProps> = ({
         className={`w-full py-3 px-6 rounded-md font-semibold transition-colors ${
           disabled || loading
             ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-            : 'bg-blue-600 text-white hover:bg-blue-700'
+            : 'bg-brand-teal text-white hover:bg-brand-teal-dark'
         }`}
       >
         {loading ? 'Processing...' : 'Buy Now'}

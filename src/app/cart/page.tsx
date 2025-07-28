@@ -249,7 +249,7 @@ export default function CartPage() {
               const lastProduct = sessionStorage.getItem('lastProductType');
               window.location.href = lastProduct ? `/products/${lastProduct}` : '/design';
             }}
-            className="inline-block bg-blue-600 text-white py-2 px-6 rounded-md hover:bg-blue-700"
+            className="inline-block bg-brand-teal text-white py-2 px-6 rounded-md hover:bg-brand-teal-dark"
           >
             {typeof window !== 'undefined' && sessionStorage.getItem('lastProductType') ? 'Continue Designing' : 'Design a Cover'}
           </button>
@@ -336,7 +336,7 @@ export default function CartPage() {
               className={`w-full py-3 px-6 rounded-md font-semibold transition-colors mb-3 ${
                 loading
                   ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                  : 'bg-blue-600 text-white hover:bg-blue-700'
+                  : 'bg-brand-teal text-white hover:bg-brand-teal-dark'
               }`}
             >
               {loading ? 'Processing...' : 'Proceed to Checkout'}

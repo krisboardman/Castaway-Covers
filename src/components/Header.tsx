@@ -26,20 +26,20 @@ export default function Header() {
           </Link>
           
           <nav className="flex items-center space-x-6">
-            <Link href="/" className="text-gray-700 hover:text-gray-900">
+            <Link href="/" className="text-gray-700 hover:text-brand-teal font-medium transition-colors">
               Home
             </Link>
-            <Link href="/cart" className="relative text-gray-700 hover:text-gray-900">
+            <Link href="/cart" className="relative text-gray-700 hover:text-brand-teal font-medium transition-colors">
               Cart
               {mounted && itemCount > 0 && (
-                <span className="absolute -top-2 -right-2 bg-blue-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                <span className="absolute -top-2 -right-2 bg-brand-teal text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
                   {itemCount}
                 </span>
               )}
             </Link>
             <Link 
               href="/design" 
-              className="bg-white text-black border-2 border-black px-6 py-2 rounded-full hover:bg-gray-100 transition-colors"
+              className="bg-brand-teal text-white px-6 py-2 rounded-full hover:bg-brand-teal-dark transition-colors font-semibold"
             >
               Design My Cover
             </Link>
