@@ -157,12 +157,18 @@ export default function ProductPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-8">{productName}</h1>
         
-        {/* Product Gallery */}
+        {/* Product Gallery with new layout */}
         <ProductGallery productType={productType} />
         
-        {/* Measurements and Options */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
-          <div className="lg:col-span-2">
+        {/* Main Image and Measurements Side by Side */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
+          {/* Left: Main Product Image */}
+          <div className="bg-white rounded-lg shadow-sm p-4">
+            <MainProductImage productType={productType} />
+          </div>
+          
+          {/* Right: Measurements */}
+          <div>
             <MeasurementCalculator
               productType={productType}
               onCalculate={(sku, variantId, price, yardsNeeded, calculatedAngle, allMeasurements) => {
@@ -176,8 +182,11 @@ export default function ProductPage() {
               initialMeasurements={measurements}
             />
           </div>
-          
-          <div className="space-y-6">
+        </div>
+        
+        {/* Options and Add to Cart Below */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
+          <div className="lg:col-span-2">
             <AddOnOptions
               productType={productType}
               onSnapStrapsChange={setSnapStraps}
@@ -187,6 +196,9 @@ export default function ProductPage() {
               initialHandles={handles}
               initialMagnets={magnets}
             />
+          </div>
+          
+          <div className="space-y-6">
             <div className="bg-white p-6 rounded-lg shadow">
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Quantity
@@ -320,9 +332,33 @@ export default function ProductPage() {
 }
 
 // Product gallery component with 4-5 images at the top
+// Main Product Image Component
+const MainProductImage = ({ productType }: { productType: string }) => {
+  const mainImages: { [key: string]: string } = {
+    'chairs-recliners': '/images/Chairs-Recliners/chair front.jpg',
+    'sofas-loveseats': '/images/Sofas-Loveseats/couch covered.png',
+    'chaise-lounge': '/images/ChaiseLounges/chaise front side.png',
+    'chaise-lounges': '/images/ChaiseLounges/chaise front side.png',
+    'ottomans': '/images/Ottomans/ottoman.jpg',
+    'tables': '/images/Tables/table2.jpg',
+    'table-sets': '/images/Tablesets/table2.jpg'
+  };
+
+  return (
+    <div className="relative h-[400px] bg-gray-100 rounded-lg overflow-hidden">
+      <Image
+        src={mainImages[productType] || mainImages['chairs-recliners']}
+        alt={`${productType} with Castaway Cover`}
+        fill
+        className="object-contain p-4"
+        priority
+      />
+    </div>
+  );
+};
+
+// Horizontal Scroll Gallery Component
 const ProductGallery = ({ productType }: { productType: string }) => {
-  const [selectedImage, setSelectedImage] = useState(0);
-  
   const galleryImages = {
     'chairs-recliners': [
       { src: '/images/Chairs-Recliners/chair front.jpg', alt: 'Chair with Castaway Cover - Front View' },
@@ -376,86 +412,24 @@ const ProductGallery = ({ productType }: { productType: string }) => {
   const images = galleryImages[productType as keyof typeof galleryImages] || galleryImages['chairs-recliners'];
 
   return (
-    <div className="mb-8">
-      {/* Mobile Layout - Main Image First */}
-      <div className="block lg:hidden space-y-4">
-        {/* Main Image */}
-        <div className="relative h-[300px] bg-gray-100 rounded-lg overflow-hidden">
-          <Image
-            src={images[selectedImage].src}
-            alt={images[selectedImage].alt}
-            fill
-            className="object-contain"
-            priority
-          />
-        </div>
-        
-        {/* Horizontal Scrolling Thumbnails */}
-        <div className="bg-white rounded-lg shadow-sm p-3">
-          <div className="flex gap-2 overflow-x-auto pb-2">
-            {images.map((image, index) => (
-              <button
-                key={index}
-                onClick={() => setSelectedImage(index)}
-                className={`relative flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all ${
-                  selectedImage === index 
-                    ? 'border-blue-600 shadow-lg' 
-                    : 'border-gray-200 hover:border-gray-400'
-                }`}
-              >
-                <Image
-                  src={image.src}
-                  alt={image.alt}
-                  fill
-                  className="object-cover"
-                />
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-      
-      {/* Desktop Layout - Gallery Left, Main Right */}
-      <div className="hidden lg:grid grid-cols-3 gap-6">
-        {/* Scrolling Thumbnail Gallery - Left Side */}
-        <div className="col-span-1">
-          <div className="bg-white rounded-lg shadow-sm p-4">
-            <div className="space-y-3 max-h-[600px] overflow-y-auto">
-              {images.map((image, index) => (
-                <button
-                  key={index}
-                  onClick={() => setSelectedImage(index)}
-                  className={`relative w-full h-32 rounded-lg overflow-hidden border-2 transition-all ${
-                    selectedImage === index 
-                      ? 'border-blue-600 shadow-lg' 
-                      : 'border-gray-200 hover:border-gray-400'
-                  }`}
-                >
-                  <Image
-                    src={image.src}
-                    alt={image.alt}
-                    fill
-                    className="object-cover"
-                  />
-                </button>
-              ))}
+    <div className="mb-6">
+      {/* Horizontal Scrolling Gallery */}
+      <div className="bg-white rounded-lg shadow-sm p-4">
+        <div className="flex gap-4 overflow-x-auto pb-2">
+          {images.map((image, index) => (
+            <div
+              key={index}
+              className="relative flex-shrink-0 w-32 h-32 rounded-lg overflow-hidden border-2 border-gray-200 hover:border-brand-teal transition-all cursor-pointer"
+            >
+              <Image
+                src={image.src}
+                alt={image.alt}
+                fill
+                className="object-cover"
+              />
             </div>
-          </div>
+          ))}
         </div>
-        
-        {/* Main Image Display - Right Side */}
-        <div className="col-span-2">
-          <div className="relative h-[600px] bg-gray-100 rounded-lg overflow-hidden">
-            <Image
-              src={images[selectedImage].src}
-              alt={images[selectedImage].alt}
-              fill
-              className="object-contain"
-              priority
-            />
-          </div>
-        </div>
-      </div>
     </div>
   );
 };
