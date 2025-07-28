@@ -42,6 +42,7 @@ export default function ProductPage() {
   
   const [quantity, setQuantity] = useState(1);
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   
   const addToCart = useCartStore((state) => state.addToCart);
   const updateItem = useCartStore((state) => state.updateItem);
@@ -158,13 +159,20 @@ export default function ProductPage() {
         <h1 className="text-3xl font-bold text-gray-900 mb-8">{productName}</h1>
         
         {/* Product Gallery with new layout */}
-        <ProductGallery productType={productType} />
+        <ProductGallery 
+          productType={productType} 
+          selectedIndex={selectedImageIndex}
+          onImageSelect={setSelectedImageIndex}
+        />
         
         {/* Main Image and Measurements Side by Side */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
           {/* Left: Main Product Image */}
           <div className="bg-white rounded-lg shadow-sm p-4">
-            <MainProductImage productType={productType} />
+            <MainProductImage 
+              productType={productType} 
+              selectedIndex={selectedImageIndex}
+            />
           </div>
           
           {/* Right: Measurements */}
@@ -332,33 +340,8 @@ export default function ProductPage() {
 }
 
 // Product gallery component with 4-5 images at the top
-// Main Product Image Component
-const MainProductImage = ({ productType }: { productType: string }) => {
-  const mainImages: { [key: string]: string } = {
-    'chairs-recliners': '/images/Chairs-Recliners/chair front.jpg',
-    'sofas-loveseats': '/images/Sofas-Loveseats/couch covered.png',
-    'chaise-lounge': '/images/ChaiseLounges/chaise front side.png',
-    'chaise-lounges': '/images/ChaiseLounges/chaise front side.png',
-    'ottomans': '/images/Ottomans/ottoman.jpg',
-    'tables': '/images/Tables/table2.jpg',
-    'table-sets': '/images/Tablesets/table2.jpg'
-  };
-
-  return (
-    <div className="relative h-[400px] bg-gray-100 rounded-lg overflow-hidden">
-      <Image
-        src={mainImages[productType] || mainImages['chairs-recliners']}
-        alt={`${productType} with Castaway Cover`}
-        fill
-        className="object-contain p-4"
-        priority
-      />
-    </div>
-  );
-};
-
-// Horizontal Scroll Gallery Component
-const ProductGallery = ({ productType }: { productType: string }) => {
+// Get gallery images for a product type
+const getGalleryImages = (productType: string) => {
   const galleryImages = {
     'chairs-recliners': [
       { src: '/images/Chairs-Recliners/chair front.jpg', alt: 'Chair with Castaway Cover - Front View' },
@@ -408,8 +391,39 @@ const ProductGallery = ({ productType }: { productType: string }) => {
       { src: '/images/Tablesets/CC-table-set.png', alt: 'Table Set - Complete View' }
     ]
   };
+  
+  return galleryImages[productType as keyof typeof galleryImages] || galleryImages['chairs-recliners'];
+};
 
-  const images = galleryImages[productType as keyof typeof galleryImages] || galleryImages['chairs-recliners'];
+// Main Product Image Component
+const MainProductImage = ({ productType, selectedIndex }: { productType: string; selectedIndex: number }) => {
+  const images = getGalleryImages(productType);
+  const selectedImage = images[selectedIndex] || images[0];
+
+  return (
+    <div className="relative h-[400px] bg-gray-100 rounded-lg overflow-hidden">
+      <Image
+        src={selectedImage.src}
+        alt={selectedImage.alt}
+        fill
+        className="object-contain p-4"
+        priority
+      />
+    </div>
+  );
+};
+
+// Horizontal Scroll Gallery Component
+const ProductGallery = ({ 
+  productType, 
+  selectedIndex, 
+  onImageSelect 
+}: { 
+  productType: string; 
+  selectedIndex: number;
+  onImageSelect: (index: number) => void;
+}) => {
+  const images = getGalleryImages(productType);
 
   return (
     <div className="mb-6">
@@ -417,9 +431,14 @@ const ProductGallery = ({ productType }: { productType: string }) => {
       <div className="bg-white rounded-lg shadow-sm p-4">
         <div className="flex gap-4 overflow-x-auto pb-2">
           {images.map((image, index) => (
-            <div
+            <button
               key={index}
-              className="relative flex-shrink-0 w-32 h-32 rounded-lg overflow-hidden border-2 border-gray-200 hover:border-brand-teal transition-all cursor-pointer"
+              onClick={() => onImageSelect(index)}
+              className={`relative flex-shrink-0 w-32 h-32 rounded-lg overflow-hidden border-2 transition-all ${
+                selectedIndex === index 
+                  ? 'border-brand-teal shadow-lg' 
+                  : 'border-gray-200 hover:border-brand-teal'
+              }`}
             >
               <Image
                 src={image.src}
@@ -427,7 +446,7 @@ const ProductGallery = ({ productType }: { productType: string }) => {
                 fill
                 className="object-cover"
               />
-            </div>
+            </button>
           ))}
         </div>
       </div>
