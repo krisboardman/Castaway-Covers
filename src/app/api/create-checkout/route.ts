@@ -38,7 +38,6 @@ export async function POST(request: NextRequest) {
           { key: 'Height', value: `${item.measurements?.height || 0}"` },
           { key: 'Backrest Depth', value: `${item.measurements?.backrestDepth || 0}"` },
           { key: 'Armrest Height', value: `${item.measurements?.armrestHeight || 0}"` },
-          { key: 'Angle', value: `${item.angle || 0}°` },
           { key: 'Yards', value: String(item.yards) },
           item.isPremiumColor && item.premiumColorCharge > 0 ? { key: 'Premium Color Charge', value: `$${item.premiumColorCharge.toFixed(2)}` } : null
         ].filter(attr => attr && attr.value && attr.value !== '0')
@@ -150,6 +149,7 @@ export async function POST(request: NextRequest) {
         `Item ${index + 1}: ${item.productType} - ${item.selectedColor}`,
         `Quantity: ${item.quantity}`,
         `Base Price: $${(item.coverPrice * item.quantity).toFixed(2)}`,
+        `Angle: ${item.angle || 0}°`,
         item.isPremiumColor && item.premiumColorCharge > 0 ? `Premium Color Charge: +$${item.premiumColorCharge.toFixed(2)} (${item.selectedColor} - $4/yard × ${item.yards} yards × ${item.quantity} qty)` : null,
         options.length > 0 ? `Add-ons: ${options.join(', ')}` : null,
         `Item Subtotal: $${item.total.toFixed(2)}`

@@ -82,8 +82,10 @@ export default function CartPage() {
           `Item ${index + 1}: ${item.productType} - ${item.selectedColor}`,
           addOns.length > 0 ? `Add-ons: ${addOns.join(', ')}` : null,
           `Measurements: ${item.measurements?.width || 0}"W x ${item.measurements?.length || 0}"L x ${item.measurements?.height || 0}"H`,
+          item.measurements?.backrestDepth ? `Backrest: ${item.measurements.backrestDepth}", Armrest: ${item.measurements?.armrestHeight || 0}"` : null,
           `SKU: ${item.coverSKU}`,
           `Yards: ${item.yards}`,
+          `Angle: ${item.angle || 0}°`,
           `---`
         ].filter(Boolean).join('\n');
         return props;
@@ -169,7 +171,6 @@ export default function CartPage() {
             'Height': `${item.measurements?.height || 0}"`,
             'Backrest Depth': `${item.measurements?.backrestDepth || 0}"`,
             'Armrest Height': `${item.measurements?.armrestHeight || 0}"`,
-            'Angle': `${item.angle || 0}°`,
             'Yards': item.yards,
             'Snap Straps': item.snapStraps ? 'Yes' : 'No',
             'Handles': item.handles ? 'Yes' : 'No',
