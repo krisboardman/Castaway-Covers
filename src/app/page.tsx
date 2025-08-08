@@ -81,7 +81,7 @@ export default function Home() {
             <div className="group border border-gray-200 rounded-lg overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer bg-white/95 backdrop-blur-sm">
               <div className="aspect-[4/3] relative overflow-hidden">
                 <img 
-                  src="/images/homepage/actual-with-gusset.jpeg"
+                  src="/images/homepage/feature1.jpg"
                   alt="Just Drape & Go"
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />
@@ -96,7 +96,7 @@ export default function Home() {
             <div className="group border border-gray-200 rounded-lg overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer bg-white/95 backdrop-blur-sm">
               <div className="aspect-[4/3] relative overflow-hidden">
                 <img 
-                  src="/images/homepage/snap-strap.jpeg"
+                  src="/images/homepage/feature2.jpg"
                   alt="Use Without Removing"
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />
@@ -111,7 +111,7 @@ export default function Home() {
             <div className="group border border-gray-200 rounded-lg overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer bg-white/95 backdrop-blur-sm">
               <div className="aspect-[4/3] relative overflow-hidden">
                 <img 
-                  src="/images/homepage/bungee.jpeg"
+                  src="/images/homepage/feature3.jpg"
                   alt="Heavy Duty"
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />
@@ -126,7 +126,7 @@ export default function Home() {
             <div className="group border border-gray-200 rounded-lg overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer bg-white/95 backdrop-blur-sm">
               <div className="aspect-[4/3] relative overflow-hidden">
                 <img 
-                  src="/images/homepage/side-bungee.jpeg"
+                  src="/images/homepage/feature4.jpg"
                   alt="Weather Proof"
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />
@@ -141,7 +141,7 @@ export default function Home() {
             <div className="group border border-gray-200 rounded-lg overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer bg-white/95 backdrop-blur-sm">
               <div className="aspect-[4/3] relative overflow-hidden">
                 <img 
-                  src="/images/homepage/mildew-pic.jpeg"
+                  src="/images/homepage/feature5.jpg"
                   alt="Mildew Resistant"
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />
