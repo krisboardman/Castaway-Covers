@@ -173,6 +173,7 @@ export default function ProductPage() {
             <MainProductImage 
               productType={productType} 
               selectedIndex={selectedImageIndex}
+              selectedColor={selectedColor}
             />
           </div>
           
@@ -431,8 +432,8 @@ const getGalleryImages = (productType: string, selectedColor?: string) => {
 };
 
 // Main Product Image Component
-const MainProductImage = ({ productType, selectedIndex }: { productType: string; selectedIndex: number }) => {
-  const images = getGalleryImages(productType);
+const MainProductImage = ({ productType, selectedIndex, selectedColor }: { productType: string; selectedIndex: number; selectedColor?: string }) => {
+  const images = getGalleryImages(productType, selectedColor);
   const selectedImage = images[selectedIndex] || images[0];
 
   return (
