@@ -118,7 +118,7 @@ export default function Home() {
               </div>
               <div className="p-5">
                 <h3 className="font-bold text-lg mb-2 text-gray-900">100% Waterproof</h3>
-                <p className="text-sm text-gray-600 leading-relaxed">Weather-tough vinyl resists heavy rain and keeps furniture bone dry. Tested in real downpours.</p>
+                <p className="text-sm text-gray-600 leading-relaxed">Marine vinyl resists heavy rain and keeps furniture bone dry. Tested in real downpours.</p>
               </div>
             </div>
 
