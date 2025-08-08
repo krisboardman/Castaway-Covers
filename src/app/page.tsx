@@ -70,7 +70,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-6">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">
-              Why Castaway Covers Are Different
+              These Covers are Totally Different
             </h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
               We've obsessed over every detail to create covers that actually work—not just another tarp with straps.
