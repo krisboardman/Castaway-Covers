@@ -350,7 +350,7 @@ export default function ProductPage() {
 const colorToFileName: { [key: string]: string } = {
   'Classic Blue': 'classic blue',
   'Cream': 'cream',
-  'Diamond Blue': 'diamond blue',
+  'Diamond Pacific Blue': 'diamond blue',  // Note: Color selector uses "Diamond Pacific Blue"
   'Diamond Red': 'diamond red',
   'Green': 'green',
   'Grey': 'grey',
