@@ -163,6 +163,7 @@ export default function ProductPage() {
           productType={productType} 
           selectedIndex={selectedImageIndex}
           onImageSelect={setSelectedImageIndex}
+          selectedColor={selectedColor}
         />
         
         {/* Main Image and Measurements Side by Side */}
@@ -259,6 +260,10 @@ export default function ProductPage() {
             onColorSelect={(color, isPremium) => {
               setSelectedColor(color);
               setIsPremiumColor(isPremium);
+              // If it's chairs and a color is selected, switch to first image to show the color
+              if (productType === 'chairs-recliners' && color) {
+                setSelectedImageIndex(0);
+              }
             }}
           />
         </div>
@@ -340,8 +345,24 @@ export default function ProductPage() {
 }
 
 // Product gallery component with 4-5 images at the top
+// Map color names to file names
+const colorToFileName: { [key: string]: string } = {
+  'Classic Blue': 'classic blue',
+  'Cream': 'cream',
+  'Diamond Blue': 'diamond blue',
+  'Diamond Red': 'diamond red',
+  'Green': 'green',
+  'Grey': 'grey',
+  'Lemon': 'lemon',
+  'Light Brown': 'light brown',
+  'Mist Grey': 'mist grey',
+  'Navy': 'navy',
+  'Sand Dune': 'sand dune',
+  'Wine': 'wine'
+};
+
 // Get gallery images for a product type
-const getGalleryImages = (productType: string) => {
+const getGalleryImages = (productType: string, selectedColor?: string) => {
   const galleryImages = {
     'chairs-recliners': [
       { src: '/images/Chairs-Recliners/chair1.jpg', alt: 'Chair with Castaway Cover - Front View' },
@@ -394,7 +415,19 @@ const getGalleryImages = (productType: string) => {
     ]
   };
   
-  return galleryImages[productType as keyof typeof galleryImages] || galleryImages['chairs-recliners'];
+  const images = galleryImages[productType as keyof typeof galleryImages] || galleryImages['chairs-recliners'];
+  
+  // If it's chairs-recliners and a color is selected, replace the first image
+  if (productType === 'chairs-recliners' && selectedColor && colorToFileName[selectedColor]) {
+    const colorFileName = colorToFileName[selectedColor];
+    const colorSpecificImage = {
+      src: `/images/Chairs-Recliners/colors/chair front ${colorFileName}.jpg`,
+      alt: `Chair with Castaway Cover - ${selectedColor}`
+    };
+    return [colorSpecificImage, ...images.slice(1)];
+  }
+  
+  return images;
 };
 
 // Main Product Image Component
@@ -419,13 +452,15 @@ const MainProductImage = ({ productType, selectedIndex }: { productType: string;
 const ProductGallery = ({ 
   productType, 
   selectedIndex, 
-  onImageSelect 
+  onImageSelect,
+  selectedColor 
 }: { 
   productType: string; 
   selectedIndex: number;
   onImageSelect: (index: number) => void;
+  selectedColor?: string;
 }) => {
-  const images = getGalleryImages(productType);
+  const images = getGalleryImages(productType, selectedColor);
 
   return (
     <div className="mb-6">
