@@ -12,31 +12,31 @@ export default function DesignPage() {
     {
       name: "Sofas / Loveseats",
       href: "/products/sofas-loveseats",
-      image: "/images/Sofas-Loveseats/Sofa-New-1.jpg",
+      image: "/images/Sofas-Loveseats/sketchsofa.png",
       description: "Any length, optional magnetic closures for easy use"
     },
     {
       name: "Chaise Lounges",
       href: "/products/chaise-lounge",
-      image: "/images/ChaiseLounges/CC-chaise.png",
+      image: "/images/ChaiseLounges/sketchchaise.png",
       description: "Pool and patio loungers"
     },
     {
       name: "Tables",
       href: "/products/tables",
-      image: "/images/Tables/sketchtableset.png",
+      image: "/images/Tables/sketchtable.png",
       description: "Dining and coffee tables"
     },
     {
       name: "Table Sets",
       href: "/products/table-sets",
-      image: "/images/Tablesets/CC-table-set.png",
+      image: "/images/Tablesets/sketchtableset.png",
       description: "Complete dining sets with chairs or benches"
     },
     {
       name: "Ottomans",
       href: "/products/ottomans",
-      image: "/images/Ottomans/ottoman.jpg",
+      image: "/images/Ottomans/sketchottoman.png",
       description: "Footrests and storage ottomans"
     }
   ];
