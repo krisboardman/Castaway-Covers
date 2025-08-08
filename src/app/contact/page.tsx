@@ -84,11 +84,6 @@ export default function ContactPage() {
                 </div>
 
                 <div>
-                  <h3 className="font-semibold text-gray-900 mb-1">Phone</h3>
-                  <p className="text-gray-700">1-800-XXX-XXXX</p>
-                </div>
-
-                <div>
                   <h3 className="font-semibold text-gray-900 mb-1">Email</h3>
                   <p className="text-gray-700">support@castawaycovers.com</p>
                 </div>
@@ -108,7 +103,7 @@ export default function ContactPage() {
                 <h3 className="font-semibold text-gray-900 mb-2">Response Time</h3>
                 <p className="text-gray-700 text-sm">
                   We typically respond to all inquiries within 24-48 business hours. 
-                  For urgent matters, please call our customer service line.
+                  For urgent matters, please email us with "URGENT" in the subject line.
                 </p>
               </div>
             </div>

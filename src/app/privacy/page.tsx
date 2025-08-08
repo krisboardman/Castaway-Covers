@@ -114,7 +114,6 @@ export default function PrivacyPage() {
               <p>
                 If you have questions about this Privacy Policy, please contact us at:<br />
                 Email: privacy@castawaycovers.com<br />
-                Phone: 1-800-XXX-XXXX<br />
                 Address: Castaway Covers, 123 Main Street, Suite 100, City, State 12345
               </p>
             </section>

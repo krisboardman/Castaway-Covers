@@ -8,7 +8,7 @@ export default function ComingSoonRedirect() {
   
   useEffect(() => {
     // Check if coming soon mode is enabled
-    const COMING_SOON_ENABLED = true;
+    const COMING_SOON_ENABLED = false;
     const PREVIEW_TOKEN = 'castaway2025';
     
     // Skip redirect for certain pages
@@ -23,17 +23,17 @@ export default function ComingSoonRedirect() {
     // Check for preview cookie
     const hasPreviewCookie = document.cookie.includes('preview-mode=true');
     
+    // Set preview cookie if preview token is present
+    if (hasPreview && !hasPreviewCookie) {
+      document.cookie = 'preview-mode=true; max-age=86400; path=/; domain=.castawaycovers.com';
+      // Also set for the root domain
+      document.cookie = 'preview-mode=true; max-age=86400; path=/';
+    }
+    
+    // Only redirect if coming soon is enabled AND no preview access
     if (COMING_SOON_ENABLED && !hasPreview && !hasPreviewCookie) {
-      // Set cookie if preview token is valid
-      if (hasPreview) {
-        document.cookie = 'preview-mode=true; max-age=86400; path=/';
-      }
-      
       // Redirect to coming soon page
       window.location.href = '/coming-soon';
-    } else if (hasPreview && !hasPreviewCookie) {
-      // Set preview cookie
-      document.cookie = 'preview-mode=true; max-age=86400; path=/';
     }
   }, [pathname]);
   

@@ -36,7 +36,7 @@ export default function RootLayout({
         <ComingSoonRedirect />
         <CartProvider>
           <Header />
-          <main className="min-h-screen">
+          <main className="bg-gradient-to-b from-white via-[#FAF5ED] to-[#F5E6D3]/40">
             {children}
           </main>
           <Footer />

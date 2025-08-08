@@ -131,7 +131,6 @@ export default function WarrantyPage() {
               <p className="text-gray-700">
                 Have questions about your warranty? We're here to help!<br />
                 Email: warranty@castawaycovers.com<br />
-                Phone: 1-800-XXX-XXXX<br />
                 Hours: Monday - Friday, 8:00 AM - 6:00 PM EST
               </p>
             </section>

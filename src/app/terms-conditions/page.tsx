@@ -159,7 +159,6 @@ export default function TermsConditionsPage() {
               <p>
                 If you have questions about these Terms & Conditions:<br />
                 Email: legal@castawaycovers.com<br />
-                Phone: 1-800-XXX-XXXX<br />
                 Address: Castaway Covers, 123 Main Street, Suite 100, City, State 12345
               </p>
             </section>

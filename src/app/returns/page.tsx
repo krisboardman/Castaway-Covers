@@ -92,7 +92,6 @@ export default function ReturnsPage() {
               <p className="text-gray-700">
                 Our customer service team is here to help!<br />
                 Email: returns@castawaycovers.com<br />
-                Phone: 1-800-XXX-XXXX<br />
                 Hours: Monday - Friday, 8:00 AM - 6:00 PM EST
               </p>
             </section>

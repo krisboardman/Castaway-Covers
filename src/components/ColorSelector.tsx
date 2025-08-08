@@ -21,7 +21,8 @@ const standardColors = [
 ];
 
 const premiumColors = [
-  { name: 'Diamond Pacific Blue', image: 'diamond-blue.webp', premium: true }
+  { name: 'Diamond Pacific Blue', image: 'diamond-blue.webp', premium: true },
+  { name: 'Diamond Red', image: 'diamond-red.webp', premium: true }
 ];
 
 const ColorSelector: React.FC<ColorSelectorProps> = ({ onColorSelect }) => {

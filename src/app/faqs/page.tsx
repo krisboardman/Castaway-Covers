@@ -207,7 +207,6 @@ export default function FAQsPage() {
               </p>
               <div className="space-y-2 text-gray-700">
                 <p>Email: support@castawaycovers.com</p>
-                <p>Phone: 1-800-XXX-XXXX</p>
                 <p>Hours: Monday - Friday, 8:00 AM - 6:00 PM EST</p>
               </div>
             </section>
