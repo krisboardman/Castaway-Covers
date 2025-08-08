@@ -344,51 +344,53 @@ export default function ProductPage() {
 const getGalleryImages = (productType: string) => {
   const galleryImages = {
     'chairs-recliners': [
-      { src: '/images/Chairs-Recliners/chair front.jpg', alt: 'Chair with Castaway Cover - Front View' },
-      { src: '/images/Chairs-Recliners/chair back.png', alt: 'Chair Cover - Back View' },
-      { src: '/images/Chairs-Recliners/chair side bungee.JPEG', alt: 'Chair Cover - Bungee System' },
-      { src: '/images/Chairs-Recliners/chair4.png', alt: 'Chair Cover - Additional View' },
-      { src: '/images/homepage/side-bungee.jpeg', alt: 'Bungee Detail' }
+      { src: '/images/Chairs-Recliners/chair1.jpg', alt: 'Chair with Castaway Cover - Front View' },
+      { src: '/images/Chairs-Recliners/chair2.jpg', alt: 'Chair Cover - Back View' },
+      { src: '/images/Chairs-Recliners/chair3.jpg', alt: 'Chair Cover - Bungee System' },
+      { src: '/images/Chairs-Recliners/chair4.jpg', alt: 'Chair Cover - Additional View' },
+      { src: '/images/Chairs-Recliners/chair5.jpg', alt: 'Chair Cover - Detail View' }
     ],
     'sofas-loveseats': [
-      { src: '/images/Sofas-Loveseats/couch covered.png', alt: 'Sofa with Castaway Cover' },
-      { src: '/images/Sofas-Loveseats/couch bungee handle.png', alt: 'Sofa Cover - Bungee & Handle Detail' },
-      { src: '/images/Sofas-Loveseats/couch magnetic closure.PNG', alt: 'Sofa Cover - Magnetic Closure' },
-      { src: '/images/Sofas-Loveseats/Sofa-New-1.jpg', alt: 'Sofa Cover - Style View' },
-      { src: '/images/homepage/actual-with-gusset.jpeg', alt: 'Corner Gusset Detail' }
+      { src: '/images/Sofas-Loveseats/sofa1.jpg', alt: 'Sofa with Castaway Cover' },
+      { src: '/images/Sofas-Loveseats/sofa2.jpg', alt: 'Sofa Cover - Side View' },
+      { src: '/images/Sofas-Loveseats/sofa3.jpg', alt: 'Sofa Cover - Bungee & Handle Detail' },
+      { src: '/images/Sofas-Loveseats/sofa4.jpg', alt: 'Sofa Cover - Magnetic Closure' },
+      { src: '/images/Sofas-Loveseats/sofa5.jpg', alt: 'Sofa Cover - Detail View' },
+      { src: '/images/Sofas-Loveseats/sofa6.jpg', alt: 'Sofa Cover - Additional View' }
     ],
     'chaise-lounge': [
-      { src: '/images/ChaiseLounges/chaise front side.png', alt: 'Chaise Lounge Cover - Front Side View' },
-      { src: '/images/ChaiseLounges/chaise handle.png', alt: 'Chaise Cover - Handle Detail' },
-      { src: '/images/ChaiseLounges/chaise bungee.png', alt: 'Chaise Cover - Bungee System' },
-      { src: '/images/ChaiseLounges/CC-chaise.png', alt: 'Chaise Cover - Style View' },
-      { src: '/images/homepage/snap-strap.jpeg', alt: 'Snap Strap Detail' }
+      { src: '/images/ChaiseLounges/chaise1.jpg', alt: 'Chaise Lounge Cover - Front Side View' },
+      { src: '/images/ChaiseLounges/chaise2.jpg', alt: 'Chaise Cover - Handle Detail' },
+      { src: '/images/ChaiseLounges/chaise3.jpg', alt: 'Chaise Cover - Bungee System' },
+      { src: '/images/ChaiseLounges/chaise4.jpg', alt: 'Chaise Cover - Style View' },
+      { src: '/images/ChaiseLounges/chaise5.jpg', alt: 'Chaise Cover - Detail View' }
     ],
     'chaise-lounges': [
-      { src: '/images/ChaiseLounges/chaise front side.png', alt: 'Chaise Lounge Cover - Front Side View' },
-      { src: '/images/ChaiseLounges/chaise handle.png', alt: 'Chaise Cover - Handle Detail' },
-      { src: '/images/ChaiseLounges/chaise bungee.png', alt: 'Chaise Cover - Bungee System' },
-      { src: '/images/ChaiseLounges/CC-chaise.png', alt: 'Chaise Cover - Style View' },
-      { src: '/images/homepage/snap-strap.jpeg', alt: 'Snap Strap Detail' }
+      { src: '/images/ChaiseLounges/chaise1.jpg', alt: 'Chaise Lounge Cover - Front Side View' },
+      { src: '/images/ChaiseLounges/chaise2.jpg', alt: 'Chaise Cover - Handle Detail' },
+      { src: '/images/ChaiseLounges/chaise3.jpg', alt: 'Chaise Cover - Bungee System' },
+      { src: '/images/ChaiseLounges/chaise4.jpg', alt: 'Chaise Cover - Style View' },
+      { src: '/images/ChaiseLounges/chaise5.jpg', alt: 'Chaise Cover - Detail View' }
     ],
     'ottomans': [
-      { src: '/images/Ottomans/ottoman side.jpg', alt: 'Ottoman with Castaway Cover' },
-      { src: '/images/Ottomans/ottoman handle.jpg', alt: 'Ottoman Cover - Handle Detail' },
-      { src: '/images/Ottomans/ottoman bungee.jpg', alt: 'Ottoman Cover - Bungee System' },
-      { src: '/images/Ottomans/ottoman.jpg', alt: 'Ottoman Cover - Full View' },
-      { src: '/images/homepage/bungee.jpeg', alt: 'Heavy Duty Bungee' }
+      { src: '/images/Ottomans/ottoman1.jpg', alt: 'Ottoman with Castaway Cover' },
+      { src: '/images/Ottomans/ottoman2.jpg', alt: 'Ottoman Cover - Side View' },
+      { src: '/images/Ottomans/ottoman3.jpg', alt: 'Ottoman Cover - Bungee System' },
+      { src: '/images/Ottomans/ottoman4.jpg', alt: 'Ottoman Cover - Handle Detail' }
     ],
     'tables': [
-      { src: '/images/Tables/table side.JPEG', alt: 'Table with Castaway Cover' },
-      { src: '/images/Tables/table handle.JPEG', alt: 'Table Cover - Handle Detail' },
-      { src: '/images/Tables/table bungee.JPEG', alt: 'Table Cover - Bungee System' },
-      { src: '/images/Tables/CC-table-1.png', alt: 'Table Cover - Style View' }
+      { src: '/images/Tables/table1.jpg', alt: 'Table with Castaway Cover' },
+      { src: '/images/Tables/table2.jpg', alt: 'Table Cover - Bungee System' },
+      { src: '/images/Tables/table3.jpg', alt: 'Table Cover - Handle Detail' },
+      { src: '/images/Tables/table4.jpg', alt: 'Table Cover - Style View' },
+      { src: '/images/Tables/table5.jpg', alt: 'Table Cover - Additional View' }
     ],
     'table-sets': [
-      { src: '/images/Tablesets/tableset side.JPEG', alt: 'Table Set with Castaway Cover' },
-      { src: '/images/Tablesets/tableset handle.JPEG', alt: 'Table Set Cover - Handle Detail' },
-      { src: '/images/Tablesets/tableset bungee.JPEG', alt: 'Table Set Cover - Bungee System' },
-      { src: '/images/Tablesets/CC-table-set.png', alt: 'Table Set - Complete View' }
+      { src: '/images/Tablesets/tableset1.jpg', alt: 'Table Set with Castaway Cover' },
+      { src: '/images/Tablesets/tableset2.jpg', alt: 'Table Set Cover - Bungee System' },
+      { src: '/images/Tablesets/tableset3.jpg', alt: 'Table Set Cover - Handle Detail' },
+      { src: '/images/Tablesets/tableset4.jpg', alt: 'Table Set - Complete View' },
+      { src: '/images/Tablesets/tableset5.jpg', alt: 'Table Set - Additional View' }
     ]
   };
   
