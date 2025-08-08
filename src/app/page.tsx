@@ -25,7 +25,7 @@ export default function Home() {
                 <img 
                   src="/images/hero1.jpg" 
                   alt="Easy draping cover"
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-contain bg-white"
                 />
               </div>
             </div>
@@ -36,7 +36,7 @@ export default function Home() {
                 <img 
                   src="/images/hero2.jpg" 
                   alt="Covered furniture protected"
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-contain bg-white"
                 />
               </div>
             </div>
