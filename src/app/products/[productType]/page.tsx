@@ -427,31 +427,22 @@ const getGalleryImages = (productType: string, selectedColor?: string) => {
       { src: '/images/Sofas-Loveseats/sofa6.jpg', alt: 'Sofa Cover - Additional View' }
     ],
     'chaise-lounge': [
-      { src: '/images/ChaiseLounges/chaise1.jpg', alt: 'Chaise Lounge Cover - Front Side View' },
-      { src: '/images/ChaiseLounges/chaise2.jpg', alt: 'Chaise Cover - Handle Detail' },
-      { src: '/images/ChaiseLounges/chaise3.jpg', alt: 'Chaise Cover - Bungee System' },
-      { src: '/images/ChaiseLounges/chaise4.jpg', alt: 'Chaise Cover - Style View' },
-      { src: '/images/ChaiseLounges/chaise5.jpg', alt: 'Chaise Cover - Detail View' }
+      { src: '/images/ChaiseLounges/chaise1.jpg', alt: 'Chaise Lounge Cover - Front Side View' }
+      // Hidden for now: chaise2.jpg, chaise3.jpg, chaise4.jpg, chaise5.jpg
     ],
     'chaise-lounges': [
-      { src: '/images/ChaiseLounges/chaise1.jpg', alt: 'Chaise Lounge Cover - Front Side View' },
-      { src: '/images/ChaiseLounges/chaise2.jpg', alt: 'Chaise Cover - Handle Detail' },
-      { src: '/images/ChaiseLounges/chaise3.jpg', alt: 'Chaise Cover - Bungee System' },
-      { src: '/images/ChaiseLounges/chaise4.jpg', alt: 'Chaise Cover - Style View' },
-      { src: '/images/ChaiseLounges/chaise5.jpg', alt: 'Chaise Cover - Detail View' }
+      { src: '/images/ChaiseLounges/chaise1.jpg', alt: 'Chaise Lounge Cover - Front Side View' }
+      // Hidden for now: chaise2.jpg, chaise3.jpg, chaise4.jpg, chaise5.jpg
     ],
     'ottomans': [
-      { src: '/images/Ottomans/ottoman1.jpg', alt: 'Ottoman with Castaway Cover' },
-      { src: '/images/Ottomans/ottoman2.jpg', alt: 'Ottoman Cover - Side View' },
-      { src: '/images/Ottomans/ottoman3.jpg', alt: 'Ottoman Cover - Bungee System' },
-      { src: '/images/Ottomans/ottoman4.jpg', alt: 'Ottoman Cover - Handle Detail' }
+      { src: '/images/Ottomans/ottoman1.jpg', alt: 'Ottoman with Castaway Cover' }
+      // Hidden for now: ottoman2.jpg, ottoman3.jpg, ottoman4.jpg
     ],
     'tables': [
       { src: '/images/Tables/table1.jpg', alt: 'Table with Castaway Cover' },
       { src: '/images/Tables/table2.jpg', alt: 'Table Cover - Bungee System' },
-      { src: '/images/Tables/table3.jpg', alt: 'Table Cover - Handle Detail' },
-      { src: '/images/Tables/table4.jpg', alt: 'Table Cover - Style View' },
-      { src: '/images/Tables/table5.jpg', alt: 'Table Cover - Additional View' }
+      { src: '/images/Tables/table3.jpg', alt: 'Table Cover - Handle Detail' }
+      // Hidden for now: table4.jpg, table5.jpg
     ],
     'table-sets': [
       { src: '/images/Tablesets/tableset1.jpg', alt: 'Table Set with Castaway Cover' },
