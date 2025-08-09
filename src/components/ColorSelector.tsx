@@ -83,7 +83,10 @@ const ColorSelector: React.FC<ColorSelectorProps> = ({ onColorSelect }) => {
       <h3 className="text-lg font-semibold mb-4">Select Color</h3>
       
       <div className="mb-6">
-        <h4 className="text-sm font-medium text-gray-700 mb-3">Standard Colors (No Extra Charge)</h4>
+        <h4 className="text-sm font-medium text-gray-700 mb-3">
+          Standard Colors (No Extra Charge)
+          <span className="text-xs text-gray-500 ml-2 md:hidden">(Hold to see detail)</span>
+        </h4>
         <div className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-5 gap-3">
           {standardColors.map((color) => (
             <div key={color.name} className="relative">
@@ -125,6 +128,7 @@ const ColorSelector: React.FC<ColorSelectorProps> = ({ onColorSelect }) => {
         <h4 className="text-sm font-medium text-gray-700 mb-3">
           Premium Colors
           <span className="text-gray-500 ml-2">(+$4 per yard)</span>
+          <span className="text-xs text-gray-500 ml-2 md:hidden">(Hold to see detail)</span>
         </h4>
         <div className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-5 gap-3">
           {premiumColors.map((color) => (
