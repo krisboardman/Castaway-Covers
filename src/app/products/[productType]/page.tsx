@@ -255,18 +255,46 @@ export default function ProductPage() {
           </div>
         </div>
         
-        {/* Color Selector - Full Width */}
+        {/* Color Selector with Preview Image */}
         <div className="mt-8">
-          <ColorSelector
-            onColorSelect={(color, isPremium) => {
-              setSelectedColor(color);
-              setIsPremiumColor(isPremium);
-              // If it's chairs and a color is selected, switch to first image to show the color
-              if (productType === 'chairs-recliners' && color) {
-                setSelectedImageIndex(0);
-              }
-            }}
-          />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Left: Color Selector */}
+            <div>
+              <ColorSelector
+                onColorSelect={(color, isPremium) => {
+                  setSelectedColor(color);
+                  setIsPremiumColor(isPremium);
+                  // If it's chairs and a color is selected, switch to first image to show the color
+                  if (productType === 'chairs-recliners' && color) {
+                    setSelectedImageIndex(0);
+                  }
+                }}
+              />
+            </div>
+            
+            {/* Right: Color Preview Image - Only show for chairs when color is selected */}
+            {productType === 'chairs-recliners' && (
+              <div className="bg-white rounded-lg shadow-sm p-4">
+                <h3 className="text-lg font-semibold mb-3">
+                  {selectedColor ? `Preview: ${selectedColor}` : 'Select a Color to Preview'}
+                </h3>
+                <div className="relative h-64 md:h-80 bg-gray-100 rounded-lg overflow-hidden">
+                  {(() => {
+                    const images = getGalleryImages(productType, selectedColor);
+                    const previewImage = images[0];
+                    return (
+                      <Image
+                        src={previewImage.src}
+                        alt={previewImage.alt}
+                        fill
+                        className="object-contain p-4"
+                      />
+                    );
+                  })()}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
         
         {/* Order Summary - Bottom */}
