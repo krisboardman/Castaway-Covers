@@ -44,13 +44,13 @@ const ColorSelector: React.FC<ColorSelectorProps> = ({ onColorSelect }) => {
             <button
               key={color.name}
               onClick={() => handleColorSelect(color)}
-              className={`relative rounded-lg border-2 transition-all overflow-hidden ${
+              className={`relative rounded-lg border-2 transition-all overflow-hidden flex flex-col ${
                 selectedColor === color.name
                   ? 'border-blue-500 shadow-lg'
                   : 'border-gray-300 hover:border-gray-400'
               }`}
             >
-              <div className="relative w-full h-24">
+              <div className="relative w-full flex-1 min-h-[80px] md:min-h-[96px]">
                 <Image
                   src={`/images/colors/${color.image}`}
                   alt={color.name}
@@ -58,8 +58,8 @@ const ColorSelector: React.FC<ColorSelectorProps> = ({ onColorSelect }) => {
                   className="object-cover"
                 />
               </div>
-              <div className="p-2 bg-white">
-                <span className="text-sm font-medium">{color.name}</span>
+              <div className="p-2 bg-white h-14 flex items-center justify-center">
+                <span className="text-xs md:text-sm font-medium text-center leading-tight">{color.name}</span>
               </div>
             </button>
           ))}
@@ -76,13 +76,13 @@ const ColorSelector: React.FC<ColorSelectorProps> = ({ onColorSelect }) => {
             <button
               key={color.name}
               onClick={() => handleColorSelect(color)}
-              className={`relative rounded-lg border-2 transition-all overflow-hidden ${
+              className={`relative rounded-lg border-2 transition-all overflow-hidden flex flex-col ${
                 selectedColor === color.name
                   ? 'border-blue-500 shadow-lg'
                   : 'border-gray-300 hover:border-gray-400'
               }`}
             >
-              <div className="relative w-full h-24">
+              <div className="relative w-full flex-1 min-h-[80px] md:min-h-[96px]">
                 <Image
                   src={`/images/colors/${color.image}`}
                   alt={color.name}
@@ -93,8 +93,8 @@ const ColorSelector: React.FC<ColorSelectorProps> = ({ onColorSelect }) => {
                   Premium
                 </span>
               </div>
-              <div className="p-2 bg-white">
-                <span className="text-sm font-medium">{color.name}</span>
+              <div className="p-2 bg-white h-14 flex items-center justify-center">
+                <span className="text-xs md:text-sm font-medium text-center leading-tight">{color.name}</span>
               </div>
             </button>
           ))}
