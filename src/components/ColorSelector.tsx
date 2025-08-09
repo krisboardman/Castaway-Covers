@@ -44,18 +44,18 @@ const ColorSelector: React.FC<ColorSelectorProps> = ({ onColorSelect }) => {
             <button
               key={color.name}
               onClick={() => handleColorSelect(color)}
-              className={`relative rounded-lg border-2 transition-all overflow-hidden flex flex-col ${
+              className={`relative rounded-lg border-2 transition-all overflow-hidden flex flex-col group ${
                 selectedColor === color.name
                   ? 'border-blue-500 shadow-lg'
                   : 'border-gray-300 hover:border-gray-400'
               }`}
             >
-              <div className="relative w-full flex-1 min-h-[80px] md:min-h-[96px]">
+              <div className="relative w-full flex-1 min-h-[80px] md:min-h-[96px] overflow-hidden">
                 <Image
                   src={`/images/colors/${color.image}`}
                   alt={color.name}
                   fill
-                  className="object-cover"
+                  className="object-cover transition-transform duration-300 group-hover:scale-150"
                 />
               </div>
               <div className="p-2 bg-white h-14 flex items-center justify-center">
@@ -76,18 +76,18 @@ const ColorSelector: React.FC<ColorSelectorProps> = ({ onColorSelect }) => {
             <button
               key={color.name}
               onClick={() => handleColorSelect(color)}
-              className={`relative rounded-lg border-2 transition-all overflow-hidden flex flex-col ${
+              className={`relative rounded-lg border-2 transition-all overflow-hidden flex flex-col group ${
                 selectedColor === color.name
                   ? 'border-blue-500 shadow-lg'
                   : 'border-gray-300 hover:border-gray-400'
               }`}
             >
-              <div className="relative w-full flex-1 min-h-[80px] md:min-h-[96px]">
+              <div className="relative w-full flex-1 min-h-[80px] md:min-h-[96px] overflow-hidden">
                 <Image
                   src={`/images/colors/${color.image}`}
                   alt={color.name}
                   fill
-                  className="object-cover"
+                  className="object-cover transition-transform duration-300 group-hover:scale-150"
                 />
                 <span className="absolute top-1 right-1 text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
                   Premium
