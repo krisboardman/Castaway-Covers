@@ -69,8 +69,8 @@ const AddOnOptions: React.FC<AddOnOptionsProps> = ({
               </div>
             </label>
             {showSnapStrapImage && (
-              <div className="mt-3 ml-8 p-3 bg-gray-50 rounded">
-                <div className="relative h-48 rounded overflow-hidden">
+              <div className="mt-4 ml-8 p-4 bg-gray-50 rounded-lg">
+                <div className="relative h-80 md:h-96 rounded-lg overflow-hidden">
                   <Image
                     src="/images/Options/snap strap.JPEG"
                     alt="Snap straps example"
@@ -109,8 +109,8 @@ const AddOnOptions: React.FC<AddOnOptionsProps> = ({
               </div>
             </label>
             {showHandlesImage && (
-              <div className="mt-3 ml-8 p-3 bg-gray-50 rounded">
-                <div className="relative h-48 rounded overflow-hidden">
+              <div className="mt-4 ml-8 p-4 bg-gray-50 rounded-lg">
+                <div className="relative h-80 md:h-96 rounded-lg overflow-hidden">
                   <Image
                     src="/images/Options/handles.JPEG"
                     alt="Handles example"
@@ -149,8 +149,8 @@ const AddOnOptions: React.FC<AddOnOptionsProps> = ({
               </div>
             </label>
             {showMagnetsImage && (
-              <div className="mt-3 ml-8 p-3 bg-gray-50 rounded">
-                <div className="relative h-48 rounded overflow-hidden">
+              <div className="mt-4 ml-8 p-4 bg-gray-50 rounded-lg">
+                <div className="relative h-80 md:h-96 rounded-lg overflow-hidden">
                   <Image
                     src="/images/Options/Magnetic-closure.png"
                     alt="Magnetic closure example"
