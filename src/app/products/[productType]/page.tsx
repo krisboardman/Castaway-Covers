@@ -422,9 +422,8 @@ const getGalleryImages = (productType: string, selectedColor?: string) => {
       { src: '/images/Sofas-Loveseats/sofa1.jpg', alt: 'Sofa with Castaway Cover' },
       { src: '/images/Sofas-Loveseats/sofa2.jpg', alt: 'Sofa Cover - Side View' },
       { src: '/images/Sofas-Loveseats/sofa3.jpg', alt: 'Sofa Cover - Bungee & Handle Detail' },
-      { src: '/images/Sofas-Loveseats/sofa4.jpg', alt: 'Sofa Cover - Magnetic Closure' },
-      { src: '/images/Sofas-Loveseats/sofa5.jpg', alt: 'Sofa Cover - Detail View' },
-      { src: '/images/Sofas-Loveseats/sofa6.jpg', alt: 'Sofa Cover - Additional View' }
+      { src: '/images/Sofas-Loveseats/sofa4.jpg', alt: 'Sofa Cover - Magnetic Closure' }
+      // Hidden for now: sofa5.jpg, sofa6.jpg
     ],
     'chaise-lounge': [
       { src: '/images/ChaiseLounges/chaise1.jpg', alt: 'Chaise Lounge Cover - Front Side View' }

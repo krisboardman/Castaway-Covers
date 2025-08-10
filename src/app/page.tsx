@@ -103,7 +103,7 @@ export default function Home() {
               </div>
               <div className="p-5">
                 <h3 className="font-bold text-lg mb-2 text-gray-900">Use Without Removing</h3>
-                <p className="text-sm text-gray-600 leading-relaxed">Snap straps let you fold covers back instantly. Enjoy your furniture, then snap back for protection—no removal needed.</p>
+                <p className="text-sm text-gray-600 leading-relaxed">Snap straps let you fold covers back instantly. Snap back for protection and enjoy your furniture—no removal needed.</p>
               </div>
             </div>
 
