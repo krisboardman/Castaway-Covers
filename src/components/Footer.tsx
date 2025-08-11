@@ -67,11 +67,6 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/terms-conditions" className="text-gray-300 hover:text-white transition-colors">
-                  Terms & Conditions
-                </Link>
-              </li>
-              <li>
                 <Link href="/account" className="text-gray-300 hover:text-white transition-colors">
                   My Account
                 </Link>
@@ -79,30 +74,12 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Contact/Newsletter Column */}
+          {/* Contact Column */}
           <div>
-            <h3 className="text-lg font-semibold mb-4">Stay Connected</h3>
-            <p className="text-gray-300 mb-4">
-              Subscribe to our newsletter for exclusive offers and updates on new products.
+            <h3 className="text-lg font-semibold mb-4">Contact</h3>
+            <p className="text-gray-300">
+              <strong>Email:</strong> support@castawaycovers.com
             </p>
-            <form className="space-y-2">
-              <input
-                type="email"
-                placeholder="Enter your email"
-                className="w-full px-4 py-2 bg-gray-800 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <button
-                type="submit"
-                className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors"
-              >
-                Subscribe
-              </button>
-            </form>
-            <div className="mt-6">
-              <p className="text-gray-300">
-                <strong>Email:</strong> support@castawaycovers.com
-              </p>
-            </div>
           </div>
         </div>
 

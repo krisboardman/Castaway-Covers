@@ -7,7 +7,7 @@ export default function TermsPage() {
           
           <div className="prose prose-lg max-w-none text-gray-700">
             <p className="mb-4">
-              <strong>Effective Date:</strong> [Date]
+              <strong>Last Updated:</strong> November 11, 2024
             </p>
 
             <section className="mb-8">
@@ -126,8 +126,7 @@ export default function TermsPage() {
               <h2 className="text-2xl font-semibold text-gray-900 mb-4">12. Contact Information</h2>
               <p>
                 For questions about these Terms of Service, please contact us at:<br />
-                Email: legal@castawaycovers.com<br />
-                Address: Castaway Covers, 123 Main Street, Suite 100, City, State 12345
+                Email: support@castawaycovers.com
               </p>
             </section>
           </div>

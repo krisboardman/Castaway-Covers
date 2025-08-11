@@ -7,92 +7,77 @@ export default function ReturnsPage() {
           
           <div className="prose prose-lg max-w-none">
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-gray-900 mb-4">Our Return Policy</h2>
+              <h2 className="text-2xl font-semibold text-gray-900 mb-4">Custom-Made Products</h2>
               <p className="text-gray-700 mb-4">
-                We want you to be completely satisfied with your Castaway Covers purchase. If you're 
-                not happy with your order, we offer a hassle-free return and exchange policy.
+                All Castaway Covers are custom-made to your specifications and are <strong>non-returnable and non-refundable</strong> except in the following circumstances:
               </p>
-              <div className="bg-blue-50 p-4 rounded-md mb-4">
-                <p className="font-semibold text-gray-900">30-Day Return Window</p>
-                <p className="text-gray-700">
-                  You have 30 days from the date of delivery to return or exchange your cover.
-                </p>
+              
+              <div className="bg-green-50 p-4 rounded-md mb-4">
+                <p className="font-semibold text-gray-900 mb-2">We Accept Returns For:</p>
+                <ul className="list-disc list-inside text-gray-700 space-y-1">
+                  <li>Defects in materials or workmanship</li>
+                  <li>Damage during shipping</li>
+                  <li>Errors in production (we made it wrong)</li>
+                </ul>
+              </div>
+              
+              <div className="bg-red-50 p-4 rounded-md mb-4">
+                <p className="font-semibold text-gray-900 mb-2">We Cannot Accept Returns For:</p>
+                <ul className="list-disc list-inside text-gray-700 space-y-1">
+                  <li>Incorrect measurements provided by customer</li>
+                  <li>Change of mind or buyer's remorse</li>
+                  <li>Color variations from screen display</li>
+                  <li>Size issues due to customer measurement errors</li>
+                  <li>Normal wear and tear after use</li>
+                </ul>
               </div>
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-gray-900 mb-4">Return Eligibility</h2>
-              <p className="text-gray-700 mb-4">To be eligible for a return, your item must be:</p>
-              <ul className="list-disc list-inside text-gray-700 space-y-2 mb-4">
-                <li>Unused and in the same condition as received</li>
-                <li>In the original packaging</li>
-                <li>Accompanied by the receipt or proof of purchase</li>
-              </ul>
-              <p className="text-gray-700">
-                <strong>Note:</strong> Custom-made covers are final sale and cannot be returned 
-                unless defective.
-              </p>
-            </section>
-
-            <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-gray-900 mb-4">How to Return</h2>
+              <h2 className="text-2xl font-semibold text-gray-900 mb-4">How to Report an Issue</h2>
+              <p className="text-gray-700 mb-4">If you receive a damaged or defective product:</p>
               <ol className="list-decimal list-inside text-gray-700 space-y-2">
-                <li>Contact our customer service team at returns@castawaycovers.com</li>
-                <li>Provide your order number and reason for return</li>
-                <li>Receive a Return Merchandise Authorization (RMA) number</li>
-                <li>Pack the item securely in original packaging</li>
-                <li>Include the RMA number on the outside of the package</li>
-                <li>Ship the item to the address provided by customer service</li>
+                <li>Contact us within 7 days of delivery at support@castawaycovers.com</li>
+                <li>Include photos of the issue and your order number</li>
+                <li>We'll review and respond within 48 hours</li>
               </ol>
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-gray-900 mb-4">Exchanges</h2>
-              <p className="text-gray-700 mb-4">
-                Need a different size or style? We're happy to help with exchanges. The process is 
-                similar to returns:
-              </p>
+              <h2 className="text-2xl font-semibold text-gray-900 mb-4">Resolution Options</h2>
+              <p className="text-gray-700 mb-4">For valid claims, we will offer one of the following:</p>
               <ul className="list-disc list-inside text-gray-700 space-y-2">
-                <li>Contact customer service to initiate an exchange</li>
-                <li>We'll send you the new item once we receive the original</li>
-                <li>If there's a price difference, we'll charge or refund accordingly</li>
+                <li>Replacement cover at no charge</li>
+                <li>Store credit for full purchase amount</li>
+                <li>Repair of the cover (if feasible)</li>
               </ul>
             </section>
 
             <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-gray-900 mb-4">Refund Processing</h2>
-              <p className="text-gray-700 mb-4">Once we receive and inspect your return:</p>
-              <ul className="list-disc list-inside text-gray-700 space-y-2">
-                <li>We'll send you an email confirmation</li>
-                <li>Approved refunds are processed within 5-7 business days</li>
-                <li>Refunds are issued to the original payment method</li>
-                <li>It may take additional time for your bank to process the refund</li>
-              </ul>
+              <h2 className="text-2xl font-semibold text-gray-900 mb-4">Measurement Accuracy</h2>
+              <div className="bg-yellow-50 p-4 rounded-md">
+                <p className="text-gray-700">
+                  <strong>Important:</strong> We manufacture exactly to the dimensions you provide. Please double-check all measurements before ordering. We recommend measuring twice to ensure accuracy. We cannot be responsible for covers that don't fit due to incorrect measurements provided at checkout.
+                </p>
+              </div>
             </section>
+
 
             <section className="mb-8">
               <h2 className="text-2xl font-semibold text-gray-900 mb-4">Shipping Costs</h2>
               <p className="text-gray-700 mb-4">
-                <strong>Standard Returns:</strong> Customer is responsible for return shipping costs<br />
                 <strong>Defective Items:</strong> We'll provide a prepaid shipping label<br />
-                <strong>Wrong Item Sent:</strong> We'll provide a prepaid shipping label
+                <strong>Our Error:</strong> We'll provide a prepaid shipping label<br />
+                <strong>Customer Error:</strong> Not eligible for return
               </p>
             </section>
 
-            <section className="mb-8">
-              <h2 className="text-2xl font-semibold text-gray-900 mb-4">Damaged or Defective Items</h2>
-              <p className="text-gray-700">
-                If you receive a damaged or defective item, please contact us immediately with photos 
-                of the damage. We'll arrange for a replacement or full refund, including shipping costs.
-              </p>
-            </section>
 
             <section>
               <h2 className="text-2xl font-semibold text-gray-900 mb-4">Questions?</h2>
               <p className="text-gray-700">
                 Our customer service team is here to help!<br />
-                Email: returns@castawaycovers.com<br />
-                Hours: Monday - Friday, 8:00 AM - 6:00 PM EST
+                Email: support@castawaycovers.com
               </p>
             </section>
           </div>

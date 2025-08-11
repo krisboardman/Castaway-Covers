@@ -7,7 +7,7 @@ export default function PrivacyPage() {
           
           <div className="prose prose-lg max-w-none text-gray-700">
             <p className="mb-4">
-              <strong>Effective Date:</strong> [Date]
+              <strong>Last Updated:</strong> November 11, 2024
             </p>
 
             <section className="mb-8">
@@ -46,7 +46,7 @@ export default function PrivacyPage() {
                 <li>Processing and fulfilling orders</li>
                 <li>Communicating about your orders</li>
                 <li>Providing customer support</li>
-                <li>Sending promotional emails (with your consent)</li>
+                <li>Sending promotional emails (you can unsubscribe anytime)</li>
                 <li>Improving our website and services</li>
                 <li>Preventing fraud and ensuring security</li>
               </ul>
@@ -56,9 +56,8 @@ export default function PrivacyPage() {
               <h2 className="text-2xl font-semibold text-gray-900 mb-4">Data Sharing and Disclosure</h2>
               <p className="mb-4">We may share your information with:</p>
               <ul className="list-disc list-inside space-y-1">
-                <li>Service providers (shipping, payment processing)</li>
+                <li>Service providers necessary to fulfill your order (shipping, payment processing)</li>
                 <li>Legal authorities when required by law</li>
-                <li>Business partners with your consent</li>
               </ul>
               <p className="mt-4">
                 We do not sell, trade, or rent your personal information to third parties.
@@ -81,7 +80,6 @@ export default function PrivacyPage() {
                 <li>Correct inaccurate data</li>
                 <li>Request deletion of your data</li>
                 <li>Opt-out of marketing communications</li>
-                <li>Data portability</li>
               </ul>
             </section>
 
@@ -110,11 +108,11 @@ export default function PrivacyPage() {
             </section>
 
             <section>
-              <h2 className="text-2xl font-semibold text-gray-900 mb-4">Contact Us</h2>
+              <h2 className="text-2xl font-semibold text-gray-900 mb-4">Contact Information</h2>
               <p>
-                If you have questions about this Privacy Policy, please contact us at:<br />
-                Email: privacy@castawaycovers.com<br />
-                Address: Castaway Covers, 123 Main Street, Suite 100, City, State 12345
+                For any questions or concerns regarding this Privacy Policy, please contact us at:<br />
+                <br />
+                Email: support@castawaycovers.com
               </p>
             </section>
           </div>

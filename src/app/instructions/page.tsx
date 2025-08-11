@@ -71,10 +71,8 @@ export default function InstructionsPage() {
               </p>
               <ul className="list-disc list-inside text-gray-700 space-y-2">
                 <li>Clean and dry completely before storing</li>
-                <li>Store in a cool, dry place away from direct sunlight</li>
-                <li>Use the provided storage bag if included</li>
-                <li>Avoid storing in damp basements or hot attics</li>
-                <li>Keep away from sharp objects that could puncture the fabric</li>
+                <li>Store in a dry, ventilated area</li>
+                <li>Avoid folding if possible to prevent creases</li>
               </ul>
             </section>
 
