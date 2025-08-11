@@ -43,6 +43,7 @@ export default function ProductPage() {
   const [quantity, setQuantity] = useState(1);
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [measurementConfirmed, setMeasurementConfirmed] = useState(false);
   
   const addToCart = useCartStore((state) => state.addToCart);
   const updateItem = useCartStore((state) => state.updateItem);
@@ -206,6 +207,7 @@ export default function ProductPage() {
                 setYards(yardsNeeded);
                 setAngle(calculatedAngle);
                 setMeasurements(allMeasurements);
+                setMeasurementConfirmed(false); // Reset confirmation when measurements change
               }}
               initialMeasurements={measurements}
             />
@@ -362,6 +364,21 @@ export default function ProductPage() {
               </div>
             </div>
             
+            {/* Measurement confirmation checkbox */}
+            <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+              <label className="flex items-start cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={measurementConfirmed}
+                  onChange={(e) => setMeasurementConfirmed(e.target.checked)}
+                  className="mt-1 mr-3 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                />
+                <span className="text-sm text-gray-700">
+                  I confirm my measurements are accurate and understand custom covers cannot be returned for sizing errors
+                </span>
+              </label>
+            </div>
+            
             <ShopifyBuyButton
               variantId={coverVariantId}
               quantity={quantity}
@@ -382,7 +399,7 @@ export default function ProductPage() {
                 premiumColorCharge: premiumColorCharge.toString()
               }}
               onAddToCart={handleAddToCart}
-              disabled={!coverVariantId || !selectedColor}
+              disabled={!coverVariantId || !selectedColor || !measurementConfirmed}
             />
           </div>
         </div>

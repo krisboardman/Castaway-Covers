@@ -373,6 +373,18 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
         </div>
       )}
       
+      {/* Important measurement warning */}
+      <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-md">
+        <p className="text-sm font-semibold text-yellow-800 mb-1">
+          ⚠️ Important: Custom Cover Measurement Notice
+        </p>
+        <p className="text-sm text-yellow-700">
+          We manufacture exactly to the dimensions you provide. Please double-check all measurements before ordering. 
+          We recommend measuring twice to ensure accuracy. We cannot accept returns for covers that don't fit due to 
+          incorrect measurements provided at checkout.
+        </p>
+      </div>
+      
       <div className="grid grid-cols-2 gap-4 mb-4">
         {config.fields.map((field) => (
           <div key={field}>
