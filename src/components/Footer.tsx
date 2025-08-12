@@ -61,11 +61,13 @@ export default function Footer() {
                   Shipping Info
                 </Link>
               </li>
+              {/* Hidden for now
               <li>
                 <Link href="/account" className="text-gray-300 hover:text-white transition-colors">
                   My Account
                 </Link>
               </li>
+              */}
             </ul>
           </div>
 
