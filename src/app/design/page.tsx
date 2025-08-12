@@ -10,6 +10,16 @@ export default function DesignPage() {
       popular: true
     },
     {
+      name: "Professional Measurement",
+      href: "/measurement-service",
+      image: "measurement-service",
+      description: "We'll measure your furniture and create your perfect custom order",
+      isService: true,
+      price: "$75 service fee",
+      badge: "Local Service",
+      badgeColor: "bg-yellow-500 text-gray-900"
+    },
+    {
       name: "Sofas / Loveseats",
       href: "/products/sofas-loveseats",
       image: "/images/Sofas-Loveseats/sketchsofa.png",
@@ -65,69 +75,63 @@ export default function DesignPage() {
                   Most Popular
                 </div>
               )}
-              <div className="bg-white rounded-xl overflow-hidden border-2 border-gray-100 hover:border-[#2C8B80] transition-all duration-300 transform hover:-translate-y-1 hover:shadow-xl h-full">
-                <div className="relative h-48 bg-gradient-to-b from-gray-50 to-white flex items-center justify-center overflow-hidden">
-                  <img 
-                    src={type.image}
-                    alt={type.name}
-                    className="max-w-full max-h-full object-contain p-6 transition-all duration-500 group-hover:scale-110 group-hover:opacity-80"
-                  />
-                  {/* Hover overlay with teal tint */}
-                  <div className="absolute inset-0 bg-[#2C8B80] opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
+              {type.badge && (
+                <div className={`absolute top-4 right-4 z-10 px-3 py-1 rounded-full text-sm font-semibold ${type.badgeColor || 'bg-[#2C8B80] text-white'}`}>
+                  {type.badge}
+                </div>
+              )}
+              <div className={`bg-white rounded-xl overflow-hidden border-2 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-xl h-full ${
+                type.isService ? 'border-yellow-400 hover:border-yellow-500' : 'border-gray-100 hover:border-[#2C8B80]'
+              }`}>
+                <div className={`relative h-48 flex items-center justify-center overflow-hidden ${
+                  type.isService ? 'bg-gradient-to-b from-yellow-50 to-white' : 'bg-gradient-to-b from-gray-50 to-white'
+                }`}>
+                  {type.isService ? (
+                    <div className="text-center p-6">
+                      <div className="text-6xl mb-2">📏</div>
+                      <p className="text-lg font-semibold text-gray-900">Professional<br/>Measurement</p>
+                    </div>
+                  ) : (
+                    <>
+                      <img 
+                        src={type.image}
+                        alt={type.name}
+                        className="max-w-full max-h-full object-contain p-6 transition-all duration-500 group-hover:scale-110 group-hover:opacity-80"
+                      />
+                      {/* Hover overlay with teal tint */}
+                      <div className="absolute inset-0 bg-[#2C8B80] opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
+                    </>
+                  )}
                 </div>
                 
-                <div className="p-5 border-t border-gray-100">
-                  <h3 className="text-xl font-semibold text-gray-900 group-hover:text-[#2C8B80] transition-colors mb-2">
-                    {type.name}
+                <div className={`p-5 border-t ${type.isService ? 'border-yellow-200 bg-yellow-50' : 'border-gray-100'}`}>
+                  <h3 className={`text-xl font-semibold transition-colors mb-2 ${
+                    type.isService ? 'text-gray-900 group-hover:text-yellow-600' : 'text-gray-900 group-hover:text-[#2C8B80]'
+                  }`}>
+                    {type.isService ? 'In-Home Service' : type.name}
                   </h3>
+                  {type.isService && (
+                    <p className="text-sm text-gray-700 mb-2">
+                      <span className="font-semibold">Rumson area only</span> (10 mile radius)
+                    </p>
+                  )}
                   <p className="text-sm text-gray-600 mb-3">
                     {type.description}
                   </p>
-                  <div className="flex items-center justify-end">
-                    <span className="text-[#2C8B80] group-hover:translate-x-1 transition-transform duration-200">
-                      Select →
+                  <div className="flex items-center justify-between">
+                    {type.price && (
+                      <span className="text-sm font-semibold text-gray-900">{type.price}</span>
+                    )}
+                    <span className={`${type.price ? '' : 'ml-auto'} ${
+                      type.isService ? 'text-yellow-600' : 'text-[#2C8B80]'
+                    } group-hover:translate-x-1 transition-transform duration-200`}>
+                      {type.isService ? 'Book Now →' : 'Select →'}
                     </span>
                   </div>
                 </div>
               </div>
             </Link>
           ))}
-          
-          {/* Professional Measurement Service Card */}
-          <Link 
-            href="/measurement-service"
-            className="group relative block"
-          >
-            <div className="absolute top-4 right-4 z-10 bg-yellow-500 text-gray-900 px-3 py-1 rounded-full text-sm font-semibold">
-              Local Service
-            </div>
-            <div className="bg-white rounded-xl overflow-hidden border-2 border-yellow-400 hover:border-yellow-500 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-xl h-full">
-              <div className="relative h-48 bg-gradient-to-b from-yellow-50 to-white flex items-center justify-center overflow-hidden">
-                <div className="text-center p-6">
-                  <div className="text-6xl mb-2">📏</div>
-                  <p className="text-lg font-semibold text-gray-900">Professional<br/>Measurement</p>
-                </div>
-              </div>
-              
-              <div className="p-5 border-t border-yellow-200 bg-yellow-50">
-                <h3 className="text-xl font-semibold text-gray-900 group-hover:text-yellow-600 transition-colors mb-2">
-                  In-Home Service
-                </h3>
-                <p className="text-sm text-gray-700 mb-2">
-                  <span className="font-semibold">Rumson area only</span> (10 mile radius)
-                </p>
-                <p className="text-sm text-gray-600 mb-3">
-                  We'll measure your furniture and create your perfect custom order
-                </p>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-semibold text-gray-900">$75 service fee</span>
-                  <span className="text-yellow-600 group-hover:translate-x-1 transition-transform duration-200">
-                    Book Now →
-                  </span>
-                </div>
-              </div>
-            </div>
-          </Link>
         </div>
 
         {/* Help Section */}
