@@ -102,8 +102,7 @@ export default function InstructionsPage() {
                 <div>
                   <h3 className="font-semibold text-gray-900">Wind Issues</h3>
                   <p className="text-gray-700">
-                    Ensure all straps are tightened. Consider using additional tie-downs or weights 
-                    in extremely windy areas.
+                    Ensure all bungees are tightened properly through the grommets.
                   </p>
                 </div>
                 
