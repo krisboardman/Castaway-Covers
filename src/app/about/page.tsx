@@ -9,14 +9,15 @@ export default function AboutPage() {
             <section className="mb-8">
               <h2 className="text-2xl font-semibold text-gray-900 mb-4">Our Story</h2>
               <p className="text-gray-700 mb-4">
-                Castaway Covers specializes in custom-manufactured outdoor furniture covers, crafted specifically 
-                to your exact measurements. We believe that your outdoor furniture deserves protection that fits 
-                perfectly, not generic one-size-fits-all solutions.
+                Castaway Covers started when we built covers for ourselves. We couldn't find any covers on the market 
+                that did everything we needed - they were either the wrong size, poor quality, or didn't provide proper 
+                ventilation. So we decided to make our own.
               </p>
               <p className="text-gray-700">
-                Every cover we create is made-to-order in the USA, ensuring precise fit and superior quality. 
-                We work directly with homeowners who value their outdoor investments and want covers that will 
-                last for years.
+                Soon, friends and neighbors were asking us to make covers for their outdoor furniture too. Word spread 
+                about our custom-fitted, durable covers, and what started as a personal solution grew into Castaway Covers. 
+                Today, we're proud to craft custom covers for homeowners across the country, each one made to order with 
+                the same attention to detail we put into our very first covers.
               </p>
             </section>
 
