@@ -134,16 +134,9 @@ export default function DesignPage() {
             Not sure which type you need?
           </h3>
           <p className="text-gray-600 mb-4">
-            Check our measurement guide or contact us for assistance
+            See our measurement guides on the product pages or contact us for assistance
           </p>
           <div className="flex gap-4 justify-center">
-            <Link 
-              href="/instructions" 
-              className="text-[#2C8B80] hover:text-[#1F6259] font-medium underline"
-            >
-              Measurement Guide
-            </Link>
-            <span className="text-gray-400">•</span>
             <Link 
               href="/contact" 
               className="text-[#2C8B80] hover:text-[#1F6259] font-medium underline"
