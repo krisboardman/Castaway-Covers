@@ -97,8 +97,7 @@ export default function FAQsPage() {
                     Is shipping free?
                   </h3>
                   <p className="text-gray-700">
-                    We offer free standard shipping on orders over $99 within the continental United 
-                    States. Expedited shipping options are available for an additional fee.
+                    Shipping is calculated during the ordering process.
                   </p>
                 </div>
               </div>
