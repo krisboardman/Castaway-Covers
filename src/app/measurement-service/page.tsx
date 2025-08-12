@@ -81,7 +81,11 @@ export default function MeasurementServicePage() {
       });
 
       if (response.ok) {
-        alert('Thank you! We\'ll contact you within 24 hours to confirm your appointment and process payment.');
+        // Show success message with payment link
+        const paymentLink = 'https://uhrtqs-jx.myshopify.com/products/measurement-service';
+        if (window.confirm('Thank you! Your measurement request has been submitted.\n\nClick OK to proceed to payment ($75) or Cancel to pay later.\n\nWe\'ll contact you within 24 hours to confirm your appointment.')) {
+          window.open(paymentLink, '_blank');
+        }
         
         // Reset form
         setFormData({
