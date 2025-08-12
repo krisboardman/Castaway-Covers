@@ -4,6 +4,14 @@ import Link from "next/link";
 export default function Home() {
   return (
     <div>
+      {/* Local Service Banner */}
+      <div className="bg-[#2C8B80] text-white py-2 px-4 text-center">
+        <p className="text-sm md:text-base">
+          📍 <span className="font-semibold">Rumson Area?</span> We offer professional in-home measurement service within 10 miles. 
+          <Link href="/measurement-service" className="underline ml-2 hover:text-yellow-200">Learn More</Link>
+        </p>
+      </div>
+
       {/* Hero Section with 3-Panel Story */}
       <section className="relative pt-6 pb-4 px-4 bg-gradient-to-b from-white to-[#FAF5ED]/30">
         <div className="max-w-7xl mx-auto">
@@ -73,7 +81,7 @@ export default function Home() {
               These Covers are Totally Different
             </h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              We've obsessed over every detail to create covers that actually work—not just another tarp with straps.
+              We've obsessed over every detail to create covers you'll actually want to use.
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-5">

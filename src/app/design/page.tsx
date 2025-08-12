@@ -92,6 +92,42 @@ export default function DesignPage() {
               </div>
             </Link>
           ))}
+          
+          {/* Professional Measurement Service Card */}
+          <Link 
+            href="/measurement-service"
+            className="group relative block"
+          >
+            <div className="absolute top-4 right-4 z-10 bg-yellow-500 text-gray-900 px-3 py-1 rounded-full text-sm font-semibold">
+              Local Service
+            </div>
+            <div className="bg-white rounded-xl overflow-hidden border-2 border-yellow-400 hover:border-yellow-500 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-xl h-full">
+              <div className="relative h-48 bg-gradient-to-b from-yellow-50 to-white flex items-center justify-center overflow-hidden">
+                <div className="text-center p-6">
+                  <div className="text-6xl mb-2">📏</div>
+                  <p className="text-lg font-semibold text-gray-900">Professional<br/>Measurement</p>
+                </div>
+              </div>
+              
+              <div className="p-5 border-t border-yellow-200 bg-yellow-50">
+                <h3 className="text-xl font-semibold text-gray-900 group-hover:text-yellow-600 transition-colors mb-2">
+                  In-Home Service
+                </h3>
+                <p className="text-sm text-gray-700 mb-2">
+                  <span className="font-semibold">Rumson area only</span> (10 mile radius)
+                </p>
+                <p className="text-sm text-gray-600 mb-3">
+                  We'll measure your furniture and create your perfect custom order
+                </p>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-semibold text-gray-900">$75 service fee</span>
+                  <span className="text-yellow-600 group-hover:translate-x-1 transition-transform duration-200">
+                    Book Now →
+                  </span>
+                </div>
+              </div>
+            </div>
+          </Link>
         </div>
 
         {/* Help Section */}
