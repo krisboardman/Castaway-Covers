@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import Script from 'next/script';
 
 export default function MeasurementServicePage() {
   const [isNearRumson, setIsNearRumson] = useState<boolean | null>(null);
@@ -62,44 +61,26 @@ export default function MeasurementServicePage() {
     e.preventDefault();
     
     try {
-      // Send to our API
-      const response = await fetch('/api/send-measurement-request', {
+      // Send to Formspree
+      const response = await fetch('https://formspree.io/f/xblkwzzr', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          address: `${formData.address}, ${formData.city}, NJ ${formData.zipCode}`,
+          furnitureTypes: formData.furnitureTypes.join(', '),
+          preferredDate: formData.preferredDate || 'Not specified',
+          preferredTime: formData.preferredTime || 'Not specified',
+          notes: formData.notes || 'None',
+          _subject: 'New Measurement Service Request',
+        }),
       });
 
-      const result = await response.json();
-
-      if (result.success) {
-        // Also send email using EmailJS (free service)
-        // You'll need to sign up at https://www.emailjs.com/ and get these IDs
-        if (typeof window !== 'undefined' && (window as any).emailjs) {
-          const templateParams = {
-            to_email: 'support@castawaycovers.com',
-            from_name: formData.name,
-            from_email: formData.email,
-            phone: formData.phone,
-            address: `${formData.address}, ${formData.city}, NJ ${formData.zipCode}`,
-            furniture_types: formData.furnitureTypes.join(', '),
-            preferred_date: formData.preferredDate || 'Not specified',
-            preferred_time: formData.preferredTime || 'Not specified',
-            notes: formData.notes || 'None',
-          };
-
-          try {
-            await (window as any).emailjs.send(
-              'YOUR_SERVICE_ID', // Replace with your EmailJS service ID
-              'YOUR_TEMPLATE_ID', // Replace with your EmailJS template ID
-              templateParams
-            );
-          } catch (emailError) {
-            console.error('EmailJS error:', emailError);
-          }
-        }
-
+      if (response.ok) {
         alert('Thank you! We\'ll contact you within 24 hours to confirm your appointment and process payment.');
         
         // Reset form
@@ -135,17 +116,7 @@ export default function MeasurementServicePage() {
   ];
 
   return (
-    <>
-      <Script 
-        src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"
-        strategy="afterInteractive"
-        onLoad={() => {
-          if ((window as any).emailjs) {
-            (window as any).emailjs.init("YOUR_PUBLIC_KEY"); // Replace with your EmailJS public key
-          }
-        }}
-      />
-      <div className="min-h-screen bg-gray-50 py-12">
+    <div className="min-h-screen bg-gray-50 py-12">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="bg-white rounded-lg shadow-sm p-8">
           {/* Header */}
@@ -387,6 +358,5 @@ export default function MeasurementServicePage() {
         </div>
       </div>
     </div>
-    </>
   );
 }
