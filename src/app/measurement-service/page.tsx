@@ -6,6 +6,7 @@ import Link from 'next/link';
 export default function MeasurementServicePage() {
   const [isNearRumson, setIsNearRumson] = useState<boolean | null>(null);
   const [checkingLocation, setCheckingLocation] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -81,11 +82,8 @@ export default function MeasurementServicePage() {
       });
 
       if (response.ok) {
-        // Show success message with payment link
-        const paymentLink = 'https://uhrtqs-jx.myshopify.com/products/measurement-service';
-        if (window.confirm('Thank you! Your measurement request has been submitted.\n\nClick OK to proceed to payment ($75) or Cancel to pay later.\n\nWe\'ll contact you within 24 hours to confirm your appointment.')) {
-          window.open(paymentLink, '_blank');
-        }
+        // Show success message
+        setShowSuccess(true);
         
         // Reset form
         setFormData({
@@ -100,6 +98,9 @@ export default function MeasurementServicePage() {
           preferredTime: '',
           notes: ''
         });
+        
+        // Scroll to top to show success message
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       } else {
         alert('There was an error submitting your request. Please try again or email us directly at support@castawaycovers.com');
       }
@@ -122,6 +123,38 @@ export default function MeasurementServicePage() {
   return (
     <div className="min-h-screen bg-gray-50 py-12">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Success Message */}
+        {showSuccess && (
+          <div className="bg-green-50 border-2 border-green-400 rounded-lg p-6 mb-8">
+            <div className="text-center">
+              <div className="text-5xl mb-4">✅</div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-3">
+                Request Submitted Successfully!
+              </h2>
+              <p className="text-gray-700 mb-6">
+                Thank you! We'll contact you within 24 hours to confirm your appointment.
+                <br />
+                Please complete your payment to secure your booking.
+              </p>
+              <a
+                href="https://uhrtqs-jx.myshopify.com/products/measurement-service"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-block bg-[#2C8B80] text-white px-8 py-3 rounded-full font-semibold hover:bg-[#1F6259] transition-colors mb-4"
+              >
+                Pay Now ($75)
+              </a>
+              <br />
+              <button
+                onClick={() => setShowSuccess(false)}
+                className="text-gray-600 underline hover:text-gray-800 text-sm"
+              >
+                Submit Another Request
+              </button>
+            </div>
+          </div>
+        )}
+
         <div className="bg-white rounded-lg shadow-sm p-8">
           {/* Header */}
           <div className="text-center mb-8">
