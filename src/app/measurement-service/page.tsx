@@ -85,6 +85,9 @@ export default function MeasurementServicePage() {
         // Show success message
         setShowSuccess(true);
         
+        // Scroll to top to show success message
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        
         // Reset form
         setFormData({
           name: '',
@@ -98,9 +101,6 @@ export default function MeasurementServicePage() {
           preferredTime: '',
           notes: ''
         });
-        
-        // Scroll to top to show success message
-        window.scrollTo({ top: 0, behavior: 'smooth' });
       } else {
         alert('There was an error submitting your request. Please try again or email us directly at support@castawaycovers.com');
       }
