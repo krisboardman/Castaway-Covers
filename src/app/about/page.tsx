@@ -11,7 +11,8 @@ export default function AboutPage() {
               <p className="text-gray-700 mb-4">
                 Castaway Covers started when we built covers for ourselves. We couldn't find any covers on the market 
                 that did everything we needed - they were either the wrong size, poor quality, or didn't provide proper 
-                ventilation. So we decided to make our own.
+                ventilation. We needed covers that were easy to put on, looked great, and actually protected our furniture. 
+                So we decided to make our own.
               </p>
               <p className="text-gray-700">
                 Soon, friends and neighbors were asking us to make covers for their outdoor furniture too. Word spread 
@@ -24,9 +25,10 @@ export default function AboutPage() {
             <section className="mb-8">
               <h2 className="text-2xl font-semibold text-gray-900 mb-4">Our Mission</h2>
               <p className="text-gray-700">
-                To deliver perfectly-fitted, custom-made outdoor furniture covers that provide superior protection 
-                and longevity. We manufacture each cover to your exact specifications, ensuring a precise fit that 
-                generic covers simply can't match.
+                To provide covers that are attractive and easy to use, making people actually enjoy protecting their 
+                outdoor furniture. We believe covers should enhance your outdoor space, not detract from it. Each 
+                custom-made cover is manufactured to your exact specifications, combining superior protection with 
+                thoughtful design that makes covering and uncovering your furniture a breeze.
               </p>
             </section>
 
