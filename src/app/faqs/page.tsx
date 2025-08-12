@@ -42,7 +42,7 @@ export default function FAQsPage() {
                     What material are the covers made from?
                   </h3>
                   <p className="text-gray-700">
-                    <strong>Main body:</strong> Marine-grade vinyl with polyester backing in Pacific Blue. This premium material is:
+                    <strong>Main body:</strong> Marine-grade vinyl with polyester backing. This premium material is:
                     <br />• 100% waterproof
                     <br />• UV resistant (650 hours)
                     <br />• Mildew and fungal resistant
