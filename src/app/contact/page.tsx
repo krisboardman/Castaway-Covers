@@ -77,25 +77,8 @@ export default function ContactPage() {
               
               <div className="space-y-4">
                 <div>
-                  <h3 className="font-semibold text-gray-900 mb-1">Customer Service Hours</h3>
-                  <p className="text-gray-700">Monday - Friday: 8:00 AM - 6:00 PM EST</p>
-                  <p className="text-gray-700">Saturday: 9:00 AM - 4:00 PM EST</p>
-                  <p className="text-gray-700">Sunday: Closed</p>
-                </div>
-
-                <div>
                   <h3 className="font-semibold text-gray-900 mb-1">Email</h3>
                   <p className="text-gray-700">support@castawaycovers.com</p>
-                </div>
-
-                <div>
-                  <h3 className="font-semibold text-gray-900 mb-1">Mailing Address</h3>
-                  <p className="text-gray-700">
-                    Castaway Covers<br />
-                    123 Main Street<br />
-                    Suite 100<br />
-                    City, State 12345
-                  </p>
                 </div>
               </div>
 

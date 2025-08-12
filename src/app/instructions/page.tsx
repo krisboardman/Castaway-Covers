@@ -134,8 +134,7 @@ export default function InstructionsPage() {
               <h2 className="text-2xl font-semibold text-gray-900 mb-4">Need Help?</h2>
               <p className="text-gray-700">
                 Our customer service team is available to answer any questions:<br />
-                Email: support@castawaycovers.com<br />
-                Hours: Monday - Friday, 8:00 AM - 6:00 PM EST
+                Email: support@castawaycovers.com
               </p>
             </section>
           </div>
