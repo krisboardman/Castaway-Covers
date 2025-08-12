@@ -6,7 +6,7 @@ export default function DesignPage() {
       name: "Chairs / Recliners",
       href: "/products/chairs-recliners",
       image: "/images/Chairs-Recliners/sketchchair.png",
-      description: "Best for square & rectangular designs",
+      description: "Armchairs, club chairs, and recliners",
       popular: true
     },
     {
