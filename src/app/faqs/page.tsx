@@ -16,7 +16,7 @@ export default function FAQsPage() {
                     How do I know what size cover to order?
                   </h3>
                   <p className="text-gray-700">
-                    Measure your furniture's width, depth, and height at the widest points. Add 1 inch to each measurement for easier installation. Use our measurement calculator on each product page for specific guidance.
+                    Measure at the widest points. Add 1 inch to each measurement for easier installation. Use our measurement calculator on each product page for specific guidance.
                   </p>
                 </div>
 
