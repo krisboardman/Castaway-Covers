@@ -36,9 +36,8 @@ export default function AboutPage() {
                 <li>100% custom-made to your exact measurements</li>
                 <li>Manufactured in the USA with premium outdoor materials</li>
                 <li>2-year warranty on all custom covers</li>
-                <li>Waterproof, UV-resistant, and breathable fabric</li>
+                <li>Waterproof, UV-resistant, and heavy-duty fabric</li>
                 <li>Wavy edge and bungee system for secure fit and ventilation</li>
-                <li>No returns needed when you measure correctly - we guide you through it</li>
               </ul>
             </section>
 
