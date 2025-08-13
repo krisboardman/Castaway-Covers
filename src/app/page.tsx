@@ -1,12 +1,19 @@
 import Image from "next/image";
 import Link from "next/link";
 import { generateMetadata as generateMeta } from "@/lib/metadata";
+import { getOrganizationSchema } from "@/lib/structured-data";
 
 export const metadata = generateMeta('home');
 
 export default function Home() {
+  const organizationSchema = getOrganizationSchema();
+  
   return (
     <div>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+      />
       {/* Local Service Banner */}
       <div className="bg-[#2C8B80] text-white py-2 px-4 text-center">
         <p className="text-sm md:text-base">
