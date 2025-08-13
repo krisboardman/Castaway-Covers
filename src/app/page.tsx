@@ -32,33 +32,42 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
             {/* Panel 1: Draping On */}
             <div className="relative group overflow-hidden rounded-lg shadow-lg">
-              <div className="aspect-[4/3] bg-gray-200">
-                <img 
+              <div className="aspect-[4/3] bg-gray-200 relative">
+                <Image 
                   src="/images/hero1.jpg" 
                   alt="Easy draping cover"
-                  className="w-full h-full object-cover"
+                  fill
+                  sizes="(max-width: 768px) 100vw, 33vw"
+                  className="object-cover"
+                  priority
                 />
               </div>
             </div>
 
             {/* Panel 2: Protected */}
             <div className="relative group overflow-hidden rounded-lg shadow-lg">
-              <div className="aspect-[4/3] bg-gray-200">
-                <img 
+              <div className="aspect-[4/3] bg-gray-200 relative">
+                <Image 
                   src="/images/hero2.jpg" 
                   alt="Covered furniture protected"
-                  className="w-full h-full object-cover"
+                  fill
+                  sizes="(max-width: 768px) 100vw, 33vw"
+                  className="object-cover"
+                  priority
                 />
               </div>
             </div>
 
             {/* Panel 3: Enjoying */}
             <div className="relative group overflow-hidden rounded-lg shadow-lg">
-              <div className="aspect-[4/3] bg-gray-200">
-                <img 
+              <div className="aspect-[4/3] bg-gray-200 relative">
+                <Image 
                   src="/images/hero3.jpg" 
                   alt="Enjoying furniture with coffee"
-                  className="w-full h-full object-cover"
+                  fill
+                  sizes="(max-width: 768px) 100vw, 33vw"
+                  className="object-cover"
+                  priority
                 />
               </div>
             </div>
@@ -91,10 +100,13 @@ export default function Home() {
             {/* Hassle Free */}
             <div className="group border border-gray-200 rounded-lg overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer bg-white/95 backdrop-blur-sm">
               <div className="aspect-[4/3] relative overflow-hidden">
-                <img 
+                <Image 
                   src="/images/homepage/feature1.jpg"
                   alt="Just Drape & Go"
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 20vw"
+                  className="object-cover group-hover:scale-105 transition-transform duration-500"
+                  loading="lazy"
                 />
               </div>
               <div className="p-5">
@@ -106,10 +118,13 @@ export default function Home() {
             {/* Unique Design */}
             <div className="group border border-gray-200 rounded-lg overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer bg-white/95 backdrop-blur-sm">
               <div className="aspect-[4/3] relative overflow-hidden">
-                <img 
+                <Image 
                   src="/images/homepage/feature2.jpg"
                   alt="Use Without Removing"
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 20vw"
+                  className="object-cover group-hover:scale-105 transition-transform duration-500"
+                  loading="lazy"
                 />
               </div>
               <div className="p-5">
@@ -121,10 +136,13 @@ export default function Home() {
             {/* Heavy Duty */}
             <div className="group border border-gray-200 rounded-lg overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer bg-white/95 backdrop-blur-sm">
               <div className="aspect-[4/3] relative overflow-hidden">
-                <img 
+                <Image 
                   src="/images/homepage/feature3.jpg"
                   alt="Heavy Duty"
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 20vw"
+                  className="object-cover group-hover:scale-105 transition-transform duration-500"
+                  loading="lazy"
                 />
               </div>
               <div className="p-5">
@@ -136,10 +154,13 @@ export default function Home() {
             {/* Weather Proof */}
             <div className="group border border-gray-200 rounded-lg overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer bg-white/95 backdrop-blur-sm">
               <div className="aspect-[4/3] relative overflow-hidden">
-                <img 
+                <Image 
                   src="/images/homepage/feature4.jpg"
                   alt="Weather Proof"
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 20vw"
+                  className="object-cover group-hover:scale-105 transition-transform duration-500"
+                  loading="lazy"
                 />
               </div>
               <div className="p-5">
@@ -151,10 +172,13 @@ export default function Home() {
             {/* Mildew Resistant */}
             <div className="group border border-gray-200 rounded-lg overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer bg-white/95 backdrop-blur-sm">
               <div className="aspect-[4/3] relative overflow-hidden">
-                <img 
+                <Image 
                   src="/images/homepage/feature5.jpg"
                   alt="Mildew Resistant"
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 20vw"
+                  className="object-cover group-hover:scale-105 transition-transform duration-500"
+                  loading="lazy"
                 />
               </div>
               <div className="p-5">
