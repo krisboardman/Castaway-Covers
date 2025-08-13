@@ -1,0 +1,14 @@
+# Robots.txt for Castaway Covers
+# Allow all search engines to crawl the site
+
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /_next/
+Disallow: /cart
+
+# Sitemap location
+Sitemap: https://castawaycovers.com/sitemap.xml
+
+# Crawl delay (be nice to search engines)
+Crawl-delay: 1
