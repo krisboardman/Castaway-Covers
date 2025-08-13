@@ -32,7 +32,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${poppins.variable} ${playfair.variable} antialiased`}>
+      <body className={`${poppins.className} antialiased`}>
         <ComingSoonRedirect />
         <CartProvider>
           <Header />

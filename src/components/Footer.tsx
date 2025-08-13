@@ -7,7 +7,7 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* Company Column */}
           <div>
-            <h3 className="text-lg font-semibold mb-4">Company</h3>
+            <h3 className="text-lg font-semibold mb-4 text-white">Company</h3>
             <ul className="space-y-2">
               <li>
                 <Link href="/about" className="text-gray-300 hover:text-white transition-colors">
@@ -34,7 +34,7 @@ export default function Footer() {
 
           {/* Information Column */}
           <div>
-            <h3 className="text-lg font-semibold mb-4">Information</h3>
+            <h3 className="text-lg font-semibold mb-4 text-white">Information</h3>
             <ul className="space-y-2">
               <li>
                 <Link href="/returns" className="text-gray-300 hover:text-white transition-colors">
@@ -73,9 +73,9 @@ export default function Footer() {
 
           {/* Contact Column */}
           <div>
-            <h3 className="text-lg font-semibold mb-4">Contact</h3>
+            <h3 className="text-lg font-semibold mb-4 text-white">Contact</h3>
             <p className="text-gray-300">
-              <strong>Email:</strong> support@castawaycovers.com
+              <span className="font-medium text-white">Email:</span> support@castawaycovers.com
             </p>
           </div>
         </div>
