@@ -1,3 +1,6 @@
+import { generateMetadata as generateMeta } from "@/lib/metadata";
+
+export const metadata = generateMeta('shipping');
 export default function ShippingPage() {
   return (
     <div className="min-h-screen bg-gray-50">

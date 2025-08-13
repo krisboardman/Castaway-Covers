@@ -1,3 +1,6 @@
+import { generateMetadata as generateMeta } from "@/lib/metadata";
+
+export const metadata = generateMeta('warranty');
 export default function WarrantyPage() {
   return (
     <div className="min-h-screen bg-gray-50">

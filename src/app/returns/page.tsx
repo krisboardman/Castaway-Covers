@@ -1,3 +1,6 @@
+import { generateMetadata as generateMeta } from "@/lib/metadata";
+
+export const metadata = generateMeta('returns');
 export default function ReturnsPage() {
   return (
     <div className="min-h-screen bg-gray-50">

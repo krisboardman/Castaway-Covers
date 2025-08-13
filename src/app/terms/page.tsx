@@ -1,3 +1,6 @@
+import { generateMetadata as generateMeta } from "@/lib/metadata";
+
+export const metadata = generateMeta('terms');
 export default function TermsPage() {
   return (
     <div className="min-h-screen bg-gray-50">
