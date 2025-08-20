@@ -6,23 +6,23 @@ import Image from 'next/image';
 const slides = [
   {
     image: '/images/hero1.jpg',
-    title: 'Premium Protection',
-    subtitle: 'Marine-grade materials that last for years'
+    title: 'Protect Your Investment',
+    subtitle: 'Keep your outdoor furniture looking new season after season'
   },
   {
     image: '/images/hero2.jpg', 
-    title: 'Perfect Fit',
-    subtitle: 'Custom sizes for all your outdoor furniture'
+    title: 'Relax and Enjoy',
+    subtitle: 'No more worrying about sudden storms or harsh sun'
   },
   {
     image: '/images/hero3.jpg',
-    title: 'Easy Installation',
-    subtitle: 'Secure in minutes with adjustable straps'
+    title: 'Ready When You Are',
+    subtitle: 'Uncover in seconds, your furniture is always guest-ready'
   },
   {
     image: '/images/homepage/feature1.jpg',
-    title: 'Weather Resistant',
-    subtitle: 'Protects through all seasons'
+    title: 'Built to Last',
+    subtitle: '5-year warranty on materials that outperform the competition'
   }
 ];
 
@@ -38,7 +38,7 @@ export default function HeroCarousel() {
   }, []);
 
   return (
-    <div className="relative w-full h-[400px] md:h-[600px] rounded-lg overflow-hidden bg-gray-100">
+    <div className="relative w-full h-[500px] md:h-[700px] rounded-xl overflow-hidden bg-gray-100 shadow-2xl mb-8">
       {/* Slides */}
       {slides.map((slide, index) => (
         <div
@@ -59,11 +59,11 @@ export default function HeroCarousel() {
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
           
           {/* Text content */}
-          <div className="absolute bottom-0 left-0 right-0 p-8 md:p-12">
-            <h2 className="text-3xl md:text-5xl font-bold text-white mb-2">
+          <div className="absolute bottom-0 left-0 right-0 p-8 md:p-16">
+            <h2 className="text-4xl md:text-6xl font-bold text-white mb-3 drop-shadow-lg">
               {slide.title}
             </h2>
-            <p className="text-lg md:text-xl text-white/90">
+            <p className="text-xl md:text-2xl text-white/95 drop-shadow-md">
               {slide.subtitle}
             </p>
           </div>
