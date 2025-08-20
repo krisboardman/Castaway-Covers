@@ -20,7 +20,7 @@ const slides = [
     subtitle: 'Secure in minutes with adjustable straps'
   },
   {
-    image: '/images/feature1.jpg',
+    image: '/images/homepage/feature1.jpg',
     title: 'Weather Resistant',
     subtitle: 'Protects through all seasons'
   }
