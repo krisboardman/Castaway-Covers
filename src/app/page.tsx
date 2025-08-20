@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { generateMetadata as generateMeta } from "@/lib/metadata";
 import { getOrganizationSchema } from "@/lib/structured-data";
+import HeroCarousel from "@/components/HeroCarousel";
 
 export const metadata = generateMeta('home');
 
@@ -35,50 +36,8 @@ export default function Home() {
             </p>
           </div>
 
-          {/* 3-Panel Visual Story */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-            {/* Panel 1: Draping On */}
-            <div className="relative group overflow-hidden rounded-lg shadow-lg">
-              <div className="aspect-[4/3] bg-gray-200 relative">
-                <Image 
-                  src="/images/hero1.jpg" 
-                  alt="Easy draping cover"
-                  fill
-                  sizes="(max-width: 768px) 100vw, 33vw"
-                  className="object-cover"
-                  priority
-                />
-              </div>
-            </div>
-
-            {/* Panel 2: Protected */}
-            <div className="relative group overflow-hidden rounded-lg shadow-lg">
-              <div className="aspect-[4/3] bg-gray-200 relative">
-                <Image 
-                  src="/images/hero2.jpg" 
-                  alt="Covered furniture protected"
-                  fill
-                  sizes="(max-width: 768px) 100vw, 33vw"
-                  className="object-cover"
-                  priority
-                />
-              </div>
-            </div>
-
-            {/* Panel 3: Enjoying */}
-            <div className="relative group overflow-hidden rounded-lg shadow-lg">
-              <div className="aspect-[4/3] bg-gray-200 relative">
-                <Image 
-                  src="/images/hero3.jpg" 
-                  alt="Enjoying furniture with coffee"
-                  fill
-                  sizes="(max-width: 768px) 100vw, 33vw"
-                  className="object-cover"
-                  priority
-                />
-              </div>
-            </div>
-          </div>
+          {/* Hero Carousel - Auto-playing image slideshow */}
+          <HeroCarousel />
 
           {/* CTA Button */}
           <div className="text-center">
