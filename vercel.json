@@ -7,5 +7,18 @@
   "github": {
     "enabled": true,
     "autoAlias": true
-  }
+  },
+  "redirects": [
+    {
+      "source": "/(.*)",
+      "has": [
+        {
+          "type": "host",
+          "value": "castaway-covers.vercel.app"
+        }
+      ],
+      "destination": "https://castawaycovers.com/$1",
+      "permanent": true
+    }
+  ]
 }
