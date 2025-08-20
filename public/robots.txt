@@ -3,9 +3,25 @@
 
 User-agent: *
 Allow: /
+
+# Block API and system directories
 Disallow: /api/
 Disallow: /_next/
 Disallow: /cart
+
+# Block WordPress leftover URLs
+Disallow: /feed/
+Disallow: /*/feed/
+Disallow: /author/
+Disallow: /comments/
+Disallow: /wp-*
+Disallow: /sample-page/
+Disallow: /hello-world/
+
+# Block non-existent test pages
+Disallow: /chair-chooser/
+Disallow: /table-chooser/
+Disallow: /elementor-hf/
 
 # Sitemap location
 Sitemap: https://castawaycovers.com/sitemap.xml
