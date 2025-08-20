@@ -6,18 +6,18 @@ import Image from 'next/image';
 const slides = [
   {
     image: '/images/hero1.jpg',
-    title: 'Protect Your Investment',
-    subtitle: 'Keep your outdoor furniture looking new season after season'
+    title: 'Effortless Protection',
+    subtitle: 'Just drape and go - our weighted design means no complicated tie-downs'
   },
   {
     image: '/images/hero2.jpg', 
-    title: 'Relax and Enjoy',
-    subtitle: 'No more worrying about sudden storms or harsh sun'
+    title: 'Marine-Grade Luxury',
+    subtitle: 'Heavy-duty vinyl that stays put and looks beautiful year after year'
   },
   {
     image: '/images/hero3.jpg',
-    title: 'Ready When You Are',
-    subtitle: 'Uncover in seconds, your furniture is always guest-ready'
+    title: 'Use Without Removing',
+    subtitle: 'Innovative snap straps let you fold back covers for instant entertaining'
   },
   {
     image: '/images/homepage/feature1.jpg',
