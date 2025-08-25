@@ -8,11 +8,11 @@ export default function ComingSoonRedirect() {
   
   useEffect(() => {
     // Check if coming soon mode is enabled
-    const COMING_SOON_ENABLED = false;
+    const COMING_SOON_ENABLED = true;
     const PREVIEW_TOKEN = 'castaway2025';
     
-    // Skip redirect for certain pages
-    if (pathname === '/coming-soon' || pathname === '/admin-toggle') {
+    // Skip redirect for coming soon page itself
+    if (pathname === '/coming-soon') {
       return;
     }
     
@@ -20,19 +20,22 @@ export default function ComingSoonRedirect() {
     const urlParams = new URLSearchParams(window.location.search);
     const hasPreview = urlParams.get('preview') === PREVIEW_TOKEN;
     
+    // If preview token is present, set cookie and allow access
+    if (hasPreview) {
+      document.cookie = 'preview-mode=true; max-age=86400; path=/';
+      return; // Don't redirect
+    }
+    
     // Check for preview cookie
     const hasPreviewCookie = document.cookie.includes('preview-mode=true');
     
-    // Set preview cookie if preview token is present
-    if (hasPreview && !hasPreviewCookie) {
-      document.cookie = 'preview-mode=true; max-age=86400; path=/; domain=.castawaycovers.com';
-      // Also set for the root domain
-      document.cookie = 'preview-mode=true; max-age=86400; path=/';
+    // If preview cookie exists, allow access
+    if (hasPreviewCookie) {
+      return; // Don't redirect
     }
     
-    // Only redirect if coming soon is enabled AND no preview access
-    if (COMING_SOON_ENABLED && !hasPreview && !hasPreviewCookie) {
-      // Redirect to coming soon page
+    // Only redirect to coming soon if enabled and no preview access
+    if (COMING_SOON_ENABLED) {
       window.location.href = '/coming-soon';
     }
   }, [pathname]);
