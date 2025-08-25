@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
     // Use the same Formspree endpoint that's working for your contact form
     const FORMSPREE_ENDPOINT = 'https://formspree.io/f/xblkwzzr';
     
-    // Send to Formspree (which forwards to support@castawaycovers.com)
+    // Send to Formspree (which forwards to your email)
     const response = await fetch(FORMSPREE_ENDPOINT, {
       method: 'POST',
       headers: {
@@ -23,8 +23,10 @@ export async function POST(request: NextRequest) {
       body: JSON.stringify({
         email: email,
         _subject: '🚀 New Coming Soon Signup - Castaway Covers',
-        message: `New email signup from Coming Soon page: ${email}`,
-        source: 'coming-soon-page',
+        form_name: 'Coming Soon Signup',
+        message: `New email signup for launch notification: ${email}`,
+        signup_email: email,
+        source: 'Coming Soon Page - castawaycovers.com',
         timestamp: new Date().toISOString()
       }),
     });
