@@ -11,38 +11,34 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    // Google Sheets webhook URL - you'll need to replace this
-    const GOOGLE_SHEETS_WEBHOOK_URL = process.env.GOOGLE_SHEETS_WEBHOOK_URL;
+    // Use the same Formspree endpoint that's working for your contact form
+    const FORMSPREE_ENDPOINT = 'https://formspree.io/f/xblkwzzr';
     
-    if (!GOOGLE_SHEETS_WEBHOOK_URL) {
-      console.error('Google Sheets webhook URL not configured');
-      // Still return success to user
-      return NextResponse.json({ success: true });
-    }
-    
-    // Send to Google Sheets
-    const response = await fetch(GOOGLE_SHEETS_WEBHOOK_URL, {
+    // Send to Formspree (which forwards to support@castawaycovers.com)
+    const response = await fetch(FORMSPREE_ENDPOINT, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        email,
-        timestamp: new Date().toISOString(),
-        source: 'coming-soon-page'
+        email: email,
+        _subject: '🚀 New Coming Soon Signup - Castaway Covers',
+        message: `New email signup from Coming Soon page: ${email}`,
+        source: 'coming-soon-page',
+        timestamp: new Date().toISOString()
       }),
     });
     
     if (!response.ok) {
-      console.error('Failed to save to Google Sheets:', response.statusText);
+      console.error('Failed to send to Formspree:', response.statusText);
+      // Still return success to avoid showing errors to users
+      return NextResponse.json({ success: true });
     }
     
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Error processing subscription:', error);
-    return NextResponse.json(
-      { error: 'Failed to process subscription' },
-      { status: 500 }
-    );
+    // Still return success to avoid showing errors to users
+    return NextResponse.json({ success: true });
   }
 }
