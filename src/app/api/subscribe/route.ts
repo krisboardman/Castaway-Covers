@@ -21,13 +21,12 @@ export async function POST(request: NextRequest) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        email: email,
-        _subject: '🚀 New Coming Soon Signup - Castaway Covers',
-        form_name: 'Coming Soon Signup',
-        message: `New email signup for launch notification: ${email}`,
-        signup_email: email,
-        source: 'Coming Soon Page - castawaycovers.com',
-        timestamp: new Date().toISOString()
+        _subject: '🚀 COMING SOON SIGNUP - Castaway Covers',
+        '📧 COMING SOON EMAIL SIGNUP': email,
+        'Type': 'COMING SOON PAGE SIGNUP (not measurement service)',
+        'Customer Email': email,
+        'Signup Time': new Date().toLocaleString(),
+        'Action Needed': 'Add to launch notification list'
       }),
     });
     
