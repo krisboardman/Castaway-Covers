@@ -11,8 +11,8 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    // Use the same Formspree endpoint that's working for your contact form
-    const FORMSPREE_ENDPOINT = 'https://formspree.io/f/xblkwzzr';
+    // Use dedicated Formspree endpoint for Coming Soon signups
+    const FORMSPREE_ENDPOINT = 'https://formspree.io/f/mdklnpnk';
     
     // Send to Formspree (which forwards to your email)
     const response = await fetch(FORMSPREE_ENDPOINT, {
@@ -21,12 +21,10 @@ export async function POST(request: NextRequest) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        _subject: '🚀 COMING SOON SIGNUP - Castaway Covers',
-        '📧 COMING SOON EMAIL SIGNUP': email,
-        'Type': 'COMING SOON PAGE SIGNUP (not measurement service)',
-        'Customer Email': email,
-        'Signup Time': new Date().toLocaleString(),
-        'Action Needed': 'Add to launch notification list'
+        _subject: '🚀 New Coming Soon Signup',
+        email: email,
+        message: `New email signup for launch notifications`,
+        signup_time: new Date().toLocaleString()
       }),
     });
     
