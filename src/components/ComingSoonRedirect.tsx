@@ -7,15 +7,15 @@ export default function ComingSoonRedirect() {
   const pathname = usePathname();
   
   useEffect(() => {
-    // Check if coming soon mode is enabled
-    const COMING_SOON_ENABLED = true;
-    const PREVIEW_TOKEN = 'castaway2025';
-    const ADMIN_TOKEN = 'kbadmin2025';
-    
-    // Skip redirect for coming soon page itself
+    // CRITICAL: Skip ALL logic for coming-soon page to prevent loops
     if (pathname === '/coming-soon') {
       return;
     }
+    
+    // Check if coming soon mode is enabled
+    const COMING_SOON_ENABLED = false; // TEMPORARILY DISABLED TO FIX REDIRECT ISSUE
+    const PREVIEW_TOKEN = 'castaway2025';
+    const ADMIN_TOKEN = 'kbadmin2025';
     
     // Check for preview parameter
     const urlParams = new URLSearchParams(window.location.search);
