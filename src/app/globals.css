@@ -48,6 +48,19 @@ h3 {
   line-height: 1.75rem;
 }
 
+/* Portfolio page specific styles */
+.bg-grid-pattern {
+  background-image: 
+    linear-gradient(to right, #e5e7eb 1px, transparent 1px),
+    linear-gradient(to bottom, #e5e7eb 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* Smooth scrolling for the entire page */
+html {
+  scroll-behavior: smooth;
+}
+
 p, li {
   font-family: var(--font-poppins), ui-sans-serif, system-ui, sans-serif;
   font-weight: 400;
