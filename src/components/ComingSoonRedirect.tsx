@@ -7,6 +7,9 @@ export default function ComingSoonRedirect() {
   const pathname = usePathname();
   
   useEffect(() => {
+    // TEMPORARILY DISABLED TO FIX SITE
+    return;
+    
     // Check if coming soon mode is enabled
     const COMING_SOON_ENABLED = true;
     const PREVIEW_TOKEN = 'castaway2025';
