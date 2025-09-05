@@ -70,8 +70,8 @@ export default function RootLayout({
         />
       </head>
       <body className={`${poppins.className} antialiased`}>
-        <ComingSoonRedirect />
         <CartProvider>
+          <ComingSoonRedirect />
           <Header />
           <main className="bg-gradient-to-b from-white via-[#FAF5ED] to-[#F5E6D3]/40">
             {children}

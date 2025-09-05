@@ -7,15 +7,15 @@ export default function ComingSoonRedirect() {
   const pathname = usePathname();
   
   useEffect(() => {
+    // Skip entirely for coming soon page to prevent any redirect loops
+    if (pathname === '/coming-soon') {
+      return;
+    }
+    
     // Check if coming soon mode is enabled
     const COMING_SOON_ENABLED = true;
     const PREVIEW_TOKEN = 'castaway2025';
     const ADMIN_TOKEN = 'kbadmin2025'; // Special admin token for permanent access
-    
-    // Skip redirect for coming soon page itself
-    if (pathname === '/coming-soon') {
-      return;
-    }
     
     // Helper function to get cookie value by name
     const getCookieValue = (name: string): string | null => {
@@ -49,12 +49,20 @@ export default function ComingSoonRedirect() {
       setPreviewCookie(true); // Sets 30-day cookie
       // Also set an admin flag cookie
       document.cookie = 'admin-access=true; max-age=2592000; path=/; SameSite=Lax';
+      // Clean URL by removing the preview parameter
+      const cleanUrl = new URL(window.location.href);
+      cleanUrl.searchParams.delete('preview');
+      window.history.replaceState({}, '', cleanUrl.toString());
       return; // Don't redirect
     }
     
     // If regular preview token is present, set 24-hour cookie
     if (hasPreview) {
       setPreviewCookie(false); // Sets 24-hour cookie
+      // Clean URL by removing the preview parameter
+      const cleanUrl = new URL(window.location.href);
+      cleanUrl.searchParams.delete('preview');
+      window.history.replaceState({}, '', cleanUrl.toString());
       return; // Don't redirect
     }
     
