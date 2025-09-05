@@ -7,29 +7,22 @@ export default function ComingSoonRedirect() {
   const pathname = usePathname();
   
   useEffect(() => {
-    // CRITICAL: Skip ALL logic for coming-soon page to prevent loops
+    // Check if coming soon mode is enabled
+    const COMING_SOON_ENABLED = true;
+    const PREVIEW_TOKEN = 'castaway2025';
+    
+    // Skip redirect for coming soon page itself
     if (pathname === '/coming-soon') {
       return;
     }
     
-    // Check if coming soon mode is enabled
-    const COMING_SOON_ENABLED = false; // TEMPORARILY DISABLED TO FIX REDIRECT ISSUE
-    const PREVIEW_TOKEN = 'castaway2025';
-    const ADMIN_TOKEN = 'kbadmin2025';
-    
     // Check for preview parameter
     const urlParams = new URLSearchParams(window.location.search);
-    const previewParam = urlParams.get('preview');
+    const hasPreview = urlParams.get('preview') === PREVIEW_TOKEN;
     
-    // If admin token is present, set longer-lasting cookie
-    if (previewParam === ADMIN_TOKEN) {
-      document.cookie = 'preview-mode=true; max-age=2592000; path=/'; // 30 days
-      return; // Don't redirect
-    }
-    
-    // If regular preview token is present, set 24-hour cookie
-    if (previewParam === PREVIEW_TOKEN) {
-      document.cookie = 'preview-mode=true; max-age=86400; path=/'; // 24 hours
+    // If preview token is present, set cookie and allow access
+    if (hasPreview) {
+      document.cookie = 'preview-mode=true; max-age=86400; path=/';
       return; // Don't redirect
     }
     
