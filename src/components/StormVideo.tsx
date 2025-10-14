@@ -9,27 +9,10 @@ export default function StormVideo() {
     const video = videoRef.current;
     if (!video) return;
 
-    let playCount = 0;
-
-    const handleEnded = () => {
-      playCount++;
-      if (playCount < 2) {
-        video.play().catch(() => {
-          // Autoplay failed, that's ok
-        });
-      }
-    };
-
-    video.addEventListener('ended', handleEnded);
-
-    // Try to autoplay
+    // Try to autoplay once
     video.play().catch(() => {
       // Autoplay blocked by browser, that's ok
     });
-
-    return () => {
-      video.removeEventListener('ended', handleEnded);
-    };
   }, []);
 
   const handleClick = () => {
