@@ -3,6 +3,7 @@ import Link from "next/link";
 import { generateMetadata as generateMeta } from "@/lib/metadata";
 import { getOrganizationSchema } from "@/lib/structured-data";
 import HeroCarousel from "@/components/HeroCarousel";
+import StormVideo from "@/components/StormVideo";
 
 export const metadata = generateMeta('home');
 
@@ -66,28 +67,7 @@ export default function Home() {
             {/* Storm Video */}
             <div className="group border border-gray-200 rounded-lg overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer bg-white/95 backdrop-blur-sm">
               <div className="aspect-[4/3] relative overflow-hidden">
-                <video
-                  src="/storm-video.mp4"
-                  autoPlay
-                  muted
-                  playsInline
-                  className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500"
-                  onLoadedMetadata={(e) => {
-                    const video = e.currentTarget;
-                    let playCount = 0;
-                    video.addEventListener('ended', function handleEnded() {
-                      playCount++;
-                      if (playCount < 2) {
-                        video.play();
-                      }
-                    });
-                  }}
-                  onClick={(e) => {
-                    const video = e.currentTarget;
-                    video.currentTime = 0;
-                    video.play();
-                  }}
-                />
+                <StormVideo />
               </div>
               <div className="p-5">
                 <h3 className="font-bold text-lg mb-2 text-gray-900">Tested in Real Storms</h3>
