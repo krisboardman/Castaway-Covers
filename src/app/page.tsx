@@ -63,21 +63,21 @@ export default function Home() {
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-5">
-            {/* Hassle Free */}
+            {/* Storm Video */}
             <div className="group border border-gray-200 rounded-lg overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer bg-white/95 backdrop-blur-sm">
               <div className="aspect-[4/3] relative overflow-hidden">
-                <Image 
-                  src="/images/homepage/feature1.jpg"
-                  alt="Just Drape & Go"
-                  fill
-                  sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 20vw"
-                  className="object-cover group-hover:scale-105 transition-transform duration-500"
-                  loading="lazy"
+                <video
+                  src="/storm-video.mp4"
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500"
                 />
               </div>
               <div className="p-5">
-                <h3 className="font-bold text-lg mb-2 text-gray-900">Just Drape & Go</h3>
-                <p className="text-sm text-gray-600 leading-relaxed">Smart vinyl + gusset design means covers drape on effortlessly. The weight keeps them in place—no tie-downs needed.</p>
+                <h3 className="font-bold text-lg mb-2 text-gray-900">Tested in Real Storms</h3>
+                <p className="text-sm text-gray-600 leading-relaxed">See how our covers work in a Nor'Easter</p>
               </div>
             </div>
 
