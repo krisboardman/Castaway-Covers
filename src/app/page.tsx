@@ -26,14 +26,14 @@ export default function Home() {
       </div>
 
       {/* Hero Section with 3-Panel Story */}
-      <section className="relative pt-6 pb-4 px-4 bg-gradient-to-b from-white to-[#FAF5ED]/30">
+      <section className="relative pt-4 pb-3 px-4 bg-gradient-to-b from-white to-[#FAF5ED]/30">
         <div className="max-w-7xl mx-auto">
           {/* Hero Text */}
-          <div className="text-center mb-6">
-            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-2">
+          <div className="text-center mb-4">
+            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-1">
               Premium Outdoor Furniture Protection
             </h1>
-            <p className="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto">
+            <p className="text-base md:text-lg text-gray-600 max-w-3xl mx-auto">
               Custom-fit covers that slip on in seconds and withstand any weather.
             </p>
           </div>
