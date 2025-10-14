@@ -49,11 +49,11 @@ export default function CastawayVideo() {
       {/* Fullscreen Modal */}
       {isFullscreen && (
         <div
-          className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center"
           onClick={handleCloseFullscreen}
         >
           <button
-            className="absolute top-4 right-4 text-white text-4xl hover:text-gray-300"
+            className="absolute top-4 right-4 text-white text-4xl hover:text-gray-300 z-10"
             onClick={handleCloseFullscreen}
           >
             ×
@@ -62,7 +62,7 @@ export default function CastawayVideo() {
             src="/castaway-video-optimized.mp4"
             controls
             autoPlay
-            className="max-w-full max-h-full"
+            className="w-full h-full object-contain"
             onClick={(e) => e.stopPropagation()}
           />
         </div>
