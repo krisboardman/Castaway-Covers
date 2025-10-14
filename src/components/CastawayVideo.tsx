@@ -3,12 +3,11 @@
 import { useEffect, useRef, useState } from 'react';
 
 export default function CastawayVideo() {
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const thumbnailVideoRef = useRef<HTMLVideoElement>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [isMuted, setIsMuted] = useState(true);
 
   useEffect(() => {
-    const video = videoRef.current;
+    const video = thumbnailVideoRef.current;
     if (!video) return;
 
     // Try to autoplay once (muted for autoplay)
@@ -18,32 +17,24 @@ export default function CastawayVideo() {
   }, []);
 
   const handleClick = () => {
-    if (videoRef.current) {
-      // Open fullscreen with sound
-      setIsFullscreen(true);
-      setIsMuted(false);
-      videoRef.current.currentTime = 0;
-      videoRef.current.play();
-    }
+    // Open fullscreen modal
+    setIsFullscreen(true);
   };
 
   const handleCloseFullscreen = (e: React.MouseEvent) => {
     e.stopPropagation();
     setIsFullscreen(false);
-    setIsMuted(true);
-    if (videoRef.current) {
-      videoRef.current.pause();
-    }
   };
 
   return (
     <>
       <div className="relative w-full h-full cursor-pointer" onClick={handleClick}>
         <video
-          ref={videoRef}
+          ref={thumbnailVideoRef}
           src="/castaway-video-optimized.mp4"
-          muted={isMuted}
-          playsInline={!isFullscreen}
+          muted
+          loop
+          playsInline
           className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500"
         />
         <div className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
@@ -68,7 +59,6 @@ export default function CastawayVideo() {
             ×
           </button>
           <video
-            ref={videoRef}
             src="/castaway-video-optimized.mp4"
             controls
             autoPlay
