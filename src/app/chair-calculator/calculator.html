@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Chair Cover Calculator — With Cut Diagram</title>
+<style>
+  :root { --bg:#f8fafc; --card:#ffffff; --text:#0f172a; --sub:#475569; --muted:#e2e8f0; --accent:#22c55e; }
+  body { font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; background:var(--bg); color:var(--text); margin:0; padding:24px; }
+  .wrap { max-width: 1200px; margin: 0 auto; }
+  h1 { font-size: 24px; margin: 0 0 18px; }
+  .controls { display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin-bottom:12px; }
+  .pill { padding:6px 10px; border-radius:999px; border:1px solid #cbd5e1; background:#eff6ff; color:#1e293b; font-size:12px; }
+  .switch { display:flex; align-items:center; gap:8px; font-size:14px; }
+  .grid { display:grid; grid-template-columns: 1.1fr 0.9fr; gap:16px; }
+  .card { background:var(--card); border:1px solid var(--muted); border-radius:14px; padding:16px; box-shadow: 0 1px 8px rgba(0,0,0,0.04); }
+  .title { font-weight:600; margin-bottom:8px; }
+  .inputs { display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:10px; }
+  label.lbl { display:grid; gap:6px; font-size:12px; color:var(--sub); }
+  input[type="number"] { border:1px solid var(--muted); border-radius:10px; padding:10px 12px; font-size:14px; }
+  .row { display:flex; justify-content:space-between; align-items:center; font-size:14px; padding:8px 0; }
+  .row + .row { border-top:1px dashed var(--muted); }
+  .note { font-size:12px; color:var(--sub); margin-top:8px; }
+  .btn { padding:8px 10px; border-radius:10px; border:1px solid var(--muted); background:#fff; cursor:pointer; }
+  .danger { color:#b91c1c; }
+  .diagramBox { display:flex; flex-direction:column; gap:10px; }
+  svg { width:100%; height:420px; border:1px dashed #cbd5e1; border-radius:12px; background:#fcfdff; }
+  .legend { display:flex; gap:12px; align-items:center; font-size:12px; color:var(--sub); }
+  .chip { display:inline-block; width:12px; height:12px; border-radius:2px; border:1px solid #0f172a22; }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Chair Cover Calculator — With Cut Diagram</h1>
+    <div class="controls">
+      <span class="pill">Units: inches</span>
+      <label class="switch"><input id="roundToggle" type="checkbox" checked /> <span>Round to nearest inch / ceil yards</span></label>
+      <span class="switch"><input type="radio" name="mode" value="auto" checked /> AT2F Auto</span>
+      <span class="switch"><input type="radio" name="mode" value="manual" /> AT2F Manual</span>
+      <button id="recalc" class="btn">Recalculate</button>
+      <button id="resetBtn" class="btn">Reset to defaults</button>
+    </div>
+
+    <div class="grid">
+      <div class="card" id="inputsCard">
+        <div class="title">Inputs</div>
+        <div class="inputs">
+          <label class="lbl">B (bolt width)<input id="B" type="number" value="54" step="0.01"/></label>
+          <label class="lbl">WB (back width)<input id="WB" type="number" value="25" step="0.01"/></label>
+          <label class="lbl">H (height)<input id="H" type="number" value="39" step="0.01"/></label>
+          <label class="lbl">D (depth)<input id="D" type="number" value="30" step="0.01"/></label>
+          <label class="lbl">F2A (floor → armrest)<input id="F2A" type="number" value="26" step="0.01"/></label>
+          <label class="lbl">BR (backrest thickness)<input id="BR" type="number" value="4" step="0.01"/></label>
+          <label class="lbl">FC (floor clearance)<input id="FC" type="number" value="6" step="0.01"/></label>
+          <label class="lbl">Hem allowance<input id="hem" type="number" value="0.5" step="0.01"/></label>
+          <label class="lbl">AT2F (manual)<input id="AT2F_manual" type="number" value="32.7" step="0.01"/></label>
+        </div>
+        <div id="err" class="note danger" style="display:none;"></div>
+      </div>
+
+      <div class="card">
+        <div class="title">Results</div>
+        <div id="results"></div>
+        <div class="title" style="margin-top:10px;">Material to Buy</div>
+        <div id="buy"></div>
+        <div class="note">Rounded mode rounds up inches to nearest integer and yards to next integer.</div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <div class="title">Cut Diagram (to scale)</div>
+      <div class="diagramBox">
+        <svg id="diagram" viewBox="0 0 900 420" preserveAspectRatio="xMidYMid meet"></svg>
+        <div class="legend">
+          <span class="chip" style="background:#eef2ff;"></span> Center panel
+          <span class="chip" style="background:#22c55e33; border-color:#16a34a66;"></span> Optional side panels
+          <span style="margin-left:auto; font-size:12px;">All dimensions are cut sizes</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+function parseNum(id) {
+  const v = Number(document.getElementById(id).value);
+  return isFinite(v) ? v : 0;
+}
+function fmtExact(v){return isFinite(v)?(Math.round(v*100)/100).toFixed(2):"–";}
+function fmtInch(v, r){return r?Math.ceil(v).toString():fmtExact(v);}
+function fmtYards(v, r){let y=v/36; return r?Math.ceil(y).toString():fmtExact(y);}
+
+function drawDiagram({B, MD, ML, addLength}) {
+  const showW = MD;
+  const totalLen = ML + addLength;
+  const centerW = Math.min(B, MD);
+  const sideW = Math.max(0, (MD - B)/2);
+  const svg = document.getElementById('diagram');
+  while (svg.firstChild) svg.removeChild(svg.firstChild);
+  const W=900, H=420, pad=28;
+  const scale=Math.min((W-pad*2)/showW, (H-pad*2)/totalLen)||1;
+  const sx=pad, sy=pad;
+  const rectX = sx + sideW*scale;
+  const rectY = sy;
+  const rectW = centerW*scale;
+  const rectH = totalLen*scale;
+
+  const addEl=(t,a,p=svg)=>{let e=document.createElementNS("http://www.w3.org/2000/svg",t);for(let k in a)e.setAttribute(k,a[k]);p.appendChild(e);return e;};
+
+  addEl("rect",{x:sx,y:sy,width:showW*scale,height:rectH,fill:"none",stroke:"#94a3b8","stroke-dasharray":"6,6"});
+  if (sideW>0) {
+    addEl("rect",{x:sx,y:rectY,width:sideW*scale,height:rectH,fill:"#22c55e33",stroke:"#16a34a66"});
+    addEl("rect",{x:sx + sideW*scale + rectW, y:rectY, width:sideW*scale, height:rectH, fill:"#22c55e33", stroke:"#16a34a66"});
+  }
+  addEl("rect",{x:rectX,y:rectY,width:rectW,height:rectH,fill:"#eef2ff",stroke:"#0f172a22"});
+
+  const addLine=(x1,y1,x2,y2)=>addEl("line",{x1,y1,x2,y2,stroke:"#334155","marker-start":"url(#a)","marker-end":"url(#a)"});
+  const defs=addEl("defs",{});
+  const marker=addEl("marker",{id:"a",markerWidth:8,markerHeight:8,refX:4,refY:4,orient:"auto",viewBox:"0 0 8 8"},defs);
+  const path=document.createElementNS("http://www.w3.org/2000/svg","path");
+  path.setAttribute("d","M0,0 L8,4 L0,8 Z"); path.setAttribute("fill","#334155");
+  marker.appendChild(path);
+
+  addLine(sx,sy-10,sx + showW*scale, sy-10);
+  addEl("text",{x:sx + showW*scale/2, y:sy-14,"text-anchor":"middle","font-size":12,fill:"#334155"},svg).textContent=`Width (MD): ${MD.toFixed(1)} in`;
+
+  addLine(rectX,rectY + rectH + 14, rectX + rectW, rectY + rectH + 14);
+  addEl("text",{x:rectX + rectW/2, y:rectY + rectH + 28,"text-anchor":"middle","font-size":12,fill:"#334155"},svg).textContent=`Bolt width used: ${centerW.toFixed(1)} in`;
+
+  addLine(sx-12,sy,sx-12,sy + rectH);
+  addEl("text",{x:sx-16, y:sy + rectH/2,"text-anchor":"end","dominant-baseline":"middle","font-size":12,fill:"#334155",transform:`rotate(-90 ${sx-16} ${sy+rectH/2})`},svg).textContent=`Length: ${totalLen.toFixed(1)} in`;
+
+  if (sideW>0) {
+    addEl("text",{x:sx+6,y:sy+14,"font-size":12,fill:"#166534"},svg).textContent=`Each side panel: ${sideW.toFixed(1)} in × ${totalLen.toFixed(1)} in`;
+  }
+}
+
+function compute() {
+  try {
+    const r = document.getElementById('roundToggle').checked;
+    const mode = [...document.querySelectorAll('input[name="mode"]')].find(r=>r.checked).value;
+    const B=parseNum('B'), WB=parseNum('WB'), H=parseNum('H'), D=parseNum('D');
+    const F2A=parseNum('F2A'), BR=parseNum('BR'), FC=parseNum('FC'), hem=parseNum('hem');
+    const AT2F_manual=parseNum('AT2F_manual');
+    const AT2F = mode==='manual'?AT2F_manual:Math.sqrt(Math.max(0,H - F2A)**2 + Math.max(0,D)**2);
+    const ML = (H + BR + AT2F + F2A) - 2*FC;
+    const MD = (WB + 2*H) - 2*FC;
+    const addLength = F2A + AT2F + BR - FC + hem;
+    const fits = MD <= B;
+    const totalLen = ML + addLength;
+
+    const rows = [
+      ['AT2F used', `${fmtInch(AT2F,r)} in`],
+      ['Main length (ML)', `${fmtInch(ML,r)} in (${fmtYards(ML,r)} yd)`],
+      ['Main width (MD)', `${fmtInch(MD,r)} in`],
+      ['Fits bolt width?', fits?'Yes':'No'],
+      [fits?'Linear yardage':'Addl width (MD−B)',
+        fits?`${fmtYards(ML,r)} yd`:`${fmtInch(MD-B,r)} in`],
+      ['Addl length (AL)', `${fmtInch(addLength,r)} in`],
+    ];
+
+    const resDiv = document.getElementById('results');
+    resDiv.innerHTML = '';
+    rows.forEach((r,i)=>{
+      const div = document.createElement('div');
+      div.className='row';
+      div.innerHTML = `<span>${r[0]}</span><strong>${r[1]}</strong>`;
+      if (i>0) div.style.borderTop='1px dashed var(--muted)';
+      resDiv.appendChild(div);
+    });
+
+    const buy = document.getElementById('buy');
+    buy.innerHTML = '';
+    [['Total length', `${fmtInch(totalLen,r)} in`],['Yards to buy', `${fmtYards(totalLen,r)} yd`]].forEach((r,i)=>{
+      const div=document.createElement('div');
+      div.className='row';
+      div.innerHTML=`<span>${r[0]}</span><strong>${r[1]}</strong>`;
+      if(i>0) div.style.borderTop='1px dashed var(--muted)';
+      buy.appendChild(div);
+    });
+
+    drawDiagram({B, MD, ML, addLength});
+
+    document.getElementById('err').style.display='none';
+  } catch(e) {
+    const errEl=document.getElementById('err');
+    errEl.style.display='block';
+    errEl.textContent='Error: '+e.message;
+  }
+}
+
+function init(){
+  ['input','change','keyup'].forEach(evt => document.getElementById('inputsCard').addEventListener(evt, compute));
+  document.getElementById('recalc').addEventListener('click', compute);
+  document.getElementById('resetBtn').addEventListener('click',()=>{
+    ['B','WB','H','D','F2A','BR','FC','hem','AT2F_manual'].forEach((id,idx)=>{
+      const vals=[54,25,39,30,26,4,6,0.5,32.7];
+      document.getElementById(id).value=vals[idx];
+    });
+    document.querySelector('input[name="mode"][value="auto"]').checked=true;
+    document.getElementById('roundToggle').checked=true;
+    compute();
+  });
+  compute();
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>

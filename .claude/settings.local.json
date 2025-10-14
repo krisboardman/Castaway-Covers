@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__ide__getDiagnostics",
+      "Bash(git push:*)",
+      "WebFetch(domain:castawaycovers.com)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(npm run dev:*)",
+      "Bash(lsof:*)"
+    ],
+    "deny": []
+  }
+}
