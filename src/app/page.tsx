@@ -4,6 +4,7 @@ import { generateMetadata as generateMeta } from "@/lib/metadata";
 import { getOrganizationSchema } from "@/lib/structured-data";
 import HeroCarousel from "@/components/HeroCarousel";
 import StormVideo from "@/components/StormVideo";
+import CastawayVideo from "@/components/CastawayVideo";
 
 export const metadata = generateMeta('home');
 
@@ -93,12 +94,12 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Heavy Duty */}
+            {/* Waterproof & Protected */}
             <div className="group border border-gray-200 rounded-lg overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer bg-white/95 backdrop-blur-sm">
               <div className="aspect-[4/3] relative overflow-hidden">
-                <Image 
+                <Image
                   src="/images/homepage/feature3.jpg"
-                  alt="Heavy Duty"
+                  alt="Waterproof & Protected"
                   fill
                   sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 20vw"
                   className="object-cover group-hover:scale-105 transition-transform duration-500"
@@ -106,8 +107,8 @@ export default function Home() {
                 />
               </div>
               <div className="p-5">
-                <h3 className="font-bold text-lg mb-2 text-gray-900">100% Waterproof</h3>
-                <p className="text-sm text-gray-600 leading-relaxed">Weather-tough marine vinyl resists heavy rain and keeps furniture bone dry. Tested in real downpours.</p>
+                <h3 className="font-bold text-lg mb-2 text-gray-900">Waterproof & UV Protected</h3>
+                <p className="text-sm text-gray-600 leading-relaxed">Marine vinyl resists rain, sun, and mildew. Keeps furniture dry and fresh season after season.</p>
               </div>
             </div>
 
@@ -129,21 +130,14 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Mildew Resistant */}
+            {/* Castaway Video */}
             <div className="group border border-gray-200 rounded-lg overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer bg-white/95 backdrop-blur-sm">
               <div className="aspect-[4/3] relative overflow-hidden">
-                <Image 
-                  src="/images/homepage/feature5.jpg"
-                  alt="Mildew Resistant"
-                  fill
-                  sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 20vw"
-                  className="object-cover group-hover:scale-105 transition-transform duration-500"
-                  loading="lazy"
-                />
+                <CastawayVideo />
               </div>
               <div className="p-5">
-                <h3 className="font-bold text-lg mb-2 text-gray-900">UV & Mildew Protected</h3>
-                <p className="text-sm text-gray-600 leading-relaxed">Resists sun damage and mildew growth. Your furniture stays fresh, not musty, season after season.</p>
+                <h3 className="font-bold text-lg mb-2 text-gray-900">See Them in Action</h3>
+                <p className="text-sm text-gray-600 leading-relaxed">Watch how our covers protect your outdoor furniture</p>
               </div>
             </div>
           </div>
