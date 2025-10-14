@@ -5,17 +5,17 @@ import Image from 'next/image';
 
 const slides = [
   {
-    image: '/images/hero1.jpg',
+    image: '/images-optimized/hero1.webp',
     title: 'Effortless Protection',
     subtitle: 'Just drape and go - our weighted design means no complicated tie-downs'
   },
   {
-    image: '/images/hero2.jpg', 
+    image: '/images-optimized/hero2.webp',
     title: 'Marine-Grade Luxury',
     subtitle: 'Heavy-duty vinyl that stays put and looks beautiful year after year'
   },
   {
-    image: '/images/hero3.jpg',
+    image: '/images-optimized/hero3.webp',
     title: 'Use Without Removing',
     subtitle: 'Innovative snap straps let you fold back covers for instant entertaining'
   },
