@@ -53,6 +53,82 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Product Gallery Section */}
+      <section className="py-8 px-4 bg-white">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-8">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">
+              Custom Covers for Every Piece
+            </h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              From lounge chairs to dining sets, we create perfectly fitted covers for all your outdoor furniture.
+            </p>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <div className="relative aspect-square rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-shadow">
+              <Image
+                src="/images/Chairs-Recliners/chair3.jpg"
+                alt="Lounge Chair Cover"
+                fill
+                sizes="(max-width: 768px) 50vw, 33vw"
+                className="object-cover"
+                loading="lazy"
+              />
+            </div>
+            <div className="relative aspect-square rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-shadow">
+              <Image
+                src="/images/Tables/table1.jpg"
+                alt="Outdoor Table Cover"
+                fill
+                sizes="(max-width: 768px) 50vw, 33vw"
+                className="object-cover"
+                loading="lazy"
+              />
+            </div>
+            <div className="relative aspect-square rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-shadow">
+              <Image
+                src="/images/Sofas-Loveseats/sofa1.jpg"
+                alt="Outdoor Sofa Cover"
+                fill
+                sizes="(max-width: 768px) 50vw, 33vw"
+                className="object-cover"
+                loading="lazy"
+              />
+            </div>
+            <div className="relative aspect-square rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-shadow">
+              <Image
+                src="/images/ChaiseLounges-optimized/chaise1.jpg"
+                alt="Chaise Lounge Cover"
+                fill
+                sizes="(max-width: 768px) 50vw, 33vw"
+                className="object-cover"
+                loading="lazy"
+              />
+            </div>
+            <div className="relative aspect-square rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-shadow">
+              <Image
+                src="/images/Tables/table4.jpg"
+                alt="Dining Set Cover"
+                fill
+                sizes="(max-width: 768px) 50vw, 33vw"
+                className="object-cover"
+                loading="lazy"
+              />
+            </div>
+            <div className="relative aspect-square rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-shadow">
+              <Image
+                src="/images/Sofas-Loveseats/sofa4.jpg"
+                alt="Loveseat Cover"
+                fill
+                sizes="(max-width: 768px) 50vw, 33vw"
+                className="object-cover"
+                loading="lazy"
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Why We're Different Section */}
       <section className="pt-6 pb-8 px-4 relative">
         <div className="max-w-7xl mx-auto">
