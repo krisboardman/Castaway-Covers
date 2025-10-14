@@ -55,11 +55,8 @@ export default function HeroCarousel() {
             priority={index === 0}
           />
           
-          {/* Overlay gradient */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
-          
           {/* Text content */}
-          <div className="absolute bottom-0 left-0 right-0 p-8 md:p-16">
+          <div className="absolute bottom-0 left-0 right-0 p-8 md:p-16 bg-gradient-to-t from-black/60 via-black/20 to-transparent">
             <h2 className="text-4xl md:text-6xl font-bold text-white mb-3 drop-shadow-lg">
               {slide.title}
             </h2>
