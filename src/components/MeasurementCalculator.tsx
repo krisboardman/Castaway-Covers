@@ -121,11 +121,12 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
     setHasCalculated(false);
   }, [measurements]);
 
-  // Calculate angle for furniture with backrests
+  // Calculate AT2F (Armrest-Top to Front) for furniture with backrests
+  // This uses the HTML calculator formula: √[(H - F2A)² + D²]
   const calculateAngle = () => {
-    if (measurements.backrestDepth > 0 && measurements.height > 0 && measurements.armrestHeight > 0) {
+    if (measurements.length > 0 && measurements.height > 0 && measurements.armrestHeight > 0) {
       const vertical = measurements.height - measurements.armrestHeight;
-      const horizontal = measurements.backrestDepth;
+      const horizontal = measurements.length; // length = depth
       return Math.sqrt(vertical * vertical + horizontal * horizontal);
     }
     return 0;
@@ -158,23 +159,33 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
 
   const calculateYards = (measurements: any): number => {
     const { width, length, height, backrestDepth, armrestHeight } = measurements;
-    
+
     // Complex calculation for chairs/recliners, sofas/loveseats, and chaise lounge
+    // Using HTML calculator formula for accuracy
     if (productType === 'chairs-recliners' || productType === 'sofas-loveseats' || productType === 'chaise-lounge') {
       if (!width || !length || !height || !backrestDepth || !armrestHeight) return 0;
-      
-      const angle = calculateAngle();
-      const heightAdjusted = (height - 6) * 2;
-      
-      let yardsNeeded;
-      if (width <= 54) {
-        yardsNeeded = (length + backrestDepth + angle + heightAdjusted + 
-                      (width + heightAdjusted - 54 + 1) + 1) / 36;
-      } else {
-        yardsNeeded = (length + backrestDepth + angle + heightAdjusted + 
-                      ((width + heightAdjusted - 54 + 1) * 2) + 1) / 36;
-      }
-      
+
+      // Constants from HTML calculator
+      const FC = 6;    // Floor clearance
+      const hem = 0.5; // Hem allowance
+
+      // AT2F = √[(H - F2A)² + D²] where:
+      // H = height, F2A = armrestHeight, D = length (depth)
+      const AT2F = calculateAngle();
+
+      // ML = (H + BR + AT2F + F2A) - (2 × FC)
+      // Main length calculation
+      const ML = (height + backrestDepth + AT2F + armrestHeight) - (2 * FC);
+
+      // addLength = F2A + AT2F + BR - FC + hem
+      const addLength = armrestHeight + AT2F + backrestDepth - FC + hem;
+
+      // Total length needed = ML + addLength
+      const lengthNeeded = ML + addLength;
+
+      // Convert to yards and round up
+      const yardsNeeded = lengthNeeded / 36;
+
       return Math.ceil(yardsNeeded);
     }
     
