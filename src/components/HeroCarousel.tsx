@@ -21,8 +21,8 @@ const slides = [
   },
   {
     image: '/images/homepage/feature1.jpg',
-    title: 'Built to Last',
-    subtitle: '5-year warranty on materials that outperform the competition'
+    title: 'Beautiful Styling',
+    subtitle: 'Elegant wavy edges and premium marine-grade colors that complement any outdoor space'
   }
 ];
 
