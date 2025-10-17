@@ -160,9 +160,8 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
   const calculateYards = (measurements: any): number => {
     const { width, length, height, backrestDepth, armrestHeight } = measurements;
 
-    // Complex calculation for chairs/recliners, sofas/loveseats, and chaise lounge
-    // Using HTML calculator formula for accuracy
-    if (productType === 'chairs-recliners' || productType === 'sofas-loveseats' || productType === 'chaise-lounge') {
+    // Calculation for chairs/recliners and chaise lounge (single piece)
+    if (productType === 'chairs-recliners' || productType === 'chaise-lounge') {
       if (!width || !length || !height || !backrestDepth || !armrestHeight) return 0;
 
       // Constants from HTML calculator
@@ -188,40 +187,74 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
 
       return Math.ceil(yardsNeeded);
     }
-    
-    // Calculation for ottomans
-    if (productType === 'ottomans') {
-      if (!width || !length || !height) return 0;
-      
-      const lengthAdjusted = (length - 3) * 2;
-      
-      let yardsNeeded;
-      if (width <= 54) {
-        yardsNeeded = (height + lengthAdjusted + 
-                      (width + lengthAdjusted - 54 + 1) + 1) / 36;
-      } else {
-        yardsNeeded = (height + lengthAdjusted + 
-                      ((width + lengthAdjusted - 54 + 1) * 2) + 1) / 36;
-      }
-      
-      return Math.ceil(yardsNeeded);
+
+    // Calculation for sofas/loveseats (uses 2 lanes with center seam)
+    if (productType === 'sofas-loveseats') {
+      if (!width || !length || !height || !backrestDepth || !armrestHeight) return 0;
+
+      // Constants from HTML calculator
+      const FC = 4;    // Floor clearance (different for sofas)
+      const hem = 0.5; // Hem allowance
+
+      // AT2F = √[(H - F2A)² + D²]
+      const AT2F = calculateAngle();
+
+      // ML = (H + BR + AT2F + F2A) - (2 × FC)
+      const ML = (height + backrestDepth + AT2F + armrestHeight) - (2 * FC);
+
+      // addLength = F2A + AT2F + BR - FC + hem
+      const addLength = armrestHeight + AT2F + backrestDepth - FC + hem;
+
+      // Per lane length needed = ML + addLength
+      const perLaneLength = ML + addLength;
+
+      // Yards per lane
+      const yardsPerLane = perLaneLength / 36;
+
+      // Total yards = yards per lane × 2 lanes, rounded up
+      const totalYards = Math.ceil(yardsPerLane) * 2;
+
+      return totalYards;
     }
     
-    // Calculation for tables and table sets
+    // Calculation for ottomans (using HTML calculator formula)
+    if (productType === 'ottomans') {
+      if (!width || !length || !height) return 0;
+
+      // Constants from HTML calculator
+      const FC = 4; // Floor clearance
+
+      // HTML calculator formula:
+      // drop = H - FC (square cutouts)
+      // MD = W + 2*drop (overall cut width)
+      // ML = L + 2*drop (overall cut length)
+      // Yards = ML / 36, rounded up
+
+      const drop = Math.max(0, height - FC);
+      const ML = Math.max(0, length + 2 * drop);
+
+      const yardsNeeded = ML / 36;
+
+      return Math.ceil(yardsNeeded);
+    }
+
+    // Calculation for tables and table sets (using HTML calculator formula)
     if (productType === 'tables' || productType === 'table-sets') {
       if (!width || !length || !height) return 0;
-      
-      const lengthAdjusted = (length - 6) * 2;
-      
-      let yardsNeeded;
-      if (width <= 54) {
-        yardsNeeded = (height + lengthAdjusted + 
-                      (width + lengthAdjusted - 54 + 1) + 1) / 36;
-      } else {
-        yardsNeeded = (height + lengthAdjusted + 
-                      ((width + lengthAdjusted - 54 + 1) * 2) + 1) / 36;
-      }
-      
+
+      // Constants from HTML calculator
+      const FC = 4; // Floor clearance
+
+      // HTML calculator formula (same as ottomans):
+      // drop = H - FC
+      // ML = L + 2*drop
+      // Yards = ML / 36, rounded up
+
+      const drop = Math.max(0, height - FC);
+      const ML = Math.max(0, length + 2 * drop);
+
+      const yardsNeeded = ML / 36;
+
       return Math.ceil(yardsNeeded);
     }
     
