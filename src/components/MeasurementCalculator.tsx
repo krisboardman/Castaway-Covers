@@ -29,7 +29,7 @@ const productConfigs = {
     fields: ['width', 'length', 'height', 'backrestDepth', 'armrestHeight'],
     labels: {
       width: 'Width',
-      length: 'Length',
+      length: 'Depth',
       height: 'Height',
       backrestDepth: 'Backrest Depth',
       armrestHeight: 'Ground to Top of Armrest'
