@@ -26,13 +26,14 @@ type Measurements = BaseMeasurements | ChairMeasurements;
 
 const productConfigs = {
   'chairs-recliners': {
-    fields: ['width', 'length', 'height', 'backrestDepth', 'armrestHeight'],
+    fields: ['width', 'length', 'height', 'backrestDepth', 'armrestHeight', 'backWidth'],
     labels: {
       width: 'Width',
       length: 'Depth',
       height: 'Height',
       backrestDepth: 'Backrest Depth',
-      armrestHeight: 'Ground to Top of Armrest'
+      armrestHeight: 'Ground to Top of Armrest',
+      backWidth: 'Back Width (if smaller than width)'
     },
     hasAngle: true,
     measurementImage: '/images/Measurements/chair measurements.jpg'
@@ -99,7 +100,8 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
     width: 0,
     height: 0,
     backrestDepth: 0,
-    armrestHeight: 0
+    armrestHeight: 0,
+    backWidth: 0
   });
   const [showGuide, setShowGuide] = useState(false);
   const [hasCalculated, setHasCalculated] = useState(false);
@@ -222,7 +224,8 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
 
 
   const handleCalculate = async () => {
-    const requiredFields = config.fields;
+    // backWidth is optional, exclude it from required fields validation
+    const requiredFields = config.fields.filter(field => field !== 'backWidth');
     const hasAllMeasurements = requiredFields.every(field => measurements[field] > 0);
     
     if (hasAllMeasurements) {
@@ -409,13 +412,13 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
       <button
         onClick={handleCalculate}
         className={`w-full py-3 px-4 rounded-md font-medium transition-all ${
-          config.fields.every(field => measurements[field] > 0) && !hasCalculated
+          config.fields.filter(field => field !== 'backWidth').every(field => measurements[field] > 0) && !hasCalculated
             ? 'bg-orange-600 hover:bg-orange-700 text-white animate-pulse'
             : 'bg-brand-teal hover:bg-brand-teal-dark text-white'
         }`}
-        disabled={!config.fields.every(field => measurements[field] > 0)}
+        disabled={!config.fields.filter(field => field !== 'backWidth').every(field => measurements[field] > 0)}
       >
-        {config.fields.every(field => measurements[field] > 0) && !hasCalculated
+        {config.fields.filter(field => field !== 'backWidth').every(field => measurements[field] > 0) && !hasCalculated
           ? '⚠️ Click to Update Price & Size'
           : 'Calculate Cover Size & Price'}
       </button>

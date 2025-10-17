@@ -392,6 +392,7 @@ export default function ProductPage() {
                 height: measurements.height?.toString() || '0',
                 backrestDepth: measurements.backrestDepth?.toString() || '0',
                 armrestHeight: measurements.armrestHeight?.toString() || '0',
+                backWidth: measurements.backWidth?.toString() || '0',
                 snapStraps: snapStraps.toString(),
                 handles: handles.toString(),
                 magneticClosure: magnets.toString(),
