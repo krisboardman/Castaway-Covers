@@ -141,14 +141,14 @@ export default function Home() {
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-5">
-            {/* Storm Video */}
+            {/* Castaway Video */}
             <div className="group border border-gray-200 rounded-lg overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer bg-white/95 backdrop-blur-sm">
               <div className="aspect-[4/3] relative overflow-hidden">
-                <StormVideo />
+                <CastawayVideo />
               </div>
               <div className="p-5">
-                <h3 className="font-bold text-lg mb-2 text-gray-900">Tested in Real Storms</h3>
-                <p className="text-sm text-gray-600 leading-relaxed">See how our covers work in a Nor'Easter</p>
+                <h3 className="font-bold text-lg mb-2 text-gray-900">See Them in Action</h3>
+                <p className="text-sm text-gray-600 leading-relaxed">Watch how our covers protect your outdoor furniture</p>
               </div>
             </div>
 
@@ -191,7 +191,7 @@ export default function Home() {
             {/* Weather Proof */}
             <div className="group border border-gray-200 rounded-lg overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer bg-white/95 backdrop-blur-sm">
               <div className="aspect-[4/3] relative overflow-hidden">
-                <Image 
+                <Image
                   src="/images/homepage/feature4.jpg"
                   alt="Weather Proof"
                   fill
@@ -206,14 +206,14 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Castaway Video */}
+            {/* Storm Video */}
             <div className="group border border-gray-200 rounded-lg overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer bg-white/95 backdrop-blur-sm">
               <div className="aspect-[4/3] relative overflow-hidden">
-                <CastawayVideo />
+                <StormVideo />
               </div>
               <div className="p-5">
-                <h3 className="font-bold text-lg mb-2 text-gray-900">See Them in Action</h3>
-                <p className="text-sm text-gray-600 leading-relaxed">Watch how our covers protect your outdoor furniture</p>
+                <h3 className="font-bold text-lg mb-2 text-gray-900">Tested in Real Storms</h3>
+                <p className="text-sm text-gray-600 leading-relaxed">See how our covers work in a Nor'Easter</p>
               </div>
             </div>
           </div>
