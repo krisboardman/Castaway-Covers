@@ -262,7 +262,7 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
   };
 
   const calculatePrice = (yards: number): number => {
-    const pricePerYard = 25;
+    const pricePerYard = 50;
     return yards * pricePerYard;
   };
 
