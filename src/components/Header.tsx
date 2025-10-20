@@ -19,7 +19,7 @@ export default function Header() {
         <div className="flex justify-between items-center py-3">
           <Link href="/" className="flex items-center">
             <img
-              src="/images/castaway-logo.png"
+              src="/images/logos/castaway-logo.png"
               alt="Castaway Covers"
               className="h-12 object-contain"
             />

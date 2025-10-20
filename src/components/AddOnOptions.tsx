@@ -72,7 +72,7 @@ const AddOnOptions: React.FC<AddOnOptionsProps> = ({
               <div className="mt-4 ml-8 p-4 bg-gray-50 rounded-lg">
                 <div className="relative h-80 md:h-96 rounded-lg overflow-hidden">
                   <Image
-                    src="/images/Options/snap strap.JPEG"
+                    src="/images/Options/snap-strap.jpg"
                     alt="Snap straps example"
                     fill
                     className="object-contain"
@@ -112,7 +112,7 @@ const AddOnOptions: React.FC<AddOnOptionsProps> = ({
               <div className="mt-4 ml-8 p-4 bg-gray-50 rounded-lg">
                 <div className="relative h-80 md:h-96 rounded-lg overflow-hidden">
                   <Image
-                    src="/images/Options/handles.JPEG"
+                    src="/images/Options/handles.jpg"
                     alt="Handles example"
                     fill
                     className="object-contain"

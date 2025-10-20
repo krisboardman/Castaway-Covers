@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Order to Calculator Helper</title>
+<style>
+  body { font-family: system-ui, -apple-system, sans-serif; max-width: 800px; margin: 40px auto; padding: 20px; background: #f5f5f5; }
+  .card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+  h1 { margin-top: 0; color: #333; }
+  .section { margin: 25px 0; padding: 20px; background: #f9f9f9; border-radius: 8px; }
+  textarea { width: 100%; min-height: 150px; padding: 12px; border: 2px solid #ddd; border-radius: 6px; font-family: monospace; font-size: 13px; }
+  button { background: #0070f3; color: white; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: 600; }
+  button:hover { background: #0051cc; }
+  .output { margin-top: 15px; padding: 15px; background: #e3f2fd; border-left: 4px solid #2196F3; border-radius: 4px; }
+  code { background: #f5f5f5; padding: 2px 6px; border-radius: 3px; font-family: monospace; }
+  .info { color: #666; font-size: 14px; line-height: 1.6; }
+  .example { background: #fff9e6; padding: 15px; border-radius: 6px; margin-top: 15px; }
+  .label { font-weight: 600; margin-bottom: 8px; display: block; }
+  a.calc-link { display: inline-block; margin: 10px 10px 10px 0; padding: 10px 16px; background: #10b981; color: white; text-decoration: none; border-radius: 6px; font-size: 14px; }
+  a.calc-link:hover { background: #059669; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <h1>📋 Order to Calculator Helper</h1>
+
+    <div class="section">
+      <label class="label">Step 1: Copy Order Data from Shopify</label>
+      <p class="info">In your Shopify admin, go to an order and copy all the custom attribute data (product type, measurements, etc.)</p>
+      <textarea id="orderData" placeholder="Paste order data here...
+
+Example format:
+productType: chairs-recliners
+width: 28
+length: 27
+height: 26
+backrestDepth: 4
+armrestHeight: 24
+backWidth: 0"></textarea>
+    </div>
+
+    <button onclick="generateLinks()">Generate Calculator Links</button>
+
+    <div id="output" style="display:none;">
+      <div class="output">
+        <h3>Calculator Links:</h3>
+        <div id="links"></div>
+        <p style="margin-top: 15px; font-size: 14px; color: #666;">Click the link above to open the calculator with measurements pre-filled!</p>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>How It Works:</h3>
+      <ol class="info">
+        <li>Copy the custom attributes from a Shopify order (the measurements data)</li>
+        <li>Paste it into the text area above</li>
+        <li>Click "Generate Calculator Links"</li>
+        <li>Click the generated link to open the correct calculator with all values filled in!</li>
+      </ol>
+
+      <div class="example">
+        <strong>💡 Tip:</strong> You can also manually build URLs like:<br>
+        <code>file:///path/to/chair_cover_calculator_unified_v2.html?W=28&D=27&H=26&BR=4&F2A=24</code>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>Calculator Files:</h3>
+      <p class="info">Make sure these calculator HTML files are in the same folder as this helper:</p>
+      <ul class="info">
+        <li><code>chair_chaise_cover_calculator.html</code> - for chairs, recliners & chaise lounges</li>
+        <li><code>couch_cover_calculator.html</code> - for sofas/loveseats</li>
+        <li><code>ottoman_table_cover_calculator.html</code> - for ottomans & tables</li>
+        <li><code>table_set_cover_calculator.html</code> - for table sets</li>
+      </ul>
+    </div>
+  </div>
+
+<script>
+function generateLinks() {
+  const data = document.getElementById('orderData').value;
+  const output = document.getElementById('output');
+  const linksDiv = document.getElementById('links');
+
+  // Parse the order data
+  const lines = data.split('\n');
+  const parsed = {};
+
+  lines.forEach(line => {
+    const match = line.match(/^\s*([^:]+):\s*(.+)\s*$/);
+    if (match) {
+      const key = match[1].trim();
+      const value = match[2].trim();
+      parsed[key] = value;
+    }
+  });
+
+  if (Object.keys(parsed).length === 0) {
+    alert('Please paste order data first!');
+    return;
+  }
+
+  // Determine product type and calculator file
+  const productType = parsed.productType || '';
+  let calculatorFile = '';
+  let params = new URLSearchParams();
+
+  // Map website field names to calculator field names
+  if (productType.includes('chair') || productType.includes('recliner') || productType.includes('chaise')) {
+    calculatorFile = 'chair_chaise_cover_calculator.html';
+    // Mapping: width->W, length->D (depth), height->H, backrestDepth->BR, armrestHeight->F2A
+    if (parsed.width) params.append('W', parsed.width);
+    if (parsed.length) params.append('D', parsed.length); // length = depth
+    if (parsed.height) params.append('H', parsed.height);
+    if (parsed.backrestDepth) params.append('BR', parsed.backrestDepth);
+    if (parsed.armrestHeight) params.append('F2A', parsed.armrestHeight);
+    if (parsed.backWidth) params.append('WB', parsed.backWidth);
+
+  } else if (productType.includes('sofa') || productType.includes('loveseat')) {
+    calculatorFile = 'couch_cover_calculator.html';
+    if (parsed.width) params.append('W', parsed.width);
+    if (parsed.length) params.append('D', parsed.length);
+    if (parsed.height) params.append('H', parsed.height);
+    if (parsed.backrestDepth) params.append('BR', parsed.backrestDepth);
+    if (parsed.armrestHeight) params.append('F2A', parsed.armrestHeight);
+
+  } else if (productType.includes('ottoman')) {
+    calculatorFile = 'ottoman_table_cover_calculator.html';
+    if (parsed.width) params.append('W', parsed.width);
+    if (parsed.length) params.append('L', parsed.length);
+    if (parsed.height) params.append('H', parsed.height);
+
+  } else if (productType.includes('table-set')) {
+    calculatorFile = 'table_set_cover_calculator.html';
+    if (parsed.width) params.append('W', parsed.width);
+    if (parsed.length) params.append('L', parsed.length);
+    if (parsed.height) params.append('H', parsed.height);
+
+  } else if (productType.includes('table')) {
+    calculatorFile = 'ottoman_table_cover_calculator.html';
+    if (parsed.width) params.append('W', parsed.width);
+    if (parsed.length) params.append('L', parsed.length);
+    if (parsed.height) params.append('H', parsed.height);
+  }
+
+  if (!calculatorFile) {
+    linksDiv.innerHTML = '<p style="color: #d32f2f;">❌ Could not determine product type from order data.</p>';
+    output.style.display = 'block';
+    return;
+  }
+
+  // Build the URL
+  const url = `./${calculatorFile}?${params.toString()}`;
+
+  linksDiv.innerHTML = `
+    <a href="${url}" target="_blank" class="calc-link">
+      📊 Open ${productType} Calculator
+    </a>
+    <div style="margin-top: 15px; padding: 12px; background: #f5f5f5; border-radius: 6px; font-family: monospace; font-size: 12px; word-break: break-all;">
+      ${url}
+    </div>
+  `;
+
+  output.style.display = 'block';
+}
+</script>
+</body>
+</html>

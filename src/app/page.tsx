@@ -67,7 +67,7 @@ export default function Home() {
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             <div className="relative aspect-square rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-shadow">
               <Image
-                src="/images/Chairs-Recliners/chair3.jpg"
+                src="/images/gallery/chair3.jpg"
                 alt="Lounge Chair Cover"
                 fill
                 sizes="(max-width: 768px) 50vw, 33vw"
@@ -77,7 +77,7 @@ export default function Home() {
             </div>
             <div className="relative aspect-square rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-shadow">
               <Image
-                src="/images/Tables/table1.jpg"
+                src="/images/gallery/table1.jpg"
                 alt="Outdoor Table Cover"
                 fill
                 sizes="(max-width: 768px) 50vw, 33vw"
@@ -87,7 +87,7 @@ export default function Home() {
             </div>
             <div className="relative aspect-square rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-shadow">
               <Image
-                src="/images/Sofas-Loveseats/sofa1.jpg"
+                src="/images/gallery/sofa1.jpg"
                 alt="Outdoor Sofa Cover"
                 fill
                 sizes="(max-width: 768px) 50vw, 33vw"
@@ -97,7 +97,7 @@ export default function Home() {
             </div>
             <div className="relative aspect-square rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-shadow">
               <Image
-                src="/images/ChaiseLounges-optimized/chaise1.jpg"
+                src="/images/gallery/chaise1.jpg"
                 alt="Chaise Lounge Cover"
                 fill
                 sizes="(max-width: 768px) 50vw, 33vw"
@@ -107,7 +107,7 @@ export default function Home() {
             </div>
             <div className="relative aspect-square rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-shadow">
               <Image
-                src="/images/Tables/table4.jpg"
+                src="/images/gallery/table4.jpg"
                 alt="Dining Set Cover"
                 fill
                 sizes="(max-width: 768px) 50vw, 33vw"
@@ -117,7 +117,7 @@ export default function Home() {
             </div>
             <div className="relative aspect-square rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-shadow">
               <Image
-                src="/images/Sofas-Loveseats/sofa4.jpg"
+                src="/images/gallery/sofa4.jpg"
                 alt="Loveseat Cover"
                 fill
                 sizes="(max-width: 768px) 50vw, 33vw"
@@ -156,7 +156,7 @@ export default function Home() {
             <div className="group border border-gray-200 rounded-lg overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer bg-white/95 backdrop-blur-sm">
               <div className="aspect-[4/3] relative overflow-hidden">
                 <Image 
-                  src="/images/homepage/feature2.jpg"
+                  src="/images/homepage-features/feature2.jpg"
                   alt="Use Without Removing"
                   fill
                   sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 20vw"
@@ -174,7 +174,7 @@ export default function Home() {
             <div className="group border border-gray-200 rounded-lg overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer bg-white/95 backdrop-blur-sm">
               <div className="aspect-[4/3] relative overflow-hidden">
                 <Image
-                  src="/images/homepage/feature3.jpg"
+                  src="/images/homepage-features/feature3.jpg"
                   alt="Waterproof & Protected"
                   fill
                   sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 20vw"
@@ -192,7 +192,7 @@ export default function Home() {
             <div className="group border border-gray-200 rounded-lg overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer bg-white/95 backdrop-blur-sm">
               <div className="aspect-[4/3] relative overflow-hidden">
                 <Image
-                  src="/images/homepage/feature4.jpg"
+                  src="/images/homepage-features/feature4.jpg"
                   alt="Weather Proof"
                   fill
                   sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 20vw"

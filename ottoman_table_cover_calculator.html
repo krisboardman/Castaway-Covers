@@ -3,13 +3,12 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Table Set Cover Calculator — v1 (main piece + optional left/right add‑ons)</title>
+<title>Table/Ottoman Cover Calculator — v2 (main piece + side add-on bands)</title>
 <style>
   :root { --bg:#f8fafc; --card:#ffffff; --text:#0f172a; --sub:#475569; --muted:#e2e8f0; }
   body { font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; background:var(--bg); color:var(--text); margin:0; padding:24px; }
   .wrap { max-width: 1100px; margin:0 auto; }
-  h1 { font-size:24px; margin:0 0 10px; }
-  .sub { font-size:13px; color:var(--sub); margin-bottom:14px; }
+  h1 { font-size:24px; margin:0 0 14px; }
   .controls { display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
   .btn { padding:8px 10px; border:1px solid var(--muted); border-radius:10px; background:#fff; cursor:pointer; }
   .grid { display:grid; grid-template-columns: 1.05fr 0.95fr; gap:16px; }
@@ -28,8 +27,7 @@
 </head>
 <body>
 <div class="wrap">
-  <h1>Table Set Cover Calculator</h1>
-  <div class="sub">Height (H) = tallest of table or chair. Length (L) and Width (W) include chairs pushed under the table.</div>
+  <h1>Table/Ottoman Cover Calculator</h1>
   <div class="controls">
     <label><input id="round" type="checkbox" checked> Round inches up / yards to whole</label>
     <button class="btn" id="recalc">Recalculate</button>
@@ -42,11 +40,11 @@
         <div class="title">Inputs</div>
         <div class="inputs">
           <label class="lbl">Bolt width (B)<input id="B" type="number" step="1" value="54"></label>
-          <label class="lbl">Length L (front↔back, incl. chairs)<input id="L" type="number" step="1" value="64"></label>
-          <label class="lbl">Width W (left↔right, incl. chairs)<input id="W" type="number" step="1" value="58"></label>
-          <label class="lbl">Height H (tallest table/chair)<input id="H" type="number" step="1" value="32"></label>
-          <label class="lbl">Floor clearance (FC)<input id="FC" type="number" step="1" value="6"></label>
-          <label class="lbl">Hem allowance (add‑ons only)<input id="hem" type="number" step="1" value="0.5"></label>
+          <label class="lbl">Ottoman length L (front↔back)<input id="L" type="number" step="1" value="40"></label>
+          <label class="lbl">Ottoman width W (left↔right)<input id="W" type="number" step="1" value="28"></label>
+          <label class="lbl">Height H<input id="H" type="number" step="1" value="18"></label>
+          <label class="lbl">Floor clearance (FC)<input id="FC" type="number" step="1" value="4"></label>
+          <label class="lbl">Hem allowance (add-ons only)<input id="hem" type="number" step="1" value="0.5"></label>
         </div>
       </div>
 
@@ -70,7 +68,7 @@
     <svg id="diagram" viewBox="0 0 980 540"></svg>
     <div class="legend">
       <span class="chip" style="background:#eef2ff;"></span> Main panel (one piece) with 4 square cutouts
-      <span class="chip" style="background:#22c55e33; border-color:#16a34a66;"></span> Side add‑ons (left & right) — height = between cutouts
+      <span class="chip" style="background:#22c55e33; border-color:#16a34a66;"></span> Add-on bands (top & bottom) — width = between cutouts
       <span style="margin-left:auto">Labels use rounded values</span>
     </div>
   </div>
@@ -78,7 +76,7 @@
   <div class="card" style="margin-top:16px;">
     <div class="title">Cut List</div>
     <div id="cutlist"></div>
-    <div class="note">Hem is only applied to add‑on height. Use 2× hem if hemming both band edges.</div>
+    <div class="note">Hem is only applied to add-on band height. Set to 2× hem if you hem both band edges.</div>
   </div>
 </div>
 
@@ -91,31 +89,29 @@ function compute(){
   const rounded=document.getElementById('round').checked;
   const B=n('B'), L=n('L'), W=n('W'), H=n('H'), FC=n('FC'), hem=n('hem');
 
-  // Drop to floor (no hem in cutout)
-  const drop = Math.max(0, H - FC);
+  // *** Flat pattern dimensions (fixed orientation) ***
+  const drop = Math.max(0, H - FC);     // square cutouts (no hem in cutout)
+  const MD   = Math.max(0, W + 2*drop); // overall cut width (left↔right)
+  const ML   = Math.max(0, L + 2*drop); // overall cut length (front↔back)
 
-  // Overall pattern dimensions
-  const MD = Math.max(0, W + 2*drop); // width across bolt
-  const ML = Math.max(0, L + 2*drop); // length along roll
-
-  // Add-ons if width across bolt exceeds the bolt width (left/right strips)
+  // Width across the bolt is limited by B. If MD > B, we add LEFT/RIGHT side strips.
   const needsAddons = MD > B;
-  const extraW = needsAddons ? (MD - B) : 0;        // total width shortfall
-  const extraEach = extraW/2;                        // each side strip width
-  const bandHeight = Math.max(0, ML - 2*drop);       // between the two corner cutouts
+  const extraW      = needsAddons ? (MD - B) : 0;       // total width shortfall
+  const extraEach   = extraW / 2;                       // each side strip width
+  const bandHeight  = Math.max(0, ML - 2*drop);         // only between the cutouts
 
-  // Results
+  // Results (clean, non-overlapping labels)
   const results = document.getElementById('results');
   results.innerHTML = `
     <div class='row'><span>Overall cut width (MD)</span><strong>${fin(MD,rounded)} in</strong></div>
     <div class='row'><span>Overall cut length (ML)</span><strong>${fin(ML,rounded)} in</strong></div>
-    <div class='row'><span>Bolt width used</span><strong>${fin(Math.min(B,MD),rounded)} in${needsAddons? ' (requires side add‑ons)':''}</strong></div>
+    <div class='row'><span>Bolt width used</span><strong>${fin(Math.min(B,MD),rounded)} in${needsAddons ? " (requires side add-ons)" : ""}</strong></div>
     <div class='row'><span>Corner cutout (square)</span><strong>${fin(drop,rounded)} in</strong></div>
-    <div class='row'><span>Add‑ons needed?</span><strong>${needsAddons?'Yes':'No'}</strong></div>
-    ${needsAddons? `<div class='row'><span>Side add‑on (each)</span><strong>${fin(extraEach,rounded)} in × ${fin(bandHeight + hem,rounded)} in</strong></div>`:''}
+    <div class='row'><span>Add-ons needed?</span><strong>${needsAddons ? "Yes" : "No"}</strong></div>
+    ${needsAddons ? `<div class='row'><span>Side add-on (each)</span><strong>${fin(extraEach,rounded)} in × ${fin(bandHeight + hem,rounded)} in</strong></div>` : ""}
   `;
 
-  // Material to buy — buy length is ML
+  // Buy length (along the roll)
   const buyLen = ML;
   const buy = document.getElementById('buy');
   buy.innerHTML = `
@@ -126,10 +122,10 @@ function compute(){
 
   // Cut list
   const cut = document.getElementById('cutlist');
-  const mainW = Math.min(B, MD);
+  const mainW = Math.min(B, MD);                         // blue center width across the bolt
   cut.innerHTML = `
     <div class='row'><span>Main panel</span><strong>${fin(mainW,rounded)} in × ${fin(ML,rounded)} in</strong><span style='color:#64748b'>Qty 1</span></div>
-    ${needsAddons? `<div class='row'><span>Side add‑on (each)</span><strong>${fin(extraEach,rounded)} in × ${fin(bandHeight + hem,rounded)} in</strong><span style='color:#64748b'>Qty 2</span></div>`:''}
+    ${needsAddons ? `<div class='row'><span>Side add-on (each)</span><strong>${fin(extraEach,rounded)} in × ${fin(bandHeight + hem,rounded)} in</strong><span style='color:#64748b'>Qty 2</span></div>` : ""}
   `;
 
   // Grommet placement calculations
@@ -149,39 +145,45 @@ function compute(){
     </div>
   `;
 
-  drawDiagram({rounded,B,MD,ML,drop,needsAddons,extraEach,bandHeight});
+  // Draw diagram
+  drawDiagram({
+    rounded, B, MD, ML, drop,
+    needsAddons, extraEach, bandHeight
+  });
 }
 
 function drawDiagram(p){
-  const {rounded,B,MD,ML,drop,needsAddons,extraEach,bandHeight} = p;
-  const svg=document.getElementById('diagram'); while(svg.firstChild) svg.removeChild(svg.firstChild);
-  const W=svg.viewBox.baseVal.width, H=svg.viewBox.baseVal.height; const pad=36;
-  const scale = Math.min((W-pad*2)/MD, (H-pad*2)/ML) || 1;
-  const sx=pad, sy=pad;
-  const add=(t,a)=>{const e=document.createElementNS('http://www.w3.org/2000/svg',t); for(const k in a) e.setAttribute(k,a[k]); svg.appendChild(e); return e;};
-  const r=v=> rounded?Math.ceil(v):Math.round(v*100)/100;
+  const {rounded, B, MD, ML, drop, needsAddons, extraEach, bandHeight} = p;
+  const svg = document.getElementById('diagram'); while(svg.firstChild) svg.removeChild(svg.firstChild);
+  const VBW = svg.viewBox.baseVal.width, VBH = svg.viewBox.baseVal.height; const pad = 36;
+
+  // Scale to MD (across) × ML (along)
+  const scale = Math.min((VBW - pad*2)/MD, (VBH - pad*2)/ML) || 1;
+  const sx = pad, sy = pad;
+  const add = (t,a) => { const e=document.createElementNS('http://www.w3.org/2000/svg',t); for (const k in a) e.setAttribute(k,a[k]); svg.appendChild(e); return e; };
+  const r = v => rounded ? Math.ceil(v) : Math.round(v*100)/100;
 
   // markers + arrow helper
-  const defs=add('defs',{}); const m=add('marker',{id:'a',markerWidth:8,markerHeight:8,refX:4,refY:4,orient:'auto',viewBox:'0 0 8 8'},defs);
+  const defs = add('defs',{}); const m = add('marker',{id:'a',markerWidth:8,markerHeight:8,refX:4,refY:4,orient:'auto',viewBox:'0 0 8 8'},defs);
   const pth=document.createElementNS('http://www.w3.org/2000/svg','path'); pth.setAttribute('d','M0,0 L8,4 L0,8 Z'); pth.setAttribute('fill','#334155'); m.appendChild(pth);
   const arrow=(x1,y1,x2,y2)=>add('line',{x1,y1,x2,y2,stroke:'#334155','marker-start':'url(#a)','marker-end':'url(#a)'});
 
-  // Outer guide
+  // Outer guide (dashed)
   const drawW = MD*scale, drawH = ML*scale;
   add('rect',{x:sx,y:sy,width:drawW,height:drawH,fill:'none',stroke:'#94a3b8','stroke-dasharray':'6,6'});
 
-  // Blue main panel (center) within bolt width
+  // Blue main panel (across=min(B,MD), full ML tall)
   const mainWpx = Math.min(B, MD) * scale;
   const mainX   = sx + (needsAddons ? extraEach*scale : 0);
   add('rect',{x:mainX, y:sy, width:mainWpx, height:drawH, fill:'#eef2ff', stroke:'#0f172a22'});
 
-  // Side add‑ons (green) — left & right, only between cutouts
-  if (needsAddons && extraEach>0){
+  // Side add-ons (green) — LEFT & RIGHT, only between cutouts
+  if (needsAddons && extraEach > 0){
     const bandY = sy + drop*scale;           // start below top cutouts
     const bandH = Math.max(0, bandHeight)*scale;
     add('rect',{x:sx,                   y:bandY, width:extraEach*scale,      height:bandH, fill:'#22c55e33', stroke:'#16a34a66'});
     add('rect',{x:mainX + mainWpx,      y:bandY, width:extraEach*scale,      height:bandH, fill:'#22c55e33', stroke:'#16a34a66'});
-    // concise caption
+    // single caption centered over the top band to avoid overlap
     add('text',{x:sx+drawW/2, y:bandY-6, 'text-anchor':'middle','font-size':11, fill:'#166534'})
       .textContent = `Side add-on (each): ${r(extraEach)} in × ${r(bandHeight)} in`;
   }
@@ -192,20 +194,22 @@ function drawDiagram(p){
   add('rect',{x:sx+drawW-c,   y:sy,            width:c, height:c, fill:'#fff'});
   add('rect',{x:sx,           y:sy+drawH-c,    width:c, height:c, fill:'#fff'});
   add('rect',{x:sx+drawW-c,   y:sy+drawH-c,    width:c, height:c, fill:'#fff'});
+  // Outline full rectangle again
   add('rect',{x:sx,y:sy,width:drawW,height:drawH,fill:'none',stroke:'#0f172a'});
 
-  // Dimensions in margins (no overlaps)
-  // Top: bolt width used (<= B)
+  // DIMENSIONS (placed at margins to avoid collisions)
+  // Top: bolt width used (always ≤ B)
   arrow(sx, sy-18, sx + Math.min(B,MD)*scale, sy-18);
   add('text',{x:sx + Math.min(B,MD)*scale/2, y:sy-24, 'text-anchor':'middle','font-size':12, fill:'#334155'})
     .textContent = `Bolt width used: ${r(Math.min(B,MD))} in`;
-  // Bottom: overall cut width
+  // Bottom: overall cut width (MD)
   arrow(sx, sy+drawH+18, sx+drawW, sy+drawH+18);
   add('text',{x:sx+drawW/2,y:sy+drawH+12,'text-anchor':'middle','font-size':12,fill:'#334155'})
     .textContent = `Overall cut width (MD): ${r(MD)} in`;
-  // Left: overall cut length
+  // Left: overall cut length (ML)
   arrow(sx-18, sy, sx-18, sy+drawH);
-  add('text',{x:sx-22,y:sy+drawH/2,'text-anchor':'end','dominant-baseline':'middle','font-size':12,fill:'#334155',transform:`rotate(-90 ${sx-22} ${sy+drawH/2})`})
+  add('text',{x:sx-22,y:sy+drawH/2,'text-anchor':'end','dominant-baseline':'middle','font-size':12,fill:'#334155',
+              transform:`rotate(-90 ${sx-22} ${sy+drawH/2})`})
     .textContent = `Overall cut length (ML): ${r(ML)} in`;
   // Cutout label
   add('text',{x:sx+6,y:sy+14,'font-size':12,fill:'#334155'}).textContent=`Corner cutouts: ${r(drop)} in (square)`;
@@ -230,7 +234,7 @@ function wire(){
   const inputsCard=document.getElementById('inputsCard'); ['input','change','keyup'].forEach(ev=>inputsCard.addEventListener(ev,compute));
   document.getElementById('recalc').addEventListener('click',compute);
   document.getElementById('reset').addEventListener('click',()=>{
-    const d={B:54,L:64,W:58,H:32,FC:6,hem:0.5};
+    const d={B:54,L:40,W:28,H:18,FC:4,hem:0.5};
     for(const k in d) document.getElementById(k).value=d[k];
     document.getElementById('round').checked=true; compute();
   });
@@ -238,7 +242,6 @@ function wire(){
   if (wasLoaded) console.log('Loaded values from URL parameters');
   compute();
 }
-
 document.addEventListener('DOMContentLoaded',wire);
 </script>
 </body>

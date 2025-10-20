@@ -5,38 +5,38 @@ export default function DesignPage() {
     {
       name: "Chairs / Recliners",
       href: "/products/chairs-recliners",
-      image: "/images/Chairs-Recliners/sketchchair.png",
+      image: "/images/sketch-icons/sketchchair.png",
       description: "Armchairs, club chairs, and recliners",
       popular: true
     },
     {
       name: "Sofas / Loveseats",
       href: "/products/sofas-loveseats",
-      image: "/images/Sofas-Loveseats/sketchsofa.png",
+      image: "/images/sketch-icons/sketchsofa.png",
       description: "Any length, optional magnetic closures for easy use"
     },
     {
       name: "Chaise Lounges",
       href: "/products/chaise-lounge",
-      image: "/images/ChaiseLounges/sketchchaise.png",
+      image: "/images/sketch-icons/sketchchaise.png",
       description: "Pool and patio loungers"
     },
     {
       name: "Tables",
       href: "/products/tables",
-      image: "/images/Tables/sketchtable.png",
+      image: "/images/sketch-icons/sketchtable.png",
       description: "Dining and coffee tables"
     },
     {
       name: "Table Sets",
       href: "/products/table-sets",
-      image: "/images/Tablesets/sketchtableset.png",
+      image: "/images/sketch-icons/sketchtableset.png",
       description: "Complete dining sets with chairs or benches"
     },
     {
       name: "Ottomans",
       href: "/products/ottomans",
-      image: "/images/Ottomans/sketchottoman.png",
+      image: "/images/sketch-icons/sketchottoman.png",
       description: "Footrests and storage ottomans"
     }
   ];

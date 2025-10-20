@@ -553,6 +553,21 @@ function printPage(){
   window.print();
 }
 
+// Load values from URL parameters (for auto-population from orders)
+function loadFromURL(){
+  const params = new URLSearchParams(window.location.search);
+  const fields = ['B', 'W', 'WB', 'H', 'D', 'F2A', 'F2BS', 'BR', 'FC', 'hem', 'seam'];
+  let loaded = false;
+  fields.forEach(field => {
+    const value = params.get(field);
+    if (value !== null) {
+      const el = document.getElementById(field);
+      if (el) { el.value = value; loaded = true; }
+    }
+  });
+  return loaded;
+}
+
 function wire(){
   const inputsCard = document.getElementById('inputsCard'); ['input','change','keyup'].forEach(ev=>inputsCard.addEventListener(ev, compute));
   document.getElementById('recalc').addEventListener('click', compute);
@@ -565,6 +580,8 @@ function wire(){
   document.getElementById('exportTxt').addEventListener('click', exportAsText);
   document.getElementById('printPage').addEventListener('click', printPage);
   document.getElementById('copyResults').addEventListener('click', copyToClipboard);
+  const wasLoaded = loadFromURL();
+  if (wasLoaded) console.log('Loaded values from URL parameters');
   compute();
 }
 
