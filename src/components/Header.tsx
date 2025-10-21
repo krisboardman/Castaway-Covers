@@ -29,6 +29,9 @@ export default function Header() {
             <Link href="/" className="text-gray-700 hover:text-brand-teal font-medium transition-colors">
               Home
             </Link>
+            <Link href="/features" className="text-gray-700 hover:text-brand-teal font-medium transition-colors">
+              Features
+            </Link>
             <Link href="/cart" className="relative text-gray-700 hover:text-brand-teal font-medium transition-colors">
               Cart
               {mounted && itemCount > 0 && (
@@ -37,8 +40,8 @@ export default function Header() {
                 </span>
               )}
             </Link>
-            <Link 
-              href="/design" 
+            <Link
+              href="/design"
               className="bg-brand-teal text-white px-6 py-2 rounded-full hover:bg-brand-teal-dark transition-colors font-semibold"
             >
               Design My Cover
