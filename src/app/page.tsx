@@ -155,8 +155,8 @@ export default function Home() {
             {/* Unique Design */}
             <div className="group border border-gray-200 rounded-lg overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer bg-white/95 backdrop-blur-sm">
               <div className="aspect-[4/3] relative overflow-hidden">
-                <Image 
-                  src="/images/homepage-features/feature2.jpg"
+                <Image
+                  src="/images/homepage-features/feature2.webp"
                   alt="Use Without Removing"
                   fill
                   sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 20vw"
@@ -174,7 +174,7 @@ export default function Home() {
             <div className="group border border-gray-200 rounded-lg overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer bg-white/95 backdrop-blur-sm">
               <div className="aspect-[4/3] relative overflow-hidden">
                 <Image
-                  src="/images/homepage-features/feature3.jpg"
+                  src="/images/homepage-features/feature3.webp"
                   alt="Waterproof & Protected"
                   fill
                   sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 20vw"
@@ -192,7 +192,7 @@ export default function Home() {
             <div className="group border border-gray-200 rounded-lg overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer bg-white/95 backdrop-blur-sm">
               <div className="aspect-[4/3] relative overflow-hidden">
                 <Image
-                  src="/images/homepage-features/feature4.jpg"
+                  src="/images/homepage-features/feature4.webp"
                   alt="Weather Proof"
                   fill
                   sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 20vw"
