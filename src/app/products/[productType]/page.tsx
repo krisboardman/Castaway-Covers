@@ -432,8 +432,8 @@ const getGalleryImages = (productType: string, selectedColor?: string) => {
     'chairs-recliners': [
       { src: '/images/Chairs-Recliners/chair1.jpg', alt: 'Chair with Castaway Cover - Front View' },
       { src: '/images/Chairs-Recliners/chair2.jpg', alt: 'Chair Cover - Back View' },
-      { src: '/images/gallery/Gallery1.webp', alt: 'Chair Cover - Bungee System' },
-      { src: '/images/Chairs-Recliners/chair5.jpg', alt: 'Chair Cover - Detail View' }
+      { src: '/images/Chairs-Recliners/chair3.jpg', alt: 'Chair Cover - Side View' },
+      { src: '/images/Chairs-Recliners/chair5.jpg', alt: 'Cream Chair with Cover' }
     ],
     'sofas-loveseats': [
       { src: '/images/gallery/Gallery3.webp', alt: 'Sofa with Castaway Cover' },
