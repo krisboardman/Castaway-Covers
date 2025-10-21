@@ -437,11 +437,12 @@ const getGalleryImages = (productType: string, selectedColor?: string) => {
       { src: '/images/Chairs-Recliners/chair5.jpg', alt: 'Cream Chair with Cover' }
     ],
     'sofas-loveseats': [
-      { src: '/images/gallery/Gallery3.webp', alt: 'Sofa with Castaway Cover' },
+      { src: '/images/Sofas-Loveseats/sofa1.jpg', alt: 'Sofa with Castaway Cover' },
       { src: '/images/Sofas-Loveseats/sofa2.jpg', alt: 'Sofa Cover - Side View' },
-      { src: '/images/Sofas-Loveseats/sofa3.jpg', alt: 'Sofa Cover - Bungee & Handle Detail' },
-      { src: '/images/gallery/Gallery6.webp', alt: 'Sofa Cover - Magnetic Closure' }
-      // Hidden for now: sofa5.jpg, sofa6.jpg
+      { src: '/images/Sofas-Loveseats/sofa3.jpg', alt: 'Sofa Cover - Detail View' },
+      { src: '/images/Sofas-Loveseats/sofa4.jpg', alt: 'Sofa Cover - Bungee & Handle Detail' },
+      { src: '/images/Sofas-Loveseats/sofa5.jpg', alt: 'Sofa Cover - Additional View' },
+      { src: '/images/Sofas-Loveseats/sofa6.jpg', alt: 'Sofa Cover - Magnetic Closure' }
     ],
     'chaise-lounge': [
       { src: '/images/gallery/Gallery4.webp', alt: 'Chaise Lounge Cover - Front Side View' }
