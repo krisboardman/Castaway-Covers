@@ -67,7 +67,7 @@ export default function Home() {
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             <div className="relative aspect-square rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-shadow">
               <Image
-                src="/images/gallery/chair3.jpg"
+                src="/images/gallery/Gallery1.webp"
                 alt="Lounge Chair Cover"
                 fill
                 sizes="(max-width: 768px) 50vw, 33vw"
@@ -77,7 +77,7 @@ export default function Home() {
             </div>
             <div className="relative aspect-square rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-shadow">
               <Image
-                src="/images/gallery/table1.jpg"
+                src="/images/gallery/Gallery2.webp"
                 alt="Outdoor Table Cover"
                 fill
                 sizes="(max-width: 768px) 50vw, 33vw"
@@ -87,7 +87,7 @@ export default function Home() {
             </div>
             <div className="relative aspect-square rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-shadow">
               <Image
-                src="/images/gallery/sofa1.jpg"
+                src="/images/gallery/Gallery3.webp"
                 alt="Outdoor Sofa Cover"
                 fill
                 sizes="(max-width: 768px) 50vw, 33vw"
@@ -97,7 +97,7 @@ export default function Home() {
             </div>
             <div className="relative aspect-square rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-shadow">
               <Image
-                src="/images/gallery/chaise1.jpg"
+                src="/images/gallery/Gallery4.webp"
                 alt="Chaise Lounge Cover"
                 fill
                 sizes="(max-width: 768px) 50vw, 33vw"
@@ -107,7 +107,7 @@ export default function Home() {
             </div>
             <div className="relative aspect-square rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-shadow">
               <Image
-                src="/images/gallery/table4.jpg"
+                src="/images/gallery/Gallery5.webp"
                 alt="Dining Set Cover"
                 fill
                 sizes="(max-width: 768px) 50vw, 33vw"
@@ -117,7 +117,7 @@ export default function Home() {
             </div>
             <div className="relative aspect-square rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-shadow">
               <Image
-                src="/images/gallery/sofa4.jpg"
+                src="/images/gallery/Gallery6.webp"
                 alt="Loveseat Cover"
                 fill
                 sizes="(max-width: 768px) 50vw, 33vw"
