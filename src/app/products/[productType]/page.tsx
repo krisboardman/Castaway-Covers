@@ -455,10 +455,7 @@ const getGalleryImages = (productType: string, selectedColor?: string) => {
       // Hidden for now: ottoman2.jpg, ottoman3.jpg, ottoman4.jpg
     ],
     'tables': [
-      { src: '/images/gallery/Gallery2.webp', alt: 'Table with Castaway Cover' },
-      { src: '/images/Tables/table2.jpg', alt: 'Table Cover - Bungee System' },
-      { src: '/images/Tables/table3.jpg', alt: 'Table Cover - Handle Detail' }
-      // Hidden for now: table4.jpg, table5.jpg
+      { src: '/images/Tables/table3.jpg', alt: 'Table with Castaway Cover' }
     ],
     'table-sets': [
       { src: '/images/Tablesets/tableset1.jpg', alt: 'Table Set with Castaway Cover' },
