@@ -445,12 +445,10 @@ const getGalleryImages = (productType: string, selectedColor?: string) => {
       { src: '/images/Sofas-Loveseats/sofa6.jpg', alt: 'Sofa Cover - Magnetic Closure' }
     ],
     'chaise-lounge': [
-      { src: '/images/gallery/Gallery4.webp', alt: 'Chaise Lounge Cover - Front Side View' }
-      // Hidden for now: chaise2.jpg, chaise3.jpg, chaise4.jpg, chaise5.jpg
+      { src: '/images/ChaiseLounges/chaise1.jpg', alt: 'Chaise Lounge Cover - Front Side View' }
     ],
     'chaise-lounges': [
-      { src: '/images/gallery/Gallery4.webp', alt: 'Chaise Lounge Cover - Front Side View' }
-      // Hidden for now: chaise2.jpg, chaise3.jpg, chaise4.jpg, chaise5.jpg
+      { src: '/images/ChaiseLounges/chaise1.jpg', alt: 'Chaise Lounge Cover - Front Side View' }
     ],
     'ottomans': [
       { src: '/images/Ottomans/ottoman1.jpg', alt: 'Ottoman with Castaway Cover' }
