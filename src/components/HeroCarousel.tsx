@@ -20,7 +20,7 @@ const slides = [
     subtitle: 'Innovative snap straps let you fold back covers for instant entertaining'
   },
   {
-    image: '/images/homepage-features/feature1.jpg',
+    image: '/images/hero/hero4.jpg',
     title: 'Beautiful Styling',
     subtitle: 'Elegant wavy edges and premium marine-grade colors that complement any outdoor space'
   }
