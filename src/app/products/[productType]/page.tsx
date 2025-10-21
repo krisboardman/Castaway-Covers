@@ -458,7 +458,6 @@ const getGalleryImages = (productType: string, selectedColor?: string) => {
       { src: '/images/Tables/table3.jpg', alt: 'Table with Castaway Cover' }
     ],
     'table-sets': [
-      { src: '/images/Tablesets/tableset1.jpg', alt: 'Table Set with Castaway Cover' },
       { src: '/images/Tablesets/tableset2.jpg', alt: 'Table Set Cover - Bungee System' },
       { src: '/images/Tablesets/tableset3.jpg', alt: 'Table Set Cover - Handle Detail' },
       { src: '/images/Tablesets/tableset4.jpg', alt: 'Table Set - Complete View' },
