@@ -22,7 +22,7 @@ export default function FeaturesPage() {
 
           {/* Feature 1: Distinctive Wavy Edge Design */}
           <FeatureSection
-            imagePath="/images/features/scalloped-edge.jpg"
+            imagePath="/images/features/wavy-edge.jpg"
             title="Distinctive Wavy Edge Design"
             description="Our wavy edges aren't just decorative - they're our signature. This premium design detail gives every Castaway Cover a polished, finished appearance that transforms functional protection into an attractive outdoor accent."
             benefits={[
