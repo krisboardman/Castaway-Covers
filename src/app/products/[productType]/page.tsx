@@ -476,7 +476,6 @@ const getGalleryImages = (productType: string, selectedColor?: string) => {
       { src: '/images/ChaiseLounges/chaise1.jpg', alt: 'Chaise Lounge Cover - Front Side View' }
     ],
     'ottomans': [
-      { src: '/images/Ottomans/ottoman1.jpg', alt: 'Ottoman with Castaway Cover' },
       { src: '/images/Ottomans/ottoman2.jpg', alt: 'Ottoman Cover - Grey' },
       { src: '/images/Ottomans/ottoman3.jpg', alt: 'Ottoman Cover - Brown' }
     ],
