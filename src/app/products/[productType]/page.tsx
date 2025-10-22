@@ -484,7 +484,6 @@ const getGalleryImages = (productType: string, selectedColor?: string) => {
     ],
     'table-sets': [
       { src: '/images/Tablesets/tableset2.jpg', alt: 'Table Set Cover - Bungee System' },
-      { src: '/images/Tablesets/tableset3.jpg', alt: 'Table Set Cover - Handle Detail' },
       { src: '/images/Tablesets/tableset4.jpg', alt: 'Table Set - Complete View' },
       { src: '/images/Tablesets/tableset5.jpg', alt: 'Table Set - Additional View' }
     ]
