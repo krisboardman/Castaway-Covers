@@ -31,6 +31,7 @@ export default function StormVideo() {
         ref={videoRef}
         src="/storm-video.mp4"
         muted={isMuted}
+        loop
         playsInline
         className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500"
         onClick={handleClick}
