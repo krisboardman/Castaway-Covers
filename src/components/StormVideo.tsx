@@ -18,9 +18,12 @@ export default function StormVideo() {
 
   const handleClick = () => {
     if (videoRef.current) {
-      // Unmute and restart video
-      setIsMuted(false);
-      videoRef.current.currentTime = 0;
+      // Toggle mute/unmute
+      setIsMuted(!isMuted);
+      if (isMuted) {
+        // If currently muted, restart video with sound
+        videoRef.current.currentTime = 0;
+      }
       videoRef.current.play();
     }
   };
@@ -36,11 +39,9 @@ export default function StormVideo() {
         className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500"
         onClick={handleClick}
       />
-      {isMuted && (
-        <div className="absolute bottom-2 right-2 bg-black/50 text-white px-2 py-1 rounded text-xs pointer-events-none">
-          Click for sound 🔊
-        </div>
-      )}
+      <div className="absolute bottom-2 right-2 bg-black/50 text-white px-2 py-1 rounded text-xs pointer-events-none">
+        {isMuted ? 'Click for sound 🔊' : 'Click to mute 🔇'}
+      </div>
     </div>
   );
 }
