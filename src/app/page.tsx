@@ -153,12 +153,12 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Unique Design */}
+            {/* Quality Hardware */}
             <div className="group border border-gray-200 rounded-lg overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer bg-white/95 backdrop-blur-sm">
               <div className="aspect-[4/3] relative overflow-hidden">
                 <Image
                   src="/images/homepage-features/feature2.webp"
-                  alt="Use Without Removing"
+                  alt="Quality Hardware"
                   fill
                   sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 20vw"
                   className="object-cover group-hover:scale-105 transition-transform duration-500"
@@ -166,8 +166,8 @@ export default function Home() {
                 />
               </div>
               <div className="p-5">
-                <h3 className="font-bold text-lg mb-2 text-gray-900">Use Without Removing</h3>
-                <p className="text-sm text-gray-600 leading-relaxed">Snap straps let you fold covers back instantly. Snap back for protection and enjoy your furniture—no removal needed.</p>
+                <h3 className="font-bold text-lg mb-2 text-gray-900">Premium Hardware Built to Last</h3>
+                <p className="text-sm text-gray-600 leading-relaxed">We don't cut corners on components. Every cover features heavy-duty snaps, reinforced grommets, and durable bungee cords designed to withstand years of daily use and harsh weather.</p>
               </div>
             </div>
 
