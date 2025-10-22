@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 export default function CastawayVideo() {
   const thumbnailVideoRef = useRef<HTMLVideoElement>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isMuted, setIsMuted] = useState(true);
 
   useEffect(() => {
     const video = thumbnailVideoRef.current;
@@ -16,9 +17,25 @@ export default function CastawayVideo() {
     });
   }, []);
 
-  const handleClick = () => {
-    // Open fullscreen modal
-    setIsFullscreen(true);
+  const handleClick = (e: React.MouseEvent) => {
+    // Check if clicking the mute button area (bottom right corner)
+    const target = e.target as HTMLElement;
+    const rect = target.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    // If clicking near bottom-right (where mute button is), toggle mute
+    // Otherwise, open fullscreen
+    if (x > rect.width - 100 && y > rect.height - 50) {
+      setIsMuted(!isMuted);
+      if (isMuted && thumbnailVideoRef.current) {
+        thumbnailVideoRef.current.currentTime = 0;
+        thumbnailVideoRef.current.play();
+      }
+    } else {
+      // Open fullscreen modal
+      setIsFullscreen(true);
+    }
   };
 
   const handleCloseFullscreen = (e: React.MouseEvent) => {
@@ -32,7 +49,7 @@ export default function CastawayVideo() {
         <video
           ref={thumbnailVideoRef}
           src="/castaway-video-optimized.mp4"
-          muted
+          muted={isMuted}
           loop
           playsInline
           className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500"
@@ -43,6 +60,9 @@ export default function CastawayVideo() {
               <path d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" />
             </svg>
           </div>
+        </div>
+        <div className="absolute bottom-2 right-2 bg-black/50 text-white px-2 py-1 rounded text-xs pointer-events-none z-10">
+          {isMuted ? 'Click for sound 🔊' : 'Sound on 🔇'}
         </div>
       </div>
 
