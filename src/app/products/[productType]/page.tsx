@@ -480,6 +480,7 @@ const getGalleryImages = (productType: string, selectedColor?: string) => {
       { src: '/images/Ottomans/ottoman3.jpg', alt: 'Ottoman Cover - Brown' }
     ],
     'tables': [
+      { src: '/images/Tables/table1.jpg', alt: 'Wine Table with Castaway Cover' },
       { src: '/images/Tables/table3.jpg', alt: 'Table with Castaway Cover' }
     ],
     'table-sets': [

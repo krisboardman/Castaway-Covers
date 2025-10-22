@@ -86,8 +86,15 @@ export default function Home() {
                 loading="lazy"
               />
             </div>
-            <div className="relative aspect-square rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-shadow p-4 bg-gradient-to-br from-gray-50 to-white flex items-center justify-center">
-              <ColorShowcase />
+            <div className="relative aspect-square rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-shadow">
+              <Image
+                src="/images/gallery/Gallery3.webp"
+                alt="Table Cover"
+                fill
+                sizes="(max-width: 768px) 50vw, 33vw"
+                className="object-cover"
+                loading="lazy"
+              />
             </div>
             <div className="relative aspect-square rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-shadow">
               <Image
