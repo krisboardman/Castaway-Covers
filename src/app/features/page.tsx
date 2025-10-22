@@ -20,30 +20,16 @@ export default function FeaturesPage() {
         {/* Feature Grid */}
         <div className="space-y-16">
 
-          {/* Feature 1: Reinforced Snap Strap System */}
-          <FeatureSection
-            imagePath="/images/features/snap-straps.jpg"
-            title="Reinforced Snap Strap System"
-            description="Our premium snap straps feature industrial-grade snaps with reinforced backing plates for exceptional durability. Each snap is carefully positioned to ensure a tight, secure fit that keeps your cover in place even during harsh weather conditions."
-            benefits={[
-              "Heavy-duty marine-grade snaps resist corrosion",
-              "Double-reinforced backing prevents tearing",
-              "Strategic placement for optimal tension distribution",
-              "Easy to use - even with gloves in cold weather"
-            ]}
-            imagePosition="left"
-          />
-
-          {/* Feature 2: Signature Scalloped Edge Design */}
+          {/* Feature 1: Distinctive Wavy Edge Design */}
           <FeatureSection
             imagePath="/images/features/scalloped-edge.jpg"
-            title="Signature Scalloped Edge Design"
-            description="Our distinctive scalloped edges aren't just beautiful - they're functional. This premium design detail prevents water pooling and adds an elegant finishing touch that sets Castaway Covers apart from standard rectangular covers."
+            title="Distinctive Wavy Edge Design"
+            description="Our wavy edges aren't just decorative - they're our signature. This premium design detail gives every Castaway Cover a polished, finished appearance that transforms functional protection into an attractive outdoor accent."
             benefits={[
-              "Prevents water accumulation at edges",
-              "Professional, custom-tailored appearance",
-              "Reinforced edge stitching for longevity",
-              "Complements any outdoor decor style"
+              "Signature wavy edge design for elegant appearance",
+              "Premium look distinguishes from basic rectangular covers",
+              "Polished finish complements any outdoor decor",
+              "Transforms protection into an attractive feature"
             ]}
             imagePosition="right"
           />
@@ -62,72 +48,72 @@ export default function FeaturesPage() {
             imagePosition="left"
           />
 
-          {/* Feature 4: Full-Length Heavy-Duty Zipper */}
+          {/* Feature 4: Built-In Bungee Cord Organization */}
           <FeatureSection
             imagePath="/images/features/zipper.jpg"
-            title="Full-Length Heavy-Duty Zipper"
-            description="Access your furniture without removing the entire cover. Our YKK-quality zippers are built to withstand thousands of open-close cycles while maintaining a weather-tight seal that protects against rain, dust, and debris."
+            title="Built-In Bungee Cord Organization"
+            description="Smart design means easy maintenance. Our bungee cords stay attached to the cover and hang discreetly at the back when not in use. Set the length once for your furniture, then it's simply hook for secure coverage and unhook to remove - the cord length stays set, so there's no readjusting each time you use it."
             benefits={[
-              "Weather-resistant zipper construction",
-              "Extra-wide zipper pull for easy operation",
-              "Storm flap covers zipper for added protection",
-              "Smooth operation in all temperatures"
+              "Bungee cords hang neatly at back when cover is removed",
+              "Set the length once - no readjusting needed after initial setup",
+              "Simple hook-and-unhook for quick on-and-off",
+              "Cords stay attached - no separate storage required"
             ]}
             imagePosition="right"
           />
 
-          {/* Feature 5: Premium Marine-Grade Vinyl */}
+          {/* Feature 5: Tailored Corner Construction */}
           <FeatureSection
             imagePath="/images/features/flexible-material.jpg"
-            title="Premium Marine-Grade Vinyl"
-            description="Our covers are crafted from the same high-quality vinyl used in marine applications. This material offers the perfect balance of flexibility for easy handling and durability to resist tears, punctures, and UV damage year after year."
+            title="Tailored Corner Construction"
+            description="Our innovative corner design allows the cover to drape smoothly and fit snugly over your furniture without bunching or gaps. Each corner features a carefully hemmed cutout with a waterproof inner liner that folds discreetly inside, creating a clean appearance while keeping water out where it matters most."
             benefits={[
-              "UV-resistant coating prevents fading and cracking",
-              "Flexible enough to drape smoothly over curves",
-              "Tear-resistant construction withstands impact",
-              "Maintains suppleness in extreme temperatures"
+              "Carefully hemmed corner cutouts for durability and clean finish",
+              "Corners contour perfectly to furniture shape for smooth fit",
+              "Waterproof inner liner folds discreetly within hemmed cutouts",
+              "Eliminates bunching and gaps for tailored appearance"
             ]}
             imagePosition="left"
           />
 
-          {/* Feature 6: Reinforced Brass Grommets */}
+          {/* Feature 6: Double-Reinforced Brass Grommets */}
           <FeatureSection
             imagePath="/images/features/brass-grommet.jpg"
-            title="Reinforced Brass Grommets"
-            description="Every grommet in our covers features a substantial brass backing washer that distributes stress evenly across the vinyl. This prevents tearing and ensures your tie-down points remain secure season after season."
+            title="Double-Reinforced Brass Grommets"
+            description="Strong tie-down points start with smart construction. Each brass grommet is installed through a double layer of vinyl, providing reinforced strength at these critical stress points. This thoughtful design prevents pull-through and tearing, keeping your cover secure in all weather conditions."
             benefits={[
-              "Solid brass construction resists corrosion",
-              "Large diameter backing prevents pull-through",
-              "Strategically placed for optimal coverage",
-              "Compatible with various tie-down methods"
+              "Brass grommets resist corrosion and weathering",
+              "Extra vinyl layer at each grommet adds reinforcement",
+              "Double-layer construction prevents tearing at stress points",
+              "Secure tie-down points that last season after season"
             ]}
             imagePosition="right"
           />
 
-          {/* Feature 7: Breathable Mesh Ventilation */}
+          {/* Feature 7: Marine-Grade Interior Protection */}
           <FeatureSection
-            imagePath="/images/features/mesh-vent.jpg"
-            title="Breathable Mesh Ventilation Panels"
-            description="Prevent moisture buildup and mildew with our integrated mesh ventilation system. These strategically placed panels allow air to circulate while keeping rain, snow, and debris out - ensuring your furniture stays fresh and dry underneath."
+            imagePath="/images/features/interior-liner.jpg"
+            title="Marine-Grade Interior Protection"
+            description="Our covers use the same mildew-resistant polyester on the interior that's trusted for boat cushions and marine upholstery. Inner edges are sealed with protective treatment for extra weather defense. The interior has a practical, unfinished appearance - but that's intentional. This marine-grade material delivers superior protection without adding unnecessary bulk or cost."
             benefits={[
-              "Reduces condensation and prevents mildew",
-              "Mesh openings sized to block debris while allowing airflow",
-              "Reinforced edges prevent fraying",
-              "Maintains cover integrity in high winds"
+              "Inner edges sealed with protective weather treatment",
+              "Marine-grade mildew-resistant and antifungal polyester",
+              "Practical interior designed for function and durability",
+              "Lightweight and safe for furniture surfaces"
             ]}
             imagePosition="left"
           />
 
-          {/* Feature 8: Water-Resistant Interior Liner */}
+          {/* Feature 8: Optional Snap Closure for Sofas */}
           <FeatureSection
-            imagePath="/images/features/interior-liner.jpg"
-            title="Water-Resistant Interior Liner"
-            description="The interior of every Castaway Cover features a special mesh liner that provides an additional barrier against moisture while preventing the cover from sticking to your furniture. This dual-layer protection ensures long-lasting performance."
+            imagePath="/images/features/snap-straps.jpg"
+            title="Optional Snap Closure for Sofas"
+            description="Why struggle with one massive cover? Our snap closure option splits sofa covers into two practical pieces that connect securely with heavy-duty marine snaps. Access one section of your sofa without disturbing the rest, or remove just half for easier washing and storage."
             benefits={[
-              "Prevents moisture penetration from condensation",
-              "Smooth surface won't damage furniture finishes",
-              "Lightweight mesh adds minimal bulk",
-              "Easy to clean and maintain"
+              "Corrosion-resistant marine-grade snap hardware",
+              "Two-piece design eliminates wrestling with large covers",
+              "Flexible access - uncover what you need, when you need it",
+              "Maintains weather-tight protection when snapped together"
             ]}
             imagePosition="right"
           />
