@@ -112,7 +112,7 @@ const AddOnOptions: React.FC<AddOnOptionsProps> = ({
               <div className="mt-4 ml-8 p-4 bg-gray-50 rounded-lg">
                 <div className="relative h-80 md:h-96 rounded-lg overflow-hidden">
                   <Image
-                    src="/images/Options/handle add on.webp"
+                    src="/images/options/handle-addon.webp"
                     alt="Handles example"
                     fill
                     className="object-contain"
