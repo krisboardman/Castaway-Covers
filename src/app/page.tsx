@@ -5,6 +5,7 @@ import { getOrganizationSchema } from "@/lib/structured-data";
 import HeroCarousel from "@/components/HeroCarousel";
 import StormVideo from "@/components/StormVideo";
 import CastawayVideo from "@/components/CastawayVideo";
+import ColorShowcase from "@/components/ColorShowcase";
 
 export const metadata = generateMeta('home');
 
@@ -85,15 +86,8 @@ export default function Home() {
                 loading="lazy"
               />
             </div>
-            <div className="relative aspect-square rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-shadow">
-              <Image
-                src="/images/gallery/Gallery3.webp"
-                alt="Outdoor Sofa Cover"
-                fill
-                sizes="(max-width: 768px) 50vw, 33vw"
-                className="object-cover"
-                loading="lazy"
-              />
+            <div className="relative aspect-square rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-shadow p-4 bg-gradient-to-br from-gray-50 to-white flex items-center justify-center">
+              <ColorShowcase />
             </div>
             <div className="relative aspect-square rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-shadow">
               <Image
