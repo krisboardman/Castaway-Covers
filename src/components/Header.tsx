@@ -30,7 +30,7 @@ export default function Header() {
               Home
             </Link>
             <Link href="/features" className="text-gray-700 hover:text-brand-teal font-medium transition-colors">
-              Features
+              Craftsmanship
             </Link>
             <Link href="/cart" className="relative text-gray-700 hover:text-brand-teal font-medium transition-colors">
               Cart
