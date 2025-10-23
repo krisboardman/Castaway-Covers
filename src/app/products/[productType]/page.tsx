@@ -479,9 +479,9 @@ const colorToFileName: { [key: string]: string } = {
 const getGalleryImages = (productType: string, selectedColor?: string) => {
   const galleryImages = {
     'chairs-recliners': [
+      { src: '/images/Chairs-Recliners/chair4.jpg', alt: 'Blue Chair with Cover - Outdoor View' },
       { src: '/images/Chairs-Recliners/chair2.jpg', alt: 'Chair Cover - Back View' },
       { src: '/images/Chairs-Recliners/chair3.jpg', alt: 'Chair Cover - Side View' },
-      { src: '/images/Chairs-Recliners/chair4.jpg', alt: 'Blue Chair with Cover - Outdoor View' },
       { src: '/images/Chairs-Recliners/chair5.jpg', alt: 'Cream Chair with Cover' }
     ],
     'sofas-loveseats': [
