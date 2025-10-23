@@ -133,8 +133,8 @@ const AddOnOptions: React.FC<AddOnOptionsProps> = ({
                 className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
               />
               <div className="flex-1">
-                <span className="font-medium">Magnetic Closure</span>
-                <span className="text-gray-500 ml-2">+$20 per cover</span>
+                <span className="font-medium">Split Cover with Snaps</span>
+                <span className="text-gray-500 ml-2">+$35 per cover</span>
                 <button
                   type="button"
                   onClick={(e) => {
@@ -145,7 +145,7 @@ const AddOnOptions: React.FC<AddOnOptionsProps> = ({
                 >
                   {showMagnetsImage ? 'Hide' : 'View'} Example
                 </button>
-                <p className="text-sm text-gray-600">Magnetic closures for a secure fit</p>
+                <p className="text-sm text-gray-600">Two-piece cover connected with marine-grade snaps</p>
               </div>
             </label>
             {showMagnetsImage && (

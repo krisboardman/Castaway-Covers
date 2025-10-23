@@ -76,7 +76,7 @@ export default function CartPage() {
         const addOns = [];
         if (item.snapStraps) addOns.push('Snap Straps (+$20)');
         if (item.handles) addOns.push('Handles (+$20)');
-        if (item.magnets) addOns.push('Magnetic Closure (+$20)');
+        if (item.magnets) addOns.push('Split Cover with Snaps (+$35)');
         
         const props = [
           `Item ${index + 1}: ${item.productType} - ${item.selectedColor}`,
@@ -174,7 +174,7 @@ export default function CartPage() {
             'Yards': item.yards,
             'Snap Straps': item.snapStraps ? 'Yes' : 'No',
             'Handles': item.handles ? 'Yes' : 'No',
-            'Magnetic Closure': item.magnets ? 'Yes' : 'No',
+            'Split Cover with Snaps': item.magnets ? 'Yes' : 'No',
             'Premium Color Charge': `$${item.premiumColorCharge}`,
             'Total Price': `$${item.total.toFixed(2)}`
           }
@@ -291,7 +291,7 @@ export default function CartPage() {
                     <div className="mt-2 space-y-1">
                       {item.snapStraps && <p className="text-sm">✓ Snap Straps</p>}
                       {item.handles && <p className="text-sm">✓ Handles</p>}
-                      {item.magnets && <p className="text-sm">✓ Magnetic Closure</p>}
+                      {item.magnets && <p className="text-sm">✓ Split Cover with Snaps</p>}
                     </div>
                   </div>
                   

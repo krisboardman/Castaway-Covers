@@ -96,7 +96,7 @@ export default function ProductPage() {
     let total = coverPrice * quantity;
     if (snapStraps) total += 20 * quantity;
     if (handles) total += 20 * quantity;
-    if (magnets) total += 20 * quantity;
+    if (magnets) total += 35 * quantity;
     if (premiumColorCharge > 0) total += premiumColorCharge;
     return total;
   };
@@ -393,8 +393,8 @@ export default function ProductPage() {
               
               {magnets && productType === 'sofas-loveseats' && (
                 <div className="flex justify-between">
-                  <span>Magnetic Closure ({quantity}x)</span>
-                  <span>${(20 * quantity).toFixed(2)}</span>
+                  <span>Split Cover with Snaps ({quantity}x)</span>
+                  <span>${(35 * quantity).toFixed(2)}</span>
                 </div>
               )}
               

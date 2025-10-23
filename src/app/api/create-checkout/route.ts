@@ -139,8 +139,8 @@ export async function POST(request: NextRequest) {
         addOnCost += 20 * item.quantity;
       }
       if (item.magnets) {
-        options.push('Magnetic Closure (+$20)');
-        addOnCost += 20 * item.quantity;
+        options.push('Split Cover with Snaps (+$35)');
+        addOnCost += 35 * item.quantity;
       }
       
       grandTotal += item.total;
