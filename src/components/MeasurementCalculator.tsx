@@ -60,7 +60,7 @@ const productConfigs = {
       armrestHeight: 'Ground to Top of Armrest'
     },
     hasAngle: true,
-    measurementImage: null // No image available yet
+    measurementImage: '/images/Measurements/chaise measurements.jpg'
   },
   'ottomans': {
     fields: ['width', 'length', 'height'],
