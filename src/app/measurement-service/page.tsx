@@ -383,9 +383,9 @@ export default function MeasurementServicePage() {
           {/* Service Area Note */}
           <div className="mt-8 p-4 bg-gray-50 rounded-lg">
             <p className="text-sm text-gray-600 text-center">
-              <strong>Service Area:</strong> We provide in-home measurement service within 10 miles of Rumson, NJ. 
-              This includes Rumson, Fair Haven, Little Silver, Red Bank, Shrewsbury, Sea Bright, Monmouth Beach, 
-              Long Branch (partial), Middletown (partial), and surrounding areas.
+              <strong>Service Area:</strong> We provide in-home measurement service within Monmouth County, NJ.
+              This includes Rumson, Fair Haven, Little Silver, Red Bank, Shrewsbury, Sea Bright, Monmouth Beach,
+              Long Branch, Middletown, and surrounding areas.
             </p>
           </div>
         </div>

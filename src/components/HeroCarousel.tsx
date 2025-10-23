@@ -17,7 +17,7 @@ const slides = [
   {
     image: '/images/hero/hero3.webp',
     title: 'Use Without Removing',
-    subtitle: 'Innovative snap straps let you fold back covers for instant entertaining'
+    subtitle: 'Innovative snap straps let you fold back covers for instant relaxing'
   },
   {
     image: '/images/hero/hero4.webp',

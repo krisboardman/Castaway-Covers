@@ -109,7 +109,7 @@ export default function DesignPage() {
                       </span>
                     </div>
                     <p className="text-gray-700">
-                      <span className="font-semibold">Rumson area only (10 mile radius)</span> • 
+                      <span className="font-semibold">Within Monmouth County</span> •
                       We'll measure your furniture and create your perfect custom order
                     </p>
                   </div>

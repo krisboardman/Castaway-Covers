@@ -21,7 +21,7 @@ export default function Home() {
       {/* Local Service Banner */}
       <div className="bg-[#2C8B80] text-white py-2 px-4 text-center">
         <p className="text-sm md:text-base">
-          📍 <span className="font-semibold">Rumson Area?</span> We offer professional in-home measurement service within 10 miles. 
+          📍 <span className="font-semibold">Within Monmouth County?</span> We offer professional in-home measurement service. 
           <Link href="/measurement-service" className="underline ml-2 hover:text-yellow-200">Learn More</Link>
         </p>
       </div>
