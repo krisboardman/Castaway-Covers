@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 
 export default function DesignPage() {
   const furnitureTypes = [
@@ -67,9 +68,11 @@ export default function DesignPage() {
               )}
               <div className="bg-white rounded-xl overflow-hidden border-2 border-gray-100 hover:border-[#2C8B80] transition-all duration-300 transform hover:-translate-y-1 hover:shadow-xl h-full">
                 <div className="relative h-48 bg-gradient-to-b from-gray-50 to-white flex items-center justify-center overflow-hidden">
-                  <img 
+                  <Image
                     src={type.image}
                     alt={type.name}
+                    width={200}
+                    height={200}
                     className="max-w-full max-h-full object-contain p-6 transition-all duration-500 group-hover:scale-110 group-hover:opacity-80"
                   />
                   {/* Hover overlay with teal tint */}
