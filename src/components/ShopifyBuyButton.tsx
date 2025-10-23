@@ -34,21 +34,17 @@ const ShopifyBuyButton: React.FC<ShopifyBuyButtonProps> = ({
   const handleBuyNow = async () => {
     if (!variantId || disabled) return;
 
-    console.log('Variant ID:', variantId);
-    console.log('Variant ID type:', typeof variantId);
-
     setLoading(true);
     try {
       // Add to local cart
       onAddToCart();
-      
+
       // Wait a moment for cart to update
       setTimeout(() => {
         // Redirect to the Vercel app cart page
         window.location.href = '/cart';
       }, 100);
     } catch (error) {
-      console.error('Error creating checkout:', error);
       alert('Error adding to cart. Please try again.');
       setLoading(false);
     }
@@ -70,7 +66,6 @@ const ShopifyBuyButton: React.FC<ShopifyBuyButtonProps> = ({
         // Reset any success states if needed
       }, 2000);
     } catch (error) {
-      console.error('Error adding to cart:', error);
       alert('Error adding to cart. Please try again.');
     } finally {
       setLoading(false);

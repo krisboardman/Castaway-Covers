@@ -17,9 +17,6 @@ export default function CartPage() {
   useEffect(() => {
     setMounted(true);
     setLoading(false); // Reset loading state when component mounts
-    console.log('Cart mounted, items:', items);
-    console.log('Loading state:', loading);
-    console.log('localStorage:', localStorage.getItem('castaway-covers-cart'));
   }, [items]);
   
   // Reset loading state when page becomes visible (e.g., back button)
@@ -27,14 +24,12 @@ export default function CartPage() {
     const handleVisibilityChange = () => {
       if (!document.hidden) {
         setLoading(false);
-        console.log('Page visible again, reset loading state');
       }
     };
-    
+
     const handlePageShow = (event: PageTransitionEvent) => {
       if (event.persisted) {
         setLoading(false);
-        console.log('Page restored from cache, reset loading state');
       }
     };
     
@@ -63,13 +58,6 @@ export default function CartPage() {
 
     setLoading(true);
     try {
-      console.log('Cart items to submit:', items);
-      console.log('Items details:', items.map(item => ({
-        variantId: item.coverVariantId,
-        sku: item.coverSKU,
-        color: item.selectedColor,
-        total: item.total
-      })));
       
       // Build cart note with all custom properties
       const cartNote = items.map((item, index) => {
@@ -94,7 +82,6 @@ export default function CartPage() {
       // Validate variant IDs
       const invalidItems = items.filter(item => !item.coverVariantId || item.coverVariantId === 'null');
       if (invalidItems.length > 0) {
-        console.error('Invalid variant IDs found:', invalidItems);
         alert('Some items in your cart have invalid product IDs. Please remove them and try again.');
         setLoading(false);
         return;
@@ -114,7 +101,6 @@ export default function CartPage() {
       
       // Method 1: Create a fresh checkout with all properties
       try {
-        console.log('Creating fresh checkout with properties');
         const checkoutResponse = await fetch('/api/create-checkout', {
           method: 'POST',
           headers: {
@@ -122,25 +108,19 @@ export default function CartPage() {
           },
           body: JSON.stringify({ items })
         });
-        
+
         const checkoutData = await checkoutResponse.json();
-        console.log('Checkout response:', checkoutData);
-        
+
         if (checkoutData.checkoutUrl) {
-          console.log('Fresh checkout created, redirecting to:', checkoutData.checkoutUrl);
           window.location.href = checkoutData.checkoutUrl;
           return;
-        } else if (checkoutData.error) {
-          console.error('Checkout creation failed:', checkoutData);
         }
       } catch (error) {
-        console.error('Failed to create checkout:', error);
+        // Fall through to next method
       }
       
       // Method 2: Fallback to clearing cart and adding items
       try {
-        console.log('Fallback: Clearing Shopify cart and adding current items via AJAX');
-        
         // First, clear the Shopify cart
         const clearResponse = await fetch(`https://${shopifyDomain}/cart/clear.js`, {
           method: 'POST',
@@ -150,15 +130,8 @@ export default function CartPage() {
           credentials: 'same-origin'
         });
         
-        console.log('Cart cleared:', clearResponse.ok);
-        
         // Prepare items for Shopify's expected format
         const shopifyItems = items.map(item => {
-          console.log('Processing item:', {
-            variantId: item.coverVariantId,
-            sku: item.coverSKU,
-            hasProperties: true
-          });
           return {
             id: item.coverVariantId,
             quantity: item.quantity,
@@ -195,46 +168,31 @@ export default function CartPage() {
         });
         
         if (addResponse.ok) {
-          const cartData = await addResponse.json();
-          console.log('Items added to cart:', cartData);
-          console.log('Cart items in response:', cartData.items);
-          
           // Wait a moment for cart to update
           await new Promise(resolve => setTimeout(resolve, 500));
-          
+
           // Get the cart to verify items
           const cartCheck = await fetch(`https://${shopifyDomain}/cart.js`, {
             credentials: 'same-origin'
           });
-          const currentCart = await cartCheck.json();
-          console.log('Current cart contents:', currentCart);
-          console.log('Cart item properties:', currentCart.items?.map((item: any) => ({
-            title: item.title,
-            properties: item.properties
-          })));
-          
+          await cartCheck.json();
+
           // Navigate to cart first to see what's there
           window.location.href = `https://${shopifyDomain}/cart`;
           return;
-        } else {
-          console.error('Failed to add items:', await addResponse.text());
         }
       } catch (ajaxError) {
-        console.error('AJAX method failed:', ajaxError);
+        // Fall through to next method
       }
       
       // Method 4: Fallback to permalink method
-      console.log('Attempting Method 4: Cart permalink');
       const cartItems = items.map(item => `${item.coverVariantId}:${item.quantity}`).join(',');
       const encodedNote = encodeURIComponent(cartNote);
       const cartUrl = `https://${shopifyDomain}/cart/${cartItems}?note=${encodedNote}`;
-      
-      console.log('Cart permalink URL:', cartUrl);
-      console.log('Variant IDs being sent:', items.map(i => i.coverVariantId));
+
       window.location.href = cartUrl;
-      
+
     } catch (error) {
-      console.error('Error creating checkout:', error);
       alert('Error processing checkout. Please try again.');
       setLoading(false);
     }

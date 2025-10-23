@@ -25,7 +25,6 @@ export default function ComingSoonPage() {
         alert('Something went wrong. Please try again.');
       }
     } catch (error) {
-      console.error('Error submitting email:', error);
       alert('Something went wrong. Please try again.');
     }
   };

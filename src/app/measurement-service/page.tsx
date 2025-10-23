@@ -102,7 +102,6 @@ export default function MeasurementServicePage() {
         alert('There was an error submitting your request. Please try again or email us directly at support@castawaycovers.com');
       }
     } catch (error) {
-      console.error('Error submitting form:', error);
       alert('There was an error submitting your request. Please try again or email us directly at support@castawaycovers.com');
     }
   };

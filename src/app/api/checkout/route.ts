@@ -70,9 +70,8 @@ export async function POST(request: NextRequest) {
     const cartUrl = `https://${shopifyDomain}/cart/${cartItems}?note=${encodedNote}`;
     
     return NextResponse.json({ checkoutUrl: cartUrl });
-    
+
   } catch (error) {
-    console.error('Checkout creation error:', error);
     return NextResponse.json({ error: 'Failed to create checkout' }, { status: 500 });
   }
 }

@@ -12,18 +12,9 @@ export async function POST(request: NextRequest) {
     
     // Build line items with all properties
     const allLineItems = [];
-    
-    console.log('Processing items for checkout:', items);
-    
+
     // Add cover items and their add-ons
     items.forEach((item: any) => {
-      console.log('Processing item:', {
-        productType: item.productType,
-        snapStraps: item.snapStraps,
-        handles: item.handles,
-        magnets: item.magnets,
-        total: item.total
-      });
       
       // Main cover item
       allLineItems.push({
@@ -50,12 +41,9 @@ export async function POST(request: NextRequest) {
         magnets: process.env.MAGNETS_VARIANT_ID,
         colorUpcharge: process.env.COLOR_UPCHARGE_VARIANT_ID
       };
-      
-      console.log('Add-on variant IDs:', ADD_ON_VARIANT_IDS);
-      
+
       // Add snap straps if selected
       if (item.snapStraps && ADD_ON_VARIANT_IDS.snapStraps) {
-        console.log('Adding snap straps to checkout');
         allLineItems.push({
           variantId: `gid://shopify/ProductVariant/${ADD_ON_VARIANT_IDS.snapStraps}`,
           quantity: item.quantity,
@@ -67,7 +55,6 @@ export async function POST(request: NextRequest) {
       
       // Add handles if selected
       if (item.handles && ADD_ON_VARIANT_IDS.handles) {
-        console.log('Adding handles to checkout');
         allLineItems.push({
           variantId: `gid://shopify/ProductVariant/${ADD_ON_VARIANT_IDS.handles}`,
           quantity: item.quantity,
@@ -79,7 +66,6 @@ export async function POST(request: NextRequest) {
       
       // Add magnetic closure if selected
       if (item.magnets && ADD_ON_VARIANT_IDS.magnets) {
-        console.log('Adding magnets to checkout');
         allLineItems.push({
           variantId: `gid://shopify/ProductVariant/${ADD_ON_VARIANT_IDS.magnets}`,
           quantity: item.quantity,
@@ -91,7 +77,6 @@ export async function POST(request: NextRequest) {
       
       // Add color upcharge if premium color is selected
       if (item.isPremiumColor && item.premiumColorCharge > 0 && ADD_ON_VARIANT_IDS.colorUpcharge) {
-        console.log('Adding premium color upcharge to checkout');
         // Quantity is the number of yards (since it's $4 per yard)
         const colorQuantity = item.yards * item.quantity;
         allLineItems.push({
@@ -173,9 +158,7 @@ export async function POST(request: NextRequest) {
         }
       }
     };
-    
-    console.log('Creating checkout with line items:', JSON.stringify(lineItems, null, 2));
-    
+
     const response = await fetch(`https://${shopifyDomain}/api/2024-01/graphql.json`, {
       method: 'POST',
       headers: {
@@ -184,17 +167,14 @@ export async function POST(request: NextRequest) {
       },
       body: JSON.stringify({ query: mutation, variables })
     });
-    
+
     const data = await response.json();
-    console.log('Shopify response:', JSON.stringify(data, null, 2));
-    
+
     if (data.errors) {
-      console.error('GraphQL errors:', data.errors);
       return NextResponse.json({ error: 'Failed to create checkout', details: data.errors }, { status: 500 });
     }
-    
+
     if (data.data?.cartCreate?.userErrors?.length > 0) {
-      console.error('Cart errors:', data.data.cartCreate.userErrors);
       return NextResponse.json({ 
         error: 'Cart creation failed', 
         details: data.data.cartCreate.userErrors 
@@ -209,9 +189,8 @@ export async function POST(request: NextRequest) {
     }
     
     return NextResponse.json({ error: 'No checkout URL returned' }, { status: 500 });
-    
+
   } catch (error) {
-    console.error('Create checkout error:', error);
     return NextResponse.json({ error: 'Failed to create checkout' }, { status: 500 });
   }
 }

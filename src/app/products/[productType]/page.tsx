@@ -123,15 +123,12 @@ export default function ProductPage() {
     if (editingItemId) {
       // Update existing item
       updateItem(editingItemId, cartItem);
-      console.log('Item updated in cart:', cartItem);
       // Go back to cart after updating
       window.location.href = '/cart';
     } else {
       // Add new item
       addToCart(cartItem);
-      console.log('Item added to cart:', cartItem);
-      console.log('Cart after adding:', useCartStore.getState().items);
-      
+
       // Show success message with options
       const goToCart = window.confirm('Item added to cart! Click OK to view cart or Cancel to continue shopping.');
       if (goToCart) {

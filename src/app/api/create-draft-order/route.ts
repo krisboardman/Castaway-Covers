@@ -90,9 +90,8 @@ export async function POST(request: NextRequest) {
     }
     
     return NextResponse.json({ useRegularCheckout: true });
-    
+
   } catch (error) {
-    console.error('Draft order creation error:', error);
     // Fall back to regular checkout
     return NextResponse.json({ useRegularCheckout: true });
   }

@@ -151,9 +151,8 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
       'tables': 'tables',
       'table-sets': 'tablesets'
     };
-    
+
     const shopifyProductType = skuMappings[productType] || productType;
-    console.log(`Generating SKU for productType: ${productType}, yards: ${yards}, result: ${shopifyProductType}-${yards}`);
     return `${shopifyProductType}-${yards}`;
   };
 
@@ -278,27 +277,16 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
       const yards = calculateYards(measurements);
       const shopifySKU = generateShopifySKU(yards); // New Shopify SKU format
       const price = calculatePrice(yards);
-      
-      // Log calculations for debugging
-      console.log('Measurements:', measurements);
-      console.log('Calculated yards:', yards);
-      console.log('Shopify SKU:', shopifySKU);
-      console.log('Display SKU:', displaySKU);
-      console.log('Price:', price);
-      
+
       // Look up the variant in Shopify
       const variantInfo = await findVariantBySKU(shopifySKU);
-      
+
       if (variantInfo) {
-        console.log('Found variant:', variantInfo);
         // Use the actual price from Shopify if available
         const finalPrice = parseFloat(variantInfo.price) || price;
         const angle = config.hasAngle ? calculateAngle() : 0;
         onCalculate(displaySKU, variantInfo.variantId, finalPrice, yards, angle, measurements);
       } else {
-        console.error('No variant found for SKU:', shopifySKU);
-        console.log('Attempting fallback search for yards:', yards);
-        
         // Try to find by variant title instead of SKU
         const client = await getShopifyClient();
         if (client) {
@@ -306,31 +294,22 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
             const products = await client.product.fetchAll(250);
             let foundVariant = null;
             
-            console.log(`Fallback search for ${productType} with ${yards} yards`);
-            
             for (const product of products) {
               // More flexible product matching
               const productHandle = product.handle.toLowerCase();
               const productTitle = product.title.toLowerCase();
               const searchType = productType.toLowerCase().replace('-', '');
-              
-              console.log(`Checking product: ${product.title} (${product.handle})`);
-              
+
               // Check if this product matches our type
               if (productHandle.includes('chair') && productType === 'chairs-recliners' ||
                   productTitle.includes('chair') && productType === 'chairs-recliners' ||
                   productHandle.includes(searchType) ||
                   productTitle.includes(searchType)) {
-                
-                console.log(`Product matches type ${productType}, checking variants...`);
-                
+
                 for (const variant of product.variants) {
-                  console.log(`  Variant: ${variant.title}, SKU: ${variant.sku}`);
-                  
-                  if (variant.title === `${yards} yards` || 
+                  if (variant.title === `${yards} yards` ||
                       variant.title === `${yards} Yards` ||
                       variant.title.toLowerCase() === `${yards} yards`) {
-                    console.log('Found variant by title match:', variant);
                     foundVariant = {
                       variantId: variant.id.toString().split('/').pop(),
                       price: variant.price.amount,
@@ -351,10 +330,10 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
               return;
             }
           } catch (e) {
-            console.error('Fallback search failed:', e);
+            // Fallback search failed
           }
         }
-        
+
         alert(`Product variant not found for ${yards} yards. Please contact support.`);
         const angle = config.hasAngle ? calculateAngle() : 0;
         onCalculate(displaySKU, '', price, yards, angle, measurements);

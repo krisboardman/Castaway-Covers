@@ -56,18 +56,14 @@ export async function POST(request: NextRequest) {
     // };
     // await sgMail.send(msg);
 
-    // For now, we'll just log the message and return success
-    console.log('Contact form submission:', { name, email, subject, message });
-
     return NextResponse.json(
-      { 
-        success: true, 
-        message: 'Message sent successfully' 
+      {
+        success: true,
+        message: 'Message sent successfully'
       },
       { status: 200 }
     );
   } catch (error) {
-    console.error('Error processing contact form:', error);
     return NextResponse.json(
       { error: 'Failed to send message' },
       { status: 500 }

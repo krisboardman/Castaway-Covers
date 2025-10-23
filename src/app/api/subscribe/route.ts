@@ -27,16 +27,14 @@ export async function POST(request: NextRequest) {
         signup_time: new Date().toLocaleString()
       }),
     });
-    
+
     if (!response.ok) {
-      console.error('Failed to send to Formspree:', response.statusText);
       // Still return success to avoid showing errors to users
       return NextResponse.json({ success: true });
     }
-    
+
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Error processing subscription:', error);
     // Still return success to avoid showing errors to users
     return NextResponse.json({ success: true });
   }

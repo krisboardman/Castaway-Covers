@@ -44,20 +44,17 @@ export async function POST(request: Request) {
     
     // For immediate functionality, we'll return the data and you can use EmailJS
     // or we can set up a proper email service
-    
-    console.log('Measurement request received:', emailContent);
-    
+
     // Store in a database or send via email service here
     // For now, just return success
-    
-    return NextResponse.json({ 
-      success: true, 
+
+    return NextResponse.json({
+      success: true,
       message: 'Request received! We will contact you within 24 hours.',
-      data: data 
+      data: data
     });
-    
+
   } catch (error) {
-    console.error('Error processing measurement request:', error);
     return NextResponse.json(
       { success: false, message: 'Error submitting request' },
       { status: 500 }
