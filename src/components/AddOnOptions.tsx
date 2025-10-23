@@ -152,8 +152,8 @@ const AddOnOptions: React.FC<AddOnOptionsProps> = ({
               <div className="mt-4 ml-8 p-4 bg-gray-50 rounded-lg">
                 <div className="relative h-80 md:h-96 rounded-lg overflow-hidden">
                   <Image
-                    src="/images/Options/Magnetic-closure.png"
-                    alt="Magnetic closure example"
+                    src="/images/Options/split-cover-snaps.jpg"
+                    alt="Split cover with snaps example"
                     fill
                     className="object-contain"
                   />
