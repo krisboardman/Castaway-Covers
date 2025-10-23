@@ -41,8 +41,8 @@ const productConfigs = {
   'sofas-loveseats': {
     fields: ['width', 'length', 'height', 'backrestDepth', 'armrestHeight'],
     labels: {
-      width: 'Depth',
-      length: 'Length',
+      width: 'Length',
+      length: 'Depth',
       height: 'Height',
       backrestDepth: 'Backrest Depth',
       armrestHeight: 'Ground to Top of Armrest'
