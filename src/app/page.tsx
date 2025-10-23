@@ -179,7 +179,7 @@ export default function Home() {
                   alt="Waterproof & Protected"
                   fill
                   sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 20vw"
-                  className="object-cover group-hover:scale-105 transition-transform duration-500"
+                  className="object-cover object-[75%_center] group-hover:scale-105 transition-transform duration-500"
                   loading="lazy"
                 />
               </div>
