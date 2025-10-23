@@ -51,7 +51,7 @@ export default function HeroCarousel() {
             src={slide.image}
             alt={slide.title}
             fill
-            className={index === 3 ? "object-contain" : "object-cover"}
+            className={index === 2 || index === 3 ? "object-contain" : "object-cover"}
             priority={index === 0}
           />
           
