@@ -428,7 +428,8 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
         <p className="text-sm text-yellow-700">
           We manufacture exactly to the dimensions you provide. Please double-check all measurements before ordering.
           We recommend measuring twice to ensure accuracy. We cannot accept returns for covers that don't fit due to
-          incorrect measurements provided at checkout. Contact us if you have any questions on measuring: support@castawaycovers.com.
+          incorrect measurements provided at checkout.{' '}
+          <a href="/contact" className="underline hover:text-yellow-900">Contact us</a> if you have any questions on measuring.
         </p>
       </div>
       
