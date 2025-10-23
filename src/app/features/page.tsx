@@ -50,7 +50,7 @@ export default function FeaturesPage() {
 
           {/* Feature 4: Built-In Bungee Cord Organization */}
           <FeatureSection
-            imagePath="/images/features/zipper.jpg"
+            imagePath="/images/features/bungee-storage.jpg"
             title="Built-In Bungee Cord Organization"
             description="Smart design means easy maintenance. Our bungee cords stay attached to the cover and hang discreetly at the back when not in use. Set the length once for your furniture, then it's simply hook for secure coverage and unhook to remove - the cord length stays set, so there's no readjusting each time you use it."
             benefits={[
@@ -64,7 +64,7 @@ export default function FeaturesPage() {
 
           {/* Feature 5: Tailored Corner Construction */}
           <FeatureSection
-            imagePath="/images/features/flexible-material.jpg"
+            imagePath="/images/features/corner-construction.jpg"
             title="Tailored Corner Construction"
             description="Our innovative corner design allows the cover to drape smoothly and fit snugly over your furniture without bunching or gaps. Each corner features a carefully hemmed cutout with a waterproof inner liner that folds discreetly inside, creating a clean appearance while keeping water out where it matters most."
             benefits={[
