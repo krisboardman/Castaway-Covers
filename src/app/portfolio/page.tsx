@@ -95,7 +95,7 @@ export default function Portfolio() {
       title: 'Castaway Covers',
       category: 'E-commerce',
       description: 'Premium outdoor furniture cover store with custom product configurator and Shopify integration.',
-      image: '/images/hero1.jpg',
+      image: '/images/hero/hero1.webp',
       tech: ['Next.js', 'TypeScript', 'Shopify', 'Tailwind CSS'],
       link: '#'
     },
@@ -103,7 +103,7 @@ export default function Portfolio() {
       title: 'Project Two',
       category: 'Web Application',
       description: 'A comprehensive web application with real-time features and responsive design.',
-      image: '/images/hero2.jpg',
+      image: '/images/hero/hero2.webp',
       tech: ['React', 'Node.js', 'MongoDB', 'Socket.io'],
       link: '#'
     },
@@ -111,7 +111,7 @@ export default function Portfolio() {
       title: 'Project Three',
       category: 'Corporate Website',
       description: 'Modern corporate website with CMS integration and SEO optimization.',
-      image: '/images/hero3.jpg',
+      image: '/images/hero/hero3.webp',
       tech: ['WordPress', 'PHP', 'MySQL', 'Custom Theme'],
       link: '#'
     },
@@ -119,7 +119,7 @@ export default function Portfolio() {
       title: 'Project Four',
       category: 'SaaS Platform',
       description: 'Software as a Service platform with subscription management and user dashboard.',
-      image: '/images/homepage/feature1.jpg',
+      image: '/images/homepage-features/feature1.webp',
       tech: ['Vue.js', 'Laravel', 'PostgreSQL', 'Stripe'],
       link: '#'
     }

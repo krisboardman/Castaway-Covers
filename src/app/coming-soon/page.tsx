@@ -35,7 +35,7 @@ export default function ComingSoonPage() {
         {/* Logo */}
         <div className="mb-8">
           <Image
-            src="/images/castaway-logo.png"
+            src="/images/logos/castaway-logo.png"
             alt="Castaway Covers"
             width={300}
             height={120}

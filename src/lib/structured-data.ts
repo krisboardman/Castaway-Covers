@@ -4,7 +4,7 @@ export function getOrganizationSchema() {
     "@type": "Organization",
     "name": "Castaway Covers",
     "url": "https://castawaycovers.com",
-    "logo": "https://castawaycovers.com/images/logo.png",
+    "logo": "https://castawaycovers.com/images/logos/castaway-logo.png",
     "description": "Premium custom-fit outdoor furniture covers designed for effortless protection",
     "address": {
       "@type": "PostalAddress",
