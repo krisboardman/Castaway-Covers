@@ -29,7 +29,7 @@ export const pageMetadata = {
   },
   faqs: {
     title: 'Frequently Asked Questions | Castaway Covers',
-    description: 'Find answers about our custom patio furniture covers, materials, sizing, shipping, and care instructions. Marine-grade vinyl with 5-year warranty.',
+    description: 'Find answers about our custom patio furniture covers, materials, sizing, shipping, and care instructions. Marine-grade vinyl with 2-year warranty.',
     keywords: 'furniture cover FAQs, cover care, warranty information, sizing guide',
   },
   instructions: {
@@ -53,9 +53,9 @@ export const pageMetadata = {
     keywords: 'return policy, warranty, quality guarantee',
   },
   warranty: {
-    title: '5-Year Warranty | Castaway Covers',
-    description: 'All Castaway Covers come with a 5-year warranty against defects in materials and workmanship. Premium protection for your investment.',
-    keywords: '5 year warranty, cover warranty, quality guarantee',
+    title: '2-Year Warranty | Castaway Covers',
+    description: 'All Castaway Covers come with a 2-year limited warranty against defects in materials and workmanship. Premium protection for your investment.',
+    keywords: '2 year warranty, cover warranty, quality guarantee',
   },
   privacy: {
     title: 'Privacy Policy | Castaway Covers',
