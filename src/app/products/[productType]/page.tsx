@@ -388,7 +388,7 @@ export default function ProductPage() {
                 </div>
               )}
               
-              {magnets && productType === 'sofas-loveseats' && (
+              {magnets && (productType === 'sofas-loveseats' || productType === 'table-sets') && (
                 <div className="flex justify-between">
                   <span>Split Cover with Snaps ({quantity}x)</span>
                   <span>${(35 * quantity).toFixed(2)}</span>

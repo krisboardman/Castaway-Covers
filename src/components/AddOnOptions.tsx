@@ -33,7 +33,7 @@ const AddOnOptions: React.FC<AddOnOptionsProps> = ({
     'chaise-lounge': { snapStraps: true, handles: true, magneticClosure: false },
     'ottomans': { snapStraps: false, handles: true, magneticClosure: false },
     'tables': { snapStraps: false, handles: true, magneticClosure: false },
-    'table-sets': { snapStraps: false, handles: true, magneticClosure: false }
+    'table-sets': { snapStraps: false, handles: true, magneticClosure: true }
   };
   
   const options = productOptions[productType as keyof typeof productOptions] || 
