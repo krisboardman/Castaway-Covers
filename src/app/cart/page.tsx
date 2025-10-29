@@ -12,6 +12,16 @@ export default function CartPage() {
   const clearCart = useCartStore((state) => state.clearCart);
   const [loading, setLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [showContactForm, setShowContactForm] = useState(false);
+  const [customerInfo, setCustomerInfo] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    notes: ''
+  });
+
+  // Check if manual checkout mode is enabled
+  const isManualCheckout = process.env.NEXT_PUBLIC_MANUAL_CHECKOUT === 'true';
   
   // Handle client-side hydration
   useEffect(() => {
@@ -52,6 +62,57 @@ export default function CartPage() {
       </div>
     );
   }
+
+  const handleManualOrder = async () => {
+    if (items.length === 0) return;
+
+    // Validate customer info
+    if (!customerInfo.name || !customerInfo.email) {
+      alert('Please provide your name and email address.');
+      return;
+    }
+
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(customerInfo.email)) {
+      alert('Please provide a valid email address.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await fetch('/api/submit-order', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          customerInfo,
+          items,
+          totalPrice: getTotalPrice()
+        })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        // Clear cart after successful submission
+        clearCart();
+
+        // Show success message
+        alert(`Thank you ${customerInfo.name}! Your order has been received. We'll send you an invoice at ${customerInfo.email} within 24 hours.`);
+
+        // Redirect to home or confirmation page
+        window.location.href = '/';
+      } else {
+        alert(data.message || 'Error submitting order. Please try again.');
+        setLoading(false);
+      }
+    } catch (error) {
+      alert('Error submitting order. Please try again.');
+      setLoading(false);
+    }
+  };
 
   const handleCheckout = async () => {
     if (items.length === 0) return;
@@ -281,25 +342,117 @@ export default function CartPage() {
           
           <div className="bg-white p-6 rounded-lg shadow h-fit sticky top-6">
             <h2 className="text-xl font-semibold mb-4">Order Summary</h2>
-            
+
             <div className="space-y-2 mb-6">
               <div className="flex justify-between font-semibold text-lg">
                 <span>Total</span>
                 <span>${getTotalPrice().toFixed(2)}</span>
               </div>
             </div>
-            
-            <button
-              onClick={handleCheckout}
-              disabled={loading}
-              className={`w-full py-3 px-6 rounded-md font-semibold transition-colors mb-3 ${
-                loading
-                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                  : 'bg-brand-teal text-white hover:bg-brand-teal-dark'
-              }`}
-            >
-              {loading ? 'Processing...' : 'Proceed to Checkout'}
-            </button>
+
+            {isManualCheckout ? (
+              <>
+                {!showContactForm ? (
+                  <button
+                    onClick={() => setShowContactForm(true)}
+                    disabled={loading}
+                    className="w-full py-3 px-6 rounded-md font-semibold transition-colors mb-3 bg-brand-teal text-white hover:bg-brand-teal-dark"
+                  >
+                    Place Order
+                  </button>
+                ) : (
+                  <div className="space-y-4 mb-4">
+                    <h3 className="font-semibold text-gray-900">Contact Information</h3>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Name <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={customerInfo.name}
+                        onChange={(e) => setCustomerInfo({...customerInfo, name: e.target.value})}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-brand-teal focus:border-brand-teal"
+                        placeholder="John Doe"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Email <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="email"
+                        value={customerInfo.email}
+                        onChange={(e) => setCustomerInfo({...customerInfo, email: e.target.value})}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-brand-teal focus:border-brand-teal"
+                        placeholder="john@example.com"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Phone (optional)
+                      </label>
+                      <input
+                        type="tel"
+                        value={customerInfo.phone}
+                        onChange={(e) => setCustomerInfo({...customerInfo, phone: e.target.value})}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-brand-teal focus:border-brand-teal"
+                        placeholder="(555) 123-4567"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Additional Notes (optional)
+                      </label>
+                      <textarea
+                        value={customerInfo.notes}
+                        onChange={(e) => setCustomerInfo({...customerInfo, notes: e.target.value})}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-brand-teal focus:border-brand-teal"
+                        rows={3}
+                        placeholder="Any special requests or questions?"
+                      />
+                    </div>
+
+                    <button
+                      onClick={handleManualOrder}
+                      disabled={loading}
+                      className={`w-full py-3 px-6 rounded-md font-semibold transition-colors ${
+                        loading
+                          ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                          : 'bg-brand-teal text-white hover:bg-brand-teal-dark'
+                      }`}
+                    >
+                      {loading ? 'Submitting...' : 'Submit Order'}
+                    </button>
+
+                    <button
+                      onClick={() => setShowContactForm(false)}
+                      disabled={loading}
+                      className="w-full py-2 px-4 text-sm text-gray-600 hover:text-gray-800"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                )}
+              </>
+            ) : (
+              <button
+                onClick={handleCheckout}
+                disabled={loading}
+                className={`w-full py-3 px-6 rounded-md font-semibold transition-colors mb-3 ${
+                  loading
+                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    : 'bg-brand-teal text-white hover:bg-brand-teal-dark'
+                }`}
+              >
+                {loading ? 'Processing...' : 'Proceed to Checkout'}
+              </button>
+            )}
             
             <button
               onClick={() => {
