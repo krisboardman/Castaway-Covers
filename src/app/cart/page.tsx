@@ -22,12 +22,14 @@ export default function CartPage() {
 
   // Check if manual checkout mode is enabled
   const isManualCheckout = process.env.NEXT_PUBLIC_MANUAL_CHECKOUT === 'true';
-  
+
   // Handle client-side hydration
   useEffect(() => {
     setMounted(true);
     setLoading(false); // Reset loading state when component mounts
-  }, [items]);
+    console.log('Manual checkout mode:', isManualCheckout);
+    console.log('Environment variable value:', process.env.NEXT_PUBLIC_MANUAL_CHECKOUT);
+  }, [items, isManualCheckout]);
   
   // Reset loading state when page becomes visible (e.g., back button)
   useEffect(() => {
