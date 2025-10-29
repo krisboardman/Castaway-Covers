@@ -6,7 +6,7 @@ export function middleware(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams
 
   // Coming Soon Configuration
-  const COMING_SOON_ENABLED = true
+  const COMING_SOON_ENABLED = false
   const ADMIN_TOKEN = 'castaway-admin-2025'
   
   // List of paths that should bypass coming soon
