@@ -27,7 +27,8 @@ export default function CartPage() {
     setLoading(false); // Reset loading state when component mounts
 
     // Check if manual checkout mode is enabled from environment variable
-    const manualMode = process.env.NEXT_PUBLIC_MANUAL_CHECKOUT === 'true';
+    // For now, hardcoded to true since we're on the $10/month plan
+    const manualMode = true; // Will change to: process.env.NEXT_PUBLIC_MANUAL_CHECKOUT === 'true' when switching to Shopify checkout
     setIsManualCheckout(manualMode);
 
     console.log('Manual checkout mode:', manualMode);
