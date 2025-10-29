@@ -19,17 +19,20 @@ export default function CartPage() {
     phone: '',
     notes: ''
   });
-
-  // Check if manual checkout mode is enabled
-  const isManualCheckout = process.env.NEXT_PUBLIC_MANUAL_CHECKOUT === 'true';
+  const [isManualCheckout, setIsManualCheckout] = useState(true); // Default to manual checkout
 
   // Handle client-side hydration
   useEffect(() => {
     setMounted(true);
     setLoading(false); // Reset loading state when component mounts
-    console.log('Manual checkout mode:', isManualCheckout);
+
+    // Check if manual checkout mode is enabled from environment variable
+    const manualMode = process.env.NEXT_PUBLIC_MANUAL_CHECKOUT === 'true';
+    setIsManualCheckout(manualMode);
+
+    console.log('Manual checkout mode:', manualMode);
     console.log('Environment variable value:', process.env.NEXT_PUBLIC_MANUAL_CHECKOUT);
-  }, [items, isManualCheckout]);
+  }, [items]);
   
   // Reset loading state when page becomes visible (e.g., back button)
   useEffect(() => {
