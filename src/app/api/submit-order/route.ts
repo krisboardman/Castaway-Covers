@@ -87,7 +87,7 @@ www.castawaycovers.com
     try {
       // Email to you (the business owner)
       await resend.emails.send({
-        from: 'Castaway Covers <orders@castawaycovers.com>',
+        from: 'Castaway Covers <onboarding@resend.dev>',
         to: process.env.NOTIFICATION_EMAIL || 'support@castawaycovers.com',
         subject: `New Order from ${customerInfo.name} - $${totalPrice.toFixed(2)}`,
         text: emailToYou,
@@ -95,7 +95,7 @@ www.castawaycovers.com
 
       // Email to customer
       await resend.emails.send({
-        from: 'Castaway Covers <orders@castawaycovers.com>',
+        from: 'Castaway Covers <onboarding@resend.dev>',
         to: customerInfo.email,
         subject: 'Your Castaway Covers Order Received',
         text: emailToCustomer,
