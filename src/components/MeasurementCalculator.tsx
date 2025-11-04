@@ -51,15 +51,14 @@ const productConfigs = {
     measurementImage: '/images/Measurements/sofa_measurements_text.jpg'
   },
   'chaise-lounge': {
-    fields: ['width', 'length', 'height', 'backrestDepth', 'armrestHeight'],
+    fields: ['width', 'length', 'height', 'armrestHeight'],
     labels: {
-      width: 'Width',
-      length: 'Length',
-      height: 'Height',
-      backrestDepth: 'Backrest Depth',
-      armrestHeight: 'Ground to Top of Armrest'
+      width: 'Width (arm to arm)',
+      length: 'Length (folded down)',
+      height: 'Floor to Bottom of Seat',
+      armrestHeight: 'Floor to Top of Armrest'
     },
-    hasAngle: true,
+    hasAngle: false,
     measurementImage: '/images/Measurements/chaise measurements.jpg'
   },
   'ottomans': {
@@ -159,8 +158,43 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
   const calculateYards = (measurements: any): number => {
     const { width, length, height, backrestDepth, armrestHeight } = measurements;
 
-    // Calculation for chairs/recliners and chaise lounge (single piece)
-    if (productType === 'chairs-recliners' || productType === 'chaise-lounge') {
+    // Calculation for chaise lounge (new formula based on spreadsheet)
+    if (productType === 'chaise-lounge') {
+      if (!width || !length || !height || !armrestHeight) return 0;
+
+      // Constants
+      const BOLT_WIDTH = 54; // Width of material bolt from supplier
+      const CLEARANCE = 3;   // Floor clearance
+
+      // FTBS = height (floor to bottom of seat/cushion)
+      // FTA = armrestHeight (floor to top of armrest)
+      const FTBS = height;
+      const FTA = armrestHeight;
+
+      // Main length = length + 2(FTBS - 3 clearance)
+      const mainLength = length + 2 * (FTBS - CLEARANCE);
+
+      // Main width = width + 2(FTA - 3 clearance)
+      const mainWidth = width + 2 * (FTA - CLEARANCE);
+
+      // Additional length if main width > bolt width (54")
+      // Formula: (main width - bolt width) + 2
+      let additionalLength = 0;
+      if (mainWidth > BOLT_WIDTH) {
+        additionalLength = (mainWidth - BOLT_WIDTH) + 2;
+      }
+
+      // Total length needed
+      const totalLength = mainLength + additionalLength;
+
+      // Convert to yards and round up
+      const yardsNeeded = totalLength / 36;
+
+      return Math.ceil(yardsNeeded);
+    }
+
+    // Calculation for chairs/recliners (single piece)
+    if (productType === 'chairs-recliners') {
       if (!width || !length || !height || !backrestDepth || !armrestHeight) return 0;
 
       // Constants from HTML calculator
