@@ -246,8 +246,9 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
       // Yards per lane
       const yardsPerLane = perLaneLength / 36;
 
-      // Total yards = yards per lane × 2 lanes, rounded up
-      const totalYards = Math.ceil(yardsPerLane) * 2;
+      // Total yards = (yards per lane × 2 lanes), rounded up
+      // Round AFTER multiplying to avoid over-rounding
+      const totalYards = Math.ceil(yardsPerLane * 2);
 
       return totalYards;
     }
