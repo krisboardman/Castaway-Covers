@@ -71,6 +71,7 @@
             <label class="lbl">Length (folded down)<input id="L" type="number" value="79" step="1" /></label>
             <label class="lbl">Floor to Bottom of Seat (FTBS)<input id="FTBS" type="number" value="17" step="1" /></label>
             <label class="lbl">Floor to Top of Armrest (FTA)<input id="FTA" type="number" value="20" step="1" /></label>
+            <label class="lbl">Arm Length<input id="armLength" type="number" value="34" step="1" /></label>
           </div>
           <div id="err" class="note danger" style="display:none;"></div>
         </div>
@@ -305,7 +306,7 @@ function compute(){
 }
 
 function exportAsText(){
-  const inputs = {B:parseNum('B'),W:parseNum('W'),L:parseNum('L'),FTBS:parseNum('FTBS'),FTA:parseNum('FTA')};
+  const inputs = {B:parseNum('B'),W:parseNum('W'),L:parseNum('L'),FTBS:parseNum('FTBS'),FTA:parseNum('FTA'),armLength:parseNum('armLength')};
   const rounded = document.getElementById('roundToggle').checked;
   const date = new Date().toLocaleDateString();
 
@@ -318,7 +319,8 @@ function exportAsText(){
   text += `Width (arm to arm): ${inputs.W} in\n`;
   text += `Length (folded down): ${inputs.L} in\n`;
   text += `Floor to Bottom of Seat (FTBS): ${inputs.FTBS} in\n`;
-  text += `Floor to Top of Armrest (FTA): ${inputs.FTA} in\n\n`;
+  text += `Floor to Top of Armrest (FTA): ${inputs.FTA} in\n`;
+  text += `Arm Length: ${inputs.armLength} in\n\n`;
 
   text += `RESULTS:\n`;
   const results = document.getElementById('results');
@@ -346,11 +348,11 @@ function exportAsText(){
 }
 
 function copyToClipboard(){
-  const inputs = {B:parseNum('B'),W:parseNum('W'),L:parseNum('L'),FTBS:parseNum('FTBS'),FTA:parseNum('FTA')};
+  const inputs = {B:parseNum('B'),W:parseNum('W'),L:parseNum('L'),FTBS:parseNum('FTBS'),FTA:parseNum('FTA'),armLength:parseNum('armLength')};
   const rounded = document.getElementById('roundToggle').checked;
 
   let text = `CHAISE LOUNGE COVER CALCULATOR RESULTS\n`;
-  text += `Inputs: Bolt=${inputs.B}, Width=${inputs.W}, Length=${inputs.L}, FTBS=${inputs.FTBS}, FTA=${inputs.FTA}\n`;
+  text += `Inputs: Bolt=${inputs.B}, Width=${inputs.W}, Length=${inputs.L}, FTBS=${inputs.FTBS}, FTA=${inputs.FTA}, ArmLength=${inputs.armLength}\n`;
   text += `Rounding: ${rounded ? 'ON' : 'OFF'}\n\n`;
 
   const results = document.getElementById('results');
@@ -373,7 +375,7 @@ function printPage(){
 // Load values from URL parameters (for auto-population from orders)
 function loadFromURL(){
   const params = new URLSearchParams(window.location.search);
-  const fields = ['B', 'W', 'L', 'FTBS', 'FTA'];
+  const fields = ['B', 'W', 'L', 'FTBS', 'FTA', 'armLength'];
   let loaded = false;
 
   fields.forEach(field => {
@@ -395,7 +397,7 @@ function wire(){
   ['input','change','keyup'].forEach(ev => { inputsCard.addEventListener(ev, compute); });
   document.getElementById('recalc').addEventListener('click', compute);
   document.getElementById('resetBtn').addEventListener('click', ()=>{
-    const defaults = {B:54, W:24, L:79, FTBS:17, FTA:20};
+    const defaults = {B:54, W:24, L:79, FTBS:17, FTA:20, armLength:34};
     Object.entries(defaults).forEach(([id,val])=>{ const el=document.getElementById(id); el.value=val; });
     document.getElementById('roundToggle').checked = true;
     compute();
