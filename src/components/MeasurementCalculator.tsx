@@ -51,12 +51,13 @@ const productConfigs = {
     measurementImage: '/images/Measurements/sofa_measurements_text.jpg'
   },
   'chaise-lounge': {
-    fields: ['width', 'length', 'height', 'armrestHeight'],
+    fields: ['width', 'length', 'height', 'armrestHeight', 'armLength'],
     labels: {
       width: 'Width (arm to arm)',
       length: 'Length (folded down)',
       height: 'Floor to Bottom of Seat',
-      armrestHeight: 'Floor to Top of Armrest'
+      armrestHeight: 'Floor to Top of Armrest',
+      armLength: 'Arm Length'
     },
     hasAngle: false,
     measurementImage: '/images/Measurements/chaise measurements.jpg'
@@ -100,7 +101,8 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
     height: 0,
     backrestDepth: 0,
     armrestHeight: 0,
-    backWidth: 0
+    backWidth: 0,
+    armLength: 0
   });
   const [showGuide, setShowGuide] = useState(false);
   const [hasCalculated, setHasCalculated] = useState(false);
@@ -301,8 +303,8 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
 
 
   const handleCalculate = async () => {
-    // backWidth is optional, exclude it from required fields validation
-    const requiredFields = config.fields.filter(field => field !== 'backWidth');
+    // backWidth and armLength are optional, exclude them from required fields validation
+    const requiredFields = config.fields.filter(field => field !== 'backWidth' && field !== 'armLength');
     const hasAllMeasurements = requiredFields.every(field => measurements[field] > 0);
     
     if (hasAllMeasurements) {
@@ -470,13 +472,13 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
       <button
         onClick={handleCalculate}
         className={`w-full py-3 px-4 rounded-md font-medium transition-all ${
-          config.fields.filter(field => field !== 'backWidth').every(field => measurements[field] > 0) && !hasCalculated
+          config.fields.filter(field => field !== 'backWidth' && field !== 'armLength').every(field => measurements[field] > 0) && !hasCalculated
             ? 'bg-orange-600 hover:bg-orange-700 text-white animate-pulse'
             : 'bg-brand-teal hover:bg-brand-teal-dark text-white'
         }`}
-        disabled={!config.fields.filter(field => field !== 'backWidth').every(field => measurements[field] > 0)}
+        disabled={!config.fields.filter(field => field !== 'backWidth' && field !== 'armLength').every(field => measurements[field] > 0)}
       >
-        {config.fields.filter(field => field !== 'backWidth').every(field => measurements[field] > 0) && !hasCalculated
+        {config.fields.filter(field => field !== 'backWidth' && field !== 'armLength').every(field => measurements[field] > 0) && !hasCalculated
           ? '⚠️ Click to Update Price & Size'
           : 'Calculate Cover Size & Price'}
       </button>
