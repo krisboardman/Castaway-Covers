@@ -27,6 +27,11 @@ export async function POST(request: Request) {
       if (item.handles) addOns.push('Handles (+$20)');
       if (item.magnets) addOns.push('Split Cover with Snaps (+$35)');
 
+      // Determine if this is a sofa/loveseat (uses "Depth" instead of "Length")
+      const isSofa = item.productType === 'sofas-loveseats';
+      const lengthLabel = isSofa ? 'Depth' : 'Length';
+      const widthLabel = isSofa ? 'Length' : 'Width';
+
       return `
 Item ${index + 1}: ${item.productType}
 --------------------------------
@@ -36,8 +41,8 @@ Quantity: ${item.quantity}
 Yards: ${item.yards}
 
 Measurements:
-  Width: ${item.measurements?.width || 0}"
-  Length: ${item.measurements?.length || 0}"
+  ${widthLabel}: ${item.measurements?.width || 0}"
+  ${lengthLabel}: ${item.measurements?.length || 0}"
   Height: ${item.measurements?.height || 0}"
   ${item.measurements?.backrestDepth ? `Backrest Depth: ${item.measurements.backrestDepth}"` : ''}
   ${item.measurements?.armrestHeight ? `Armrest Height: ${item.measurements.armrestHeight}"` : ''}
