@@ -3,7 +3,7 @@ import { Metadata } from 'next';
 // SEO metadata for all pages
 export const pageMetadata = {
   home: {
-    title: 'Castaway Covers - Premium Custom Patio Furniture Covers | New Jersey',
+    title: 'Castaway Covers - Premium Custom Patio Furniture Covers',
     description: 'Protect your outdoor furniture with custom-fit, marine-grade covers. Handcrafted in Rumson, NJ. Waterproof, UV-resistant, and built to last. Free measurement service available.',
     keywords: 'patio furniture covers, outdoor furniture covers, custom covers, waterproof covers, UV resistant, New Jersey, Rumson',
   },

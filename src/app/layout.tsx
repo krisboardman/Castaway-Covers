@@ -22,15 +22,23 @@ const playfair = Playfair_Display({
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://castawaycovers.com'),
-  title: "Castaway Covers - Premium Patio Furniture Protection",
+  title: "Castaway Covers - Premium Custom Patio Furniture Covers",
   description: "Custom-fit covers for your outdoor furniture with marine-grade materials",
   openGraph: {
     type: 'website',
     locale: 'en_US',
     url: 'https://castawaycovers.com',
     siteName: 'Castaway Covers',
-    title: 'Castaway Covers - Premium Patio Furniture Protection',
+    title: 'Castaway Covers - Premium Custom Patio Furniture Covers',
     description: 'Custom-fit covers for your outdoor furniture with marine-grade materials',
+    images: [
+      {
+        url: '/images-optimized/og-image.jpg',
+        width: 1200,
+        height: 630,
+        alt: 'Castaway Covers - Premium Patio Furniture Protection',
+      },
+    ],
   },
   alternates: {
     canonical: 'https://castawaycovers.com'

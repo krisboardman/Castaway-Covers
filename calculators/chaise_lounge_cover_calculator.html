@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Chaise Lounge Cover Calculator</title>
+<style>
+  :root { --bg:#f8fafc; --card:#ffffff; --text:#0f172a; --sub:#475569; --muted:#e2e8f0; --accent:#22c55e; }
+  body { font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; background:var(--bg); color:var(--text); margin:0; padding:24px; }
+  .wrap { max-width: 1200px; margin: 0 auto; }
+  h1 { font-size: 24px; margin: 0 0 18px; }
+  .controls { display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin-bottom:12px; }
+  .pill { padding:6px 10px; border-radius:999px; border:1px solid #cbd5e1; background:#eff6ff; color:#1e293b; font-size:12px; }
+  .switch { display:flex; align-items:center; gap:8px; font-size:14px; }
+  .grid { display:grid; grid-template-columns: 1.1fr 0.9fr; gap:16px; }
+  .card { background:var(--card); border:1px solid var(--muted); border-radius:14px; padding:16px; box-shadow: 0 1px 8px rgba(0,0,0,0.04); }
+  .title { font-weight:600; margin-bottom:8px; }
+  .inputs { display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:10px; }
+  label.lbl { display:grid; gap:6px; font-size:12px; color:var(--sub); }
+  input[type="number"] { border:1px solid var(--muted); border-radius:10px; padding:10px 12px; font-size:14px; }
+  .row { display:flex; justify-content:space-between; align-items:center; font-size:14px; padding:8px 0; }
+  .row + .row { border-top:1px dashed var(--muted); }
+  .note { font-size:12px; color:var(--sub); margin-top:8px; }
+  .btn { padding:8px 10px; border-radius:10px; border:1px solid var(--muted); background:#fff; cursor:pointer; }
+  .danger { color:#b91c1c; }
+  .diagramBox { display:flex; flex-direction:column; gap:10px; }
+  svg { width:100%; height:420px; border:1px dashed #cbd5e1; border-radius:12px; background:#fcfdff; }
+  .legend { display:flex; gap:12px; align-items:center; font-size:12px; color:var(--sub); }
+  .chip { display:inline-block; width:12px; height:12px; border-radius:2px; border:1px solid #0f172a22; }
+
+  @media print {
+    body { padding: 10px; margin: 0; }
+    .wrap { max-width: 100%; }
+    h1 { font-size: 20px; margin: 0 0 10px; }
+    .controls { display: none; }
+    .card { padding: 10px; margin-bottom: 10px; page-break-inside: avoid; }
+    .grid { gap: 10px; }
+    .title { font-size: 14px; margin-bottom: 5px; }
+    .row { padding: 4px 0; font-size: 12px; }
+    .note { font-size: 10px; margin-top: 5px; }
+    svg { height: 350px; page-break-inside: avoid; }
+    .diagramBox { page-break-inside: avoid; }
+    .legend { font-size: 10px; }
+    input[type="number"] { font-size: 11px; padding: 4px 6px; }
+    label.lbl { font-size: 10px; }
+    .inputs { gap: 6px; }
+    .danger { font-size: 10px; }
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Chaise Lounge Cover Calculator</h1>
+    <div class="controls">
+      <span class="pill">Units: inches</span>
+      <label class="switch"><input id="roundToggle" type="checkbox" checked /> <span>Round to nearest inch / ceil yards</span></label>
+      <button id="recalc" class="btn">Recalculate</button>
+      <button id="resetBtn" class="btn">Reset to sample</button>
+      <button id="exportTxt" class="btn">Export as Text</button>
+      <button id="printPage" class="btn">Print/PDF</button>
+      <button id="copyResults" class="btn">Copy Results</button>
+    </div>
+
+    <div class="grid">
+      <div>
+        <div class="card" id="inputsCard">
+          <div class="title">Inputs</div>
+          <div class="inputs">
+            <label class="lbl">Bolt width (supplier)<input id="B" type="number" value="54" step="1" /></label>
+            <label class="lbl">Width (arm to arm)<input id="W" type="number" value="24" step="1" /></label>
+            <label class="lbl">Length (folded down)<input id="L" type="number" value="79" step="1" /></label>
+            <label class="lbl">Floor to Bottom of Seat (FTBS)<input id="FTBS" type="number" value="17" step="1" /></label>
+            <label class="lbl">Floor to Top of Armrest (FTA)<input id="FTA" type="number" value="20" step="1" /></label>
+          </div>
+          <div id="err" class="note danger" style="display:none;"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="title">Results</div>
+        <div id="results"></div>
+        <div class="title" style="margin-top:10px;">Material to Buy</div>
+        <div id="buy"></div>
+        <div class="note">Rounded mode rounds <b>up</b>: inches to whole numbers; yards to the next whole yard.</div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <div class="title">Cut Diagram (to scale)</div>
+      <div class="diagramBox">
+        <svg id="diagram" viewBox="0 0 980 520" preserveAspectRatio="xMidYMid meet"></svg>
+        <div class="legend">
+          <span class="chip" style="background:#eef2ff;"></span> Main panel
+          <span class="chip" style="background:#22c55e33; border-color:#16a34a66;"></span> Additional width panels (if main width > bolt width)
+          <span style="margin-left:auto; font-size:12px;">Labels use rounded values</span>
+        </div>
+        <div style="display:flex; gap:8px; align-items:center; justify-content:flex-end;">
+          <button id="exportPng" class="btn">Download PNG</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <div class="title">Cut List</div>
+      <div id="cutlist"></div>
+      <div class="note">Sizes shown are cut sizes for the main panel and additional width panels (if needed).</div>
+    </div>
+  </div>
+
+<script>
+function parseNum(id){
+  const el = document.getElementById(id);
+  const v = Number(el.value);
+  return isFinite(v) ? v : 0;
+}
+function fmtExact(val){ return isFinite(val) ? (Math.round(val*100)/100).toFixed(2) : "–"; }
+function fmtInch(val, rounded){ return rounded ? Math.ceil(val).toString() : fmtExact(val); }
+function fmtYardsFromInches(inches, rounded){
+  const y = inches/36; return rounded ? Math.ceil(y).toString() : fmtExact(y);
+}
+
+function drawDiagram(params){
+  const {B, mainWidth, mainLength, additionalLength, rounded} = params;
+  const rIn = v => rounded ? Math.ceil(v) : Math.round(v*100)/100;
+  const svg = document.getElementById('diagram');
+  while (svg.firstChild) svg.removeChild(svg.firstChild);
+  const VBW = svg.viewBox.baseVal.width, VBH = svg.viewBox.baseVal.height;
+  const pad = 40;
+
+  const totalLength = mainLength + additionalLength;
+  const totalWidth = mainWidth;
+
+  const scale = Math.min((VBW-pad*2)/totalWidth, (VBH-pad*2)/totalLength) || 1;
+  const sx = pad, sy = pad;
+
+  const add = (t,a,p=svg)=>{const e=document.createElementNS('http://www.w3.org/2000/svg',t); for(const k in a) e.setAttribute(k,a[k]); p.appendChild(e); return e;};
+  const defs = add('defs',{});
+  const m = add('marker',{id:'arr',markerWidth:8,markerHeight:8,refX:4,refY:4,orient:'auto',viewBox:'0 0 8 8'},defs);
+  const p = document.createElementNS('http://www.w3.org/2000/svg','path'); p.setAttribute('d','M0,0 L8,4 L0,8 Z'); p.setAttribute('fill','#334155'); m.appendChild(p);
+  const arrow=(x1,y1,x2,y2)=>add('line',{x1,y1,x2,y2,stroke:'#334155','marker-start':'url(#arr)','marker-end':'url(#arr)'});
+
+  // Main panel (uses bolt width or main width, whichever is smaller)
+  const mainPanelWidth = Math.min(B, mainWidth);
+  const mainPanelX = sx + (mainWidth > B ? ((mainWidth - B)/2) * scale : 0);
+  const mainPanelY = sy;
+  const mpw = mainPanelWidth * scale;
+  const mph = mainLength * scale;
+
+  add('rect',{x:mainPanelX, y:mainPanelY, width:mpw, height:mph, fill:'#eef2ff', stroke:'#0f172a'});
+
+  // Additional width panels (if main width > bolt width)
+  if (mainWidth > B && additionalLength > 0) {
+    const extraWidth = mainWidth - B;
+    const sideWidth = extraWidth / 2;
+
+    // Left panel
+    add('rect',{x:sx, y:sy + mainLength * scale, width:sideWidth * scale, height:additionalLength * scale, fill:'#22c55e33', stroke:'#16a34a66'});
+    // Right panel
+    add('rect',{x:sx + (sideWidth + mainPanelWidth) * scale, y:sy + mainLength * scale, width:sideWidth * scale, height:additionalLength * scale, fill:'#22c55e33', stroke:'#16a34a66'});
+  }
+
+  // Dimension arrows and labels
+  arrow(sx, sy-18, sx + totalWidth*scale, sy-18);
+  add('text',{x:sx + totalWidth*scale/2, y:sy-24, 'text-anchor':'middle','font-size':12, fill:'#334155'}).textContent=`Main Width: ${rIn(mainWidth)} in`;
+
+  arrow(sx-18, sy, sx-18, sy + mainLength*scale);
+  add('text',{x:sx-22, y:sy + mainLength*scale/2, 'text-anchor':'end','dominant-baseline':'middle','font-size':12, fill:'#334155', transform:`rotate(-90 ${sx-22} ${sy + mainLength*scale/2})`}).textContent=`Main Length: ${rIn(mainLength)} in`;
+
+  if (additionalLength > 0) {
+    arrow(sx + totalWidth*scale + 10, sy + mainLength*scale, sx + totalWidth*scale + 10, sy + totalLength*scale);
+    add('text',{x:sx + totalWidth*scale + 14, y: sy + (mainLength + additionalLength/2)*scale, 'font-size':12, fill:'#334155'}).textContent=`Add. Length: ${rIn(additionalLength)} in`;
+  }
+
+  // Bolt width label
+  if (mainWidth > B) {
+    arrow(mainPanelX, sy + mph + 22, mainPanelX + mpw, sy + mph + 22);
+    add('text',{x:mainPanelX + mpw/2, y:sy + mph + 36, 'text-anchor':'middle', 'font-size':12, fill:'#334155'}).textContent=`Bolt width: ${rIn(B)} in`;
+  }
+}
+
+function updateCutList({B, mainWidth, mainLength, additionalLength}){
+  const cutlist = document.getElementById('cutlist');
+  const rows = [];
+
+  const mainPanelWidth = Math.min(B, mainWidth);
+  rows.push(['Main panel', `${mainPanelWidth.toFixed(1)} in x ${mainLength.toFixed(1)} in`, 'Qty 1']);
+
+  if (mainWidth > B && additionalLength > 0) {
+    const sideWidth = ((mainWidth - B) / 2).toFixed(1);
+    rows.push(['Additional width panel (each)', `${sideWidth} in x ${additionalLength.toFixed(1)} in`, 'Qty 2']);
+  } else {
+    rows.push(['Additional width panels', 'Not required (main width ≤ bolt width)', '—']);
+  }
+
+  cutlist.innerHTML = rows.map((r,i)=>`<div class="row" style="${i? 'border-top:1px dashed var(--muted);':''}"><span>${r[0]}</span><strong>${r[1]}</strong><span style="color:var(--sub)">${r[2]}</span></div>`).join('');
+}
+
+function exportDiagramPNG(){
+  const svg = document.getElementById('diagram');
+  const serializer = new XMLSerializer();
+  const source = serializer.serializeToString(svg);
+  const svgBlob = new Blob([source], {type:'image/svg+xml;charset=utf-8'});
+  const url = URL.createObjectURL(svgBlob);
+  const img = new Image();
+  img.onload = function(){
+    const canvas = document.createElement('canvas');
+    canvas.width = svg.viewBox.baseVal.width;
+    canvas.height = svg.viewBox.baseVal.height;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.drawImage(img,0,0);
+    URL.revokeObjectURL(url);
+    const a = document.createElement('a');
+    a.download = 'chaise-lounge-cover-diagram.png';
+    a.href = canvas.toDataURL('image/png');
+    a.click();
+  };
+  img.src = url;
+}
+
+function compute(){
+  try{
+    const rounded = document.getElementById('roundToggle').checked;
+
+    const B = parseNum('B');       // Bolt width
+    const W = parseNum('W');       // Width (arm to arm)
+    const L = parseNum('L');       // Length (folded down)
+    const FTBS = parseNum('FTBS'); // Floor to bottom of seat
+    const FTA = parseNum('FTA');   // Floor to top of armrest
+
+    const CLEARANCE = 3; // Floor clearance constant
+
+    // Main length = length + 2(FTBS - 3)
+    const mainLength = L + 2 * (FTBS - CLEARANCE);
+
+    // Main width = width + 2(FTA - 3)
+    const mainWidth = W + 2 * (FTA - CLEARANCE);
+
+    // Additional length if main width > bolt width
+    // Formula: (main width - bolt width) + 2
+    let additionalLength = 0;
+    if (mainWidth > B) {
+      additionalLength = (mainWidth - B) + 2;
+    }
+
+    // Total length
+    const totalLength = mainLength + additionalLength;
+
+    // Yards needed
+    const yardsNeeded = totalLength / 36;
+
+    const rows = [
+      ['Main length', `${fmtInch(mainLength, rounded)} in (${fmtYardsFromInches(mainLength, rounded)} yd)`, `${L} + 2(${FTBS} - ${CLEARANCE}) = ${L} + 2(${FTBS - CLEARANCE}) = ${fmtExact(mainLength)}`],
+      ['Main width', `${fmtInch(mainWidth, rounded)} in`, `${W} + 2(${FTA} - ${CLEARANCE}) = ${W} + 2(${FTA - CLEARANCE}) = ${fmtExact(mainWidth)}`],
+      ['Main width > bolt width?', mainWidth > B ? 'Yes' : 'No', `${fmtExact(mainWidth)} ${mainWidth > B ? '>' : '≤'} ${B}`],
+      ['Additional length (if needed)', additionalLength > 0 ? `${fmtInch(additionalLength, rounded)} in` : 'Not needed', additionalLength > 0 ? `(${fmtExact(mainWidth)} - ${B}) + 2 = ${fmtExact(additionalLength)}` : 'Main width fits within bolt width'],
+      ['Total length', `${fmtInch(totalLength, rounded)} in`, `${fmtExact(mainLength)} + ${fmtExact(additionalLength)} = ${fmtExact(totalLength)}`],
+    ];
+
+    const results = document.getElementById('results');
+    results.innerHTML = '';
+    rows.forEach(([label, value, calc], i)=>{
+      const div = document.createElement('div');
+      div.className = 'row';
+      div.style.display = 'block';
+      div.style.padding = '8px 0';
+      if (i>0) div.style.borderTop = '1px dashed var(--muted)';
+      div.innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span>${label}</span><strong>${value}</strong>
+        </div>
+        ${calc ? `<div style="font-size:11px;color:var(--sub);margin-top:4px;">${calc}</div>` : ''}
+      `;
+      results.appendChild(div);
+    });
+
+    const buy = document.getElementById('buy');
+    buy.innerHTML = '';
+    const bRows = [
+      ['Total length needed', `${fmtInch(totalLength, rounded)} in`],
+      ['Yards to buy', `${fmtYardsFromInches(totalLength, rounded)} yd`],
+    ];
+    bRows.forEach(([label, value], i)=>{
+      const div = document.createElement('div');
+      div.className = 'row';
+      div.innerHTML = `<span>${label}</span><strong>${value}</strong>`;
+      if (i>0) div.style.borderTop = '1px dashed var(--muted)';
+      buy.appendChild(div);
+    });
+
+    // Draw diagram and update cut list
+    const payload = {B, mainWidth, mainLength, additionalLength, rounded};
+    drawDiagram(payload);
+    updateCutList(payload);
+    const exp = document.getElementById('exportPng');
+    if (exp && !exp._wired){ exp._wired = true; exp.addEventListener('click', exportDiagramPNG); }
+
+    document.getElementById('err').style.display = 'none';
+  } catch (e) {
+    const err = document.getElementById('err');
+    err.style.display = 'block';
+    err.textContent = 'Error: ' + e.message;
+  }
+}
+
+function exportAsText(){
+  const inputs = {B:parseNum('B'),W:parseNum('W'),L:parseNum('L'),FTBS:parseNum('FTBS'),FTA:parseNum('FTA')};
+  const rounded = document.getElementById('roundToggle').checked;
+  const date = new Date().toLocaleDateString();
+
+  let text = `CHAISE LOUNGE COVER CALCULATOR RESULTS\n`;
+  text += `Generated: ${date}\n`;
+  text += `Rounding: ${rounded ? 'ON (rounded up)' : 'OFF (exact)'}\n\n`;
+
+  text += `INPUTS:\n`;
+  text += `Bolt width: ${inputs.B} in\n`;
+  text += `Width (arm to arm): ${inputs.W} in\n`;
+  text += `Length (folded down): ${inputs.L} in\n`;
+  text += `Floor to Bottom of Seat (FTBS): ${inputs.FTBS} in\n`;
+  text += `Floor to Top of Armrest (FTA): ${inputs.FTA} in\n\n`;
+
+  text += `RESULTS:\n`;
+  const results = document.getElementById('results');
+  results.querySelectorAll('.row').forEach(row => {
+    const mainText = row.querySelector('div:first-child')?.textContent || '';
+    const calcText = row.querySelector('div:last-child')?.textContent || '';
+    if(mainText && calcText && mainText !== calcText) text += `${mainText}\n  ${calcText}\n\n`;
+    else if(mainText) text += `${mainText}\n\n`;
+  });
+
+  const buy = document.getElementById('buy');
+  text += `MATERIAL TO BUY:\n`;
+  buy.querySelectorAll('.row').forEach(row => {
+    const buyText = row.textContent || '';
+    if(buyText) text += `${buyText}\n`;
+  });
+
+  const blob = new Blob([text], {type: 'text/plain'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `chaise-lounge-calc-${date.replace(/\//g,'-')}.txt`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function copyToClipboard(){
+  const inputs = {B:parseNum('B'),W:parseNum('W'),L:parseNum('L'),FTBS:parseNum('FTBS'),FTA:parseNum('FTA')};
+  const rounded = document.getElementById('roundToggle').checked;
+
+  let text = `CHAISE LOUNGE COVER CALCULATOR RESULTS\n`;
+  text += `Inputs: Bolt=${inputs.B}, Width=${inputs.W}, Length=${inputs.L}, FTBS=${inputs.FTBS}, FTA=${inputs.FTA}\n`;
+  text += `Rounding: ${rounded ? 'ON' : 'OFF'}\n\n`;
+
+  const results = document.getElementById('results');
+  results.querySelectorAll('.row').forEach(row => {
+    const mainDiv = row.querySelector('div:first-child');
+    if(mainDiv) text += `${mainDiv.textContent}\n`;
+  });
+
+  navigator.clipboard.writeText(text).then(() => {
+    alert('Results copied to clipboard!');
+  }).catch(() => {
+    alert('Failed to copy to clipboard. Please copy manually.');
+  });
+}
+
+function printPage(){
+  window.print();
+}
+
+// Load values from URL parameters (for auto-population from orders)
+function loadFromURL(){
+  const params = new URLSearchParams(window.location.search);
+  const fields = ['B', 'W', 'L', 'FTBS', 'FTA'];
+  let loaded = false;
+
+  fields.forEach(field => {
+    const value = params.get(field);
+    if (value !== null) {
+      const el = document.getElementById(field);
+      if (el) {
+        el.value = value;
+        loaded = true;
+      }
+    }
+  });
+
+  return loaded;
+}
+
+function wire(){
+  const inputsCard = document.getElementById('inputsCard');
+  ['input','change','keyup'].forEach(ev => { inputsCard.addEventListener(ev, compute); });
+  document.getElementById('recalc').addEventListener('click', compute);
+  document.getElementById('resetBtn').addEventListener('click', ()=>{
+    const defaults = {B:54, W:24, L:79, FTBS:17, FTA:20};
+    Object.entries(defaults).forEach(([id,val])=>{ const el=document.getElementById(id); el.value=val; });
+    document.getElementById('roundToggle').checked = true;
+    compute();
+  });
+  document.getElementById('exportTxt').addEventListener('click', exportAsText);
+  document.getElementById('printPage').addEventListener('click', printPage);
+  document.getElementById('copyResults').addEventListener('click', copyToClipboard);
+
+  // Load from URL if parameters present
+  const wasLoaded = loadFromURL();
+  if (wasLoaded) {
+    console.log('Loaded values from URL parameters');
+  }
+
+  compute();
+}
+
+document.addEventListener('DOMContentLoaded', wire);
+</script>
+</body>
+</html>
