@@ -1,9 +1,19 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Image from 'next/image';
 
 const slides = [
+  {
+    image: '/images/hero/hero4.webp',
+    title: 'Beautiful Styling',
+    subtitle: 'Elegant wavy edges and premium marine-grade colors that complement any outdoor space'
+  },
+  {
+    image: '/images/hero/hero3.webp',
+    title: 'Use Without Removing',
+    subtitle: 'Innovative snap straps let you fold back covers for instant relaxing'
+  },
   {
     image: '/images/hero/hero1.webp',
     title: 'Effortless Protection',
@@ -13,29 +23,11 @@ const slides = [
     image: '/images/hero/hero2.webp',
     title: 'Marine-Grade Luxury',
     subtitle: 'Heavy-duty vinyl that stays put and looks beautiful year after year'
-  },
-  {
-    image: '/images/hero/hero3.webp',
-    title: 'Use Without Removing',
-    subtitle: 'Innovative snap straps let you fold back covers for instant relaxing'
-  },
-  {
-    image: '/images/hero/hero4.webp',
-    title: 'Beautiful Styling',
-    subtitle: 'Elegant wavy edges and premium marine-grade colors that complement any outdoor space'
   }
 ];
 
 export default function HeroCarousel() {
   const [currentSlide, setCurrentSlide] = useState(0);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % slides.length);
-    }, 4000); // Change slide every 4 seconds
-
-    return () => clearInterval(timer);
-  }, []);
 
   return (
     <div className="relative w-full h-[400px] md:h-[450px] lg:h-[550px] rounded-xl overflow-hidden bg-gray-100 shadow-2xl mb-8">
@@ -51,7 +43,7 @@ export default function HeroCarousel() {
             src={slide.image}
             alt={slide.title}
             fill
-            className={index === 2 || index === 3 ? "object-contain" : "object-cover"}
+            className={index === 0 || index === 1 ? "object-contain" : "object-cover"}
             priority={index === 0}
           />
           
