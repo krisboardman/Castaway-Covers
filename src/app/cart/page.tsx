@@ -295,7 +295,7 @@ export default function CartPage() {
         <div className="flex justify-center mb-8">
           <Link href="/">
             <Image
-              src="/images/castaway-logo.png"
+              src="/images/logos/castaway-logo.png"
               alt="Castaway Covers Logo"
               width={200}
               height={80}
