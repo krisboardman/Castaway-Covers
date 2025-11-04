@@ -19,6 +19,7 @@ export default function CartPage() {
     phone: '',
     notes: ''
   });
+  const [photos, setPhotos] = useState<File[]>([]);
   const [isManualCheckout, setIsManualCheckout] = useState(true); // Default to manual checkout
 
   // Handle client-side hydration
@@ -87,16 +88,20 @@ export default function CartPage() {
 
     setLoading(true);
     try {
+      // Create FormData to send files
+      const formData = new FormData();
+      formData.append('customerInfo', JSON.stringify(customerInfo));
+      formData.append('items', JSON.stringify(items));
+      formData.append('totalPrice', getTotalPrice().toString());
+
+      // Append photos if any
+      photos.forEach((photo, index) => {
+        formData.append(`photo${index}`, photo);
+      });
+
       const response = await fetch('/api/submit-order', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          customerInfo,
-          items,
-          totalPrice: getTotalPrice()
-        })
+        body: formData
       });
 
       const data = await response.json();
@@ -422,6 +427,40 @@ export default function CartPage() {
                         rows={3}
                         placeholder="Any special requests or questions?"
                       />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Photos of Your Furniture (optional)
+                      </label>
+                      <p className="text-xs text-gray-500 mb-2">Upload 1-3 photos to help us verify measurements (max 10MB per photo)</p>
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/jpg"
+                        multiple
+                        onChange={(e) => {
+                          const files = Array.from(e.target.files || []);
+                          if (files.length > 3) {
+                            alert('Please select up to 3 photos only');
+                            e.target.value = '';
+                            return;
+                          }
+                          // Check file sizes
+                          const oversized = files.find(f => f.size > 10 * 1024 * 1024);
+                          if (oversized) {
+                            alert('Each photo must be under 10MB');
+                            e.target.value = '';
+                            return;
+                          }
+                          setPhotos(files);
+                        }}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-brand-teal focus:border-brand-teal text-sm"
+                      />
+                      {photos.length > 0 && (
+                        <div className="mt-2 text-sm text-gray-600">
+                          {photos.length} photo{photos.length > 1 ? 's' : ''} selected: {photos.map(p => p.name).join(', ')}
+                        </div>
+                      )}
                     </div>
 
                     <button

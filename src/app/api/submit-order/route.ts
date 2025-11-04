@@ -5,7 +5,20 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 
 export async function POST(request: Request) {
   try {
-    const { customerInfo, items, totalPrice } = await request.json();
+    const formData = await request.formData();
+
+    // Parse JSON fields
+    const customerInfo = JSON.parse(formData.get('customerInfo') as string);
+    const items = JSON.parse(formData.get('items') as string);
+    const totalPrice = parseFloat(formData.get('totalPrice') as string);
+
+    // Get photo files
+    const photos: File[] = [];
+    let photoIndex = 0;
+    while (formData.get(`photo${photoIndex}`)) {
+      photos.push(formData.get(`photo${photoIndex}`) as File);
+      photoIndex++;
+    }
 
     // Format order details for email
     const orderDetails = items.map((item: any, index: number) => {
@@ -47,8 +60,7 @@ Name: ${customerInfo.name}
 Email: ${customerInfo.email}
 Phone: ${customerInfo.phone || 'Not provided'}
 
-${customerInfo.notes ? `CUSTOMER NOTES:\n${customerInfo.notes}\n\n` : ''}
-ORDER DETAILS:
+${customerInfo.notes ? `CUSTOMER NOTES:\n${customerInfo.notes}\n\n` : ''}${photos.length > 0 ? `PHOTOS ATTACHED: ${photos.length} photo${photos.length > 1 ? 's' : ''} of customer's furniture\n\n` : ''}ORDER DETAILS:
 ${orderDetails}
 
 TOTAL ORDER VALUE: $${totalPrice.toFixed(2)}
@@ -85,12 +97,24 @@ www.castawaycovers.com
 
     // Send emails using Resend
     try {
-      // Email to you (the business owner)
+      // Prepare attachments from photos
+      const attachments = await Promise.all(
+        photos.map(async (photo, index) => {
+          const buffer = Buffer.from(await photo.arrayBuffer());
+          return {
+            filename: photo.name,
+            content: buffer,
+          };
+        })
+      );
+
+      // Email to you (the business owner) - WITH PHOTOS
       await resend.emails.send({
         from: 'Castaway Covers <onboarding@resend.dev>',
         to: process.env.NOTIFICATION_EMAIL || 'support@castawaycovers.com',
-        subject: `New Order from ${customerInfo.name} - $${totalPrice.toFixed(2)}`,
+        subject: `New Order from ${customerInfo.name} - $${totalPrice.toFixed(2)}${photos.length > 0 ? ` (${photos.length} photo${photos.length > 1 ? 's' : ''} attached)` : ''}`,
         text: emailToYou,
+        attachments: attachments.length > 0 ? attachments : undefined,
       });
 
       // Email to customer
