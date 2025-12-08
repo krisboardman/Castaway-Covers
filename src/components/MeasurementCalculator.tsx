@@ -29,7 +29,7 @@ const productConfigs = {
     fields: ['width', 'length', 'height', 'backrestDepth', 'armrestHeight', 'backWidth'],
     labels: {
       width: 'Width',
-      length: 'Depth',
+      length: 'Depth (drop a line straight down from the back of the chair to the ground, then measure horizontally to the front edge)',
       height: 'Height',
       backrestDepth: 'Backrest Depth',
       armrestHeight: 'Ground to Top of Armrest',
@@ -42,7 +42,7 @@ const productConfigs = {
     fields: ['width', 'length', 'height', 'backrestDepth', 'armrestHeight'],
     labels: {
       width: 'Length',
-      length: 'Depth',
+      length: 'Depth (drop a line straight down from the back to the ground, then measure horizontally to the front edge)',
       height: 'Height',
       backrestDepth: 'Backrest Depth',
       armrestHeight: 'Ground to Top of Armrest'
