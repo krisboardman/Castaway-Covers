@@ -29,22 +29,31 @@
   .chip { display:inline-block; width:12px; height:12px; border-radius:2px; border:1px solid #0f172a22; }
 
   @media print {
-    body { padding: 10px; margin: 0; }
+    body { padding: 8px; margin: 0; }
     .wrap { max-width: 100%; }
-    h1 { font-size: 20px; margin: 0 0 10px; }
+    h1 { font-size: 18px; margin: 0 0 8px; }
     .controls { display: none; }
-    .card { padding: 10px; margin-bottom: 10px; page-break-inside: avoid; }
-    .grid { gap: 10px; }
-    .title { font-size: 14px; margin-bottom: 5px; }
-    .row { padding: 4px 0; font-size: 12px; }
-    .note { font-size: 10px; margin-top: 5px; }
-    svg { height: 350px; page-break-inside: avoid; }
+    .card { padding: 8px; margin-bottom: 8px; page-break-inside: avoid; }
+    .grid { gap: 8px; }
+    .title { font-size: 13px; margin-bottom: 4px; font-weight: 600; }
+    .row { padding: 3px 0; font-size: 11px; }
+    .note { font-size: 9px; margin-top: 4px; }
+    svg { height: 280px; page-break-inside: avoid; }
     .diagramBox { page-break-inside: avoid; }
-    .legend { font-size: 10px; }
-    input[type="number"] { font-size: 11px; padding: 4px 6px; }
-    label.lbl { font-size: 10px; }
-    .inputs { gap: 6px; }
-    .danger { font-size: 10px; }
+    .legend { font-size: 9px; gap: 8px; }
+    input[type="number"] { font-size: 10px; padding: 3px 5px; }
+    label.lbl { font-size: 9px; }
+    .inputs { gap: 5px; }
+    .danger { font-size: 9px; }
+    ol, ul { margin: 0; padding-left: 16px; line-height: 1.5; font-size: 11px; }
+    ol li ul { margin-top: 2px; padding-left: 16px; font-size: 10px; }
+    /* Diagram + Instructions grid layout for print */
+    div[style*="grid-template-columns: 1.3fr 0.7fr"] {
+      display: grid !important;
+      grid-template-columns: 1.4fr 0.6fr !important;
+      gap: 10px !important;
+      page-break-inside: avoid;
+    }
   }
 </style>
 </head>
@@ -66,17 +75,18 @@
         <div class="card" id="inputsCard">
           <div class="title">Inputs</div>
           <div class="inputs">
-            <label class="lbl">B (Bolt width)<input id="B" type="number" value="54" step="1" /></label>
+            <label class="lbl">B (Bolt width - Fabric Guru size)<input id="B" type="number" value="55.5" step="0.1" /></label>
             <label class="lbl">W (Chair width arm-to-arm)<input id="W" type="number" value="36" step="1" /></label>
-            <label class="lbl">WB (Back width)<input id="WB" type="number" value="25" step="1" /></label>
+            <label class="lbl">WB (Back width)<input id="WB" type="number" value="36" step="1" /></label>
             <label class="lbl">H (Height)<input id="H" type="number" value="39" step="1" /></label>
             <label class="lbl">D (Depth)<input id="D" type="number" value="30" step="1" /></label>
             <label class="lbl">F2A (Floor → Armrest)<input id="F2A" type="number" value="26" step="1" /></label>
             <label class="lbl">F2BS (Floor → Bottom of seat cushion)<input id="F2BS" type="number" value="18" step="1" /></label>
             <label class="lbl">BR (Backrest thickness)<input id="BR" type="number" value="4" step="1" /></label>
-            <label class="lbl">FC (Floor clearance)<input id="FC" type="number" value="6" step="1" /></label>
-            <label class="lbl">Hem allowance<input id="hem" type="number" value="0.5" step="1" /></label>
+            <label class="lbl">FC (Floor clearance)<input id="FC" type="number" value="3" step="1" /></label>
+            <label class="lbl">Hem allowance<input id="hem" type="number" value="1" step="1" /></label>
           </div>
+          <div class="note" style="margin-top:8px;">Note: Wave adds an additional 2 inches clearance</div>
           <div id="err" class="note danger" style="display:none;"></div>
         </div>
 
@@ -85,6 +95,12 @@
           <div id="grommets"></div>
           <div class="note">4 grommets total: 2 on left side (front & back), 2 on right side (front & back). Bungee runs lengthwise along each side.</div>
         </div>
+
+        <div class="card" style="margin-top:16px;">
+          <div class="title">Snap Strap Placement (Optional)</div>
+          <div id="snapstraps"></div>
+          <div class="note">2 straps total (left & right). Each strap is 8" long with snaps inset 1" from each end. Straps secure the front fabric by pulling it up and snapping it to the back.</div>
+        </div>
       </div>
 
       <div class="card">
@@ -92,35 +108,64 @@
         <div id="results"></div>
         <div class="title" style="margin-top:10px;">Material to Buy</div>
         <div id="buy"></div>
-        <div class="note">Rounded mode rounds <b>up</b>: inches to whole numbers; yards to the next whole yard.</div>
+        <div class="note">Rounded mode rounds <b>up</b>: inches to whole numbers; yards to the next whole yard.<br/><br/><strong>Note:</strong> If side panels are needed and their length (AL) fits within the bolt width, the calculation uses ML + Additional Width instead of ML + AL, since both side panels can be cut from the bolt width.</div>
       </div>
     </div>
 
-    <div class="card" style="margin-top:16px;">
-      <div class="title">Cut Diagram (to scale)</div>
-      <div class="diagramBox">
-        <svg id="diagram" viewBox="0 0 980 520" preserveAspectRatio="xMidYMid meet"></svg>
-        <div class="legend">
-          <span class="chip" style="background:#eef2ff;"></span> Center panel (main piece)
-          <span class="chip" style="background:#22c55e33; border-color:#16a34a66;"></span> Side panels (front only, height = AL)
-          <span style="margin-left:auto; font-size:12px;">Labels use rounded values</span>
+    <div style="display:grid; grid-template-columns: 1.3fr 0.7fr; gap:16px; margin-top:16px;">
+      <div>
+        <div class="card">
+          <div class="title">Cut Diagram (to scale)</div>
+          <div class="diagramBox">
+            <svg id="diagram" viewBox="0 0 980 520" preserveAspectRatio="xMidYMid meet"></svg>
+            <div class="legend">
+              <span class="chip" style="background:#eef2ff;"></span> Center panel (main piece)
+              <span class="chip" style="background:#22c55e33; border-color:#16a34a66;"></span> Side panels (height = Side Panel Effective Length)
+              <span style="width:20px;height:2px;background:#dc2626;display:inline-block;"></span> Side angle cuts (approximate, not to scale)
+              <span style="margin-left:auto; font-size:12px;">Labels use rounded values</span>
+            </div>
+            <div style="display:flex; gap:8px; align-items:center; justify-content:flex-end;">
+              <button id="exportPng" class="btn">Download PNG</button>
+            </div>
+          </div>
         </div>
-        <div style="display:flex; gap:8px; align-items:center; justify-content:flex-end;">
-          <button id="exportPng" class="btn">Download PNG</button>
+
+        <div class="card" style="margin-top:16px;">
+          <div class="title">Cut List</div>
+          <div id="cutlist"></div>
+        </div>
+
+        <div class="card" style="margin-top:16px;">
+          <div class="title">Side Angle Cut</div>
+          <div id="sideanglecut"></div>
+          <div class="note">The diagonal cut is a straight line connecting three points: the front edge, the armrest point (at "Confirm Coverage" width), and the back edge (at MD - BR width). The calculator uses linear interpolation to determine where this diagonal line intersects the front edge of your bolt-width material.</div>
         </div>
       </div>
-    </div>
 
-    <div class="card" style="margin-top:16px;">
-      <div class="title">Cut List</div>
-      <div id="cutlist"></div>
-      <div class="note">Sizes shown are cut sizes. Hem allowance is already included in length (AL). Adjust if you prefer to add hems separately.</div>
-    </div>
-
-    <div class="card" style="margin-top:16px;">
-      <div class="title">Side Angle Cut</div>
-      <div id="sideanglecut"></div>
-      <div class="note">Measurements for angled side cuts.</div>
+      <div class="card">
+        <div class="title">Assembly Instructions</div>
+        <ol style="margin:0; padding-left:20px; line-height:1.8; font-size:13px;">
+          <li>Cut main piece</li>
+          <li>Cut side pieces if needed</li>
+          <li>Cut out gusset corner</li>
+          <li>Sew on sides:
+            <ul style="margin-top:4px; padding-left:20px;">
+              <li>Use clips to contain main piece</li>
+              <li>Use plastic to slide material</li>
+              <li>Use material tape to hold pieces together at 1/2" hem ea. piece</li>
+            </ul>
+          </li>
+          <li>Draw angles and cut (confirm coverage)</li>
+          <li>Draw waves and cut</li>
+          <li>Add grommets</li>
+          <li>Prepare bungee loops</li>
+          <li>Prepare and install snap straps (must add before adding gussets)</li>
+          <li>Cut and sew on gussets / bungee loop (on gusset side)</li>
+          <li>Prepare bungees</li>
+          <li>Add fabric glue to thread ends</li>
+          <li>Scotch guard ends of back</li>
+        </ol>
+      </div>
     </div>
   </div>
 
@@ -137,9 +182,9 @@ function fmtYardsFromInches(inches, rounded){
 }
 
 function drawDiagram(params){
-  const {B, MD, ML, addLength, cutoutEachSide, W, rounded} = params;
+  const {B, MD, ML, addLength, cutoutEachSide, W, rounded, sidePanelEffectiveLength} = params;
   const rIn = v => rounded ? Math.ceil(v) : Math.round(v*100)/100;
-  const AL = addLength;
+  const AL = sidePanelEffectiveLength; // Use effective length instead of old addLength
   const svg = document.getElementById('diagram');
   while (svg.firstChild) svg.removeChild(svg.firstChild);
   const VBW = svg.viewBox.baseVal.width, VBH = svg.viewBox.baseVal.height;
@@ -177,12 +222,24 @@ function drawDiagram(params){
   // fill top tab
   add('rect',{x:centerX+cutW,y:centerY,width:cw-2*cutW,height:cutH,fill:'#eef2ff'});
 
-  // Side panels (front-only, height = AL)
+  // Side panels - positioned aligned with where the gusset cutout is
   if (sideEach>0 && AL>0){
-    // left
-    add('rect',{x:sx,y:sy + (totalH-AL)*scale,width:sideEach*scale,height:AL*scale,fill:'#22c55e33',stroke:'#16a34a66'});
+    // Position at where the cutout is (cutoutEachSide from the top)
+    const leftPanelX = sx;
+    const leftPanelY = sy + cut*scale; // Start at the cutout position
+    const panelW = sideEach*scale;
+    const panelH = AL*scale;
+    add('rect',{x:leftPanelX,y:leftPanelY,width:panelW,height:panelH,fill:'#22c55e33',stroke:'#16a34a66'});
+
     // right
-    add('rect',{x:sx + sideEach*scale + cw,y:sy + (totalH-AL)*scale,width:sideEach*scale,height:AL*scale,fill:'#22c55e33',stroke:'#16a34a66'});
+    const rightPanelX = sx + sideEach*scale + cw;
+    add('rect',{x:rightPanelX,y:leftPanelY,width:panelW,height:panelH,fill:'#22c55e33',stroke:'#16a34a66'});
+
+    // Add diagonal angle cut lines (from top at cutout to bottom at front)
+    // Left panel: diagonal from top-left (at cutout) to bottom-right (front)
+    add('line',{x1:leftPanelX,y1:leftPanelY,x2:leftPanelX+panelW,y2:leftPanelY+panelH,stroke:'#dc2626','stroke-dasharray':'6,4','stroke-width':2});
+    // Right panel: diagonal from top-right (at cutout) to bottom-left (front)
+    add('line',{x1:rightPanelX+panelW,y1:leftPanelY,x2:rightPanelX,y2:leftPanelY+panelH,stroke:'#dc2626','stroke-dasharray':'6,4','stroke-width':2});
   }
 
   // Diagonals removed per request
@@ -193,12 +250,20 @@ function drawDiagram(params){
   arrow(centerX, sy + ch + 22, centerX + cw, sy + ch + 22);
   add('text',{x:centerX + cw/2, y:sy + ch + 36, 'text-anchor':'middle', 'font-size':12, fill:'#334155'}).textContent=`Bolt width used: ${rIn(centerW)} in`;
 
+  // Add center point indicator
+  const centerPointX = centerX + cw/2;
+  const centerPointY = sy + ch/2;
+  const centerPointValue = (centerW/2).toFixed(2);
+  add('circle',{cx:centerPointX,cy:centerPointY,r:4,fill:'#dc2626',stroke:'#ffffff','stroke-width':1.5});
+  add('text',{x:centerPointX + 10, y:centerPointY - 10, 'font-size':11, fill:'#dc2626', 'font-weight':'bold'}).textContent=`Center: ${centerPointValue} in`;
+
   arrow(sx-18, sy, sx-18, sy + ch);
   add('text',{x:sx-22, y:sy + ch/2, 'text-anchor':'end','dominant-baseline':'middle','font-size':12, fill:'#334155', transform:`rotate(-90 ${sx-22} ${sy + ch/2})`}).textContent=`Main length ML: ${rIn(ML)} in`;
 
   if (AL>0 && sideEach>0){
-    arrow(sx + totalW*scale + 10, sy + (totalH-AL)*scale, sx + totalW*scale + 10, sy + ch);
-    add('text',{x:sx + totalW*scale + 14, y: sy + (totalH-AL/2)*scale, 'font-size':12, fill:'#334155'}).textContent=`Add. main length (AL): ${rIn(AL)} in`;
+    const sidePanelStartY = sy + cut*scale;
+    arrow(sx + totalW*scale + 10, sidePanelStartY, sx + totalW*scale + 10, sidePanelStartY + AL*scale);
+    add('text',{x:sx + totalW*scale + 14, y: sidePanelStartY + (AL*scale)/2, 'font-size':12, fill:'#334155'}).textContent=`Side Panel Effective Length: ${rIn(AL)} in`;
   }
 
   // Cutout label
@@ -209,62 +274,99 @@ function drawDiagram(params){
     add('text',{x:sx + totalW*scale/2, y: sy + ch + 54, 'text-anchor':'middle','font-size':12, fill:'#334155'}).textContent=`Additional main width (MD − B): ${rIn(extraW)} in`;
   }
 
-  // Chair width and overhang labels at front
+  // Chair width and overhang labels at the side panel region
   if (W>0){
     const cx = centerX + cw/2;
     const halfW = (W/2)*scale;
-    const frontY = sy + ch; // bottom/front edge
-    // dashed guides for chair width across AL region
-    add('line',{x1:cx-halfW,y1:frontY, x2:cx-halfW, y2:frontY - (AL*scale), stroke:'#94a3b8','stroke-dasharray':'4,4'});
-    add('line',{x1:cx+halfW,y1:frontY, x2:cx+halfW, y2:frontY - (AL*scale), stroke:'#94a3b8','stroke-dasharray':'4,4'});
-    add('text',{x:cx, y: frontY - (AL*scale) - 6, 'text-anchor':'middle','font-size':12, fill:'#64748b'}).textContent=`chair width = ${rIn(W)} in`;
+    const sidePanelStartY = sy + cut*scale;
+    const sidePanelEndY = sidePanelStartY + AL*scale;
+    // dashed guides for chair width - show at the side panel region (where gusset cutout is)
+    add('line',{x1:cx-halfW,y1:sidePanelStartY, x2:cx-halfW, y2:sidePanelEndY, stroke:'#94a3b8','stroke-dasharray':'4,4'});
+    add('line',{x1:cx+halfW,y1:sidePanelStartY, x2:cx+halfW, y2:sidePanelEndY, stroke:'#94a3b8','stroke-dasharray':'4,4'});
+    add('text',{x:cx, y: sidePanelEndY + 14, 'text-anchor':'middle','font-size':12, fill:'#64748b'}).textContent=`chair width = ${rIn(W)} in`;
 
     // overhang each side = (centerW - W)/2
     if (overhangEach>0){
-      // left overhang arrow
-      arrow(cx-halfW - overhangEach*scale, frontY + 18, cx-halfW, frontY + 18);
-      add('text',{x:cx-halfW - (overhangEach*scale)/2, y:frontY + 32, 'text-anchor':'middle','font-size':12, fill:'#334155'}).textContent=`overhang: ${rIn(overhangEach)} in`;
+      // left overhang arrow at side panel region
+      arrow(cx-halfW - overhangEach*scale, sidePanelEndY + 24, cx-halfW, sidePanelEndY + 24);
+      add('text',{x:cx-halfW - (overhangEach*scale)/2, y:sidePanelEndY + 38, 'text-anchor':'middle','font-size':12, fill:'#334155'}).textContent=`overhang: ${rIn(overhangEach)} in`;
       // right overhang arrow
-      arrow(cx+halfW, frontY + 18, cx+halfW + overhangEach*scale, frontY + 18);
-      add('text',{x:cx+halfW + (overhangEach*scale)/2, y:frontY + 32, 'text-anchor':'middle','font-size':12, fill:'#334155'}).textContent=`overhang: ${rIn(overhangEach)} in`;
+      arrow(cx+halfW, sidePanelEndY + 24, cx+halfW + overhangEach*scale, sidePanelEndY + 24);
+      add('text',{x:cx+halfW + (overhangEach*scale)/2, y:sidePanelEndY + 38, 'text-anchor':'middle','font-size':12, fill:'#334155'}).textContent=`overhang: ${rIn(overhangEach)} in`;
     }
   }
 }
 
-function updateCutList({B, MD, ML, addLength, F2A, FC, BR}){
+function updateCutList({B, MD, ML, addLength, F2A, FC, BR, WB, W, addWidth, sidePanelEffectiveLength, sidePanelTwoChairsWidth, sidePanelTwoChairsLength, H}){
   const centerW = Math.min(B, MD);
-  const sideW = Math.max(0, MD - B);
+  const sideW = Math.max(0, addWidth);
   const cutlist = document.getElementById('cutlist');
   const rows = [];
   // Center panel = bolt width used × ML
-  rows.push(['Center panel', `${centerW.toFixed(1)} in x ${ML.toFixed(1)} in`, 'Qty 1']);
-  // Side panels (each) = (MD-B)/2 × AL
+  rows.push(['Center panel', `${centerW.toFixed(2)} in x ${ML.toFixed(2)} in`, 'Qty 1']);
+  // Side panels (each) = addWidth/2 × AL (showing both measurements)
   if (sideW > 0){
-    const eachW = (sideW/2).toFixed(1);
-    rows.push(['Side panel (each)', `${eachW} in x ${addLength.toFixed(1)} in`, 'Qty 2']);
+    const eachW = (sideW/2).toFixed(2);
+    rows.push(['Side panel (each)', `${eachW} in x ${sidePanelEffectiveLength.toFixed(2)} in`, 'Qty 2']);
+    rows.push(['Side panel for TWO chairs', `${sidePanelTwoChairsWidth.toFixed(2)} in x ${sidePanelTwoChairsLength.toFixed(2)} in`, 'Qty 1 (cut diagonally)']);
   } else {
     rows.push(['Side panels', 'Not required (MD ≤ B)', '—']);
   }
+
+  // Gusset corner calculation
+  const boltMidpoint = B / 2;
+  const distanceFromMiddle = (WB / 2) + 1;
+  const distanceFromEnd = (B - (distanceFromMiddle * 2)) / 2;
+  const gussetCutHeight = (H - FC) + 1;  // Height to cut: H - FC + 1" hem
+
+  rows.push(['Gusset corner cut - Horizontal', `Bolt midpoint: ${boltMidpoint.toFixed(2)} in | Start cut ${distanceFromMiddle.toFixed(2)} in from midpoint (${distanceFromEnd.toFixed(2)} in from end)`, `(WB ÷ 2) + 1" hem = (${WB} ÷ 2) + 1 = ${distanceFromMiddle.toFixed(2)} in from midpoint<br/>From end: (${B} - ${(distanceFromMiddle * 2).toFixed(2)}) ÷ 2 = ${distanceFromEnd.toFixed(2)} in`]);
+  rows.push(['Gusset corner cut - Height', `${gussetCutHeight.toFixed(2)} in`, `(H - FC) + 1" hem = (${H} - ${FC}) + 1 = ${gussetCutHeight.toFixed(2)} in`]);
+
   cutlist.innerHTML = rows.map((r,i)=>`<div class="row" style="${i? 'border-top:1px dashed var(--muted);':''}"><span>${r[0]}</span><strong>${r[1]}</strong><span style="color:var(--sub)">${r[2]}</span></div>`).join('');
 
   // Side Angle Cut calculations
   const sideAngle = document.getElementById('sideanglecut');
-  const startCut = F2A - FC;
+  const boltMidpointSide = B / 2;
   const distanceFromBack = BR;
   const rounded = document.getElementById('roundToggle').checked;
+
+  // Confirm Coverage calculation
+  const confirmCoverage = W + (F2A * 2) - (FC * 2);
+
+  // Diagonal cut start point from centerline
+  // The diagonal connects: front edge → armrest point (Confirm Coverage at F2A-FC back) → back edge (MD-BR width)
+  // Using linear interpolation to find where diagonal intersects the front edge
+  const backWidth = MD - BR;  // Width at back edge
+  const armrestDistance = F2A - FC;  // Distance from front to armrest point
+  const backDistance = ML - armrestDistance;  // Distance from armrest point to back
+  const startCut = (confirmCoverage / 2) - ((backWidth - confirmCoverage) / 2 * armrestDistance / backDistance);
+
+  const frontWidth = startCut * 2;
 
   sideAngle.innerHTML = `
     <div class="row" style="display:block; padding:8px 0;">
       <div style="display:flex;justify-content:space-between;align-items:center;">
-        <span>Start cut from end</span><strong>${fmtInch(startCut, rounded)} in</strong>
+        <span>Diagonal cut starts from centerline</span><strong>${startCut.toFixed(2)} in from centerline</strong>
       </div>
-      <div style="font-size:11px;color:var(--sub);margin-top:4px;">F2A (${F2A}) - FC (${FC}) = ${fmtExact(startCut)}</div>
+      <div style="font-size:11px;color:var(--sub);margin-top:4px;">(Confirm Coverage ÷ 2) - [(MD - BR - Confirm Coverage) ÷ 2 × (F2A - FC) ÷ (ML - (F2A - FC))]<br/>= (${fmtExact(confirmCoverage)} ÷ 2) - [(${fmtExact(backWidth)} - ${fmtExact(confirmCoverage)}) ÷ 2 × ${armrestDistance} ÷ ${fmtExact(backDistance)}]<br/>= ${fmtExact(startCut)} in<br/><br/>Find the center of the front edge, then measure ${startCut.toFixed(2)}" to the left and ${startCut.toFixed(2)}" to the right. These are your diagonal cut starting points.</div>
     </div>
     <div class="row" style="display:block; padding:8px 0; border-top:1px dashed var(--muted);">
       <div style="display:flex;justify-content:space-between;align-items:center;">
-        <span>Distance from back</span><strong>${fmtInch(distanceFromBack, rounded)} in</strong>
+        <span>Front width (after diagonal cuts)</span><strong>${fmtInch(frontWidth, rounded)} in</strong>
       </div>
-      <div style="font-size:11px;color:var(--sub);margin-top:4px;">BR (Backrest thickness) = ${BR}</div>
+      <div style="font-size:11px;color:var(--sub);margin-top:4px;">Start cut × 2 = ${fmtExact(startCut)} × 2 = ${fmtExact(frontWidth)} in<br/>The material at the front edge will be this wide after making the diagonal cuts. This is wider than chair width (${W}") to provide proper coverage.</div>
+    </div>
+    <div class="row" style="display:block; padding:8px 0; border-top:1px dashed var(--muted);">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <span>Width at back edge (before cuts)</span><strong>${fmtInch(backWidth, rounded)} in</strong>
+      </div>
+      <div style="font-size:11px;color:var(--sub);margin-top:4px;">MD - BR = ${fmtExact(MD)} - ${BR} = ${fmtExact(backWidth)} in<br/>The material at the back edge is this wide (main width minus backrest thickness).</div>
+    </div>
+    <div class="row" style="display:block; padding:8px 0; border-top:1px dashed var(--muted);">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <span>Confirm Coverage</span><strong>${fmtInch(confirmCoverage, rounded)} in</strong>
+      </div>
+      <div style="font-size:11px;color:var(--sub);margin-top:4px;">W + (F2A × 2) - (FC × 2) = ${W} + (${F2A} × 2) - (${FC} × 2) = ${fmtExact(confirmCoverage)} in<br/>At ${armrestDistance}" back from the front edge (where the armrest is), the material width should be ${fmtExact(confirmCoverage)}". Verify this measurement before cutting.</div>
     </div>
   `;
 }
@@ -311,27 +413,40 @@ function compute(){
 
     const ML = (H + BR + AT2F + F2A) - (2*FC);         // main length
     const MD = (W + (2*H)) - (2*FC);                  // main width (wrap over sides)
-    const addWidth = Math.max(0, MD - B);              // total overage beyond bolt
+    const addWidth = Math.max(0, MD - B) + 4;          // total overage beyond bolt + 4 (1" hem per side × 2 pieces)
     const addLength = F2A + AT2F + BR - FC + hem;      // extra length allowance
-    const cutoutEachSide = (H - FC) + hem;
-    const squareFoldWidth = cutoutEachSide/2;
-    const gussetSize = H - F2BS + 1;
+
+    // NEW: Side Panel Effective Length accounting for diagonal angle cut
+    // Side panels attach at the gusset cutout (at top corner, height H - FC from ground)
+    // They need to go down to floor clearance = (H - FC) - FC = H - 2×FC
+    // But we want the panel length itself, plus hem allowances
+    const sidePanelEffectiveLength = H - FC + (2 * hem);
+
+    // NEW: Side Panel for Two Chairs - optimized cutting
+    // One piece that can be cut diagonally down the middle for both chairs
+    // Width: sideEach (standard side panel width)
+    // Length: SPEL + BR (add backrest depth once for the diagonal cut to work for both)
+    const sideEach = Math.max(0, addWidth/2);
+    const sidePanelTwoChairsWidth = sideEach;
+    const sidePanelTwoChairsLength = sidePanelEffectiveLength + BR;
+
+    const cutoutEachSide = (H - FC) - 1;
+    const gussetMaterial = (H - FC) + 1;  // H - FC + 1" hem
     const fitsAcross = MD <= B;
     const linearLen_ifAcross = fitsAcross ? ML : NaN;
     const lengthNeeded = ML + addLength;
 
     const rows = [
-      ['AT2F (used)', `${fmtInch(AT2F, rounded)} in`, `√[(${H} - ${F2A})² + ${D}²] = √[${H - F2A}² + ${D}²] = ${fmtExact(AT2F)}`],
-      ['Main length ML (front→back)', `${fmtInch(ML, rounded)} in (${fmtYardsFromInches(ML, rounded)} yd)`, `(${H} + ${BR} + ${fmtExact(AT2F)} + ${F2A}) - 2×${FC} = ${fmtExact(ML)}`],
-      ['Main width MD (wrap over sides)', `${fmtInch(MD, rounded)} in`, `(${W} + 2×${H}) - 2×${FC} = ${fmtExact(MD)}`],
-      ['Fits across bolt (MD ≤ B)', fitsAcross ? 'Yes' : 'No', `MD ${fmtExact(MD)} ${fitsAcross ? '≤' : '>'} B (${B})`],
+      ['Angle (used)', `${fmtInch(AT2F, rounded)} in`, `√[(${H} - ${F2A})² + ${D}²] = √[${H - F2A}² + ${D}²] = ${fmtExact(AT2F)}<br/>√[(H - F2A)² + D²]`],
+      ['Main length ML (front→back)', `${fmtInch(ML, rounded)} in (${fmtYardsFromInches(ML, rounded)} yd)`, `(${H} + ${BR} + ${fmtExact(AT2F)} + ${F2A}) - 2×${FC} = ${fmtExact(ML)}<br/>(H + BR + Angle + F2A) - 2×FC`],
+      ['Main width MD (wrap over sides)', `${fmtInch(MD, rounded)} in`, `(${W} + 2×${H}) - 2×${FC} = ${fmtExact(MD)}<br/>(W + 2×H) - 2×FC`],
+      ['Fits across bolt (MD ≤ B)', fitsAcross ? 'Yes' : 'No', `MD ${fmtExact(MD)} ${fitsAcross ? '≤' : '>'} B (${B})<br/>MD ${fitsAcross ? '≤' : '>'} B`],
       [fitsAcross ? 'Linear yardage (across bolt)' : 'Additional main width needed (MD − B)',
         fitsAcross ? `${fmtYardsFromInches(linearLen_ifAcross, rounded)} yd` : `${fmtInch(addWidth, rounded)} in`,
-        fitsAcross ? `ML ÷ 36 = ${fmtExact(linearLen_ifAcross)} ÷ 36 = ${fmtExact(linearLen_ifAcross / 36)}` : `${fmtExact(MD)} - ${B} = ${fmtExact(addWidth)}`],
-      ['Add. main length (AL)', `${fmtInch(addLength, rounded)} in`, `${F2A} + ${fmtExact(AT2F)} + ${BR} - ${FC} + ${hem} = ${fmtExact(addLength)}`],
-      ['Cutout per side', `${fmtInch(cutoutEachSide, rounded)} in`, `(${H} - ${FC}) + ${hem} = ${H - FC} + ${hem} = ${fmtExact(cutoutEachSide)}`],
-      ['Square-fold width (gusset)', `${fmtInch(squareFoldWidth, rounded)} in`, `${fmtExact(cutoutEachSide)} ÷ 2 = ${fmtExact(squareFoldWidth)}`],
-      ['Gusset size', `${fmtInch(gussetSize, rounded)} in`, `${H} - ${F2BS} + 1 = ${H} - ${F2BS} + 1 = ${fmtExact(gussetSize)}`],
+        fitsAcross ? `ML ÷ 36 = ${fmtExact(linearLen_ifAcross)} ÷ 36 = ${fmtExact(linearLen_ifAcross / 36)}<br/>ML ÷ 36` : `(${fmtExact(MD)} - ${B}) + 4 = ${fmtExact(addWidth)}<br/>(MD - B) + 4<br/><span style="font-size:10px;color:var(--sub);">+4 for 1" hem per side × 2 pieces<br/>Each side panel: ${fmtExact(addWidth/2)} inches</span>`],
+      ['Side Panel Effective Length', `${fmtInch(sidePanelEffectiveLength, rounded)} in`, `${H} - ${FC} + (2 × ${hem}) = ${fmtExact(sidePanelEffectiveLength)}<br/>H - FC + (2 × hem)<br/><span style="font-size:10px;color:var(--sub);">From gusset cutout at top corners down to floor clearance + hem allowances</span>`],
+      ['Side Panel for Two Chairs', `${fmtInch(sidePanelTwoChairsWidth, rounded)} in × ${fmtInch(sidePanelTwoChairsLength, rounded)} in`, `Width: ${fmtExact(sideEach)} in, Length: ${fmtExact(sidePanelEffectiveLength)} + ${BR} = ${fmtExact(sidePanelTwoChairsLength)}<br/><span style="font-size:10px;color:var(--sub);">One piece cut diagonally for both chairs (Side Panel Effective Length + backrest depth)</span>`],
+      ['Gusset material', `${fmtInch(gussetMaterial, rounded)} in × ${fmtInch(gussetMaterial, rounded)} in`, `(${H} - ${FC}) + 1 = ${fmtExact(gussetMaterial)}<br/>(H - FC) + 1" hem<br/><span style="font-size:10px;color:var(--sub);">Cut diagonally in half for 2 triangle pieces (one per side).</span>`],
     ];
 
     const results = document.getElementById('results');
@@ -353,15 +468,38 @@ function compute(){
 
     const buy = document.getElementById('buy');
     buy.innerHTML = '';
+
+    // Check if side panels fit within bolt width
+    const sidePanelsFitAcross = sidePanelEffectiveLength <= B;
+    let actualLengthNeeded;
+    let explanation = '';
+
+    if (addWidth > 0 && sidePanelsFitAcross) {
+      // Side panels fit across bolt, only need width for them
+      actualLengthNeeded = ML + addWidth;
+      explanation = `ML (${fmtExact(ML)}) + Additional width (${fmtExact(addWidth)}). Side panels fit across bolt (Side Panel Effective Length ${fmtExact(sidePanelEffectiveLength)} ≤ B ${B}), so only width needed.`;
+    } else {
+      // Standard calculation - ML + Side Panel Effective Length
+      actualLengthNeeded = ML + sidePanelEffectiveLength;
+      explanation = `ML (${fmtExact(ML)}) + Side Panel Effective Length (${fmtExact(sidePanelEffectiveLength)})`;
+    }
+
     const bRows = [
-      ['Length needed (ML + AL)', `${fmtInch(lengthNeeded, rounded)} in`],
-      ['Yards to buy', `${fmtYardsFromInches(lengthNeeded, rounded)} yd`],
+      ['Length needed', `${fmtInch(actualLengthNeeded, rounded)} in`, explanation],
+      ['Yards to buy', `${fmtYardsFromInches(actualLengthNeeded, rounded)} yd`, ''],
     ];
-    bRows.forEach(([label, value], i)=>{
+    bRows.forEach(([label, value, calc], i)=>{
       const div = document.createElement('div');
       div.className = 'row';
-      div.innerHTML = `<span>${label}</span><strong>${value}</strong>`;
+      div.style.display = 'block';
+      div.style.padding = '8px 0';
       if (i>0) div.style.borderTop = '1px dashed var(--muted)';
+      div.innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span>${label}</span><strong>${value}</strong>
+        </div>
+        ${calc ? `<div style="font-size:11px;color:var(--sub);margin-top:4px;">${calc}</div>` : ''}
+      `;
       buy.appendChild(div);
     });
 
@@ -369,6 +507,20 @@ function compute(){
     const grommetInsetFromFrontBack = 5; // inches from front/back edges
     const grommetHeightFromBottom = 5; // inches from bottom edge of fabric
     const grommetHorizontalFromCenter = W / 2 - 5; // horizontal position from center (no seam allowance for chair)
+    const bungeeLength = D + grommetInsetFromFrontBack + grommetInsetFromFrontBack + 10; // D + inset front + inset back + 10" surplus
+
+    // Snap strap placement calculations
+    const strapLength = 8; // inches
+    const snapInset = 1; // inches from each end of strap
+    const strapStartBelowBackrest = 2; // inches below backrest where strap is attached
+    const usableStrapLength = strapLength - (2 * snapInset); // 8 - 2 = 6" (snap to snap distance)
+    const backSnapFromTop = BR + strapStartBelowBackrest; // Position where strap is sewn on back - 2" below backrest
+    // Front snap: measured from "seam" (top of backrest where fabric goes over)
+    // Total front draping length from seam = AT2F (angle) + (F2A - FC) (front face to floor clearance)
+    const frontDrapingLength = AT2F + (F2A - FC);
+    const frontSnapFromSeam = (frontDrapingLength / 3) * 2; // 2/3 down from seam
+    const frontSnapFromFrontEdge = frontDrapingLength - frontSnapFromSeam; // Convert to measurement from front edge
+    const strapHorizontalFromCenter = (W / 2) - 2; // 2" in from each side of chair
 
     const grommetsSection = document.getElementById('grommets');
     grommetsSection.innerHTML = `
@@ -376,7 +528,7 @@ function compute(){
         <div style="display:flex;justify-content:space-between;align-items:center;">
           <span>Horizontal position from center</span><strong>${fmtExact(grommetHorizontalFromCenter)} in</strong>
         </div>
-        <div style="font-size:11px;color:var(--sub);margin-top:4px;">W ÷ 2 - 5 = ${W} ÷ 2 - 5 = ${fmtExact(grommetHorizontalFromCenter)}</div>
+        <div style="font-size:11px;color:var(--sub);margin-top:4px;">W ÷ 2 - 5 = ${W} ÷ 2 - 5 = ${fmtExact(grommetHorizontalFromCenter)}<br/>(Chair width ÷ 2) - 5</div>
       </div>
       <div class="row" style="display:block; padding:8px 0; border-top:1px dashed var(--muted);">
         <div style="display:flex;justify-content:space-between;align-items:center;">
@@ -389,18 +541,38 @@ function compute(){
         </div>
       </div>
       <div class="row" style="display:block; padding:8px 0; border-top:1px dashed var(--muted);">
-        <div style="margin-bottom:6px;"><strong>Grommet Positions:</strong></div>
-        <div style="font-size:12px;color:var(--text);line-height:1.8;">
-          <div style="padding:2px 0;"><strong>Left Front:</strong> ${fmtExact(grommetHorizontalFromCenter)}" from center, ${fmtExact(ML - grommetInsetFromFrontBack)}" from back edge, ${grommetHeightFromBottom}" from bottom</div>
-          <div style="padding:2px 0;"><strong>Left Back:</strong> ${fmtExact(grommetHorizontalFromCenter)}" from center, ${grommetInsetFromFrontBack}" from back edge, ${grommetHeightFromBottom}" from bottom</div>
-          <div style="padding:2px 0;"><strong>Right Front:</strong> ${fmtExact(grommetHorizontalFromCenter)}" from center, ${fmtExact(ML - grommetInsetFromFrontBack)}" from back edge, ${grommetHeightFromBottom}" from bottom</div>
-          <div style="padding:2px 0;"><strong>Right Back:</strong> ${fmtExact(grommetHorizontalFromCenter)}" from center, ${grommetInsetFromFrontBack}" from back edge, ${grommetHeightFromBottom}" from bottom</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span>Bungee length (each side)</span><strong>${fmtExact(bungeeLength)} in</strong>
         </div>
+        <div style="font-size:11px;color:var(--sub);margin-top:4px;">D + grommet inset (front) + grommet inset (back) + 10" surplus = ${D} + ${grommetInsetFromFrontBack} + ${grommetInsetFromFrontBack} + 10 = ${fmtExact(bungeeLength)} in</div>
+      </div>
+    `;
+
+    // Snap straps section
+    const snapStrapsSection = document.getElementById('snapstraps');
+    snapStrapsSection.innerHTML = `
+      <div class="row" style="display:block; padding:8px 0;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span>Strap horizontal position from center</span><strong>${fmtExact(strapHorizontalFromCenter)} in</strong>
+        </div>
+        <div style="font-size:11px;color:var(--sub);margin-top:4px;">W ÷ 2 - 2 = ${W} ÷ 2 - 2 = ${fmtExact(strapHorizontalFromCenter)}<br/>(Chair width ÷ 2) - 2" in from sides</div>
+      </div>
+      <div class="row" style="display:block; padding:8px 0; border-top:1px dashed var(--muted);">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span>Back strap snap position</span><strong>2 in</strong>
+        </div>
+        <div style="font-size:11px;color:var(--sub);margin-top:4px;">2" below backrest seam (where fabric goes over top of backrest)</div>
+      </div>
+      <div class="row" style="display:block; padding:8px 0; border-top:1px dashed var(--muted);">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span>Front fabric snap position (from seam/backrest top)</span><strong>${fmtExact(frontSnapFromSeam)} in</strong>
+        </div>
+        <div style="font-size:11px;color:var(--sub);margin-top:4px;">((AT2F + (F2A - FC)) ÷ 3) × 2 = ((${fmtExact(AT2F)} + (${F2A} - ${FC})) ÷ 3) × 2 = ${fmtExact(frontSnapFromSeam)}"<br/><em>Measure from seam (where fabric goes over top of backrest). Snap at 2/3 down from seam.</em></div>
       </div>
     `;
 
     // draw diagram with current numbers
-    const payload = {B, MD, ML, addLength, cutoutEachSide, W, rounded, F2A, FC, BR};
+    const payload = {B, MD, ML, addLength, cutoutEachSide, W, rounded, F2A, FC, BR, WB, addWidth, sidePanelEffectiveLength, sidePanelTwoChairsWidth, sidePanelTwoChairsLength, H};
     drawDiagram(payload);
     updateCutList(payload);
     const exp = document.getElementById('exportPng');
@@ -484,6 +656,40 @@ function printPage(){
   window.print();
 }
 
+// Save current inputs to localStorage
+function saveInputs(){
+  const fields = ['B', 'W', 'WB', 'H', 'D', 'F2A', 'F2BS', 'BR', 'FC', 'hem'];
+  const values = {};
+  fields.forEach(field => {
+    const el = document.getElementById(field);
+    if (el) values[field] = el.value;
+  });
+  values.roundToggle = document.getElementById('roundToggle').checked;
+  localStorage.setItem('chairCalculatorInputs', JSON.stringify(values));
+}
+
+// Load inputs from localStorage
+function loadSavedInputs(){
+  try {
+    const saved = localStorage.getItem('chairCalculatorInputs');
+    if (saved) {
+      const values = JSON.parse(saved);
+      Object.entries(values).forEach(([field, value]) => {
+        if (field === 'roundToggle') {
+          document.getElementById('roundToggle').checked = value;
+        } else {
+          const el = document.getElementById(field);
+          if (el) el.value = value;
+        }
+      });
+      return true;
+    }
+  } catch (e) {
+    console.error('Error loading saved inputs:', e);
+  }
+  return false;
+}
+
 // Load values from URL parameters (for auto-population from orders)
 function loadFromURL(){
   const params = new URLSearchParams(window.location.search);
@@ -505,24 +711,43 @@ function loadFromURL(){
 }
 
 function wire(){
+  // Load from URL if parameters present, otherwise load saved values FIRST
+  const wasLoadedFromURL = loadFromURL();
+  if (wasLoadedFromURL) {
+    console.log('Loaded values from URL parameters');
+    saveInputs(); // Save URL params to localStorage
+  } else {
+    const wasLoadedFromStorage = loadSavedInputs();
+    if (wasLoadedFromStorage) {
+      console.log('Loaded saved values from previous session');
+    }
+  }
+
   const inputsCard = document.getElementById('inputsCard');
-  ['input','change','keyup'].forEach(ev => { inputsCard.addEventListener(ev, compute); });
+  // Save inputs on every change and compute
+  ['input','change','keyup'].forEach(ev => {
+    inputsCard.addEventListener(ev, () => {
+      compute();
+      saveInputs();
+    });
+  });
+  // Save roundToggle changes
+  document.getElementById('roundToggle').addEventListener('change', () => {
+    saveInputs();
+    compute();
+  });
+
   document.getElementById('recalc').addEventListener('click', compute);
   document.getElementById('resetBtn').addEventListener('click', ()=>{
-    const defaults = {B:54,W:36,WB:25,H:39,D:30,F2A:26,F2BS:18,BR:4,FC:6,hem:0.5};
+    const defaults = {B:55.5,W:36,WB:36,H:39,D:30,F2A:26,F2BS:18,BR:4,FC:3,hem:1};
     Object.entries(defaults).forEach(([id,val])=>{ const el=document.getElementById(id); el.value=val; });
     document.getElementById('roundToggle').checked = true;
     compute();
+    saveInputs(); // Save the reset values
   });
   document.getElementById('exportTxt').addEventListener('click', exportAsText);
   document.getElementById('printPage').addEventListener('click', printPage);
   document.getElementById('copyResults').addEventListener('click', copyToClipboard);
-
-  // Load from URL if parameters present
-  const wasLoaded = loadFromURL();
-  if (wasLoaded) {
-    console.log('Loaded values from URL parameters');
-  }
 
   compute();
 }
