@@ -479,7 +479,8 @@ const getGalleryImages = (productType: string, selectedColor?: string) => {
       { src: '/images/Chairs-Recliners/chair4.jpg', alt: 'Blue Chair with Cover - Outdoor View' },
       { src: '/images/Chairs-Recliners/chair2.jpg', alt: 'Chair Cover - Back View' },
       { src: '/images/Chairs-Recliners/chair3.jpg', alt: 'Chair Cover - Side View' },
-      { src: '/images/Chairs-Recliners/chair5.jpg', alt: 'Cream Chair with Cover' }
+      { src: '/images/Chairs-Recliners/chair5.jpg', alt: 'Cream Chair with Cover' },
+      { src: '/images/Chairs-Recliners/chair6.jpg', alt: 'Blue Recliner Cover on Patio' }
     ],
     'sofas-loveseats': [
       { src: '/images/Sofas-Loveseats/sofa1.jpg', alt: 'Sofa with Castaway Cover' },
@@ -487,7 +488,8 @@ const getGalleryImages = (productType: string, selectedColor?: string) => {
       { src: '/images/Sofas-Loveseats/sofa3.jpg', alt: 'Sofa Cover - Detail View' },
       { src: '/images/Sofas-Loveseats/sofa4.jpg', alt: 'Sofa Cover - Bungee & Handle Detail' },
       { src: '/images/Sofas-Loveseats/sofa5.jpg', alt: 'Sofa Cover - Additional View' },
-      { src: '/images/Sofas-Loveseats/sofa6.jpg', alt: 'Sofa Cover - Magnetic Closure' }
+      { src: '/images/Sofas-Loveseats/sofa6.jpg', alt: 'Sofa Cover - Magnetic Closure' },
+      { src: '/images/Sofas-Loveseats/winter.jpg', alt: 'Sofa Cover - Winter Protection' }
     ],
     'chaise-lounge': [
       { src: '/images/ChaiseLounges/chaise1.jpg', alt: 'Chaise Lounge Cover - Front Side View' }
