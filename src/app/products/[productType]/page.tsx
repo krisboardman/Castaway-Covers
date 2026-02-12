@@ -8,6 +8,7 @@ import AddOnOptions from '@/components/AddOnOptions';
 import ColorSelector from '@/components/ColorSelector';
 import ShopifyBuyButton from '@/components/ShopifyBuyButton';
 import { useCartStore } from '@/store/cartStore';
+import { getProductSchemaForType } from '@/lib/structured-data';
 
 const productTypes = {
   'chairs-recliners': 'Chairs / Recliners',
@@ -49,13 +50,29 @@ export default function ProductPage() {
   const updateItem = useCartStore((state) => state.updateItem);
   const removeFromCart = useCartStore((state) => state.removeFromCart);
   
+  // Inject product structured data for SEO
+  useEffect(() => {
+    const schema = getProductSchemaForType(productType);
+    if (schema) {
+      const script = document.createElement('script');
+      script.type = 'application/ld+json';
+      script.text = JSON.stringify(schema);
+      script.id = 'product-schema';
+      // Remove any existing one first
+      const existing = document.getElementById('product-schema');
+      if (existing) existing.remove();
+      document.head.appendChild(script);
+      return () => { script.remove(); };
+    }
+  }, [productType]);
+
   // Handle client-side mounting
   useEffect(() => {
     setMounted(true);
     // Store the current product type in sessionStorage for back navigation
     if (typeof window !== 'undefined') {
       sessionStorage.setItem('lastProductType', productType);
-      
+
       // Check if we're editing an item
       const editData = sessionStorage.getItem('editCartItem');
       if (editData) {

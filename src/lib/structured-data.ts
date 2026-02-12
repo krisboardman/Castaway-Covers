@@ -1,21 +1,44 @@
 export function getOrganizationSchema() {
   return {
     "@context": "https://schema.org",
-    "@type": "Organization",
+    "@type": "LocalBusiness",
     "name": "Castaway Covers",
     "url": "https://castawaycovers.com",
     "logo": "https://castawaycovers.com/images/logos/castaway-logo.png",
-    "description": "Premium custom-fit outdoor furniture covers designed for effortless protection",
+    "image": "https://castawaycovers.com/images-optimized/og-image.jpg",
+    "description": "Premium custom-fit outdoor furniture covers handcrafted in Rumson, NJ. Marine-grade vinyl, waterproof, UV-resistant covers for chairs, sofas, tables, and more.",
     "address": {
       "@type": "PostalAddress",
       "addressLocality": "Rumson",
       "addressRegion": "NJ",
+      "postalCode": "07760",
       "addressCountry": "US"
+    },
+    "geo": {
+      "@type": "GeoCoordinates",
+      "latitude": 40.3726,
+      "longitude": -73.9990
+    },
+    "areaServed": {
+      "@type": "GeoCircle",
+      "geoMidpoint": {
+        "@type": "GeoCoordinates",
+        "latitude": 40.3726,
+        "longitude": -73.9990
+      },
+      "geoRadius": "50000"
     },
     "contactPoint": {
       "@type": "ContactPoint",
       "email": "support@castawaycovers.com",
       "contactType": "customer service"
+    },
+    "priceRange": "$$",
+    "openingHoursSpecification": {
+      "@type": "OpeningHoursSpecification",
+      "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+      "opens": "09:00",
+      "closes": "17:00"
     }
   };
 }
@@ -50,6 +73,65 @@ export function getProductSchema(product: {
     "category": product.category,
     "material": "Marine-grade vinyl with polyester backing"
   };
+}
+
+// Pre-built product schemas for each product type
+const productData: { [key: string]: { name: string; description: string; image: string; category: string; price: string } } = {
+  'chairs-recliners': {
+    name: 'Custom Chair & Recliner Covers',
+    description: 'Premium custom-fit covers for outdoor chairs and recliners. Marine-grade vinyl, waterproof, UV-resistant with reinforced grommets and bungee cord system.',
+    image: 'https://castawaycovers.com/images/Chairs-Recliners/chair4.jpg',
+    category: 'Outdoor Furniture Covers',
+    price: '90',
+  },
+  'sofas-loveseats': {
+    name: 'Custom Sofa & Loveseat Covers',
+    description: 'Premium custom-fit covers for outdoor sofas and loveseats. Marine-grade vinyl with optional magnetic closures for easy daily use. Waterproof and UV-resistant.',
+    image: 'https://castawaycovers.com/images/Sofas-Loveseats/sofa1.jpg',
+    category: 'Outdoor Furniture Covers',
+    price: '135',
+  },
+  'chaise-lounges': {
+    name: 'Custom Chaise Lounge Covers',
+    description: 'Premium custom-fit covers for pool and patio chaise lounges. Marine-grade vinyl, waterproof, UV-resistant with custom corner cut-outs.',
+    image: 'https://castawaycovers.com/images/ChaiseLounges/chaise1.jpg',
+    category: 'Outdoor Furniture Covers',
+    price: '90',
+  },
+  'chaise-lounge': {
+    name: 'Custom Chaise Lounge Covers',
+    description: 'Premium custom-fit covers for pool and patio chaise lounges. Marine-grade vinyl, waterproof, UV-resistant with custom corner cut-outs.',
+    image: 'https://castawaycovers.com/images/ChaiseLounges/chaise1.jpg',
+    category: 'Outdoor Furniture Covers',
+    price: '90',
+  },
+  'tables': {
+    name: 'Custom Table Covers',
+    description: 'Premium custom-fit covers for outdoor dining and coffee tables. Marine-grade vinyl, waterproof, UV-resistant with reinforced grommets.',
+    image: 'https://castawaycovers.com/images/Tables/table1.jpg',
+    category: 'Outdoor Furniture Covers',
+    price: '90',
+  },
+  'table-sets': {
+    name: 'Custom Table Set Covers',
+    description: 'Premium custom-fit covers for complete outdoor dining sets with chairs or benches. Marine-grade vinyl with optional split cover design for easy access.',
+    image: 'https://castawaycovers.com/images/Tablesets/tableset-winter.jpg',
+    category: 'Outdoor Furniture Covers',
+    price: '135',
+  },
+  'ottomans': {
+    name: 'Custom Ottoman Covers',
+    description: 'Premium custom-fit covers for outdoor ottomans and footrests. Marine-grade vinyl, waterproof, UV-resistant with reinforced grommets.',
+    image: 'https://castawaycovers.com/images/Ottomans/ottoman2.jpg',
+    category: 'Outdoor Furniture Covers',
+    price: '90',
+  },
+};
+
+export function getProductSchemaForType(productType: string) {
+  const product = productData[productType];
+  if (!product) return null;
+  return getProductSchema(product);
 }
 
 export function getFAQSchema() {
