@@ -1,5 +1,8 @@
 import Link from "next/link";
 import Image from "next/image";
+import { generateMetadata as generateMeta } from "@/lib/metadata";
+
+export const metadata = generateMeta('design');
 
 export default function DesignPage() {
   const furnitureTypes = [

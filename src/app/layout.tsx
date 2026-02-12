@@ -27,18 +27,24 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: 'https://www.castawaycovers.com',
+    url: 'https://castawaycovers.com',
     siteName: 'Castaway Covers',
     title: 'Castaway Covers - Premium Custom Patio Furniture Covers',
     description: 'Custom-fit covers for your outdoor furniture with marine-grade materials',
     images: [
       {
-        url: 'https://www.castawaycovers.com/images-optimized/og-image.jpg',
+        url: 'https://castawaycovers.com/images-optimized/og-image.jpg',
         width: 1200,
         height: 630,
         alt: 'Castaway Covers - Premium Patio Furniture Protection',
       },
     ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Castaway Covers - Premium Custom Patio Furniture Covers',
+    description: 'Custom-fit covers for your outdoor furniture with marine-grade materials',
+    images: ['https://castawaycovers.com/images-optimized/og-image.jpg'],
   },
   alternates: {
     canonical: 'https://castawaycovers.com'
