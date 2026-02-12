@@ -488,8 +488,7 @@ const getGalleryImages = (productType: string, selectedColor?: string) => {
       { src: '/images/Sofas-Loveseats/sofa3.jpg', alt: 'Sofa Cover - Detail View' },
       { src: '/images/Sofas-Loveseats/sofa4.jpg', alt: 'Sofa Cover - Bungee & Handle Detail' },
       { src: '/images/Sofas-Loveseats/sofa5.jpg', alt: 'Sofa Cover - Additional View' },
-      { src: '/images/Sofas-Loveseats/sofa6.jpg', alt: 'Sofa Cover - Magnetic Closure' },
-      { src: '/images/Sofas-Loveseats/winter.jpg', alt: 'Sofa Cover - Winter Protection' }
+      { src: '/images/Sofas-Loveseats/sofa6.jpg', alt: 'Sofa Cover - Magnetic Closure' }
     ],
     'chaise-lounge': [
       { src: '/images/ChaiseLounges/chaise1.jpg', alt: 'Chaise Lounge Cover - Front Side View' }
@@ -506,6 +505,7 @@ const getGalleryImages = (productType: string, selectedColor?: string) => {
       { src: '/images/Tables/table3.jpg', alt: 'Table with Castaway Cover' }
     ],
     'table-sets': [
+      { src: '/images/Tablesets/tableset-winter.jpg', alt: 'Table Set Cover - Winter Snow Protection' },
       { src: '/images/Tablesets/tableset2.jpg', alt: 'Table Set Cover - Bungee System' },
       { src: '/images/Tablesets/tableset4.jpg', alt: 'Table Set - Complete View' },
       { src: '/images/Tablesets/tableset5.jpg', alt: 'Table Set - Additional View' }
