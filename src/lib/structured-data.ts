@@ -115,7 +115,7 @@ const productData: { [key: string]: { name: string; description: string; image: 
   'table-sets': {
     name: 'Custom Table Set Covers',
     description: 'Premium custom-fit covers for complete outdoor dining sets with chairs or benches. Marine-grade vinyl with optional split cover design for easy access.',
-    image: 'https://castawaycovers.com/images/Tablesets/tableset-winter.jpg',
+    image: 'https://castawaycovers.com/images/Tablesets/tableset6.jpg',
     category: 'Outdoor Furniture Covers',
     price: '135',
   },
