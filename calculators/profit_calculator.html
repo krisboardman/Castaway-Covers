@@ -78,11 +78,17 @@
       <div class="card" id="inputsCard">
         <div class="title">Material Costs (per cover)</div>
         <div class="inputs">
-          <label class="lbl">Fabric (yards needed)
+          <label class="lbl">Vinyl fabric (yards needed)
             <input id="fabricYards" type="number" value="3" step="0.25" min="0" />
           </label>
-          <label class="lbl">Fabric price (per yard) $
+          <label class="lbl">Vinyl fabric price (per yard) $
             <input id="fabricPrice" type="number" value="12.00" step="0.25" min="0" />
+          </label>
+          <label class="lbl">Gusset fabric (yards needed)
+            <input id="gussetYards" type="number" value="0" step="0.25" min="0" />
+          </label>
+          <label class="lbl">Gusset fabric price (per yard) $
+            <input id="gussetPrice" type="number" value="6.00" step="0.25" min="0" />
           </label>
           <label class="lbl">Thread / consumables $
             <input id="threadCost" type="number" value="1.50" step="0.25" min="0" />
@@ -221,11 +227,14 @@ function compute() {
   const fabricYards = parseNum('fabricYards');
   const fabricPrice = parseNum('fabricPrice');
   const fabricTotal = fabricYards * fabricPrice;
+  const gussetYards = parseNum('gussetYards');
+  const gussetPrice = parseNum('gussetPrice');
+  const gussetTotal = gussetYards * gussetPrice;
   const threadCost = parseNum('threadCost');
   const hardwareCost = parseNum('hardwareCost');
   const bungeeCost = parseNum('bungeeCost');
   const snapCost = parseNum('snapCost');
-  const totalMaterials = fabricTotal + threadCost + hardwareCost + bungeeCost + snapCost;
+  const totalMaterials = fabricTotal + gussetTotal + threadCost + hardwareCost + bungeeCost + snapCost;
 
   // Labor
   const laborHours = parseNum('laborHours');
@@ -255,7 +264,8 @@ function compute() {
   // Cost Breakdown
   const breakdown = document.getElementById('costBreakdown');
   const costRows = [
-    ['Fabric (' + fabricYards + ' yd × ' + fmt(fabricPrice) + '/yd)', fmt(fabricTotal)],
+    ['Vinyl fabric (' + fabricYards + ' yd × ' + fmt(fabricPrice) + '/yd)', fmt(fabricTotal)],
+    ['Gusset fabric (' + gussetYards + ' yd × ' + fmt(gussetPrice) + '/yd)', fmt(gussetTotal)],
     ['Thread / consumables', fmt(threadCost)],
     ['Grommets / hardware', fmt(hardwareCost)],
     ['Bungee / elastic', fmt(bungeeCost)],
@@ -372,7 +382,7 @@ function compute() {
 }
 
 function saveInputs() {
-  const fields = ['fabricYards','fabricPrice','threadCost','hardwareCost','bungeeCost','snapCost','laborHours','laborRate','shippingCost','platformFee','marketingCost','otherOverhead','sellingPrice','targetMargin'];
+  const fields = ['fabricYards','fabricPrice','gussetYards','gussetPrice','threadCost','hardwareCost','bungeeCost','snapCost','laborHours','laborRate','shippingCost','platformFee','marketingCost','otherOverhead','sellingPrice','targetMargin'];
   const values = {};
   fields.forEach(f => { const el = document.getElementById(f); if (el) values[f] = el.value; });
   localStorage.setItem('castawayProfitCalc', JSON.stringify(values));
@@ -400,7 +410,8 @@ function exportAsText() {
 
   // Gather values
   const fabricTotal = parseNum('fabricYards') * parseNum('fabricPrice');
-  const totalMaterials = fabricTotal + parseNum('threadCost') + parseNum('hardwareCost') + parseNum('bungeeCost') + parseNum('snapCost');
+  const gussetTotal = parseNum('gussetYards') * parseNum('gussetPrice');
+  const totalMaterials = fabricTotal + gussetTotal + parseNum('threadCost') + parseNum('hardwareCost') + parseNum('bungeeCost') + parseNum('snapCost');
   const totalLabor = parseNum('laborHours') * parseNum('laborRate');
   const totalOverhead = parseNum('shippingCost') + parseNum('platformFee') + parseNum('marketingCost') + parseNum('otherOverhead');
   const totalCost = totalMaterials + totalLabor + totalOverhead;
@@ -429,7 +440,8 @@ function exportAsText() {
 
 function copyToClipboard() {
   const fabricTotal = parseNum('fabricYards') * parseNum('fabricPrice');
-  const totalMaterials = fabricTotal + parseNum('threadCost') + parseNum('hardwareCost') + parseNum('bungeeCost') + parseNum('snapCost');
+  const gussetTotal = parseNum('gussetYards') * parseNum('gussetPrice');
+  const totalMaterials = fabricTotal + gussetTotal + parseNum('threadCost') + parseNum('hardwareCost') + parseNum('bungeeCost') + parseNum('snapCost');
   const totalLabor = parseNum('laborHours') * parseNum('laborRate');
   const totalOverhead = parseNum('shippingCost') + parseNum('platformFee') + parseNum('marketingCost') + parseNum('otherOverhead');
   const totalCost = totalMaterials + totalLabor + totalOverhead;
@@ -454,7 +466,7 @@ function wire() {
 
   document.getElementById('recalc').addEventListener('click', compute);
   document.getElementById('resetBtn').addEventListener('click', () => {
-    const defaults = {fabricYards:3, fabricPrice:12, threadCost:1.5, hardwareCost:3, bungeeCost:2, snapCost:2.5, laborHours:2, laborRate:20, shippingCost:8, platformFee:3, marketingCost:2, otherOverhead:0, sellingPrice:125, targetMargin:50};
+    const defaults = {fabricYards:3, fabricPrice:12, gussetYards:0, gussetPrice:6, threadCost:1.5, hardwareCost:3, bungeeCost:2, snapCost:2.5, laborHours:2, laborRate:20, shippingCost:8, platformFee:3, marketingCost:2, otherOverhead:0, sellingPrice:125, targetMargin:50};
     Object.entries(defaults).forEach(([id,val]) => { const el=document.getElementById(id); if(el) el.value=val; });
     compute();
   });
