@@ -97,8 +97,7 @@ export default function FAQsPage() {
                     Do you ship internationally?
                   </h3>
                   <p className="text-gray-700">
-                    Currently, we ship within the United States and Canada. International shipping 
-                    rates and delivery times vary. Contact us for a quote.
+                    Currently, we ship within the continental United States only.
                   </p>
                 </div>
 
