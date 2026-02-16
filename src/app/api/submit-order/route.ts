@@ -77,6 +77,39 @@ NEXT STEPS:
 3. Contact customer at ${customerInfo.phone || customerInfo.email} to confirm details
 `;
 
+    // Build customer-facing order details (without angle)
+    const customerOrderDetails = items.map((item: any, index: number) => {
+      const addOns = [];
+      if (item.snapStraps) addOns.push('Snap Straps (+$20)');
+      if (item.handles) addOns.push('Handles (+$20)');
+      if (item.magnets) addOns.push('Split Cover with Snaps (+$35)');
+
+      const isSofa = item.productType === 'sofas-loveseats';
+      const lengthLabel = isSofa ? 'Depth' : 'Length';
+      const widthLabel = isSofa ? 'Length' : 'Width';
+
+      return `
+Item ${index + 1}: ${item.productType}
+--------------------------------
+SKU: ${item.coverSKU}
+Color: ${item.selectedColor}
+Quantity: ${item.quantity}
+Yards: ${item.yards}
+
+Measurements:
+  ${widthLabel}: ${item.measurements?.width || 0}"
+  ${lengthLabel}: ${item.measurements?.length || 0}"
+  Height: ${item.measurements?.height || 0}"
+  ${item.measurements?.backrestDepth ? `Backrest Depth: ${item.measurements.backrestDepth}"` : ''}
+  ${item.measurements?.armrestHeight ? `Armrest Height: ${item.measurements.armrestHeight}"` : ''}
+
+Add-ons: ${addOns.length > 0 ? addOns.join(', ') : 'None'}
+${item.premiumColorCharge > 0 ? `Premium Color Charge: $${item.premiumColorCharge}` : ''}
+
+Item Total: $${item.total.toFixed(2)}
+`;
+    }).join('\n');
+
     // Email content to send to customer
     const emailToCustomer = `
 Thank you for your order!
@@ -87,9 +120,11 @@ Hi ${customerInfo.name},
 Thank you for your custom cover order from Castaway Covers! We've received your request and will send you a detailed invoice within 24 hours.
 
 ORDER SUMMARY:
-${orderDetails}
+${customerOrderDetails}
 
-TOTAL: $${totalPrice.toFixed(2)}
+SUBTOTAL: $${totalPrice.toFixed(2)}
+
+SHIPPING: Shipping costs will be calculated based on your location and order size, and included in your invoice.
 
 You will receive a Stripe invoice via email at ${customerInfo.email}. Once payment is received, we'll begin production on your custom covers.
 

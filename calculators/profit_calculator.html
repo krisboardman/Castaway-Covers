@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Castaway Covers — Profit Calculator</title>
+<style>
+  :root { --bg:#f8fafc; --card:#ffffff; --text:#0f172a; --sub:#475569; --muted:#e2e8f0; --accent:#22c55e; --red:#ef4444; --amber:#f59e0b; }
+  body { font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; background:var(--bg); color:var(--text); margin:0; padding:24px; }
+  .wrap { max-width: 1200px; margin: 0 auto; }
+  h1 { font-size: 24px; margin: 0 0 6px; }
+  .subtitle { font-size: 14px; color: var(--sub); margin-bottom: 18px; }
+  .controls { display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin-bottom:12px; }
+  .pill { padding:6px 10px; border-radius:999px; border:1px solid #cbd5e1; background:#eff6ff; color:#1e293b; font-size:12px; }
+  .grid { display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
+  .grid3 { display:grid; grid-template-columns: repeat(3, 1fr); gap:16px; margin-top:16px; }
+  .card { background:var(--card); border:1px solid var(--muted); border-radius:14px; padding:16px; box-shadow: 0 1px 8px rgba(0,0,0,0.04); }
+  .card.highlight { border-color: var(--accent); box-shadow: 0 1px 12px rgba(34,197,94,0.12); }
+  .title { font-weight:600; margin-bottom:8px; }
+  .inputs { display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:10px; }
+  .inputs.single { grid-template-columns: 1fr; }
+  label.lbl { display:grid; gap:6px; font-size:12px; color:var(--sub); }
+  input[type="number"], select { border:1px solid var(--muted); border-radius:10px; padding:10px 12px; font-size:14px; width:100%; box-sizing:border-box; }
+  select { background: #fff; cursor: pointer; }
+  .row { display:flex; justify-content:space-between; align-items:center; font-size:14px; padding:8px 0; }
+  .row + .row { border-top:1px dashed var(--muted); }
+  .row.total { font-weight: 700; font-size: 16px; border-top: 2px solid var(--text); padding-top: 12px; }
+  .note { font-size:12px; color:var(--sub); margin-top:8px; }
+  .btn { padding:8px 14px; border-radius:10px; border:1px solid var(--muted); background:#fff; cursor:pointer; font-size:13px; }
+  .btn:hover { background: #f1f5f9; }
+
+  .metric-card { text-align:center; padding:20px 16px; }
+  .metric-value { font-size:32px; font-weight:700; margin:8px 0 4px; }
+  .metric-label { font-size:13px; color:var(--sub); }
+  .metric-sub { font-size:11px; color:var(--sub); margin-top:4px; }
+  .green { color: var(--accent); }
+  .red { color: var(--red); }
+  .amber { color: var(--amber); }
+
+  .bar-container { height:24px; background:#f1f5f9; border-radius:12px; overflow:hidden; margin:8px 0; position:relative; }
+  .bar-segment { height:100%; display:inline-block; vertical-align:top; }
+  .bar-label { position:absolute; top:50%; transform:translateY(-50%); font-size:10px; font-weight:600; color:#fff; padding:0 6px; }
+
+  .scenario-row { display:grid; grid-template-columns: 1fr 1fr 1fr 1fr 1fr; gap:8px; font-size:13px; padding:6px 0; align-items:center; }
+  .scenario-row + .scenario-row { border-top:1px dashed var(--muted); }
+  .scenario-header { font-weight:600; font-size:12px; color:var(--sub); text-transform:uppercase; letter-spacing:0.5px; }
+
+  @media (max-width: 768px) {
+    .grid { grid-template-columns: 1fr; }
+    .grid3 { grid-template-columns: 1fr; }
+    .scenario-row { grid-template-columns: 1fr 1fr; gap:4px; }
+  }
+
+  @media print {
+    body { padding: 8px; }
+    .controls { display: none; }
+    .card { padding: 10px; page-break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Castaway Covers — Profit Calculator</h1>
+  <div class="subtitle">Calculate per-unit profit, margins, and suggested pricing for chair covers</div>
+
+  <div class="controls">
+    <span class="pill" id="statusPill">Ready</span>
+    <button id="recalc" class="btn">Recalculate</button>
+    <button id="resetBtn" class="btn">Reset to Defaults</button>
+    <button id="exportTxt" class="btn">Export as Text</button>
+    <button id="printPage" class="btn">Print / PDF</button>
+    <button id="copyResults" class="btn">Copy Results</button>
+  </div>
+
+  <div class="grid">
+    <!-- LEFT: Inputs -->
+    <div>
+      <div class="card" id="inputsCard">
+        <div class="title">Material Costs (per cover)</div>
+        <div class="inputs">
+          <label class="lbl">Fabric (yards needed)
+            <input id="fabricYards" type="number" value="3" step="0.25" min="0" />
+          </label>
+          <label class="lbl">Fabric price (per yard) $
+            <input id="fabricPrice" type="number" value="12.00" step="0.25" min="0" />
+          </label>
+          <label class="lbl">Thread / consumables $
+            <input id="threadCost" type="number" value="1.50" step="0.25" min="0" />
+          </label>
+          <label class="lbl">Grommets / hardware $
+            <input id="hardwareCost" type="number" value="3.00" step="0.25" min="0" />
+          </label>
+          <label class="lbl">Bungee / elastic $
+            <input id="bungeeCost" type="number" value="2.00" step="0.25" min="0" />
+          </label>
+          <label class="lbl">Snap straps / closures $
+            <input id="snapCost" type="number" value="2.50" step="0.25" min="0" />
+          </label>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:16px;" id="laborCard">
+        <div class="title">Labor</div>
+        <div class="inputs">
+          <label class="lbl">Time per cover (hours)
+            <input id="laborHours" type="number" value="2.0" step="0.25" min="0" />
+          </label>
+          <label class="lbl">Hourly rate $
+            <input id="laborRate" type="number" value="20.00" step="1" min="0" />
+          </label>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:16px;" id="overheadCard">
+        <div class="title">Overhead &amp; Fees (per cover)</div>
+        <div class="inputs">
+          <label class="lbl">Shipping / packaging $
+            <input id="shippingCost" type="number" value="8.00" step="0.50" min="0" />
+          </label>
+          <label class="lbl">Platform / listing fee $
+            <input id="platformFee" type="number" value="3.00" step="0.50" min="0" />
+          </label>
+          <label class="lbl">Marketing / ads (per unit) $
+            <input id="marketingCost" type="number" value="2.00" step="0.50" min="0" />
+          </label>
+          <label class="lbl">Other overhead $
+            <input id="otherOverhead" type="number" value="0.00" step="0.50" min="0" />
+          </label>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:16px;" id="pricingCard">
+        <div class="title">Pricing</div>
+        <div class="inputs">
+          <label class="lbl">Your selling price $
+            <input id="sellingPrice" type="number" value="125.00" step="1" min="0" />
+          </label>
+          <label class="lbl">Target margin %
+            <input id="targetMargin" type="number" value="50" step="5" min="0" max="95" />
+          </label>
+        </div>
+        <div class="note">Target margin is used to calculate a suggested selling price based on your costs.</div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Results -->
+    <div>
+      <div class="card">
+        <div class="title">Cost Breakdown (per cover)</div>
+        <div id="costBreakdown"></div>
+        <div style="margin-top:12px;">
+          <div class="title" style="font-size:13px;">Cost Distribution</div>
+          <div class="bar-container" id="costBar"></div>
+          <div id="costBarLegend" style="display:flex; gap:12px; flex-wrap:wrap; font-size:11px; color:var(--sub);"></div>
+        </div>
+      </div>
+
+      <div class="card highlight" style="margin-top:16px;">
+        <div class="title">Profitability</div>
+        <div id="profitResults"></div>
+      </div>
+
+      <div class="card" style="margin-top:16px;">
+        <div class="title">Suggested Pricing</div>
+        <div id="suggestedPricing"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Metrics row -->
+  <div class="grid3" id="metricsRow">
+    <div class="card metric-card">
+      <div class="metric-label">Profit Per Cover</div>
+      <div class="metric-value" id="metricProfit">$0</div>
+      <div class="metric-sub" id="metricProfitSub"></div>
+    </div>
+    <div class="card metric-card">
+      <div class="metric-label">Profit Margin</div>
+      <div class="metric-value" id="metricMargin">0%</div>
+      <div class="metric-sub" id="metricMarginSub"></div>
+    </div>
+    <div class="card metric-card">
+      <div class="metric-label">Suggested Price</div>
+      <div class="metric-value" id="metricSuggested">$0</div>
+      <div class="metric-sub" id="metricSuggestedSub"></div>
+    </div>
+  </div>
+
+  <!-- Volume Scenarios -->
+  <div class="card" style="margin-top:16px;">
+    <div class="title">Volume Scenarios</div>
+    <div class="note" style="margin-top:0; margin-bottom:8px;">Projected revenue and profit at different production volumes</div>
+    <div class="scenario-row scenario-header">
+      <span>Units / Month</span>
+      <span>Revenue</span>
+      <span>Total Cost</span>
+      <span>Total Profit</span>
+      <span>Annual Profit</span>
+    </div>
+    <div id="volumeScenarios"></div>
+  </div>
+</div>
+
+<script>
+function parseNum(id) {
+  const el = document.getElementById(id);
+  const v = Number(el.value);
+  return isFinite(v) ? v : 0;
+}
+
+function fmt(val) {
+  return '$' + val.toFixed(2);
+}
+
+function fmtPct(val) {
+  return val.toFixed(1) + '%';
+}
+
+function compute() {
+  // Material costs
+  const fabricYards = parseNum('fabricYards');
+  const fabricPrice = parseNum('fabricPrice');
+  const fabricTotal = fabricYards * fabricPrice;
+  const threadCost = parseNum('threadCost');
+  const hardwareCost = parseNum('hardwareCost');
+  const bungeeCost = parseNum('bungeeCost');
+  const snapCost = parseNum('snapCost');
+  const totalMaterials = fabricTotal + threadCost + hardwareCost + bungeeCost + snapCost;
+
+  // Labor
+  const laborHours = parseNum('laborHours');
+  const laborRate = parseNum('laborRate');
+  const totalLabor = laborHours * laborRate;
+
+  // Overhead
+  const shippingCost = parseNum('shippingCost');
+  const platformFee = parseNum('platformFee');
+  const marketingCost = parseNum('marketingCost');
+  const otherOverhead = parseNum('otherOverhead');
+  const totalOverhead = shippingCost + platformFee + marketingCost + otherOverhead;
+
+  // Totals
+  const totalCost = totalMaterials + totalLabor + totalOverhead;
+  const sellingPrice = parseNum('sellingPrice');
+  const targetMargin = parseNum('targetMargin');
+  const profit = sellingPrice - totalCost;
+  const margin = sellingPrice > 0 ? (profit / sellingPrice) * 100 : 0;
+  const markup = totalCost > 0 ? (profit / totalCost) * 100 : 0;
+
+  // Suggested price based on target margin
+  const suggestedPrice = targetMargin < 100 ? totalCost / (1 - targetMargin / 100) : totalCost;
+  // Break-even price
+  const breakEvenPrice = totalCost;
+
+  // Cost Breakdown
+  const breakdown = document.getElementById('costBreakdown');
+  const costRows = [
+    ['Fabric (' + fabricYards + ' yd × ' + fmt(fabricPrice) + '/yd)', fmt(fabricTotal)],
+    ['Thread / consumables', fmt(threadCost)],
+    ['Grommets / hardware', fmt(hardwareCost)],
+    ['Bungee / elastic', fmt(bungeeCost)],
+    ['Snap straps / closures', fmt(snapCost)],
+    ['Materials subtotal', fmt(totalMaterials), true],
+    ['Labor (' + laborHours + ' hrs × ' + fmt(laborRate) + '/hr)', fmt(totalLabor)],
+    ['Shipping / packaging', fmt(shippingCost)],
+    ['Platform / listing fee', fmt(platformFee)],
+    ['Marketing / ads', fmt(marketingCost)],
+    ['Other overhead', fmt(otherOverhead)],
+    ['Overhead subtotal', fmt(totalOverhead), true],
+  ];
+
+  breakdown.innerHTML = costRows.map((r, i) => {
+    const isSub = r[2];
+    const style = isSub ? 'font-weight:600; background:#f8fafc; border-radius:6px; padding:6px 4px; margin:2px -4px;' : '';
+    return `<div class="row" style="${style}"><span>${r[0]}</span><span>${r[1]}</span></div>`;
+  }).join('') + `<div class="row total"><span>Total Cost Per Cover</span><span>${fmt(totalCost)}</span></div>`;
+
+  // Cost bar
+  const barColors = ['#6366f1', '#22c55e', '#f59e0b'];
+  const barLabels = ['Materials', 'Labor', 'Overhead'];
+  const barValues = [totalMaterials, totalLabor, totalOverhead];
+  const costBar = document.getElementById('costBar');
+  const legend = document.getElementById('costBarLegend');
+
+  if (totalCost > 0) {
+    costBar.innerHTML = barValues.map((v, i) => {
+      const pct = (v / totalCost) * 100;
+      return `<div class="bar-segment" style="width:${pct}%; background:${barColors[i]};"></div>`;
+    }).join('');
+    legend.innerHTML = barValues.map((v, i) => {
+      const pct = ((v / totalCost) * 100).toFixed(0);
+      return `<span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:${barColors[i]};margin-right:4px;vertical-align:middle;"></span>${barLabels[i]}: ${fmt(v)} (${pct}%)</span>`;
+    }).join('');
+  } else {
+    costBar.innerHTML = '';
+    legend.innerHTML = '<span>No costs entered</span>';
+  }
+
+  // Profit results
+  const profitResults = document.getElementById('profitResults');
+  const profitColor = profit >= 0 ? 'green' : 'red';
+  const marginColor = margin >= targetMargin ? 'green' : margin >= 0 ? 'amber' : 'red';
+
+  profitResults.innerHTML = `
+    <div class="row"><span>Selling price</span><strong>${fmt(sellingPrice)}</strong></div>
+    <div class="row"><span>Total cost</span><strong>${fmt(totalCost)}</strong></div>
+    <div class="row total"><span>Profit per cover</span><strong class="${profitColor}">${fmt(profit)}</strong></div>
+    <div class="row"><span>Profit margin</span><strong class="${marginColor}">${fmtPct(margin)}</strong></div>
+    <div class="row"><span>Markup on cost</span><strong>${fmtPct(markup)}</strong></div>
+  `;
+
+  // Suggested pricing
+  const suggestedPricing = document.getElementById('suggestedPricing');
+  suggestedPricing.innerHTML = `
+    <div class="row"><span>Break-even price (cost only)</span><strong>${fmt(breakEvenPrice)}</strong></div>
+    <div class="row"><span>Suggested price for ${targetMargin}% margin</span><strong class="green">${fmt(suggestedPrice)}</strong></div>
+    <div class="row"><span>Profit at suggested price</span><strong>${fmt(suggestedPrice - totalCost)}</strong></div>
+    <div class="note">To achieve a ${targetMargin}% profit margin, price each cover at <strong>${fmt(suggestedPrice)}</strong>. Your current price of ${fmt(sellingPrice)} gives you a ${fmtPct(margin)} margin.</div>
+  `;
+
+  // Metric cards
+  document.getElementById('metricProfit').textContent = fmt(profit);
+  document.getElementById('metricProfit').className = 'metric-value ' + profitColor;
+  document.getElementById('metricProfitSub').textContent = 'on ' + fmt(sellingPrice) + ' selling price';
+
+  document.getElementById('metricMargin').textContent = fmtPct(margin);
+  document.getElementById('metricMargin').className = 'metric-value ' + marginColor;
+  document.getElementById('metricMarginSub').textContent = margin >= targetMargin ? 'Meets target of ' + targetMargin + '%' : 'Below target of ' + targetMargin + '%';
+
+  document.getElementById('metricSuggested').textContent = fmt(suggestedPrice);
+  document.getElementById('metricSuggested').className = 'metric-value green';
+  document.getElementById('metricSuggestedSub').textContent = 'for ' + targetMargin + '% margin';
+
+  // Volume scenarios
+  const volumes = [5, 10, 20, 30, 50];
+  const scenariosDiv = document.getElementById('volumeScenarios');
+  scenariosDiv.innerHTML = volumes.map(qty => {
+    const rev = qty * sellingPrice;
+    const cost = qty * totalCost;
+    const prof = qty * profit;
+    const annual = prof * 12;
+    const profClass = prof >= 0 ? 'green' : 'red';
+    return `<div class="scenario-row">
+      <span><strong>${qty}</strong></span>
+      <span>${fmt(rev)}</span>
+      <span>${fmt(cost)}</span>
+      <span class="${profClass}"><strong>${fmt(prof)}</strong></span>
+      <span class="${profClass}"><strong>${fmt(annual)}</strong></span>
+    </div>`;
+  }).join('');
+
+  // Status pill
+  const pill = document.getElementById('statusPill');
+  if (profit > 0 && margin >= targetMargin) {
+    pill.textContent = 'Profitable';
+    pill.style.background = '#dcfce7';
+    pill.style.borderColor = '#86efac';
+    pill.style.color = '#166534';
+  } else if (profit > 0) {
+    pill.textContent = 'Profitable (below target)';
+    pill.style.background = '#fef3c7';
+    pill.style.borderColor = '#fcd34d';
+    pill.style.color = '#92400e';
+  } else {
+    pill.textContent = 'Not profitable';
+    pill.style.background = '#fee2e2';
+    pill.style.borderColor = '#fca5a5';
+    pill.style.color = '#991b1b';
+  }
+
+  saveInputs();
+}
+
+function saveInputs() {
+  const fields = ['fabricYards','fabricPrice','threadCost','hardwareCost','bungeeCost','snapCost','laborHours','laborRate','shippingCost','platformFee','marketingCost','otherOverhead','sellingPrice','targetMargin'];
+  const values = {};
+  fields.forEach(f => { const el = document.getElementById(f); if (el) values[f] = el.value; });
+  localStorage.setItem('castawayProfitCalc', JSON.stringify(values));
+}
+
+function loadSavedInputs() {
+  try {
+    const saved = localStorage.getItem('castawayProfitCalc');
+    if (saved) {
+      const values = JSON.parse(saved);
+      Object.entries(values).forEach(([field, value]) => {
+        const el = document.getElementById(field);
+        if (el) el.value = value;
+      });
+      return true;
+    }
+  } catch (e) { console.error('Error loading saved inputs:', e); }
+  return false;
+}
+
+function exportAsText() {
+  const date = new Date().toLocaleDateString();
+  let text = 'CASTAWAY COVERS — PROFIT CALCULATOR\n';
+  text += 'Generated: ' + date + '\n\n';
+
+  // Gather values
+  const fabricTotal = parseNum('fabricYards') * parseNum('fabricPrice');
+  const totalMaterials = fabricTotal + parseNum('threadCost') + parseNum('hardwareCost') + parseNum('bungeeCost') + parseNum('snapCost');
+  const totalLabor = parseNum('laborHours') * parseNum('laborRate');
+  const totalOverhead = parseNum('shippingCost') + parseNum('platformFee') + parseNum('marketingCost') + parseNum('otherOverhead');
+  const totalCost = totalMaterials + totalLabor + totalOverhead;
+  const sellingPrice = parseNum('sellingPrice');
+  const profit = sellingPrice - totalCost;
+  const margin = sellingPrice > 0 ? (profit / sellingPrice) * 100 : 0;
+
+  text += 'COSTS:\n';
+  text += '  Materials: ' + fmt(totalMaterials) + '\n';
+  text += '  Labor: ' + fmt(totalLabor) + '\n';
+  text += '  Overhead: ' + fmt(totalOverhead) + '\n';
+  text += '  TOTAL COST: ' + fmt(totalCost) + '\n\n';
+  text += 'PRICING:\n';
+  text += '  Selling Price: ' + fmt(sellingPrice) + '\n';
+  text += '  Profit Per Cover: ' + fmt(profit) + '\n';
+  text += '  Profit Margin: ' + fmtPct(margin) + '\n';
+
+  const blob = new Blob([text], {type:'text/plain'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'profit-calc-' + date.replace(/\//g,'-') + '.txt';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function copyToClipboard() {
+  const fabricTotal = parseNum('fabricYards') * parseNum('fabricPrice');
+  const totalMaterials = fabricTotal + parseNum('threadCost') + parseNum('hardwareCost') + parseNum('bungeeCost') + parseNum('snapCost');
+  const totalLabor = parseNum('laborHours') * parseNum('laborRate');
+  const totalOverhead = parseNum('shippingCost') + parseNum('platformFee') + parseNum('marketingCost') + parseNum('otherOverhead');
+  const totalCost = totalMaterials + totalLabor + totalOverhead;
+  const sellingPrice = parseNum('sellingPrice');
+  const profit = sellingPrice - totalCost;
+  const margin = sellingPrice > 0 ? (profit / sellingPrice) * 100 : 0;
+
+  let text = 'Castaway Covers Profit Calculator\n';
+  text += 'Cost: ' + fmt(totalCost) + ' | Price: ' + fmt(sellingPrice) + ' | Profit: ' + fmt(profit) + ' | Margin: ' + fmtPct(margin);
+
+  navigator.clipboard.writeText(text).then(() => alert('Copied!')).catch(() => alert('Failed to copy.'));
+}
+
+function wire() {
+  loadSavedInputs();
+
+  // Listen to all input changes
+  ['inputsCard','laborCard','overheadCard','pricingCard'].forEach(cardId => {
+    const card = document.getElementById(cardId);
+    if (card) ['input','change','keyup'].forEach(ev => card.addEventListener(ev, compute));
+  });
+
+  document.getElementById('recalc').addEventListener('click', compute);
+  document.getElementById('resetBtn').addEventListener('click', () => {
+    const defaults = {fabricYards:3, fabricPrice:12, threadCost:1.5, hardwareCost:3, bungeeCost:2, snapCost:2.5, laborHours:2, laborRate:20, shippingCost:8, platformFee:3, marketingCost:2, otherOverhead:0, sellingPrice:125, targetMargin:50};
+    Object.entries(defaults).forEach(([id,val]) => { const el=document.getElementById(id); if(el) el.value=val; });
+    compute();
+  });
+  document.getElementById('exportTxt').addEventListener('click', exportAsText);
+  document.getElementById('printPage').addEventListener('click', () => window.print());
+  document.getElementById('copyResults').addEventListener('click', copyToClipboard);
+
+  compute();
+}
+
+document.addEventListener('DOMContentLoaded', wire);
+</script>
+</body>
+</html>
