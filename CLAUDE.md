@@ -52,3 +52,12 @@
 - Images are cached for 1 year via `next.config.mjs` headers
 - Security headers (X-Frame-Options, X-Content-Type-Options, X-XSS-Protection) are set
 - TypeScript build errors are currently ignored (`ignoreBuildErrors: true` in next.config.mjs)
+
+### Framework
+The `docs/framework/` directory contains durable reference docs. Read the relevant doc before answering questions or making changes in its domain:
+
+- **"Should we..." / "What matters..." / authority questions** → `docs/framework/principles.md`
+- **"How many yards..." / "What price..." / "What add-ons..." / product questions** → `docs/framework/product-science.md`
+- **"Where does X live?" / "What service..." / "What env var..." / system questions** → `docs/framework/architecture.md`
+- **"Why did this order..." / "What went wrong..." / diagnostic questions** → `docs/framework/order-lifecycle.md`
+- **"What should we fix..." / "What's the priority..." / planning questions** → `docs/framework/roadmap.md`
