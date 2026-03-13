@@ -36,15 +36,21 @@
 - `NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN` — Storefront API token
 - `SHOPIFY_ADMIN_ACCESS_TOKEN` — Admin API token (for scripts)
 - `NEXT_PUBLIC_COMING_SOON_MODE` — Set to "true" to enable coming-soon splash page
+- `NEXT_PUBLIC_PREVIEW_TOKEN` — Preview mode token (used in `src/config/site.ts`)
 
 ### Pages
 - `/` — Homepage (hero carousel, features, gallery)
 - `/products/[productType]` — Product pages (chairs, sofas, etc.)
 - `/design` — Design My Cover tool
 - `/cart` — Shopping cart
+- `/checkout/success` — Post-checkout confirmation
 - `/chair-calculator` — Measurement calculator for chairs
 - `/about`, `/contact`, `/faqs` — Info pages
 - `/measurement-service` — In-home measurement service (Monmouth County)
+- `/account` — Customer account page
+- `/instructions` — Cover care and usage instructions
+- `/portfolio` — Portfolio / gallery of completed work
+- `/coming-soon` — Splash page (toggled via `NEXT_PUBLIC_COMING_SOON_MODE`)
 - `/features`, `/warranty`, `/returns`, `/shipping`, `/privacy`, `/terms` — Policy pages
 
 ### Notes

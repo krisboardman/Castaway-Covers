@@ -108,6 +108,7 @@ Kris owns: order review, Stripe invoice creation, measurement verification, fabr
 | `RESEND_API_KEY` | Resend | `submit-order/route.ts` |
 | `NOTIFICATION_EMAIL` | Config | `submit-order/route.ts` — Kris's order notification address |
 | `NEXT_PUBLIC_COMING_SOON_MODE` | Config | Coming-soon splash toggle |
+| `NEXT_PUBLIC_PREVIEW_TOKEN` | Config | Preview mode token (`src/config/site.ts`) |
 | `NEXT_PUBLIC_MANUAL_CHECKOUT` | Config | Currently overridden by hardcoded `true`; env var not read |
 
 ---

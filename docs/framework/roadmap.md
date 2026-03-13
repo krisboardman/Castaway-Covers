@@ -107,6 +107,16 @@ Write framework docs → extract calculator logic → audit Shopify catalog
 
 ---
 
+## Site Polish (no milestone dependency)
+
+Issues that don't block any milestone but affect customer experience:
+
+- **"Craftsmanship" vs "Features" naming mismatch:** Nav says "Craftsmanship," URL is `/features`, page title is "Craftsmanship Details." Pick one name and align nav label, URL, page title, and docs.
+- **Order summary empty parens before calculation:** Before the customer clicks "Calculate Cover Size & Price," the order summary shows `Cover () x1 — $0.00`. The empty parentheses look like a bug. Show a placeholder like "enter measurements above" or hide the summary until calculation runs.
+- **Contact page button color:** "Send Message" button is blue; every other CTA on the site is teal/green. Should match the site's design system.
+
+---
+
 ## Deferred (not on the roadmap)
 
 These are real ideas but not in scope until the north-star is reached:

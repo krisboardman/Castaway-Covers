@@ -25,7 +25,7 @@ There are two entry paths: self-measure (the common case) and measurement servic
 **Supported types:**
 - `chairs-recliners`
 - `sofas-loveseats`
-- `chaise-lounge` (also `chaise-lounges` — both resolve to the same page)
+- `chaise-lounge` (also `chaise-lounges` — both resolve to the same page; the SKU mapping in `MeasurementCalculator.tsx` line 149–150 handles both slugs, mapping to `Chaiselounges`)
 - `ottomans`
 - `tables`
 - `table-sets`

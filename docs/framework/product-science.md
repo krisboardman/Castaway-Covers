@@ -175,6 +175,8 @@ There is no graceful fallback that lets the customer proceed to checkout. An emp
 
 The internal state variable for "Split Cover with Snaps" is named `magnets` throughout the codebase — a legacy name from when the feature used magnets. The UI label is "Split Cover with Snaps".
 
+**Naming divergence:** The availability matrix in `AddOnOptions.tsx` (lines 30–37) uses the key `magneticClosure`, while `cartStore.ts` and `cart/page.tsx` use the property name `magnets`. Both refer to the same feature. Any refactor must update both locations.
+
 | Add-On | UI Label | Price | chairs-recliners | sofas-loveseats | chaise-lounge | ottomans | tables | table-sets |
 |---|---|---|---|---|---|---|---|---|
 | snapStraps | Snap Straps | +$20 | yes | yes | yes | no | no | no |
