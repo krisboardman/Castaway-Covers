@@ -60,7 +60,7 @@ There are two entry paths: self-measure (the common case) and measurement servic
 
 **What happens:** As the customer types, the MeasurementCalculator component computes:
 - Yard count (`yards`) — the amount of fabric needed
-- Angle (`angle`) — the cut angle for angled pieces (chairs, chaise)
+- Angle (`angle`) — the AT2F diagonal for seated furniture with backrests (chairs, sofas only — NOT chaise)
 - Display SKU — shown in the order summary (e.g., `CH-48-36-30`)
 - Shopify SKU — used to look up the variant in the Shopify catalog
 
