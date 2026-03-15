@@ -1,87 +1,147 @@
 # Principles
 
-## Charter
+The feature works. The code is clean. Could the cover still
+not fit?
 
-Castaway Covers makes custom-fit outdoor furniture covers from premium marine-grade vinyl — measured, cut, and sewn for one specific piece of furniture. Not mass-market. Not one-size-fits-all. The site is the primary sales channel. The business promise is **fit** — a cover built for your specific chair, sofa, or table.
+This document lists the ways. Each section names a failure
+that the roadmap's exit criteria can't catch on their own.
+If any of these are true of your work, the vision isn't being
+served regardless of what the tests say.
 
-Every cover includes:
-- Heavy-duty marine vinyl (UV protected, fire retardant, mildew resistant)
-- Reinforced grommets
-- Durable bungee cords with hooks and locking clips
-- Custom corner cut-outs with waterproof liner
-- Sealed inner edges
-- Castaway's signature wavy edge design
+---
 
-Two customer paths:
-1. Self-measure on the site
-2. Professional in-home measurement service ($75, Monmouth County NJ, credited toward $500+ orders)
+## It uses the right formula but the wrong label
 
-## What Castaway Covers Is Not
+The calculator is mathematically correct. The yard count
+matches the test suite. But the customer measured "Depth" as
+the full chair depth including the backrest, because that's
+what depth means to a normal person. The field label says
+"Depth" but means the horizontal floor projection from back
+to front edge. The cover doesn't fit.
 
-Not a marketplace — one vendor, one product type, many configurations.
+The sofa is worse: the internal field `width` holds the
+sofa's length. The email template swaps the labels back. One
+day someone will "fix" this inconsistency and break production.
 
-Not a catalog site — every order is custom. Measurements define the product.
+Before building: for each measurement field, can a customer
+who has never ordered measure correctly on the first attempt
+using only the label and the diagram? If you're changing a
+sofa field, do you know which direction the swap goes?
 
-Not a subscription business.
+---
 
-Not a tech company. The tech serves the covers.
+## It shows a price that didn't come from Shopify
 
-## Authority Model
+The $45/yard fallback fires because variant lookup failed.
+The customer sees a plausible price and configures add-ons.
+The price came from a hardcoded constant, not the catalog.
+Add-on prices ($20 snap straps, $20 handles, $35 split cover)
+are hardcoded in three different files. If Kris changes a
+price in Shopify, the site still shows the old number until
+someone finds and updates each hardcoded instance.
 
-Kris owns all business decisions: pricing, products, policies, customer communication.
+Before building: for every dollar amount the customer sees,
+can you trace it to one source? If the price exists in more
+than one place, it will diverge.
 
-Measurement formulas are domain science. Changes require Kris's validation against physical reality — real covers on real furniture. Never adjust a formula based on code logic alone.
+---
 
-Technical decisions (how to implement, what to refactor) can be made by whoever works on the code. But they must not change business behavior without Kris's approval.
+## It says "order submitted" but the order can vanish
 
-## Quality Hierarchy
+The submit-order API catches Resend failures and returns
+`success: true` anyway. The cart is cleared. The customer sees
+"Thank you!" The order exists in no database, no log file,
+no email. It evaporated.
 
-What matters most, in order:
+Before building: if Resend is down, does the order survive?
+If the answer is "the email is the record," the order is one
+API failure from gone.
 
-1. **Measurement accuracy.** Wrong measurements = wrong cover = return. The calculators are the product.
-2. **Order reliability.** Every order must flow from customer to Kris without dropping information.
-3. **Customer clarity.** The site must make it easy to understand what to measure and how.
-4. **Site stability.** No broken pages. No dead flows. No confusing errors.
-5. **Aesthetics / polish.** Matters — but not at the expense of 1–4.
+---
 
-When a change improves #5 at the risk of #1, don't make it.
+## It changes a formula without Kris checking the cover
 
-## Kris as Sensor
+The floor clearance for chairs is 6 inches. For sofas it's 4.
+For chaise lounges it's 3. These numbers aren't in the code
+comments. Someone sees 6 and changes it to 4 for consistency.
+The chair cover now drags on the ground.
 
-Kris is the domain expert. She knows what measurement mistakes customers actually make. She knows which product types are tricky. She knows where orders go wrong.
+Before building: has Kris confirmed this output against a
+cover she actually cut and shipped? If the only evidence is
+"the test passes," the formula is unearned. Tests derived from
+code prove the code is consistent with itself, not that the
+cover fits.
 
-Her operational experience is the highest-trust data source.
+---
 
-When the site's logic and Kris's experience disagree, investigate. Don't assume the code is right.
+## It fails and nobody finds out
 
-## Language Discipline
+Shopify API version `2024-01` gets deprecated. Resend sandbox
+domain gets flagged as spam. The Formspree form ID expires. The
+failure isn't loud — no error page, no alert, no log entry. The
+site looks fine. Orders stop arriving or land in spam. Kris
+doesn't know until a customer calls.
 
-Five terms that cause mistakes when used loosely. Always specify which you mean.
+Before building: if this external dependency fails, does
+anyone find out before a customer does? If the answer is
+"eventually," the failure is silent.
 
-**"product"** — specify:
-- Shopify product (a record in Shopify)
-- Cover type (chair, sofa, chaise, etc.)
-- Configured order (the specific dimensions a customer is buying)
+---
 
-**"price"** — specify:
-- Base price
-- Total with add-ons
-- Shopify variant price
+## It treats the sofa like every other product type
 
-**"measurements"** — specify:
-- Customer inputs (what the customer typed)
-- Calculated dimensions (what the calculator derived)
-- Fabric yards (what gets ordered)
+Code that reads `measurements.width` for a sofa is reading
+the sofa's length. Code that reads `measurements.length` is
+reading the sofa's depth. The email template at line 31 of
+submit-order swaps the labels for display. The cart store
+does not.
 
-**"checkout"** — specify:
-- Manual form submission (active path)
-- Shopify checkout (dormant)
-- The customer-facing purchase experience (what the customer sees)
+This is the single most dangerous trap in the codebase. Every
+piece of code that touches sofa measurements must account for
+the inversion. If you're not sure whether it does, it doesn't.
 
-**"Width" / "Length"** — check which product type before using either. For sofas, the internal `width` field is labeled "Length" on screen, and vice versa. The field names and the labels do not match. This causes bugs.
+Before building: does this code touch measurements for sofas?
+If yes, trace the field from customer input through cart
+through email and confirm the label matches the dimension at
+every step.
 
-## Scope
+---
 
-Castaway Covers is a single-product-type business with many configurations. The complexity is in the configuration — measurements → fabric — not the catalog.
+## It builds something Kris didn't ask for
 
-Features and infrastructure should reflect this. Optimize for one product done well. Not a platform that supports many product types. Not a general e-commerce framework. The goal is covers that fit, orders that arrive, customers who understand what they're buying.
+Kris's manual Stripe invoicing works for her current volume.
+Her measurement service process works. The contact form works.
+Building automation around a process that isn't broken is
+building infrastructure nobody reads from.
+
+Before building: has Kris said this is a problem? If the
+motivation is "it would be better" rather than "Kris needs
+this," it's not earned.
+
+---
+
+## It mixes up the two SKU systems
+
+Display SKU (`CHR-36x24x30`) identifies a configured order
+for the customer. Shopify SKU (`chairs/recliners-4`) identifies
+a pricing variant. Different formats, different consumers,
+different purposes. The casing is also inconsistent —
+`chairs/recliners` vs `Chaiselounges` vs `Ottomans`.
+
+Before building: which SKU does this code use, and why? If
+you can't answer instantly, the code probably conflates them.
+
+---
+
+## It hides a measurement behind "optional"
+
+`backWidth` for chairs and `armLength` for chaise lounges are
+optional fields. But for some furniture shapes, skipping them
+produces a cover that doesn't fit. "Optional" means the
+calculator doesn't require it, not that the cover doesn't
+need it.
+
+Before building: for each optional field, can the customer
+tell whether it matters for their specific piece? If there's
+no guidance, "optional" becomes "skipped" and the cover is
+wrong.

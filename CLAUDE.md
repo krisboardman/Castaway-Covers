@@ -60,10 +60,17 @@
 - TypeScript build errors are currently ignored (`ignoreBuildErrors: true` in next.config.mjs)
 
 ### Framework
-The `docs/framework/` directory contains durable reference docs. Read the relevant doc before answering questions or making changes in its domain:
 
-- **"Should we..." / "What matters..." / authority questions** → `docs/framework/principles.md`
-- **"How many yards..." / "What price..." / "What add-ons..." / product questions** → `docs/framework/product-science.md`
-- **"Where does X live?" / "What service..." / "What env var..." / system questions** → `docs/framework/architecture.md`
-- **"Why did this order..." / "What went wrong..." / diagnostic questions** → `docs/framework/order-lifecycle.md`
-- **"What should we fix..." / "What's the priority..." / planning questions** → `docs/framework/roadmap.md`
+The `docs/framework/` directory contains durable reference docs.
+
+- `vision.md` — what the site is for and what it earns
+- `principles.md` — failure modes that tests can't catch
+- `frontier.db` — the roadmap (query with sqlite3)
+- `README.md` — reading order, query examples, authority model
+
+Query the roadmap:
+
+    sqlite3 docs/framework/frontier.db "SELECT code, title, status FROM milestones"
+
+Read the relevant doc before answering questions or making changes
+in its domain. When in doubt, check principles.md.
