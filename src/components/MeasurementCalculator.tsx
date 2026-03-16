@@ -99,7 +99,7 @@ const productConfigs = {
       backWidth: 'Back Width (if smaller than width)'
     },
     hasAngle: true,
-    measurementImage: '/images/Measurements/chair measurements.jpg'
+    measurementImage: '/images/Measurements/chair measurements.png'
   },
   'sofas-loveseats': {
     fields: ['width', 'length', 'height', 'backrestDepth', 'armrestHeight'],
