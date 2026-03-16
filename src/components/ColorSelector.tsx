@@ -124,6 +124,7 @@ const ColorSelector: React.FC<ColorSelectorProps> = ({ onColorSelect }) => {
         </div>
       </div>
       
+      {/* Premium Colors - temporarily hidden
       <div>
         <h4 className="text-sm font-medium text-gray-700 mb-3">
           Premium Colors
@@ -169,6 +170,7 @@ const ColorSelector: React.FC<ColorSelectorProps> = ({ onColorSelect }) => {
           ))}
         </div>
       </div>
+      */}
       
       {/* Modal for viewing color texture */}
       <ColorModal 

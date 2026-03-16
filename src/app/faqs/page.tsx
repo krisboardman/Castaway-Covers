@@ -92,6 +92,15 @@ export default function FAQsPage() {
                     With proper care, our covers typically last 5-7 years or more. We back this with our 2-year warranty. Longevity depends on climate conditions and maintenance.
                   </p>
                 </div>
+
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-2">
+                    Are there other colors available?
+                  </h3>
+                  <p className="text-gray-700">
+                    Other colors may be available for a slight upcharge. <a href="/contact" className="text-blue-600 hover:text-blue-800 underline">Contact us</a> to let us know what you&apos;re looking for.
+                  </p>
+                </div>
               </div>
             </section>
 
