@@ -207,7 +207,7 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Storm Video */}
+            {/* Storm Video - temporarily hidden, swap in new video later
             <div className="group border border-gray-200 rounded-lg overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer bg-white/95 backdrop-blur-sm">
               <div className="aspect-[4/3] relative overflow-hidden">
                 <StormVideo />
@@ -217,6 +217,7 @@ export default function Home() {
                 <p className="text-sm text-gray-600 leading-relaxed">See how our covers work in a Nor'Easter</p>
               </div>
             </div>
+            */}
           </div>
         </div>
       </section>

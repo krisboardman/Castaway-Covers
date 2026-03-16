@@ -17,7 +17,7 @@ export default function DesignPage() {
       name: "Sofas / Loveseats",
       href: "/products/sofas-loveseats",
       image: "/images/sketch-icons/sketchsofa.png",
-      description: "Any length, optional magnetic closures for easy use"
+      description: "Any length, optional snap closures for oversized covers"
     },
     {
       name: "Chaise Lounges",
@@ -31,17 +31,26 @@ export default function DesignPage() {
       image: "/images/sketch-icons/sketchtable.png",
       description: "Dining and coffee tables"
     },
+    /* Table Sets - temporarily hidden
     {
       name: "Table Sets",
       href: "/products/table-sets",
       image: "/images/sketch-icons/sketchtableset.png",
       description: "Complete dining sets with chairs or benches"
     },
+    */
     {
       name: "Ottomans",
       href: "/products/ottomans",
       image: "/images/sketch-icons/sketchottoman.png",
       description: "Footrests and storage ottomans"
+    },
+    {
+      name: "Measurement Service",
+      href: "/measurement-service",
+      image: "",
+      description: "In-home professional measuring — Monmouth County",
+      isMeasurement: true
     }
   ];
 
@@ -69,8 +78,14 @@ export default function DesignPage() {
                   Most Popular
                 </div>
               )}
+              {type.isMeasurement && (
+                <div className="absolute top-4 right-4 z-10 bg-yellow-500 text-gray-900 px-3 py-1 rounded-full text-sm font-semibold">
+                  Local Service
+                </div>
+              )}
               <div className="bg-white rounded-xl overflow-hidden border-2 border-gray-100 hover:border-[#2C8B80] transition-all duration-300 transform hover:-translate-y-1 hover:shadow-xl h-full">
                 <div className="relative h-48 bg-gradient-to-b from-gray-50 to-white flex items-center justify-center overflow-hidden">
+                  {type.image ? (
                   <Image
                     src={type.image}
                     alt={type.name}
@@ -78,6 +93,9 @@ export default function DesignPage() {
                     height={200}
                     className="max-w-full max-h-full object-contain p-6 transition-all duration-500 group-hover:scale-110 group-hover:opacity-80"
                   />
+                  ) : (
+                    <span className="text-7xl transition-all duration-500 group-hover:scale-110">📏</span>
+                  )}
                   {/* Hover overlay with teal tint */}
                   <div className="absolute inset-0 bg-[#2C8B80] opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
                 </div>
@@ -91,7 +109,7 @@ export default function DesignPage() {
                   </p>
                   <div className="flex items-center justify-end">
                     <span className="text-[#2C8B80] group-hover:translate-x-1 transition-transform duration-200">
-                      Select →
+                      {type.isMeasurement ? 'Learn More →' : 'Select →'}
                     </span>
                   </div>
                 </div>
@@ -100,39 +118,7 @@ export default function DesignPage() {
           ))}
         </div>
 
-        {/* Professional Measurement Service Banner */}
-        <div className="mt-8 mb-8">
-          <Link href="/measurement-service" className="block">
-            <div className="bg-gradient-to-r from-yellow-50 to-yellow-100 border-2 border-yellow-400 rounded-xl p-6 hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
-              <div className="flex flex-col md:flex-row items-center justify-between">
-                <div className="flex items-center mb-4 md:mb-0">
-                  <div className="text-5xl mr-6">📏</div>
-                  <div>
-                    <div className="flex items-center gap-3 mb-2">
-                      <h3 className="text-2xl font-bold text-gray-900">Professional Measurement Service</h3>
-                      <span className="bg-yellow-500 text-gray-900 px-3 py-1 rounded-full text-sm font-semibold">
-                        Local Service
-                      </span>
-                    </div>
-                    <p className="text-gray-700">
-                      <span className="font-semibold">Within Monmouth County</span> •
-                      We'll measure your furniture and create your perfect custom order
-                    </p>
-                  </div>
-                </div>
-                <div className="flex flex-col items-center md:items-end">
-                  <span className="text-2xl font-bold text-gray-900 mb-2">$75</span>
-                  <span className="bg-yellow-600 text-white px-6 py-2 rounded-full font-semibold hover:bg-yellow-700 transition-colors inline-flex items-center">
-                    Book Now 
-                    <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </span>
-                </div>
-              </div>
-            </div>
-          </Link>
-        </div>
+        {/* Professional Measurement Service Banner - moved into the grid above */}
 
         {/* Help Section */}
         <div className="mt-12 text-center p-6 bg-[#FAF5ED] rounded-lg">
