@@ -77,6 +77,15 @@ export default function FAQsPage() {
 
                 <div>
                   <h3 className="font-semibold text-gray-900 mb-2">
+                    Do you make covers for round-backed furniture?
+                  </h3>
+                  <p className="text-gray-700">
+                    Our covers are currently designed for straight-backed and square or rectangular furniture profiles. Round-backed designs are coming soon! In the meantime, if you have a unique piece you&apos;d like covered, <a href="/contact" className="text-blue-600 hover:text-blue-800 underline">contact us</a> to discuss custom options.
+                  </p>
+                </div>
+
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-2">
                     How long will my cover last?
                   </h3>
                   <p className="text-gray-700">

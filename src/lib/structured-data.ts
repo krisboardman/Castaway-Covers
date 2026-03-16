@@ -170,6 +170,14 @@ export function getFAQSchema() {
           "@type": "Answer",
           "text": "All Castaway Covers come with a 2-year limited warranty covering defects in materials and workmanship including fabric defects, stitching and seam failures, snap/handle/magnet malfunctions, and waterproofing failure under normal conditions."
         }
+      },
+      {
+        "@type": "Question",
+        "name": "Do you make covers for round-backed furniture?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Our covers are currently designed for straight-backed and square or rectangular furniture profiles. Round-backed designs are coming soon! Contact us if you have a unique piece you'd like covered to discuss custom options."
+        }
       }
     ]
   };

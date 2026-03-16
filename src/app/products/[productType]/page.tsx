@@ -237,6 +237,7 @@ export default function ProductPage() {
           
           {/* Right: Measurements */}
           <div>
+            <p className="text-sm text-gray-500 mb-3 italic">Our covers are designed for straight-backed, square, and rectangular furniture profiles.</p>
             <MeasurementCalculator
               productType={productType}
               onCalculate={(sku, variantId, price, yardsNeeded, calculatedAngle, allMeasurements) => {
