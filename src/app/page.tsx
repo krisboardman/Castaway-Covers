@@ -32,10 +32,10 @@ export default function Home() {
           {/* Hero Text */}
           <div className="text-center mb-4">
             <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-1">
-              Premium Outdoor Furniture Protection
+              Tailored Protection for Everyday Outdoor Living
             </h1>
             <p className="text-base md:text-lg text-gray-600 max-w-3xl mx-auto">
-              Custom-fit covers that slip on in seconds and withstand any weather.
+              Custom-fit furniture covers that slip on in seconds and look refined.
             </p>
           </div>
 
