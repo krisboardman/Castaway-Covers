@@ -66,6 +66,7 @@ const AddOnOptions: React.FC<AddOnOptionsProps> = ({
                   {showSnapStrapImage ? 'Hide' : 'View'} Example
                 </button>
                 <p className="text-sm text-gray-600">Secure your cover with adjustable snap straps</p>
+                <p className="text-sm text-amber-700 mt-1">Note: Works best with seat backs at least 12&quot; above the armrest</p>
               </div>
             </label>
             {showSnapStrapImage && (
