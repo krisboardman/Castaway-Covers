@@ -141,7 +141,7 @@ export default function Home() {
               We've obsessed over every detail to create covers you'll actually want to use.
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
             {/* Castaway Video */}
             <div className="group border border-gray-200 rounded-lg overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer bg-white/95 backdrop-blur-sm">
               <div className="aspect-[4/3] relative overflow-hidden">
