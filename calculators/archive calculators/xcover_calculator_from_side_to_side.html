@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Cover Calculator from Manufacturer (Side-to-Side Design)</title>
+<style>
+  :root { --bg:#f8fafc; --card:#ffffff; --text:#0f172a; --sub:#475569; --muted:#e2e8f0; --accent:#22c55e; }
+  body { font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; background:var(--bg); color:var(--text); margin:0; padding:24px; }
+  .wrap { max-width: 1200px; margin: 0 auto; }
+  h1 { font-size: 24px; margin: 0 0 18px; }
+  .controls { display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin-bottom:12px; }
+  .pill { padding:6px 10px; border-radius:999px; border:1px solid #cbd5e1; background:#eff6ff; color:#1e293b; font-size:12px; }
+  .switch { display:flex; align-items:center; gap:8px; font-size:14px; }
+  .grid { display:grid; grid-template-columns: 1.1fr 0.9fr; gap:16px; }
+  .card { background:var(--card); border:1px solid var(--muted); border-radius:14px; padding:16px; box-shadow: 0 1px 8px rgba(0,0,0,0.04); }
+  .title { font-weight:600; margin-bottom:8px; }
+  .inputs { display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:10px; }
+  label.lbl { display:grid; gap:6px; font-size:12px; color:var(--sub); }
+  input[type="number"] { border:1px solid var(--muted); border-radius:10px; padding:10px 12px; font-size:14px; }
+  .row { display:flex; justify-content:space-between; align-items:center; font-size:14px; padding:8px 0; }
+  .row + .row { border-top:1px dashed var(--muted); }
+  .note { font-size:12px; color:var(--sub); margin-top:8px; }
+  .btn { padding:8px 10px; border-radius:10px; border:1px solid var(--muted); background:#fff; cursor:pointer; }
+  .danger { color:#b91c1c; }
+  .diagramBox { display:flex; flex-direction:column; gap:10px; }
+  svg { width:100%; height:420px; border:1px dashed #cbd5e1; border-radius:12px; background:#fcfdff; }
+  .legend { display:flex; gap:12px; align-items:center; font-size:12px; color:var(--sub); flex-wrap:wrap; }
+  .chip { display:inline-block; width:12px; height:12px; border-radius:2px; border:1px solid #0f172a22; }
+
+  @media print {
+    body { padding: 8px; margin: 0; }
+    .wrap { max-width: 100%; }
+    h1 { font-size: 18px; margin: 0 0 8px; }
+    .controls { display: none; }
+    .card { padding: 8px; margin-bottom: 8px; page-break-inside: avoid; }
+    .grid { gap: 8px; }
+    .title { font-size: 13px; margin-bottom: 4px; font-weight: 600; }
+    .row { padding: 3px 0; font-size: 11px; }
+    .note { font-size: 9px; margin-top: 4px; }
+    svg { height: 280px; page-break-inside: avoid; }
+    .diagramBox { page-break-inside: avoid; }
+    .legend { font-size: 9px; gap: 8px; }
+    input[type="number"] { font-size: 10px; padding: 3px 5px; }
+    label.lbl { font-size: 9px; }
+    .inputs { gap: 5px; }
+    .danger { font-size: 9px; }
+    ol, ul { margin: 0; padding-left: 16px; line-height: 1.5; font-size: 11px; }
+    ol li ul { margin-top: 2px; padding-left: 16px; font-size: 10px; }
+    div[style*="grid-template-columns: 1.3fr 0.7fr"] {
+      display: grid !important;
+      grid-template-columns: 1.4fr 0.6fr !important;
+      gap: 10px !important;
+      page-break-inside: avoid;
+    }
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Cover Calculator from Manufacturer (Side-to-Side Design)</h1>
+    <div class="controls">
+      <span class="pill">Units: inches</span>
+      <label class="switch"><input id="roundToggle" type="checkbox" checked /> <span>Round to nearest inch / ceil yards</span></label>
+      <button id="recalc" class="btn">Recalculate</button>
+      <button id="resetBtn" class="btn">Reset to sample</button>
+      <button id="exportTxt" class="btn">Export as Text</button>
+      <button id="printPage" class="btn">Print/PDF</button>
+      <button id="copyResults" class="btn">Copy Results</button>
+    </div>
+
+    <div class="grid">
+      <div>
+        <div class="card" id="inputsCard">
+          <div class="title">Inputs</div>
+          <div class="inputs">
+            <label class="lbl">B (Bolt width - Fabric size)<input id="B" type="number" value="54" step="0.1" /></label>
+            <label class="lbl">W (Chair width arm-to-arm)<input id="W" type="number" value="36" step="1" /></label>
+            <label class="lbl">WB (Back width)<input id="WB" type="number" value="36" step="1" /></label>
+            <label class="lbl">H (Height)<input id="H" type="number" value="39" step="1" /></label>
+            <label class="lbl">D (Depth)<input id="D" type="number" value="30" step="1" /></label>
+            <label class="lbl">F2A (Floor → Armrest)<input id="F2A" type="number" value="26" step="1" /></label>
+            <label class="lbl">F2BS (Floor → Bottom of seat cushion)<input id="F2BS" type="number" value="18" step="1" /></label>
+            <label class="lbl">BR (Backrest thickness)<input id="BR" type="number" value="4" step="1" /></label>
+            <label class="lbl">FC (Floor clearance)<input id="FC" type="number" value="3" step="1" /></label>
+            <label class="lbl">Hem allowance (gusset attachment)<input id="hem" type="number" value="1" step="0.5" /></label>
+            <label class="lbl">Seam overlap (piece junctions)<input id="seam" type="number" value="1.5" step="0.5" /></label>
+          </div>
+          <div class="note" style="margin-top:8px;">
+            <strong>Design:</strong> Main piece goes side-to-side (floor → left arm → seat → right arm → floor) and extends up the inside back and over the backrest.
+            Back piece covers the exterior back. Front piece added if needed.<br/>
+            <strong>Seam:</strong> Shingle/lap seam — main piece gets +1.5" at back edge (for gusset hem + back piece overlap). Front piece gets +1.5" (goes under main piece).<br/>
+            <strong>Gusset:</strong> Back piece gets +1" on each side for gusset width. Main piece's 1.5" back allowance folds over the gusset edges.
+          </div>
+          <div id="err" class="note danger" style="display:none;"></div>
+        </div>
+
+        <div class="card" style="margin-top:16px;">
+          <div class="title">Grommet Placement (for Bungee)</div>
+          <div id="grommets"></div>
+          <div class="note">4 grommets total: 2 on front side (left & right), 2 on back side (left & right). Bungee runs along the front and back edges.</div>
+        </div>
+
+        <div class="card" style="margin-top:16px;">
+          <div class="title">Snap Strap Placement (Optional)</div>
+          <div id="snapstraps"></div>
+          <div class="note">2 straps total (left & right). Each strap is 8" long with snaps inset 1" from each end.</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="title">Results</div>
+        <div id="results"></div>
+        <div class="title" style="margin-top:10px;">Material to Buy</div>
+        <div id="buy"></div>
+        <div class="note">Rounded mode rounds <b>up</b>: inches to whole numbers; yards to the next whole yard.</div>
+      </div>
+    </div>
+
+    <div style="display:grid; grid-template-columns: 1.3fr 0.7fr; gap:16px; margin-top:16px;">
+      <div>
+        <div class="card">
+          <div class="title">Cut Diagram (to scale)</div>
+          <div class="diagramBox">
+            <svg id="diagram" viewBox="0 0 980 520" preserveAspectRatio="xMidYMid meet"></svg>
+            <div class="legend">
+              <span class="chip" style="background:#eef2ff;"></span> Main piece (side-to-side)
+              <span class="chip" style="background:#fbbf2433; border-color:#f59e0b66;"></span> Back piece
+              <span class="chip" style="background:#22c55e33; border-color:#16a34a66;"></span> Front piece (if needed)
+              <span style="margin-left:auto; font-size:12px;">Labels use rounded values</span>
+            </div>
+            <div style="display:flex; gap:8px; align-items:center; justify-content:flex-end;">
+              <button id="exportPng" class="btn">Download PNG</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:16px;">
+          <div class="title">Cut List</div>
+          <div id="cutlist"></div>
+        </div>
+
+        <div class="card" style="margin-top:16px;">
+          <div class="title">Side Angle Cut</div>
+          <div id="sideanglecut"></div>
+          <div class="note">The diagonal cut tapers each side drop from the full bolt width at armrest height to a narrower depth at the floor. This ensures the cover drapes neatly without excess fabric pooling at the bottom while maintaining 3" floor clearance on the back and sides.</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="title">Assembly Instructions</div>
+        <ol style="margin:0; padding-left:20px; line-height:1.8; font-size:13px;">
+          <li>Cut main piece (B × MW) from bolt</li>
+          <li>Cut back piece (WB × BPL) from bolt</li>
+          <li>Cut front piece if needed (FPW × FPL) from bolt — FPW = W + 2(F2A−FC)</li>
+          <li>Position main piece over chair (side-to-side):
+            <ul style="margin-top:4px; padding-left:20px;">
+              <li>Center the fabric left-to-right over the chair</li>
+              <li>Drape over left arm, across seat, over right arm</li>
+              <li>Extend back portion up inside back and over backrest</li>
+            </ul>
+          </li>
+          <li>Attach back piece (shingle lap seam):
+            <ul style="margin-top:4px; padding-left:20px;">
+              <li>Back piece goes UNDER the main piece at backrest top</li>
+              <li>Overlap is on the back piece (+1.5" seam allowance)</li>
+              <li>Use material tape to hold at overlap, then sew</li>
+            </ul>
+          </li>
+          <li>Attach front piece if needed (shingle lap seam):
+            <ul style="margin-top:4px; padding-left:20px;">
+              <li>Front piece goes UNDER the main piece at seat front</li>
+              <li>Overlap is on the front piece (+1.5" seam allowance)</li>
+              <li>Use material tape to hold at overlap, then sew</li>
+            </ul>
+          </li>
+          <li>Draw diagonal angle cuts on each side drop and cut (confirm coverage):
+            <ul style="margin-top:4px; padding-left:20px;">
+              <li>On each side drop's bottom edge, mark the diagonal start point</li>
+              <li>Draw a straight line from the mark to the front-top corner</li>
+              <li>Verify Confirm Coverage depth at bottom before cutting</li>
+            </ul>
+          </li>
+          <li>Draw waves and cut</li>
+          <li>Add grommets</li>
+          <li>Prepare bungee loops</li>
+          <li>Prepare and install snap straps</li>
+          <li>Prepare bungees</li>
+          <li>Add fabric glue to thread ends</li>
+          <li>Scotch guard ends</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+
+<script>
+function parseNum(id){
+  const el = document.getElementById(id);
+  const v = Number(el.value);
+  return isFinite(v) ? v : 0;
+}
+function fmtExact(val){ return isFinite(val) ? (Math.round(val*100)/100).toFixed(2) : "–"; }
+function fmtInch(val, rounded){ return rounded ? Math.ceil(val).toString() : fmtExact(val); }
+function fmtYardsFromInches(inches, rounded){
+  const y = inches/36; return rounded ? Math.ceil(y).toString() : fmtExact(y);
+}
+
+function drawDiagram(params){
+  const {B, MW, W, WB, backPieceWidth, backPieceLength, frontPieceNeeded, frontPieceLength, frontPieceWidth, seatToBackCoverage, seatToBackWithSeam, frontExtension, rounded, nestingStrategy} = params;
+  const rIn = v => rounded ? Math.ceil(v) : Math.round(v*100)/100;
+  const svg = document.getElementById('diagram');
+  while (svg.firstChild) svg.removeChild(svg.firstChild);
+  const VBW = svg.viewBox.baseVal.width, VBH = svg.viewBox.baseVal.height;
+  const pad = 50;
+
+  // Calculate diagram dimensions based on nesting strategy
+  // Bolt: vertical = bolt width B, horizontal = bolt length
+  let diagramTotalLength;
+  if (nestingStrategy === 'nested-rotated' || nestingStrategy === 'nested-normal') {
+    // Back + front pieces nested side-by-side across bolt width
+    diagramTotalLength = MW + Math.max(backPieceLength, frontPieceWidth) + 10;
+  } else {
+    diagramTotalLength = MW + backPieceLength + (frontPieceNeeded ? frontPieceWidth : 0) + 20;
+  }
+  const totalHeight = B;
+  const scale = Math.min((VBW - pad*2) / diagramTotalLength, (VBH - pad*2) / totalHeight) || 1;
+  const sx = pad, sy = pad;
+
+  const add = (t,a,p=svg)=>{const e=document.createElementNS('http://www.w3.org/2000/svg',t); for(const k in a) e.setAttribute(k,a[k]); p.appendChild(e); return e;};
+  const defs = add('defs',{});
+  const m = add('marker',{id:'arr',markerWidth:8,markerHeight:8,refX:4,refY:4,orient:'auto',viewBox:'0 0 8 8'},defs);
+  const p = document.createElementNS('http://www.w3.org/2000/svg','path'); p.setAttribute('d','M0,0 L8,4 L0,8 Z'); p.setAttribute('fill','#334155'); m.appendChild(p);
+  const arrow=(x1,y1,x2,y2)=>add('line',{x1,y1,x2,y2,stroke:'#334155','marker-start':'url(#arr)','marker-end':'url(#arr)'});
+
+  // === MAIN PIECE ===
+  const mainW = MW * scale;
+  const mainH = B * scale;
+  add('rect',{x:sx, y:sy, width:mainW, height:mainH, fill:'#eef2ff', stroke:'#0f172a'});
+  add('text',{x:sx + mainW/2, y:sy + mainH/2 - 8, 'text-anchor':'middle', 'font-size':12, fill:'#334155', 'font-weight':'bold'}).textContent='MAIN PIECE';
+  add('text',{x:sx + mainW/2, y:sy + mainH/2 + 8, 'text-anchor':'middle', 'font-size':11, fill:'#475569'}).textContent=`${rIn(MW)}" × ${rIn(B)}"`;
+
+  // Show internal zones within main piece (bolt width direction = vertical)
+  const seamH = params.seam * scale;
+  const brH = params.BR * scale;
+  const at2fH = params.AT2F * scale;
+  const feH = params.frontExtension * scale;
+
+  let zoneY = sy;
+  // Seam/gusset zone at top
+  zoneY += seamH;
+  if (seamH > 0) {
+    add('line',{x1:sx, y1:zoneY, x2:sx+mainW, y2:zoneY, stroke:'#dc2626', 'stroke-dasharray':'4,4'});
+    add('text',{x:sx+4, y:zoneY-4, 'font-size':10, fill:'#dc2626'}).textContent=`Seam/Gusset: ${rIn(params.seam)}"`;
+  }
+  // BR zone
+  zoneY += brH;
+  if (brH > 0) {
+    add('line',{x1:sx, y1:zoneY, x2:sx+mainW, y2:zoneY, stroke:'#94a3b8', 'stroke-dasharray':'4,4'});
+    add('text',{x:sx+4, y:zoneY-4, 'font-size':10, fill:'#64748b'}).textContent=`BR: ${rIn(params.BR)}"`;
+  }
+  // AT2F zone (diagonal drape)
+  zoneY += at2fH;
+  if (at2fH > 0) {
+    add('line',{x1:sx, y1:zoneY, x2:sx+mainW, y2:zoneY, stroke:'#94a3b8', 'stroke-dasharray':'4,4'});
+    add('text',{x:sx+4, y:zoneY-4, 'font-size':10, fill:'#64748b'}).textContent=`Diagonal (AT2F): ${rIn(params.AT2F)}"`;
+  }
+  // Front extension label
+  if (feH > 2) {
+    add('text',{x:sx+4, y:sy + mainH - 6, 'font-size':10, fill:'#64748b'}).textContent=`Front Ext: ${rIn(params.frontExtension)}"`;
+  }
+
+  // Main piece dimension arrows
+  arrow(sx, sy - 18, sx + mainW, sy - 18);
+  add('text',{x:sx + mainW/2, y:sy - 24, 'text-anchor':'middle', 'font-size':12, fill:'#334155'}).textContent=`Main Width (MW): ${rIn(MW)}"`;
+
+  arrow(sx - 18, sy, sx - 18, sy + mainH);
+  add('text',{x:sx - 22, y:sy + mainH/2, 'text-anchor':'end', 'dominant-baseline':'middle', 'font-size':12, fill:'#334155', transform:`rotate(-90 ${sx-22} ${sy + mainH/2})`}).textContent=`Bolt Width (B): ${rIn(B)}"`;
+
+  // === BACK PIECE + FRONT PIECE ===
+  const gap = 10 * scale;
+  const backX = sx + mainW + gap;
+
+  if (nestingStrategy === 'nested-rotated' || nestingStrategy === 'nested-normal') {
+    // NESTED LAYOUT: Back piece and front piece side-by-side across bolt width
+    // Front piece: frontPieceWidth along bolt × frontPieceLength across bolt
+    // Back piece: backPieceLength along bolt × backPieceWidth across bolt
+    const sectionLen = Math.max(backPieceLength, frontPieceWidth);
+    const backH = backPieceWidth * scale;
+    const backY = sy; // align to top of bolt
+    // Draw back piece
+    add('rect',{x:backX, y:backY, width:backPieceLength * scale, height:backH, fill:'#fbbf2433', stroke:'#f59e0b66'});
+    add('text',{x:backX + (backPieceLength * scale)/2, y:backY + backH/2 - 8, 'text-anchor':'middle', 'font-size':11, fill:'#92400e', 'font-weight':'bold'}).textContent='BACK PIECE';
+    add('text',{x:backX + (backPieceLength * scale)/2, y:backY + backH/2 + 8, 'text-anchor':'middle', 'font-size':10, fill:'#92400e'}).textContent=`${rIn(backPieceLength)}" × ${rIn(backPieceWidth)}"`;
+
+    // Front piece: sits below the back piece
+    // frontPieceWidth along bolt, frontPieceLength across bolt
+    const frontY = backY + backH; // directly below back piece
+    const frontAcrossBolt = frontPieceLength * scale; // narrow dimension across bolt
+    const frontAlongBolt = frontPieceWidth * scale; // wide dimension along bolt
+    add('rect',{x:backX, y:frontY, width:frontAlongBolt, height:frontAcrossBolt, fill:'#22c55e33', stroke:'#16a34a66'});
+    // Label
+    const frontMidX = backX + frontAlongBolt/2;
+    const frontMidY = frontY + frontAcrossBolt/2;
+    if (frontAcrossBolt > 30) {
+      add('text',{x:frontMidX, y:frontMidY - 6, 'text-anchor':'middle', 'font-size':11, fill:'#166534', 'font-weight':'bold'}).textContent='FRONT PIECE';
+      add('text',{x:frontMidX, y:frontMidY + 10, 'text-anchor':'middle', 'font-size':10, fill:'#166534'}).textContent=`${rIn(frontPieceWidth)}" × ${rIn(frontPieceLength)}"`;
+    } else {
+      add('text',{x:frontMidX, y:frontMidY + 4, 'text-anchor':'middle', 'font-size':10, fill:'#166534', 'font-weight':'bold'}).textContent=`FRONT ${rIn(frontPieceWidth)}" × ${rIn(frontPieceLength)}"`;
+    }
+
+    // Dimension arrow for the shared section length
+    arrow(backX, sy - 18, backX + sectionLen * scale, sy - 18);
+    add('text',{x:backX + (sectionLen * scale)/2, y:sy - 24, 'text-anchor':'middle', 'font-size':11, fill:'#334155'}).textContent=`${rIn(sectionLen)}" (nested)`;
+
+    // Combined width annotation on right side
+    const combinedWidth = backPieceWidth + frontPieceLength;
+    const combinedEndY = frontY + frontAcrossBolt;
+    arrow(backX + sectionLen * scale + 10, backY, backX + sectionLen * scale + 10, combinedEndY);
+    add('text',{x:backX + sectionLen * scale + 14, y:(backY + combinedEndY)/2, 'font-size':10, fill:'#334155'}).textContent=`${rIn(combinedWidth)}" of ${rIn(B)}"`;
+
+    // Waste area (unused bolt width below front piece)
+    const wasteY = combinedEndY;
+    const wasteH = mainH - (backH + frontAcrossBolt);
+    if (wasteH > 4) {
+      add('rect',{x:backX, y:wasteY, width:sectionLen * scale, height:wasteH, fill:'#f1f5f9', stroke:'#e2e8f0', 'stroke-dasharray':'4,4'});
+      if (wasteH > 16) {
+        add('text',{x:backX + (sectionLen * scale)/2, y:wasteY + wasteH/2 + 4, 'text-anchor':'middle', 'font-size':10, fill:'#94a3b8'}).textContent=`waste: ${rIn(B - combinedWidth)}"`;
+      }
+    }
+
+    // Total length arrow at bottom
+    const totalEndX = backX + sectionLen * scale;
+    arrow(sx, sy + mainH + 22, totalEndX, sy + mainH + 22);
+    add('text',{x:(sx + totalEndX)/2, y:sy + mainH + 38, 'text-anchor':'middle', 'font-size':12, fill:'#334155'}).textContent=`Total bolt length: ${rIn(params.totalLength)}" (${rIn(params.totalLength/36)} yd)`;
+
+  } else {
+    // SEQUENTIAL or NO FRONT PIECE: pieces laid out one after another
+    const backW = backPieceLength * scale;
+    const backH = backPieceWidth * scale;
+    const backY = sy + (mainH - backH) / 2;
+    add('rect',{x:backX, y:backY, width:backW, height:backH, fill:'#fbbf2433', stroke:'#f59e0b66'});
+    add('text',{x:backX + backW/2, y:backY + backH/2 - 8, 'text-anchor':'middle', 'font-size':11, fill:'#92400e', 'font-weight':'bold'}).textContent='BACK PIECE';
+    add('text',{x:backX + backW/2, y:backY + backH/2 + 8, 'text-anchor':'middle', 'font-size':10, fill:'#92400e'}).textContent=`${rIn(backPieceLength)}" × ${rIn(backPieceWidth)}"`;
+
+    arrow(backX, backY - 12, backX + backW, backY - 12);
+    add('text',{x:backX + backW/2, y:backY - 18, 'text-anchor':'middle', 'font-size':11, fill:'#92400e'}).textContent=`${rIn(backPieceLength)}"`;
+
+    let frontEndX = backX + backW;
+    if (frontPieceNeeded && frontPieceWidth > 0) {
+      const frontX = backX + backW + gap;
+      const frontW = frontPieceWidth * scale; // wide dimension along bolt
+      const frontH = frontPieceLength * scale; // narrow dimension across bolt
+      const frontY = sy + (mainH - frontH) / 2;
+      add('rect',{x:frontX, y:frontY, width:frontW, height:frontH, fill:'#22c55e33', stroke:'#16a34a66'});
+      add('text',{x:frontX + frontW/2, y:frontY + frontH/2 - 8, 'text-anchor':'middle', 'font-size':11, fill:'#166534', 'font-weight':'bold'}).textContent='FRONT PIECE';
+      add('text',{x:frontX + frontW/2, y:frontY + frontH/2 + 8, 'text-anchor':'middle', 'font-size':10, fill:'#166534'}).textContent=`${rIn(frontPieceWidth)}" × ${rIn(frontPieceLength)}"`;
+
+      arrow(frontX, frontY - 12, frontX + frontW, frontY - 12);
+      add('text',{x:frontX + frontW/2, y:frontY - 18, 'text-anchor':'middle', 'font-size':11, fill:'#166534'}).textContent=`${rIn(frontPieceWidth)}"`;
+
+      frontEndX = frontX + frontW;
+    }
+
+    // Total length arrow at bottom
+    arrow(sx, sy + mainH + 22, frontEndX, sy + mainH + 22);
+    add('text',{x:(sx + frontEndX)/2, y:sy + mainH + 38, 'text-anchor':'middle', 'font-size':12, fill:'#334155'}).textContent=`Total bolt length: ${rIn(params.totalLength)}" (${rIn(params.totalLength/36)} yd)`;
+  }
+
+  // Center point on main piece
+  const centerX = sx + mainW / 2;
+  const centerY = sy + mainH / 2;
+  add('circle',{cx:centerX, cy:centerY, r:4, fill:'#dc2626', stroke:'#ffffff', 'stroke-width':1.5});
+}
+
+function updateCutList(params){
+  const {B, MW, W, WB, backPieceWidth, backPieceLength, frontPieceNeeded, frontPieceLength, frontPieceWidth, rounded, seatToBackCoverage, seatToBackWithSeam, frontExtension, frontFaceHeight, seam, hem, insideBackHeight} = params;
+  const cutlist = document.getElementById('cutlist');
+  const rows = [];
+
+  rows.push(['Main piece', `${fmtInch(MW, rounded)}" × ${fmtInch(B, rounded)}" (full bolt width)`, `Qty 1 — includes ${fmtExact(seam)}" at back edge for gusset/overlap`]);
+  rows.push(['Back piece', `${fmtInch(backPieceLength, rounded)}" × ${fmtInch(backPieceWidth, rounded)}"`, `Qty 1 — WB + 2" for gussets (1" each side, no seam overlap needed)`]);
+
+  if (frontPieceNeeded) {
+    rows.push(['Front piece', `${fmtInch(frontPieceWidth, rounded)}" × ${fmtInch(frontPieceLength, rounded)}"`, `Qty 1 — width after diagonal cut interpolation; includes ${fmtExact(seam)}" seam overlap`]);
+  } else {
+    rows.push(['Front piece', 'Not required (main piece covers front face)', '—']);
+  }
+
+  cutlist.innerHTML = rows.map((r,i)=>`<div class="row" style="${i? 'border-top:1px dashed var(--muted);':''}"><span>${r[0]}</span><strong>${r[1]}</strong><span style="color:var(--sub)">${r[2]}</span></div>`).join('');
+}
+
+function exportDiagramPNG(){
+  const svg = document.getElementById('diagram');
+  const serializer = new XMLSerializer();
+  const source = serializer.serializeToString(svg);
+  const svgBlob = new Blob([source], {type:'image/svg+xml;charset=utf-8'});
+  const url = URL.createObjectURL(svgBlob);
+  const img = new Image();
+  img.onload = function(){
+    const canvas = document.createElement('canvas');
+    canvas.width = svg.viewBox.baseVal.width;
+    canvas.height = svg.viewBox.baseVal.height;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.drawImage(img,0,0);
+    URL.revokeObjectURL(url);
+    const a = document.createElement('a');
+    a.download = 'manufacturer-cover-diagram.png';
+    a.href = canvas.toDataURL('image/png');
+    a.click();
+  };
+  img.src = url;
+}
+
+function compute(){
+  try{
+    const rounded = document.getElementById('roundToggle').checked;
+
+    const B    = parseNum('B');
+    const W    = parseNum('W');
+    const WB   = parseNum('WB');
+    const H    = parseNum('H');
+    const D    = parseNum('D');
+    const F2A  = parseNum('F2A');
+    const F2BS = parseNum('F2BS');
+    const BR   = parseNum('BR');
+    const FC   = parseNum('FC');
+    const hem  = parseNum('hem');
+    const seam = parseNum('seam');
+
+    // === MAIN PIECE CALCULATIONS ===
+
+    // Main piece width (side-to-side): floor-left → over left arm → seat → over right arm → floor-right
+    const MW = W + 2 * (H - FC);
+
+    // Inside back height: from armrest/seat level to top of backrest
+    const insideBackHeight = H - F2A;
+
+    // AT2F: diagonal drape from top of backrest to front of seat
+    // The cover drapes at an angle (like a tent) rather than laying flat on the seat and up the back
+    const AT2F = Math.sqrt(Math.max(0, H - F2A)**2 + Math.max(0, D)**2);
+
+    // Seat-to-backrest coverage (within bolt width): over backrest + diagonal drape + seam/gusset allowance at back
+    // The seam allowance (1.5") is on the MAIN piece at the back edge — it hems in the gusset AND overlaps onto back piece
+    const seatToBackCoverage = BR + AT2F;
+    const seatToBackWithSeam = seatToBackCoverage + seam; // +1.5" for gusset hem / back piece overlap
+
+    // Front extension: how much of the bolt width hangs past the front of the seat
+    // Reduced by the seam/gusset allowance at the back
+    const frontExtension = Math.max(0, B - seatToBackWithSeam);
+
+    // Front face height: armrest/seat level to floor clearance
+    // The diagonal drape (AT2F) ends at the front of the seat at armrest height,
+    // so the front drop is from armrest level to floor minus clearance
+    const frontFaceHeight = F2A - FC;
+
+    // Is front piece needed?
+    const frontPieceNeeded = frontExtension < frontFaceHeight;
+
+    // Front piece length (if needed): remaining gap + seam overlap (on front piece, goes under main)
+    const frontPieceLength = frontPieceNeeded ? (frontFaceHeight - frontExtension + seam) : 0;
+
+    // Front piece width: uses diagonal cut interpolation from original calculator
+    // The diagonal tapers the cover width from (MW - BR) at the back to Confirm Coverage at armrest height
+    // Continuing the interpolation to the front edge gives a narrower width
+    const confirmCoverageWidth = W + 2 * (F2A - FC); // width at armrest height = 82"
+    const backWidth = MW - BR; // width at back edge = 104"
+    const ML = (H - FC) + BR + AT2F + (F2A - FC); // main length for interpolation = 95.70"
+    const startCutFromCenterLine = (confirmCoverageWidth / 2) - ((backWidth - confirmCoverageWidth) / 2 * (F2A - FC) / (ML - (F2A - FC)));
+    const frontPieceWidth = frontPieceNeeded ? startCutFromCenterLine * 2 : 0;
+
+    // === BACK PIECE ===
+    // Covers from top of backrest exterior down to floor clearance
+    // NO seam overlap on back piece (main piece's 1.5" overlaps onto it)
+    // BUT +1" on each side for gusset width
+    const backPieceLength = H - FC;
+    const backPieceWidth = WB + 2; // +1" each side for gusset
+
+    // === MATERIAL TO BUY ===
+    // Try multiple nesting strategies to find the most efficient cutting layout
+    // nestingStrategy: 'none' | 'sequential' | 'nested-normal' | 'nested-rotated'
+    let totalLength;
+    let nestingNote = '';
+    let nestingStrategy = 'none';
+
+    if (!frontPieceNeeded) {
+      // Only main + back piece
+      totalLength = MW + backPieceLength;
+      nestingNote = 'No front piece needed.';
+      nestingStrategy = 'none';
+    } else {
+      // Strategy 1: All pieces sequential (worst case)
+      // Front piece width goes along bolt length separately
+      const seqLength = MW + backPieceLength + frontPieceWidth;
+
+      // Strategy 2: Nested — back + front side-by-side across bolt width
+      // Back piece uses backPieceWidth across bolt, front piece uses frontPieceLength across bolt
+      // frontPieceWidth goes along bolt direction
+      const canNest = (backPieceWidth + frontPieceLength) <= B;
+      const nestLength = canNest
+        ? MW + Math.max(backPieceLength, frontPieceWidth)
+        : Infinity;
+
+      // Pick the best strategy
+      if (canNest && nestLength <= seqLength) {
+        totalLength = nestLength;
+        nestingStrategy = 'nested-normal';
+        nestingNote = `Back (${fmtExact(backPieceWidth)}" across) + Front (${fmtExact(frontPieceLength)}" across) = ${fmtExact(backPieceWidth + frontPieceLength)}" ≤ B (${B}") — nested side-by-side. Bolt length: max(${fmtExact(backPieceLength)}", ${fmtExact(frontPieceWidth)}") = ${fmtExact(Math.max(backPieceLength, frontPieceWidth))}".`;
+      } else {
+        totalLength = seqLength;
+        nestingStrategy = 'sequential';
+        nestingNote = `Back (${fmtExact(backPieceWidth)}") + Front (${fmtExact(frontPieceLength)}") = ${fmtExact(backPieceWidth + frontPieceLength)}" > B (${B}") — pieces cut separately along bolt.`;
+      }
+    }
+
+    // === DISPLAY RESULTS ===
+    const rows = [
+      ['Main piece width (MW)', `${fmtInch(MW, rounded)} in (${fmtYardsFromInches(MW, rounded)} yd)`,
+        `W + 2(H - FC) = ${W} + 2(${H} - ${FC}) = ${fmtExact(MW)}<br/>Side-to-side: floor → left arm → seat → right arm → floor`],
+      ['Main piece depth', `${fmtInch(B, rounded)} in (full bolt width)`,
+        `Uses full bolt width B = ${B}"`],
+      ['Angle / diagonal drape (AT2F)', `${fmtInch(AT2F, rounded)} in`,
+        `√[(H - F2A)² + D²] = √[(${H} - ${F2A})² + ${D}²] = √[${(H-F2A)}² + ${D}²] = ${fmtExact(AT2F)}<br/>Diagonal from top of backrest to front of seat (tent-shaped drape)`],
+      ['Main length needed (within bolt width)', `${fmtInch(seatToBackWithSeam + frontFaceHeight, rounded)} in`,
+        `BR + AT2F + (F2A − FC) + seam = ${BR} + ${fmtExact(AT2F)} + (${F2A} − ${FC}) + ${fmtExact(seam)} = ${fmtExact(seatToBackWithSeam + frontFaceHeight)}<br/>Backrest + diagonal drape + front drop + gusset/seam allowance${(seatToBackWithSeam + frontFaceHeight) > B ? `<br/><strong style="color:#b91c1c;">${fmtExact(seatToBackWithSeam + frontFaceHeight)}" > B (${B}") → front piece needed</strong>` : `<br/>${fmtExact(seatToBackWithSeam + frontFaceHeight)}" ≤ B (${B}") → no front piece needed`}`],
+      ['Front piece length', frontPieceNeeded ? `${fmtInch(frontPieceLength, rounded)} in` : 'Not needed — main piece covers full front',
+        frontPieceNeeded
+          ? `(Main length needed − B) + seam = (${fmtExact(seatToBackWithSeam + frontFaceHeight)} − ${B}) + ${fmtExact(seam)} = ${fmtExact(frontPieceLength)}<br/><span style="font-size:10px;color:var(--sub);">Front piece goes UNDER main piece; +${fmtExact(seam)}" seam overlap on front piece</span>`
+          : `Main length needed (${fmtExact(seatToBackWithSeam + frontFaceHeight)}") ≤ B (${B}") — bolt width covers entire front drop`],
+      ['Front piece width (after diagonal cuts)', frontPieceNeeded ? `${fmtInch(frontPieceWidth, rounded)} in` : 'N/A',
+        frontPieceNeeded
+          ? `Start cut from center × 2 = ${fmtExact(startCutFromCenterLine)} × 2 = ${fmtExact(frontPieceWidth)}<br/><span style="font-size:10px;color:var(--sub);">Confirm Coverage at armrest = ${fmtExact(confirmCoverageWidth)}"; diagonal narrows to ${fmtExact(frontPieceWidth)}" at front edge</span>`
+          : ''],
+      ['Back piece length', `${fmtInch(backPieceLength, rounded)} in`,
+        `H - FC = ${H} - ${FC} = ${fmtExact(backPieceLength)}<br/><span style="font-size:10px;color:var(--sub);">Back piece goes UNDER main piece; NO seam on back piece (main piece's ${fmtExact(seam)}" overlaps onto it)</span>`],
+      ['Back piece width', `${fmtInch(backPieceWidth, rounded)} in`,
+        `WB + 2 = ${WB} + 2 = ${fmtExact(backPieceWidth)}<br/><span style="font-size:10px;color:var(--sub);">+1" on each side for gusset material</span>`],
+    ];
+
+    const results = document.getElementById('results');
+    results.innerHTML = '';
+    rows.forEach(([label, value, calc], i)=>{
+      const div = document.createElement('div');
+      div.className = 'row';
+      div.style.display = 'block';
+      div.style.padding = '8px 0';
+      if (i>0) div.style.borderTop = '1px dashed var(--muted)';
+      div.innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span>${label}</span><strong>${value}</strong>
+        </div>
+        ${calc ? `<div style="font-size:11px;color:var(--sub);margin-top:4px;">${calc}</div>` : ''}
+      `;
+      results.appendChild(div);
+    });
+
+    // === MATERIAL TO BUY ===
+    const buy = document.getElementById('buy');
+    buy.innerHTML = '';
+    const bRows = [
+      ['Total bolt length', `${fmtInch(totalLength, rounded)} in`, `${nestingStrategy === 'sequential' ? `MW + Back + FPW = ${fmtExact(MW)} + ${fmtExact(backPieceLength)} + ${fmtExact(frontPieceWidth)}` : nestingStrategy === 'none' ? `MW + Back = ${fmtExact(MW)} + ${fmtExact(backPieceLength)}` : `MW + max(Back, FPW) = ${fmtExact(MW)} + max(${fmtExact(backPieceLength)}, ${fmtExact(frontPieceWidth)})`} = ${fmtExact(totalLength)}<br/><span style="font-size:10px;color:var(--sub);">${nestingNote}</span>`],
+      ['Yards to buy', `${fmtYardsFromInches(totalLength, rounded)} yd`, `${fmtExact(totalLength)} ÷ 36 = ${fmtExact(totalLength/36)} yards`],
+    ];
+    bRows.forEach(([label, value, calc], i)=>{
+      const div = document.createElement('div');
+      div.className = 'row';
+      div.style.display = 'block';
+      div.style.padding = '8px 0';
+      if (i>0) div.style.borderTop = '1px dashed var(--muted)';
+      div.innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span>${label}</span><strong>${value}</strong>
+        </div>
+        ${calc ? `<div style="font-size:11px;color:var(--sub);margin-top:4px;">${calc}</div>` : ''}
+      `;
+      buy.appendChild(div);
+    });
+
+    // === GROMMET PLACEMENT ===
+    const grommetInsetFromEdge = 5;
+    const grommetHeightFromBottom = 5;
+    const grommetDepthFromCenter = D / 2 - 5;
+    // Bungee runs front-to-back along each side
+    const bungeeLength = MW + 10; // side-to-side width + surplus
+
+    const grommetsSection = document.getElementById('grommets');
+    grommetsSection.innerHTML = `
+      <div class="row" style="display:block; padding:8px 0;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span>Depth position from center (front/back)</span><strong>${fmtExact(grommetDepthFromCenter)} in</strong>
+        </div>
+        <div style="font-size:11px;color:var(--sub);margin-top:4px;">D ÷ 2 - 5 = ${D} ÷ 2 - 5 = ${fmtExact(grommetDepthFromCenter)}</div>
+      </div>
+      <div class="row" style="display:block; padding:8px 0; border-top:1px dashed var(--muted);">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span>Inset from side edges</span><strong>${grommetInsetFromEdge} in</strong>
+        </div>
+      </div>
+      <div class="row" style="display:block; padding:8px 0; border-top:1px dashed var(--muted);">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span>Height from bottom edge of fabric</span><strong>${grommetHeightFromBottom} in</strong>
+        </div>
+      </div>
+      <div class="row" style="display:block; padding:8px 0; border-top:1px dashed var(--muted);">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span>Bungee length (each side)</span><strong>${fmtExact(bungeeLength)} in</strong>
+        </div>
+        <div style="font-size:11px;color:var(--sub);margin-top:4px;">MW + 10" surplus = ${fmtExact(MW)} + 10 = ${fmtExact(bungeeLength)} in</div>
+      </div>
+    `;
+
+    // === SNAP STRAP PLACEMENT ===
+    const strapLength = 8;
+    const snapInset = 1;
+    const strapHorizontalFromCenter = (W / 2) - 2;
+
+    const snapStrapsSection = document.getElementById('snapstraps');
+    snapStrapsSection.innerHTML = `
+      <div class="row" style="display:block; padding:8px 0;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span>Strap horizontal position from center</span><strong>${fmtExact(strapHorizontalFromCenter)} in</strong>
+        </div>
+        <div style="font-size:11px;color:var(--sub);margin-top:4px;">W ÷ 2 - 2 = ${W} ÷ 2 - 2 = ${fmtExact(strapHorizontalFromCenter)}<br/>(Chair width ÷ 2) - 2" in from sides</div>
+      </div>
+      <div class="row" style="display:block; padding:8px 0; border-top:1px dashed var(--muted);">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span>Strap length</span><strong>${strapLength} in</strong>
+        </div>
+        <div style="font-size:11px;color:var(--sub);margin-top:4px;">Snaps inset ${snapInset}" from each end (${strapLength - 2*snapInset}" snap-to-snap distance)</div>
+      </div>
+    `;
+
+    // === SIDE ANGLE CUT ===
+    const sideAngle = document.getElementById('sideanglecut');
+
+    sideAngle.innerHTML = `
+      <div class="row" style="display:block; padding:8px 0;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span>Confirm Coverage (width at armrest)</span><strong>${fmtInch(confirmCoverageWidth, rounded)} in</strong>
+        </div>
+        <div style="font-size:11px;color:var(--sub);margin-top:4px;">
+          W + 2(F2A − FC) = ${W} + 2(${F2A} − ${FC}) = ${fmtExact(confirmCoverageWidth)} in<br/>
+          At armrest height, the cover spans this width: chair width (${W}") plus each side drop extends ${fmtExact(F2A - FC)}" down to floor clearance.
+        </div>
+      </div>
+      <div class="row" style="display:block; padding:8px 0; border-top:1px dashed var(--muted);">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span>Diagonal cut starts from center line</span><strong>${fmtExact(startCutFromCenterLine)} in</strong>
+        </div>
+        <div style="font-size:11px;color:var(--sub);margin-top:4px;">
+          (CC ÷ 2) − [(MW−BR−CC) ÷ 2 × (F2A−FC) ÷ (ML−(F2A−FC))]<br/>
+          = (${fmtExact(confirmCoverageWidth)} ÷ 2) − [(${fmtExact(backWidth)} − ${fmtExact(confirmCoverageWidth)}) ÷ 2 × ${fmtExact(F2A - FC)} ÷ ${fmtExact(ML - (F2A - FC))}]<br/>
+          = ${fmtExact(confirmCoverageWidth / 2)} − [${fmtExact((backWidth - confirmCoverageWidth) / 2)} × ${fmtExact((F2A - FC) / (ML - (F2A - FC)))}]<br/>
+          = ${fmtExact(confirmCoverageWidth / 2)} − ${fmtExact((backWidth - confirmCoverageWidth) / 2 * (F2A - FC) / (ML - (F2A - FC)))} = ${fmtExact(startCutFromCenterLine)}
+        </div>
+      </div>
+      <div class="row" style="display:block; padding:8px 0; border-top:1px dashed var(--muted);">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span>Front width (after diagonal cuts)</span><strong>${fmtInch(frontPieceWidth, rounded)} in</strong>
+        </div>
+        <div style="font-size:11px;color:var(--sub);margin-top:4px;">
+          Start cut × 2 = ${fmtExact(startCutFromCenterLine)} × 2 = ${fmtExact(frontPieceWidth)} in<br/>
+          The material at the front edge will be this wide after making the diagonal cuts. This is wider than chair width (${W}") to provide proper coverage.
+        </div>
+      </div>
+    `;
+
+    // === DRAW DIAGRAM ===
+    const payload = {B, MW, W, WB, backPieceWidth, BR, D, AT2F, insideBackHeight, frontExtension, seatToBackCoverage, seatToBackWithSeam,
+      backPieceLength, frontPieceNeeded, frontPieceLength, frontPieceWidth, frontFaceHeight, totalLength, nestingStrategy, seam, hem, rounded, F2A, F2BS, FC, H};
+    drawDiagram(payload);
+    updateCutList(payload);
+
+    const exp = document.getElementById('exportPng');
+    if (exp && !exp._wired){ exp._wired = true; exp.addEventListener('click', exportDiagramPNG); }
+
+    document.getElementById('err').style.display = 'none';
+  } catch (e) {
+    const err = document.getElementById('err');
+    err.style.display = 'block';
+    err.textContent = 'Error: ' + e.message;
+  }
+}
+
+function exportAsText(){
+  const rounded = document.getElementById('roundToggle').checked;
+  const date = new Date().toLocaleDateString();
+
+  let text = `COVER CALCULATOR FROM MANUFACTURER — RESULTS\n`;
+  text += `Generated: ${date}\n`;
+  text += `Design: Side-to-side (manufacturer style)\n`;
+  text += `Rounding: ${rounded ? 'ON (rounded up)' : 'OFF (exact)'}\n\n`;
+
+  text += `INPUTS:\n`;
+  ['B','W','WB','H','D','F2A','F2BS','BR','FC','hem','seam'].forEach(id => {
+    text += `${id}: ${parseNum(id)}\n`;
+  });
+  text += `\n`;
+
+  text += `RESULTS:\n`;
+  document.getElementById('results').querySelectorAll('.row').forEach(row => {
+    const mainText = row.querySelector('div:first-child')?.textContent || '';
+    if(mainText) text += `${mainText}\n`;
+  });
+
+  text += `\nMATERIAL TO BUY:\n`;
+  document.getElementById('buy').querySelectorAll('.row').forEach(row => {
+    const buyText = row.querySelector('div:first-child')?.textContent || '';
+    if(buyText) text += `${buyText}\n`;
+  });
+
+  const blob = new Blob([text], {type: 'text/plain'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `manufacturer-cover-calc-${date.replace(/\//g,'-')}.txt`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function copyToClipboard(){
+  let text = `COVER CALCULATOR FROM MANUFACTURER — RESULTS\n`;
+  text += `Inputs: B=${parseNum('B')}, W=${parseNum('W')}, WB=${parseNum('WB')}, H=${parseNum('H')}, D=${parseNum('D')}, F2A=${parseNum('F2A')}, F2BS=${parseNum('F2BS')}, BR=${parseNum('BR')}, FC=${parseNum('FC')}, hem=${parseNum('hem')}, seam=${parseNum('seam')}\n\n`;
+
+  document.getElementById('results').querySelectorAll('.row').forEach(row => {
+    const mainDiv = row.querySelector('div:first-child');
+    if(mainDiv) text += `${mainDiv.textContent}\n`;
+  });
+  text += `\n`;
+  document.getElementById('buy').querySelectorAll('.row').forEach(row => {
+    const mainDiv = row.querySelector('div:first-child');
+    if(mainDiv) text += `${mainDiv.textContent}\n`;
+  });
+
+  navigator.clipboard.writeText(text).then(() => {
+    alert('Results copied to clipboard!');
+  }).catch(() => {
+    alert('Failed to copy to clipboard. Please copy manually.');
+  });
+}
+
+function printPage(){ window.print(); }
+
+function saveInputs(){
+  const fields = ['B', 'W', 'WB', 'H', 'D', 'F2A', 'F2BS', 'BR', 'FC', 'hem', 'seam'];
+  const values = {};
+  fields.forEach(field => {
+    const el = document.getElementById(field);
+    if (el) values[field] = el.value;
+  });
+  values.roundToggle = document.getElementById('roundToggle').checked;
+  localStorage.setItem('manufacturerCalculatorInputs', JSON.stringify(values));
+}
+
+function loadSavedInputs(){
+  try {
+    const saved = localStorage.getItem('manufacturerCalculatorInputs');
+    if (saved) {
+      const values = JSON.parse(saved);
+      Object.entries(values).forEach(([field, value]) => {
+        if (field === 'roundToggle') {
+          document.getElementById('roundToggle').checked = value;
+        } else {
+          const el = document.getElementById(field);
+          if (el) el.value = value;
+        }
+      });
+      return true;
+    }
+  } catch (e) { console.error('Error loading saved inputs:', e); }
+  return false;
+}
+
+function loadFromURL(){
+  const params = new URLSearchParams(window.location.search);
+  const fields = ['B', 'W', 'WB', 'H', 'D', 'F2A', 'F2BS', 'BR', 'FC', 'hem', 'seam'];
+  let loaded = false;
+  fields.forEach(field => {
+    const value = params.get(field);
+    if (value !== null) {
+      const el = document.getElementById(field);
+      if (el) { el.value = value; loaded = true; }
+    }
+  });
+  return loaded;
+}
+
+function wire(){
+  const wasLoadedFromURL = loadFromURL();
+  if (wasLoadedFromURL) {
+    saveInputs();
+  } else {
+    loadSavedInputs();
+  }
+
+  const inputsCard = document.getElementById('inputsCard');
+  ['input','change','keyup'].forEach(ev => {
+    inputsCard.addEventListener(ev, () => { compute(); saveInputs(); });
+  });
+  document.getElementById('roundToggle').addEventListener('change', () => { saveInputs(); compute(); });
+
+  document.getElementById('recalc').addEventListener('click', compute);
+  document.getElementById('resetBtn').addEventListener('click', ()=>{
+    const defaults = {B:54, W:36, WB:36, H:39, D:30, F2A:26, F2BS:18, BR:4, FC:3, hem:1, seam:1.5};
+    Object.entries(defaults).forEach(([id,val])=>{ const el=document.getElementById(id); if(el) el.value=val; });
+    document.getElementById('roundToggle').checked = true;
+    compute();
+    saveInputs();
+  });
+  document.getElementById('exportTxt').addEventListener('click', exportAsText);
+  document.getElementById('printPage').addEventListener('click', printPage);
+  document.getElementById('copyResults').addEventListener('click', copyToClipboard);
+
+  compute();
+}
+
+document.addEventListener('DOMContentLoaded', wire);
+</script>
+</body>
+</html>

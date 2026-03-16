@@ -1,0 +1,1534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Cover Calculator — Front-to-Back Design (Full Length)</title>
+<style>
+  :root { --bg:#f8fafc; --card:#ffffff; --text:#0f172a; --sub:#475569; --muted:#e2e8f0; --accent:#22c55e; }
+  body { font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; background:var(--bg); color:var(--text); margin:0; padding:24px; }
+  .wrap { max-width: 1200px; margin: 0 auto; }
+  h1 { font-size: 24px; margin: 0 0 18px; }
+  .controls { display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin-bottom:12px; }
+  .pill { padding:6px 10px; border-radius:999px; border:1px solid #cbd5e1; background:#eff6ff; color:#1e293b; font-size:12px; }
+  .switch { display:flex; align-items:center; gap:8px; font-size:14px; }
+  .grid { display:grid; grid-template-columns: 1.1fr 0.9fr; gap:16px; }
+  .card { background:var(--card); border:1px solid var(--muted); border-radius:14px; padding:16px; box-shadow: 0 1px 8px rgba(0,0,0,0.04); }
+  .title { font-weight:600; margin-bottom:8px; }
+  .inputs { display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:10px; }
+  label.lbl { display:grid; gap:6px; font-size:12px; color:var(--sub); }
+  input[type="number"] { border:1px solid var(--muted); border-radius:10px; padding:10px 12px; font-size:14px; }
+  .row { display:flex; justify-content:space-between; align-items:center; font-size:14px; padding:8px 0; }
+  .row + .row { border-top:1px dashed var(--muted); }
+  .note { font-size:12px; color:var(--sub); margin-top:8px; }
+  .btn { padding:8px 10px; border-radius:10px; border:1px solid var(--muted); background:#fff; cursor:pointer; }
+  .danger { color:#b91c1c; }
+  .diagramBox { display:flex; flex-direction:column; gap:10px; }
+  svg { width:100%; height:420px; border:1px dashed #cbd5e1; border-radius:12px; background:#fcfdff; }
+  .legend { display:flex; gap:12px; align-items:center; font-size:12px; color:var(--sub); flex-wrap:wrap; }
+  .chip { display:inline-block; width:12px; height:12px; border-radius:2px; border:1px solid #0f172a22; }
+
+  @media print {
+    body { padding: 8px; margin: 0; }
+    .wrap { max-width: 100%; }
+    h1 { font-size: 18px; margin: 0 0 8px; }
+    .controls { display: none; }
+    .card { padding: 8px; margin-bottom: 8px; page-break-inside: avoid; }
+    .grid { gap: 8px; }
+    .title { font-size: 13px; margin-bottom: 4px; font-weight: 600; }
+    .row { padding: 3px 0; font-size: 11px; }
+    .note { font-size: 9px; margin-top: 4px; }
+    svg { height: 260px; page-break-inside: avoid; }
+    .diagramBox { page-break-inside: avoid; }
+    .legend { font-size: 9px; gap: 8px; }
+    input[type="number"] { font-size: 10px; padding: 3px 5px; }
+    label.lbl { font-size: 9px; }
+    .inputs { gap: 5px; }
+    .danger { font-size: 9px; }
+    ol, ul { margin: 0; padding-left: 16px; line-height: 1.5; font-size: 11px; }
+    ol li ul { margin-top: 2px; padding-left: 16px; font-size: 10px; }
+    div[style*="grid-template-columns: 1.3fr 0.7fr"] {
+      display: grid !important;
+      grid-template-columns: 1.4fr 0.6fr !important;
+      gap: 10px !important;
+      page-break-inside: avoid;
+    }
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Cover Calculator — Front-to-Back Design</h1>
+    <div class="controls">
+      <span class="pill">Units: inches</span>
+      <label class="switch"><input id="roundToggle" type="checkbox" checked /> <span>Round to nearest inch / ceil yards</span></label>
+      <button id="recalc" class="btn">Recalculate</button>
+      <button id="resetBtn" class="btn">Reset to sample</button>
+      <button id="exportTxt" class="btn">Export as Text</button>
+      <button id="printPage" class="btn">Print/PDF</button>
+      <button id="copyResults" class="btn">Copy Results</button>
+    </div>
+
+    <div class="grid">
+      <div>
+        <div class="card" id="inputsCard">
+          <div class="title">Inputs</div>
+          <div class="inputs">
+            <label class="lbl">B (Bolt width - Fabric size)<input id="B" type="number" value="54" step="0.1" /></label>
+            <label class="lbl">W (Chair width arm-to-arm)<input id="W" type="number" value="36" step="1" /></label>
+            <label class="lbl">WB (Back width)<input id="WB" type="number" value="36" step="1" /></label>
+            <label class="lbl">H (Height)<input id="H" type="number" value="39" step="1" /></label>
+            <label class="lbl">D (Depth)<input id="D" type="number" value="30" step="1" /></label>
+            <label class="lbl">F2A (Floor → Armrest)<input id="F2A" type="number" value="26" step="1" /></label>
+            <label class="lbl">F2BS (Floor → Bottom of seat cushion)<input id="F2BS" type="number" value="18" step="1" /></label>
+            <label class="lbl">BR (Backrest thickness)<input id="BR" type="number" value="4" step="1" /></label>
+            <label class="lbl">FC (Floor clearance)<input id="FC" type="number" value="3" step="1" /></label>
+            <label class="lbl">Hem allowance (gusset/edges)<input id="hem" type="number" value="1" step="0.5" /></label>
+            <label class="lbl">Seam overlap (piece junctions)<input id="seam" type="number" value="1.5" step="0.5" /></label>
+          </div>
+          <div class="note" style="margin-top:8px;">
+            <strong>Design:</strong> Main piece goes front-to-back: starts at the back floor (floor clearance), up over the backrest, diagonals across the seat, and drapes down the front face to floor clearance.
+            The bolt width wraps over both sides (left arm → seat → right arm). One continuous piece — no separate back piece.<br/>
+            <strong>Side panels:</strong> Added if bolt width &lt; needed wrap width. Attached along the left/right edges of the main piece.<br/>
+            <strong>Seam:</strong> Side panels get +seam on attachment edge + hem on outer edge.
+          </div>
+          <div id="err" class="note danger" style="display:none;"></div>
+        </div>
+
+        <div class="card" style="margin-top:16px;">
+          <div class="title">Grommet Placement (for Bungee)</div>
+          <div id="grommets"></div>
+          <div class="note">4 grommets total: 2 on left side (front & back), 2 on right side (front & back). Bungee runs lengthwise along each side.</div>
+        </div>
+
+        <div class="card" style="margin-top:16px;">
+          <div class="title">Snap Strap Placement (Optional)</div>
+          <div id="snapstraps"></div>
+          <div class="note">2 straps total (left & right). Each strap is 8" long with snaps inset 1" from each end.</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="title">Results</div>
+        <div id="results"></div>
+        <div class="title" style="margin-top:10px;">Material to Buy</div>
+        <div id="buy"></div>
+        <div class="note">Rounded mode rounds <b>up</b>: inches to whole numbers; yards to the next whole yard.</div>
+      </div>
+    </div>
+
+    <div style="display:grid; grid-template-columns: 1.3fr 0.7fr; gap:16px; margin-top:16px;">
+      <div>
+        <div class="card">
+          <div class="title">Cut Diagram (to scale)</div>
+          <div class="diagramBox">
+            <svg id="diagram" viewBox="0 0 980 520" preserveAspectRatio="xMidYMid meet"></svg>
+            <div class="legend">
+              <span class="chip" style="background:#eef2ff;"></span> Main piece (full length, front-to-back)
+              <span class="chip" style="background:#22c55e33; border-color:#16a34a66;"></span> Side panels (if needed)
+              <span style="margin-left:auto; font-size:12px;">Labels use rounded values</span>
+            </div>
+            <div style="display:flex; gap:8px; align-items:center; justify-content:flex-end;">
+              <button id="exportPng" class="btn">Download PNG</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:16px;">
+          <div class="title">Cut List</div>
+          <div id="cutlist"></div>
+        </div>
+
+        <div class="card" style="margin-top:16px;">
+          <div class="title">Side Angle Cut</div>
+          <div id="sideanglecut"></div>
+          <div class="note">The diagonal cut tapers each side drop from the full width at the backrest to a narrower width at the front. This ensures the cover drapes neatly without excess fabric at the bottom.</div>
+        </div>
+
+        <div class="card" style="margin-top:16px;">
+          <div class="title">Side Panel Attachment</div>
+          <div id="sidepanelattachment"></div>
+          <div class="note">The side panels are sewn to the left and right edges of the main piece. They don't necessarily start at the very front edge — the setback depends on where the diagonal narrows the needed width below the bolt width.</div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:16px;">
+        <div class="title">Assembly Diagram — Side View</div>
+        <div class="diagramBox">
+          <svg id="assemblyDiagramSide" viewBox="0 0 820 500" preserveAspectRatio="xMidYMid meet" style="height:460px;"></svg>
+          <div class="legend">
+            <span class="chip" style="background:#3b82f6; opacity:0.3;"></span> Main piece (fabric path)
+            <span style="color:var(--sub); font-size:11px;">— — Diagonal cut line</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:16px;">
+        <div class="title">Assembly Diagram — Flat Layout (as if lying on a table)</div>
+        <div class="diagramBox">
+          <svg id="assemblyDiagramFlat" viewBox="0 0 900 700" preserveAspectRatio="xMidYMid meet" style="height:560px;"></svg>
+          <div class="legend">
+            <span class="chip" style="background:#fca5a5;"></span> Main piece
+            <span class="chip" style="background:#86efac;"></span> Side panels
+            <span class="chip" style="background:#d4d4d8;"></span> Gussets
+            <span class="chip" style="background:#93c5fd;"></span> Hem
+            <span class="chip" style="background:#c4b5fd;"></span> Seam overlap
+            <span style="color:var(--sub); font-size:11px;">— — Diagonal cut line</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+      <div class="card">
+        <div class="title">Assembly Instructions</div>
+        <ol style="margin:0; padding-left:20px; line-height:1.8; font-size:13px;">
+          <li>Cut main piece (ML × B) from bolt</li>
+          <li>Cut side panels if needed (SPL × sideEach) from bolt — qty 2</li>
+          <li>Attach side panels to main piece (if needed):
+            <ul style="margin-top:4px; padding-left:20px;">
+              <li>Align panel's back edge with the attachment start point (see Side Panel Attachment)</li>
+              <li>Sew along the left/right edges of the main piece</li>
+              <li>Use material tape to hold at seam overlap, then sew</li>
+            </ul>
+          </li>
+          <li>Position assembled main piece over chair (front-to-back):
+            <ul style="margin-top:4px; padding-left:20px;">
+              <li>Back edge drapes down the back of the chair to floor clearance</li>
+              <li>Material goes up and over the backrest</li>
+              <li>Drapes diagonally across seat</li>
+              <li>Front portion drapes down front face to floor</li>
+              <li>Sides wrap over both arms and hang down</li>
+            </ul>
+          </li>
+          <li>Draw diagonal angle cuts on each side and cut (confirm coverage):
+            <ul style="margin-top:4px; padding-left:20px;">
+              <li>On each side drop, mark the diagonal start points</li>
+              <li>Draw a straight line from the back edge to the front edge</li>
+              <li>Verify Confirm Coverage width at armrest before cutting</li>
+            </ul>
+          </li>
+          <li>Draw waves and cut</li>
+          <li>Add grommets</li>
+          <li>Prepare bungee loops</li>
+          <li>Prepare and install snap straps</li>
+          <li>Prepare bungees</li>
+          <li>Add fabric glue to thread ends</li>
+          <li>Scotch guard ends</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+
+<script>
+function parseNum(id){
+  const el = document.getElementById(id);
+  const v = Number(el.value);
+  return isFinite(v) ? v : 0;
+}
+function fmtExact(val){ return isFinite(val) ? (Math.round(val*100)/100).toFixed(2) : "–"; }
+function fmtInch(val, rounded){ return rounded ? Math.ceil(val).toString() : fmtExact(val); }
+function fmtYardsFromInches(inches, rounded){
+  const y = inches/36; return rounded ? Math.ceil(y).toString() : fmtExact(y);
+}
+
+function drawDiagram(params){
+  const {B, ML, MW, W, WB, H, FC, sidePanelsNeeded, sideEach, sidePanelLength,
+         rounded, nestingStrategy, totalLength, setbackFromFront, AT2F, BR, backDrop, frontExtDrop,
+         backWidth, frontWidth, hem, seam} = params;
+  const rIn = v => rounded ? Math.ceil(v) : Math.round(v*100)/100;
+  const svg = document.getElementById('diagram');
+  while (svg.firstChild) svg.removeChild(svg.firstChild);
+  const VBW = svg.viewBox.baseVal.width, VBH = svg.viewBox.baseVal.height;
+  const pad = 50;
+
+  const add = (t,a,p=svg)=>{const e=document.createElementNS('http://www.w3.org/2000/svg',t); for(const k in a) e.setAttribute(k,a[k]); p.appendChild(e); return e;};
+  const defs = add('defs',{});
+  const m = add('marker',{id:'arr',markerWidth:8,markerHeight:8,refX:4,refY:4,orient:'auto',viewBox:'0 0 8 8'},defs);
+  const p = document.createElementNS('http://www.w3.org/2000/svg','path'); p.setAttribute('d','M0,0 L8,4 L0,8 Z'); p.setAttribute('fill','#334155'); m.appendChild(p);
+  const arrow=(x1,y1,x2,y2)=>add('line',{x1,y1,x2,y2,stroke:'#334155','marker-start':'url(#arr)','marker-end':'url(#arr)'});
+
+  // Layout: bolt runs horizontally (x = along bolt length), bolt width is vertical (y = across bolt)
+  let diagramTotalLength = totalLength + 10;
+  const diagramTotalHeight = B;
+  const scale = Math.min((VBW - pad*2) / diagramTotalLength, (VBH - pad*2) / diagramTotalHeight) || 1;
+  const sx = pad, sy = pad;
+
+  // === MAIN PIECE (rectangle with dashed cut lines showing finished shape) ===
+  const mainW = ML * scale;
+  const mainH = B * scale;
+  add('rect',{x:sx, y:sy, width:mainW, height:mainH, fill:'#eef2ff', stroke:'#0f172a'});
+  add('text',{x:sx + mainW/2, y:sy + mainH/2 - 8, 'text-anchor':'middle', 'font-size':12, fill:'#334155', 'font-weight':'bold'}).textContent='MAIN PIECE';
+  add('text',{x:sx + mainW/2, y:sy + mainH/2 + 8, 'text-anchor':'middle', 'font-size':11, fill:'#475569'}).textContent=`${rIn(ML)}" × ${rIn(B)}"`;
+
+  // Key geometry for cut lines (matching flat layout)
+  const centerY = sy + mainH / 2;
+  const backHalf = (WB / 2) + hem;           // half-width of back flap (WB + 2×hem)
+  const backFlapW = WB + 2 * hem;            // total back flap width incl hems
+  const yBREndX = sx + backDrop * scale;     // x position where backrest base is (step-out point)
+  const halfBolt = B / 2;
+
+  // Back flap cut lines: narrow section from back edge (x=sx) to backrest base (x=yBREndX)
+  // Top cut: horizontal line at backHalf from center
+  const backTopY = centerY - backHalf * scale;
+  const backBotY = centerY + backHalf * scale;
+  // Horizontal cuts along back flap (top and bottom)
+  add('line',{x1:sx, y1:backTopY, x2:yBREndX, y2:backTopY,
+    stroke:'#0f172a', 'stroke-width':1.5, 'stroke-dasharray':'6,3'});
+  add('line',{x1:sx, y1:backBotY, x2:yBREndX, y2:backBotY,
+    stroke:'#0f172a', 'stroke-width':1.5, 'stroke-dasharray':'6,3'});
+  // Vertical step-outs at backrest base (from narrow back to bolt edge)
+  add('line',{x1:yBREndX, y1:backTopY, x2:yBREndX, y2:sy,
+    stroke:'#0f172a', 'stroke-width':1.5, 'stroke-dasharray':'6,3'});
+  add('line',{x1:yBREndX, y1:backBotY, x2:yBREndX, y2:sy + mainH,
+    stroke:'#0f172a', 'stroke-width':1.5, 'stroke-dasharray':'6,3'});
+
+  // Diagonal cut lines from backrest base to front edge
+  // At backrest base (yBREndX): full bolt width → halfBolt from center = bolt edge (sy and sy+mainH)
+  // At front edge (sx+mainW): frontWidth/2 from center
+  const halfFrontCut = Math.min(frontWidth / 2, halfBolt);
+  const frontTopY = centerY - halfFrontCut * scale;
+  const frontBotY = centerY + halfFrontCut * scale;
+  add('line',{x1:yBREndX, y1:sy, x2:sx+mainW, y2:frontTopY,
+    stroke:'#0f172a', 'stroke-width':1.5, 'stroke-dasharray':'6,3'});
+  add('line',{x1:yBREndX, y1:sy+mainH, x2:sx+mainW, y2:frontBotY,
+    stroke:'#0f172a', 'stroke-width':1.5, 'stroke-dasharray':'6,3'});
+
+  // Back flap width label
+  const bfLabelX = sx + (backDrop * scale) / 2;
+  arrow(bfLabelX, backTopY - 10, bfLabelX, backTopY);
+  add('text',{x:bfLabelX, y:backTopY - 14, 'text-anchor':'middle', 'font-size':9, fill:'#334155'}).textContent=`${rIn(backFlapW)}" (WB+2×hem)`;
+
+  // Dimension arrows
+  arrow(sx, sy - 18, sx + mainW, sy - 18);
+  add('text',{x:sx + mainW/2, y:sy - 24, 'text-anchor':'middle', 'font-size':12, fill:'#334155'}).textContent=`ML: ${rIn(ML)}"`;
+  arrow(sx - 18, sy, sx - 18, sy + mainH);
+  add('text',{x:sx - 22, y:sy + mainH/2, 'text-anchor':'end', 'dominant-baseline':'middle', 'font-size':12, fill:'#334155', transform:`rotate(-90 ${sx-22} ${sy + mainH/2})`}).textContent=`Bolt (B): ${rIn(B)}"`;
+  add('circle',{cx:sx + mainW/2, cy:sy + mainH/2, r:4, fill:'#dc2626', stroke:'#ffffff', 'stroke-width':1.5});
+
+  // === SIDE PANELS ===
+  const gap = 10 * scale;
+  // Diagonal trim per side: how much narrower the front is vs the back
+  const trimPerSide = (backWidth - frontWidth) / 2;
+  const trimPx = trimPerSide * scale;
+
+  // Helper: draw diagonal cut line on a panel rectangle
+  // Panel is oriented with back (wider) on left, front (narrower) on right
+  // Side 1 (left panel): trim is on the bottom edge (outer edge)
+  // Side 2 (right panel, mirrored): trim is on the top edge (outer edge)
+  function drawPanelDiag(px, py, pw, ph, mirrored) {
+    if (trimPx < 1) return; // no visible trim
+    if (!mirrored) {
+      // Side 1: diagonal from bottom-left corner to (right edge, trimPx up from bottom)
+      add('line',{x1:px, y1:py+ph, x2:px+pw, y2:py+ph-trimPx,
+        stroke:'#0f172a', 'stroke-width':1.5, 'stroke-dasharray':'6,3'});
+    } else {
+      // Side 2 (mirror): diagonal from top-left corner to (right edge, trimPx down from top)
+      add('line',{x1:px, y1:py, x2:px+pw, y2:py+trimPx,
+        stroke:'#0f172a', 'stroke-width':1.5, 'stroke-dasharray':'6,3'});
+    }
+  }
+
+  if (nestingStrategy === 'panels-stacked') {
+    // Both panels stacked across bolt
+    const panelSectionX = sx + mainW + gap;
+    const panelAlongBolt = sidePanelLength * scale;
+    const panelAcrossBolt = sideEach * scale;
+
+    add('rect',{x:panelSectionX, y:sy, width:panelAlongBolt, height:panelAcrossBolt, fill:'#22c55e33', stroke:'#16a34a66'});
+    drawPanelDiag(panelSectionX, sy, panelAlongBolt, panelAcrossBolt, false);
+    add('text',{x:panelSectionX + panelAlongBolt/2, y:sy + panelAcrossBolt/2 + 4, 'text-anchor':'middle', 'font-size':10, fill:'#166534', 'font-weight':'bold'}).textContent=`SIDE 1: ${rIn(sidePanelLength)}" × ${rIn(sideEach)}"`;
+
+    const p2Y = sy + panelAcrossBolt;
+    add('rect',{x:panelSectionX, y:p2Y, width:panelAlongBolt, height:panelAcrossBolt, fill:'#22c55e33', stroke:'#16a34a66'});
+    drawPanelDiag(panelSectionX, p2Y, panelAlongBolt, panelAcrossBolt, true);
+    add('text',{x:panelSectionX + panelAlongBolt/2, y:p2Y + panelAcrossBolt/2 + 4, 'text-anchor':'middle', 'font-size':10, fill:'#166534', 'font-weight':'bold'}).textContent=`SIDE 2: ${rIn(sidePanelLength)}" × ${rIn(sideEach)}"`;
+
+    const combinedAcross = 2 * sideEach;
+    const wasteH = mainH - combinedAcross * scale;
+    if (wasteH > 4) {
+      add('rect',{x:panelSectionX, y:p2Y + panelAcrossBolt, width:panelAlongBolt, height:wasteH, fill:'#f1f5f9', stroke:'#e2e8f0', 'stroke-dasharray':'4,4'});
+      if (wasteH > 16) add('text',{x:panelSectionX + panelAlongBolt/2, y:p2Y + panelAcrossBolt + wasteH/2 + 4, 'text-anchor':'middle', 'font-size':10, fill:'#94a3b8'}).textContent=`waste`;
+    }
+
+    const totalEndX = panelSectionX + panelAlongBolt;
+    arrow(sx, sy + mainH + 22, totalEndX, sy + mainH + 22);
+    add('text',{x:(sx + totalEndX)/2, y:sy + mainH + 38, 'text-anchor':'middle', 'font-size':12, fill:'#334155'}).textContent=`Total: ${rIn(totalLength)}" (${rIn(totalLength/36)} yd)`;
+
+  } else if (nestingStrategy === 'panels-turned') {
+    // Panels turned: sideEach along bolt, sidePanelLength across bolt (fits if SPL ≤ B)
+    const panelSectionX = sx + mainW + gap;
+    const panelAlongBolt = sideEach * scale;
+    const panelAcrossBolt = sidePanelLength * scale;
+    const trimTurnedPx = trimPerSide * scale;
+
+    add('rect',{x:panelSectionX, y:sy, width:panelAlongBolt, height:panelAcrossBolt, fill:'#22c55e33', stroke:'#16a34a66'});
+    // Turned: length is vertical, so diagonal goes from bottom-left to (trimTurnedPx right of left, top)
+    if (trimTurnedPx >= 1) {
+      add('line',{x1:panelSectionX, y1:sy+panelAcrossBolt, x2:panelSectionX+trimTurnedPx, y2:sy,
+        stroke:'#0f172a', 'stroke-width':1.5, 'stroke-dasharray':'6,3'});
+    }
+    add('text',{x:panelSectionX + panelAlongBolt/2, y:sy + panelAcrossBolt/2 - 6, 'text-anchor':'middle', 'font-size':10, fill:'#166534', 'font-weight':'bold'}).textContent=`SIDE 1`;
+    add('text',{x:panelSectionX + panelAlongBolt/2, y:sy + panelAcrossBolt/2 + 8, 'text-anchor':'middle', 'font-size':9, fill:'#166534'}).textContent=`${rIn(sideEach)}" × ${rIn(sidePanelLength)}"`;
+
+    const p2X = panelSectionX + panelAlongBolt;
+    add('rect',{x:p2X, y:sy, width:panelAlongBolt, height:panelAcrossBolt, fill:'#22c55e33', stroke:'#16a34a66'});
+    // Mirror: diagonal from bottom-right to (trimTurnedPx left of right, top)
+    if (trimTurnedPx >= 1) {
+      add('line',{x1:p2X+panelAlongBolt, y1:sy+panelAcrossBolt, x2:p2X+panelAlongBolt-trimTurnedPx, y2:sy,
+        stroke:'#0f172a', 'stroke-width':1.5, 'stroke-dasharray':'6,3'});
+    }
+    add('text',{x:p2X + panelAlongBolt/2, y:sy + panelAcrossBolt/2 - 6, 'text-anchor':'middle', 'font-size':10, fill:'#166534', 'font-weight':'bold'}).textContent=`SIDE 2`;
+    add('text',{x:p2X + panelAlongBolt/2, y:sy + panelAcrossBolt/2 + 8, 'text-anchor':'middle', 'font-size':9, fill:'#166534'}).textContent=`${rIn(sideEach)}" × ${rIn(sidePanelLength)}"`;
+
+
+    const totalEndX = p2X + panelAlongBolt;
+    arrow(sx, sy + mainH + 22, totalEndX, sy + mainH + 22);
+    add('text',{x:(sx + totalEndX)/2, y:sy + mainH + 38, 'text-anchor':'middle', 'font-size':12, fill:'#334155'}).textContent=`Total: ${rIn(totalLength)}" (${rIn(totalLength/36)} yd)`;
+
+  } else {
+    // No side panels, or sequential
+    let lastEndX = sx + mainW;
+
+    if (sidePanelsNeeded) {
+      const panelX = lastEndX + gap;
+      const panelAlongBolt = sidePanelLength * scale;
+      const panelAcrossBolt = sideEach * scale;
+      const panelY = sy + (mainH - panelAcrossBolt) / 2;
+
+      add('rect',{x:panelX, y:panelY, width:panelAlongBolt, height:panelAcrossBolt, fill:'#22c55e33', stroke:'#16a34a66'});
+      drawPanelDiag(panelX, panelY, panelAlongBolt, panelAcrossBolt, false);
+      add('text',{x:panelX + panelAlongBolt/2, y:panelY + panelAcrossBolt/2 - 4, 'text-anchor':'middle', 'font-size':10, fill:'#166534', 'font-weight':'bold'}).textContent=`SIDE 1`;
+      add('text',{x:panelX + panelAlongBolt/2, y:panelY + panelAcrossBolt/2 + 10, 'text-anchor':'middle', 'font-size':9, fill:'#166534'}).textContent=`${rIn(sidePanelLength)}" × ${rIn(sideEach)}"`;
+
+      const p2X = panelX + panelAlongBolt + gap;
+      add('rect',{x:p2X, y:panelY, width:panelAlongBolt, height:panelAcrossBolt, fill:'#22c55e33', stroke:'#16a34a66'});
+      drawPanelDiag(p2X, panelY, panelAlongBolt, panelAcrossBolt, true);
+      add('text',{x:p2X + panelAlongBolt/2, y:panelY + panelAcrossBolt/2 - 4, 'text-anchor':'middle', 'font-size':10, fill:'#166534', 'font-weight':'bold'}).textContent=`SIDE 2`;
+      add('text',{x:p2X + panelAlongBolt/2, y:panelY + panelAcrossBolt/2 + 10, 'text-anchor':'middle', 'font-size':9, fill:'#166534'}).textContent=`${rIn(sidePanelLength)}" × ${rIn(sideEach)}"`;
+
+
+      lastEndX = p2X + panelAlongBolt;
+    }
+
+    arrow(sx, sy + mainH + 22, lastEndX, sy + mainH + 22);
+    add('text',{x:(sx + lastEndX)/2, y:sy + mainH + 38, 'text-anchor':'middle', 'font-size':12, fill:'#334155'}).textContent=`Total: ${rIn(totalLength)}" (${rIn(totalLength/36)} yd)`;
+  }
+}
+
+function updateCutList(params){
+  const {B, ML, MW, H, FC, WB, sidePanelsNeeded, sideEach, addWidth, sidePanelLength, rounded, seam, hem, setbackFromFront} = params;
+  const cutlist = document.getElementById('cutlist');
+  const rows = [];
+
+  rows.push(['Main piece', `${fmtInch(ML, rounded)}" × ${fmtInch(B, rounded)}" (full bolt width)`, `Qty 1 — one continuous piece from back floor to front floor`]);
+
+  if (sidePanelsNeeded) {
+    rows.push(['Side panel', `${fmtInch(sidePanelLength, rounded)}" × ${fmtInch(sideEach, rounded)}"`, `Qty 2 — each includes ${fmtExact(seam)}" seam on attachment edge + ${fmtExact(hem)}" hem on outer edge`]);
+    if (setbackFromFront > 0.5) {
+      rows.push(['Side panel setback', `${fmtInch(setbackFromFront, rounded)}" from front edge`, `Panel starts ${fmtExact(setbackFromFront)}" back from the main piece's front edge`]);
+    }
+  } else {
+    rows.push(['Side panels', 'Not required (bolt width covers full wrap)', '—']);
+  }
+
+  // Gusset material — two squares, cut diagonally into right triangles
+  const gussetMatSide = (H - FC) + hem;  // 37" with test values
+  rows.push(['Gusset material', `${fmtInch(gussetMatSide, rounded)}" × ${fmtInch(gussetMatSide, rounded)}" square, cut diagonally`, `Qty 2 squares → 2 triangles (${fmtExact(hem)}" hem on two sides, ½" hem on hypotenuse). Back flap trimmed to WB (${WB}") + ${fmtExact(hem)}" hem each side`]);
+
+  cutlist.innerHTML = rows.map((r,i)=>`<div class="row" style="${i? 'border-top:1px dashed var(--muted);':''}"><span>${r[0]}</span><strong>${r[1]}</strong><span style="color:var(--sub)">${r[2]}</span></div>`).join('');
+}
+
+function exportDiagramPNG(){
+  const svg = document.getElementById('diagram');
+  const serializer = new XMLSerializer();
+  const source = serializer.serializeToString(svg);
+  const svgBlob = new Blob([source], {type:'image/svg+xml;charset=utf-8'});
+  const url = URL.createObjectURL(svgBlob);
+  const img = new Image();
+  img.onload = function(){
+    const canvas = document.createElement('canvas');
+    canvas.width = svg.viewBox.baseVal.width;
+    canvas.height = svg.viewBox.baseVal.height;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.drawImage(img,0,0);
+    URL.revokeObjectURL(url);
+    const a = document.createElement('a');
+    a.download = 'front-to-back-cover-diagram.png';
+    a.href = canvas.toDataURL('image/png');
+    a.click();
+  };
+  img.src = url;
+}
+
+function drawAssemblyDiagramSide(params){
+  const {H, W, D, F2A, F2BS, BR, FC, AT2F, ML, MW, backDrop, frontExtDrop,
+         sidePanelsNeeded, sideEach, sidePanelLength, setbackFromFront,
+         confirmCoverageWidth, backWidth, frontWidth, rounded, hem, seam} = params;
+  const rIn = v => rounded ? Math.ceil(v) : Math.round(v*100)/100;
+  const svg = document.getElementById('assemblyDiagramSide');
+  while(svg.firstChild) svg.removeChild(svg.firstChild);
+  const add = (t,a,p=svg)=>{const e=document.createElementNS('http://www.w3.org/2000/svg',t); for(const k in a) e.setAttribute(k,a[k]); p.appendChild(e); return e;};
+
+  // Arrow markers
+  const defs = add('defs',{});
+  const m = add('marker',{id:'arrS',markerWidth:8,markerHeight:8,refX:4,refY:4,orient:'auto',viewBox:'0 0 8 8'},defs);
+  const mp = document.createElementNS('http://www.w3.org/2000/svg','path');
+  mp.setAttribute('d','M0,0 L8,4 L0,8 Z'); mp.setAttribute('fill','#334155'); m.appendChild(mp);
+
+  // Coordinate system: origin at floor level behind chair, x→right, y→up
+  // We'll flip y for SVG (y→down)
+  const VBW = 820, VBH = 500;
+  const pad = 60;
+
+  // Chair dimensions in "real" units — we'll scale to fit
+  const chairTotalW = D + BR + 20; // depth + backrest + some margin
+  const chairTotalH = H + 10;
+  const scaleX = (VBW - pad*2) / (chairTotalW + 40);
+  const scaleY = (VBH - pad*2) / (chairTotalH + 20);
+  const sc = Math.min(scaleX, scaleY);
+
+  // Transform: real coords → SVG coords
+  const ox = pad + 20*sc; // origin x (back of chair at floor)
+  const oy = VBH - pad;    // origin y (floor level)
+  const tx = x => ox + x * sc;
+  const ty = y => oy - y * sc;
+
+  // === FLOOR LINE ===
+  add('line',{x1:pad-10, y1:oy, x2:VBW-pad+10, y2:oy, stroke:'#94a3b8', 'stroke-width':1});
+  add('text',{x:pad, y:oy+16, 'font-size':10, fill:'#94a3b8'}).textContent='Floor';
+
+  // Floor clearance line
+  add('line',{x1:pad-10, y1:ty(FC), x2:VBW-pad+10, y2:ty(FC), stroke:'#94a3b8', 'stroke-dasharray':'3,3', 'stroke-width':0.5});
+  add('text',{x:VBW-pad+12, y:ty(FC)+4, 'font-size':9, fill:'#94a3b8'}).textContent=`FC: ${FC}"`;
+
+  // === DRAW CHAIR (side profile) ===
+  // Back legs (from floor to seat)
+  const seatH = F2BS; // seat bottom height
+  const seatTop = F2BS + 4; // seat surface (approx 4" cushion)
+  const backrestBottom = seatTop; // backrest starts at seat top
+  const backrestTop = H; // top of backrest
+  const seatFront = D; // front edge of seat from back
+  const seatBack = 0; // back edge of seat at x=0 (aligned with backrest)
+
+  // Chair body — simplified side profile
+  const chairColor = '#d1d5db';
+  const chairStroke = '#6b7280';
+
+  // Back leg
+  add('rect',{x:tx(-2), y:ty(seatH), width:4*sc, height:seatH*sc, fill:chairColor, stroke:chairStroke, rx:2});
+  // Front leg
+  add('rect',{x:tx(seatFront-2), y:ty(seatH), width:4*sc, height:seatH*sc, fill:chairColor, stroke:chairStroke, rx:2});
+
+  // Seat cushion
+  add('rect',{x:tx(-2), y:ty(seatTop), width:(seatFront+4)*sc, height:(seatTop-seatH)*sc, fill:'#e5e7eb', stroke:chairStroke, rx:3});
+  add('text',{x:tx(seatFront/2), y:ty((seatTop+seatH)/2)+4, 'text-anchor':'middle', 'font-size':10, fill:'#6b7280'}).textContent='Seat';
+
+  // Backrest
+  add('rect',{x:tx(-BR), y:ty(backrestTop), width:BR*sc, height:(backrestTop-backrestBottom)*sc, fill:'#e5e7eb', stroke:chairStroke, rx:3});
+  add('text',{x:tx(-BR/2), y:ty((backrestTop+backrestBottom)/2)+4, 'text-anchor':'middle', 'font-size':9, fill:'#6b7280'}).textContent='Back';
+
+  // Armrest (side view — a line at armrest height from seat back to near seat front)
+  const armH = F2A;
+  add('line',{x1:tx(0), y1:ty(armH), x2:tx(seatFront*0.7), y2:ty(armH), stroke:chairStroke, 'stroke-width':2.5, 'stroke-linecap':'round'});
+  add('text',{x:tx(seatFront*0.35), y:ty(armH)-6, 'text-anchor':'middle', 'font-size':9, fill:'#6b7280'}).textContent='Armrest';
+
+  // === FABRIC PATH (main piece) ===
+  // Path: back floor (FC) → up back of backrest → over top → diagonal across seat → down front → front floor (FC)
+  const fabricPts = [
+    [tx(-BR), ty(FC)],                    // Start: back floor at FC height, behind backrest
+    [tx(-BR), ty(backrestTop)],           // Up the back of backrest
+    [tx(0), ty(backrestTop)],             // Over top of backrest (BR wide)
+    [tx(seatFront), ty(armH)],            // Diagonal across seat to front at armrest height (AT2F)
+    [tx(seatFront), ty(FC)],              // Down front face to FC
+  ];
+
+  // Draw fabric as a thick colored path
+  const pathD = fabricPts.map((pt,i) => `${i===0?'M':'L'}${pt[0]},${pt[1]}`).join(' ');
+  add('path',{d:pathD, fill:'none', stroke:'#3b82f6', 'stroke-width':8, 'stroke-linecap':'round', 'stroke-linejoin':'round', opacity:0.35});
+  add('path',{d:pathD, fill:'none', stroke:'#3b82f6', 'stroke-width':2, 'stroke-linecap':'round', 'stroke-linejoin':'round', opacity:0.8});
+
+  // === FABRIC ZONE LABELS along the path ===
+  // Back drop label
+  const backMidY = (ty(FC) + ty(backrestTop)) / 2;
+  add('line',{x1:tx(-BR)-30, y1:ty(FC), x2:tx(-BR)-30, y2:ty(backrestTop), stroke:'#2563eb', 'stroke-width':1, 'marker-start':'url(#arrS)', 'marker-end':'url(#arrS)'});
+  add('text',{x:tx(-BR)-34, y:backMidY+4, 'text-anchor':'end', 'font-size':10, fill:'#2563eb', 'font-weight':'bold'}).textContent=`${rIn(backDrop)}"`;
+  add('text',{x:tx(-BR)-34, y:backMidY+16, 'text-anchor':'end', 'font-size':9, fill:'#2563eb'}).textContent='Back drop';
+
+  // BR label (over top of backrest)
+  add('text',{x:(tx(-BR)+tx(0))/2, y:ty(backrestTop)-10, 'text-anchor':'middle', 'font-size':10, fill:'#2563eb', 'font-weight':'bold'}).textContent=`BR: ${rIn(BR)}"`;
+
+  // AT2F diagonal label
+  const at2fMidX = (tx(0) + tx(seatFront)) / 2;
+  const at2fMidY = (ty(backrestTop) + ty(armH)) / 2;
+  add('text',{x:at2fMidX, y:at2fMidY - 12, 'text-anchor':'middle', 'font-size':10, fill:'#2563eb', 'font-weight':'bold'}).textContent=`AT2F: ${rIn(AT2F)}"`;
+  add('text',{x:at2fMidX, y:at2fMidY, 'text-anchor':'middle', 'font-size':9, fill:'#2563eb'}).textContent='(diagonal drape)';
+
+  // Front drop label
+  const frontMidY = (ty(FC) + ty(armH)) / 2;
+  add('line',{x1:tx(seatFront)+30, y1:ty(FC), x2:tx(seatFront)+30, y2:ty(armH), stroke:'#2563eb', 'stroke-width':1, 'marker-start':'url(#arrS)', 'marker-end':'url(#arrS)'});
+  add('text',{x:tx(seatFront)+34, y:frontMidY+4, 'font-size':10, fill:'#2563eb', 'font-weight':'bold'}).textContent=`${rIn(frontExtDrop)}"`;
+  add('text',{x:tx(seatFront)+34, y:frontMidY+16, 'font-size':9, fill:'#2563eb'}).textContent='Front drop';
+
+  // FC markers at both ends
+  add('circle',{cx:tx(-BR), cy:ty(FC), r:4, fill:'#dc2626', stroke:'#fff', 'stroke-width':1.5});
+  add('text',{x:tx(-BR)+8, y:ty(FC)+4, 'font-size':9, fill:'#dc2626'}).textContent=`FC: ${FC}"`;
+  add('circle',{cx:tx(seatFront), cy:ty(FC), r:4, fill:'#dc2626', stroke:'#fff', 'stroke-width':1.5});
+
+  // === DIMENSION LINES ===
+  // H (total height)
+  add('line',{x1:tx(-BR)-60, y1:ty(0), x2:tx(-BR)-60, y2:ty(H), stroke:'#475569', 'stroke-width':1, 'marker-start':'url(#arrS)', 'marker-end':'url(#arrS)'});
+  add('text',{x:tx(-BR)-64, y:ty(H/2)+4, 'text-anchor':'end', 'font-size':10, fill:'#475569'}).textContent=`H: ${H}"`;
+
+  // D (depth)
+  add('line',{x1:tx(0), y1:ty(-8), x2:tx(seatFront), y2:ty(-8), stroke:'#475569', 'stroke-width':1, 'marker-start':'url(#arrS)', 'marker-end':'url(#arrS)'});
+  add('text',{x:tx(seatFront/2), y:ty(-8)+16, 'text-anchor':'middle', 'font-size':10, fill:'#475569'}).textContent=`D: ${D}"`;
+
+  // F2A label
+  add('line',{x1:tx(seatFront)+55, y1:ty(0), x2:tx(seatFront)+55, y2:ty(F2A), stroke:'#475569', 'stroke-width':1, 'stroke-dasharray':'3,3'});
+  add('text',{x:tx(seatFront)+58, y:ty(F2A/2)+4, 'font-size':9, fill:'#475569'}).textContent=`F2A: ${F2A}"`;
+
+  // === TOTAL ML ===
+  add('text',{x:VBW/2, y:28, 'text-anchor':'middle', 'font-size':13, fill:'#0f172a', 'font-weight':'bold'}).textContent=
+    `Main Length (ML): ${rIn(ML)}" = Back ${rIn(backDrop)}" + BR ${rIn(BR)}" + AT2F ${rIn(AT2F)}" + Front ${rIn(frontExtDrop)}"`;
+
+  // === SIDE PANEL NOTE (if needed) ===
+  if (sidePanelsNeeded) {
+    add('text',{x:VBW/2, y:44, 'text-anchor':'middle', 'font-size':11, fill:'#166534'}).textContent=
+      `Side panels: ${rIn(sidePanelLength)}" long × ${rIn(sideEach)}" wide — attached at left & right edges`;
+  }
+}
+
+function drawAssemblyDiagramFlat(params){
+  const {H, W, WB, D, F2A, F2BS, BR, FC, B, AT2F, ML, MW, backDrop, frontExtDrop,
+         sidePanelsNeeded, sideEach, sidePanelLength, setbackFromFront, addWidth,
+         confirmCoverageWidth, backWidth, frontWidth, rounded, hem, seam} = params;
+  const rIn = v => rounded ? Math.ceil(v) : Math.round(v*100)/100;
+  const svg = document.getElementById('assemblyDiagramFlat');
+  while(svg.firstChild) svg.removeChild(svg.firstChild);
+  const add = (t,a,p=svg)=>{const e=document.createElementNS('http://www.w3.org/2000/svg',t); for(const k in a) e.setAttribute(k,a[k]); p.appendChild(e); return e;};
+
+  const defs = add('defs',{});
+  const m = add('marker',{id:'arrFL',markerWidth:8,markerHeight:8,refX:4,refY:4,orient:'auto',viewBox:'0 0 8 8'},defs);
+  const mp = document.createElementNS('http://www.w3.org/2000/svg','path');
+  mp.setAttribute('d','M0,0 L8,4 L0,8 Z'); mp.setAttribute('fill','#334155'); m.appendChild(mp);
+  const arrow=(x1,y1,x2,y2,clr)=>add('line',{x1,y1,x2,y2,stroke:clr||'#334155','stroke-width':1,'marker-start':'url(#arrFL)','marker-end':'url(#arrFL)'});
+
+  const VBW = 900, VBH = 700;
+  const pad = 55;
+
+  // === LAYOUT ===
+  // Flat layout: cover laid on table, back edge at top, front edge at bottom
+  // y-axis = along main piece length (ML), top=back, bottom=front
+  // x-axis = across width (MW total including side panels)
+
+  // Gusset dimensions (computed early so we can factor into scaling)
+  const gussetSide = H - FC;                    // each side of the right triangle (hem absorbed into main piece)
+  const gussetInset = WB / 2 + hem;            // distance from center to backrest material edge
+  const gussetOuterX = gussetInset + gussetSide; // outermost horizontal extent of gusset
+
+  // Total assembled width — must encompass side panels, diagonal, AND gusset extent
+  const baseW = sidePanelsNeeded ? MW : Math.min(MW, B);
+  const totalW = Math.max(baseW, 2 * gussetOuterX);
+  const totalH = ML + hem; // +hem for gusset extending slightly past back edge
+
+  const scX = (VBW - pad*2) / (totalW + 40);
+  const scY = (VBH - pad*2) / (totalH + 20);
+  const sc = Math.min(scX, scY);
+
+  const cx = VBW / 2;  // center x
+  const topY = pad + 10; // top of diagram (back edge)
+
+  // Helpers: from center, from top
+  const fx = dx => cx + dx * sc;
+  const fy = dy => topY + dy * sc;
+
+  // Half-widths at key positions along ML (from back edge = 0 to front edge = ML)
+  // The main piece is B wide (or MW if MW < B). The assembled piece with panels is MW wide.
+  // But the diagonal cut shapes the actual cover:
+  //   At back edge (y=0): backWidth (= MW) → halfBack = MW/2
+  //   At armrest line (y = backDrop + BR + AT2F - armrestDist... actually let's think in terms of ML)
+  //
+  // ML zones from back (top) to front (bottom):
+  //   backDrop (H-FC) → BR → AT2F → frontExtDrop (F2A-FC)
+  //
+  // Width at back edge of coverage = backWidth = MW
+  // Width at armrest = confirmCoverageWidth = W + 2*(F2A-FC)
+  // Width at front edge = frontWidth (from diagonal interpolation)
+  //
+  // Diagonal tapers linearly from backWidth at (ML - frontExtDrop) to frontWidth at ML
+  // Actually the diagonal goes from backWidth at the back coverage edge down to frontWidth at front
+
+  const halfBack = backWidth / 2;
+  const halfCC = confirmCoverageWidth / 2;
+  const halfFront = frontWidth / 2;
+  const halfBolt = B / 2;
+  const halfMW = MW / 2;
+  const halfWB = WB / 2;
+
+  // Y positions of key lines (distance from back edge along ML)
+  const yBackEdge = 0;
+  const yBREnd = backDrop;        // end of back drop / start of backrest zone
+  const yBRTop = backDrop + BR;   // top of backrest / start of AT2F diagonal
+  const yArmrest = ML - frontExtDrop;  // where armrest height is (end of AT2F)
+  const yFrontEdge = ML;          // front edge
+
+  // === MAIN PIECE (red) — finished shape ===
+  // Back drop zone (y=0 to yBREnd): trimmed to WB + 2×hem (waste removed)
+  // Below backrest (yBREnd to ML): full bolt width (B)
+  const mainLeft = fx(-halfBolt);
+  const mainRight = fx(halfBolt);
+  const mainTop = fy(0);
+  const mainBot = fy(ML);
+  const backHalf = halfWB + hem;  // half-width of trimmed back flap
+
+  const mainPts = [
+    `${fx(-backHalf)},${fy(0)}`,        // top-left (narrow back)
+    `${fx(backHalf)},${fy(0)}`,         // top-right (narrow back)
+    `${fx(backHalf)},${fy(yBREnd)}`,    // step right at backrest base
+    `${fx(halfBolt)},${fy(yBREnd)}`,    // widen to bolt right
+    `${fx(halfBolt)},${fy(ML)}`,        // bottom-right
+    `${fx(-halfBolt)},${fy(ML)}`,       // bottom-left
+    `${fx(-halfBolt)},${fy(yBREnd)}`,   // widen to bolt left
+    `${fx(-backHalf)},${fy(yBREnd)}`    // step left at backrest base
+  ];
+  add('polygon',{points:mainPts.join(' '),
+    fill:'#fca5a5', stroke:'#dc2626', 'stroke-width':1.5});
+
+  // === SIDE PANELS (green) ===
+  // Side panels fill the gap between the bolt edge and the diagonal cut line.
+  // They run from the back of the backrest (yBREnd) — where gussets attach —
+  // down to the front edge (yFrontEdge = ML).
+  if (sidePanelsNeeded) {
+    // Diagonal half-width at any y position along ML
+    const diagHalfAt = y => halfBack + (halfFront - halfBack) * (y / ML);
+
+    const panelTopY = yBREnd;   // top of panel = gusset attachment at back of backrest
+    const panelBotY = ML;       // bottom = front edge
+
+    // At the top of the panel zone, how wide is the gap between bolt edge and diagonal?
+    const diagAtTop = diagHalfAt(panelTopY);
+    const diagAtBot = halfFront; // = diagHalfAt(ML)
+
+    // If diagonal is inside bolt at the bottom, find where it crosses the bolt edge
+    let panelBotYActual = panelBotY;
+    if (diagAtBot <= halfBolt) {
+      // Diagonal crosses bolt edge at: halfBack + (halfFront-halfBack)*(y/ML) = halfBolt
+      panelBotYActual = ML * (halfBolt - halfBack) / (halfFront - halfBack);
+      if (panelBotYActual < panelTopY) panelBotYActual = panelTopY; // no panel area
+    }
+
+    // Only draw if there's a gap (diagonal wider than bolt) somewhere in the panel zone
+    if (diagAtTop > halfBolt) {
+      // Left side panel — trapezoid polygon
+      // Points clockwise: outer-top → outer-bottom → inner-bottom → inner-top
+      let leftPts, rightPts;
+      if (diagAtBot > halfBolt) {
+        // Diagonal stays outside bolt all the way to front — 4-point trapezoid
+        leftPts = [
+          `${fx(-diagAtTop)},${fy(panelTopY)}`,
+          `${fx(-diagAtBot)},${fy(panelBotY)}`,
+          `${fx(-halfBolt)},${fy(panelBotY)}`,
+          `${fx(-halfBolt)},${fy(panelTopY)}`
+        ];
+        rightPts = [
+          `${fx(diagAtTop)},${fy(panelTopY)}`,
+          `${fx(diagAtBot)},${fy(panelBotY)}`,
+          `${fx(halfBolt)},${fy(panelBotY)}`,
+          `${fx(halfBolt)},${fy(panelTopY)}`
+        ];
+      } else {
+        // Diagonal tapers inside bolt — triangle (tapers to zero at crossover)
+        leftPts = [
+          `${fx(-diagAtTop)},${fy(panelTopY)}`,
+          `${fx(-halfBolt)},${fy(panelBotYActual)}`,
+          `${fx(-halfBolt)},${fy(panelTopY)}`
+        ];
+        rightPts = [
+          `${fx(diagAtTop)},${fy(panelTopY)}`,
+          `${fx(halfBolt)},${fy(panelBotYActual)}`,
+          `${fx(halfBolt)},${fy(panelTopY)}`
+        ];
+      }
+
+      // Draw green panel polygons
+      add('polygon',{points:leftPts.join(' '), fill:'#86efac', stroke:'#16a34a', 'stroke-width':1.5});
+      add('polygon',{points:rightPts.join(' '), fill:'#86efac', stroke:'#16a34a', 'stroke-width':1.5});
+
+      // === SEAM OVERLAP ZONES (purple) ===
+      // Hardcoded 1.5" seam — does not change with rounding
+      const seamFixed = 1.5;
+      const seamW = seamFixed * sc;
+      const overlapTopPx = fy(panelTopY);
+      const overlapBotPx = fy(Math.min(panelBotY, panelBotYActual));
+
+      // Left overlap (purple strip along left bolt edge, from main piece over side panel)
+      add('rect',{x:mainLeft - seamW, y:overlapTopPx, width:seamW, height:(overlapBotPx - overlapTopPx),
+        fill:'#c4b5fd', stroke:'#7c3aed', 'stroke-width':1, opacity:0.7, rx:1});
+
+      // Right overlap (purple strip along right bolt edge, from main piece over side panel)
+      add('rect',{x:mainRight, y:overlapTopPx, width:seamW, height:(overlapBotPx - overlapTopPx),
+        fill:'#c4b5fd', stroke:'#7c3aed', 'stroke-width':1, opacity:0.7, rx:1});
+
+      // Overlap labels and small horizontal SVG arrows showing main piece overlaps outward
+      const seamMidY = (overlapTopPx + overlapBotPx) / 2;
+      const arrowLen = seamW * 0.7;
+      const arrowHead = 4;
+      // Place 2 arrows — top and bottom thirds, avoiding center where label sits
+      const arrowSpots = [0.25, 0.75];
+      for (const frac of arrowSpots) {
+        const ay = overlapTopPx + (overlapBotPx - overlapTopPx) * frac;
+        // Left arrows: point left (main piece extends left over side panel)
+        const lx1 = mainLeft - 2;
+        const lx2 = lx1 - arrowLen;
+        add('line',{x1:lx1, y1:ay, x2:lx2, y2:ay, stroke:'#7c3aed', 'stroke-width':1.5});
+        add('line',{x1:lx2, y1:ay, x2:lx2+arrowHead, y2:ay-arrowHead, stroke:'#7c3aed', 'stroke-width':1.5});
+        add('line',{x1:lx2, y1:ay, x2:lx2+arrowHead, y2:ay+arrowHead, stroke:'#7c3aed', 'stroke-width':1.5});
+        // Right arrows: point right (main piece extends right over side panel)
+        const rx1 = mainRight + 2;
+        const rx2 = rx1 + arrowLen;
+        add('line',{x1:rx1, y1:ay, x2:rx2, y2:ay, stroke:'#7c3aed', 'stroke-width':1.5});
+        add('line',{x1:rx2, y1:ay, x2:rx2-arrowHead, y2:ay-arrowHead, stroke:'#7c3aed', 'stroke-width':1.5});
+        add('line',{x1:rx2, y1:ay, x2:rx2-arrowHead, y2:ay+arrowHead, stroke:'#7c3aed', 'stroke-width':1.5});
+      }
+      // Rotated "1.5 seam" label (no arrows in text)
+      add('text',{x:mainLeft - seamW/2, y:seamMidY - 6, 'text-anchor':'middle', 'font-size':8, fill:'#7c3aed', 'font-weight':'bold',
+        transform:`rotate(-90 ${mainLeft - seamW/2} ${seamMidY - 6})`}).textContent=`1.5" seam`;
+      add('text',{x:mainRight + seamW/2, y:seamMidY - 6, 'text-anchor':'middle', 'font-size':8, fill:'#7c3aed', 'font-weight':'bold',
+        transform:`rotate(90 ${mainRight + seamW/2} ${seamMidY - 6})`}).textContent=`1.5" seam`;
+
+      // Side panel labels — centered in the polygon
+      const labelY = (panelTopY + Math.min(panelBotY, panelBotYActual)) / 2;
+      const labelDiag = diagHalfAt(labelY);
+      const labelOuterX = (halfBolt + labelDiag) / 2; // midpoint between bolt and diagonal
+
+      add('text',{x:fx(-labelOuterX), y:fy(labelY)-4, 'text-anchor':'middle', 'font-size':10, fill:'#166534', 'font-weight':'bold'}).textContent='SIDE';
+      add('text',{x:fx(-labelOuterX), y:fy(labelY)+10, 'text-anchor':'middle', 'font-size':9, fill:'#166534'}).textContent=`PANEL`;
+
+      add('text',{x:fx(labelOuterX), y:fy(labelY)-4, 'text-anchor':'middle', 'font-size':10, fill:'#166534', 'font-weight':'bold'}).textContent='SIDE';
+      add('text',{x:fx(labelOuterX), y:fy(labelY)+10, 'text-anchor':'middle', 'font-size':9, fill:'#166534'}).textContent=`PANEL`;
+
+      // (Gusset attachment line is now drawn by the gusset section above)
+    }
+  }
+
+  // No hems at back or front edges — material goes to floor on both ends
+
+  // === CORNER GUSSETS (light grey right triangles) ===
+  // Right angle at the backrest material edge (halfWB + hem from center, at yBREnd).
+  // One side hemmed to back flap (vertical, going up). Other hemmed to side panel (horizontal, going out).
+  // Hypotenuse hangs free. Gusset folds between back flap and side panel over the backrest corner.
+  {
+    const hemPx = hem * sc;
+
+    // LEFT GUSSET — right angle at (-(halfWB+hem), yBREnd)
+    const lCorner = [fx(-gussetInset), fy(yBREnd)];
+    const lVertEnd = [fx(-gussetInset), fy(yBREnd - gussetSide)];
+    const lHorizEnd = [fx(-gussetInset - gussetSide), fy(yBREnd)];
+
+    add('polygon',{
+      points:`${lCorner[0]},${lCorner[1]} ${lVertEnd[0]},${lVertEnd[1]} ${lHorizEnd[0]},${lHorizEnd[1]}`,
+      fill:'#d4d4d8', stroke:'#71717a', 'stroke-width':1.2});
+
+    // RIGHT GUSSET — right angle at (halfWB+hem, yBREnd)
+    const rCorner = [fx(gussetInset), fy(yBREnd)];
+    const rVertEnd = [fx(gussetInset), fy(yBREnd - gussetSide)];
+    const rHorizEnd = [fx(gussetInset + gussetSide), fy(yBREnd)];
+
+    add('polygon',{
+      points:`${rCorner[0]},${rCorner[1]} ${rVertEnd[0]},${rVertEnd[1]} ${rHorizEnd[0]},${rHorizEnd[1]}`,
+      fill:'#d4d4d8', stroke:'#71717a', 'stroke-width':1.2});
+
+    // HEM STRIPS (blue, 1") along attachment edges
+    // Left gusset — vertical hem (to back flap)
+    add('rect',{x:fx(-gussetInset), y:fy(yBREnd - gussetSide),
+      width:hemPx, height:gussetSide * sc,
+      fill:'#93c5fd', stroke:'#3b82f6', 'stroke-width':0.6, opacity:0.7});
+    // Left gusset — horizontal hem (to side panel)
+    add('rect',{x:fx(-gussetInset - gussetSide), y:fy(yBREnd) - hemPx,
+      width:gussetSide * sc, height:hemPx,
+      fill:'#93c5fd', stroke:'#3b82f6', 'stroke-width':0.6, opacity:0.7});
+
+    // Right gusset — vertical hem (to back flap)
+    add('rect',{x:fx(gussetInset) - hemPx, y:fy(yBREnd - gussetSide),
+      width:hemPx, height:gussetSide * sc,
+      fill:'#93c5fd', stroke:'#3b82f6', 'stroke-width':0.6, opacity:0.7});
+    // Right gusset — horizontal hem (to side panel)
+    add('rect',{x:fx(gussetInset), y:fy(yBREnd) - hemPx,
+      width:gussetSide * sc, height:hemPx,
+      fill:'#93c5fd', stroke:'#3b82f6', 'stroke-width':0.6, opacity:0.7});
+
+    // Hypotenuse hem (0.5" along the free-hanging diagonal edge)
+    // Draw as a thin blue line/strip along the hypotenuse
+    const hypHem = 0.5;
+    // Left gusset hypotenuse: from lVertEnd to lHorizEnd
+    const lHypMidX = (lVertEnd[0] + lHorizEnd[0]) / 2;
+    const lHypMidY = (lVertEnd[1] + lHorizEnd[1]) / 2;
+    add('line',{x1:lVertEnd[0], y1:lVertEnd[1], x2:lHorizEnd[0], y2:lHorizEnd[1],
+      stroke:'#3b82f6', 'stroke-width':hypHem * sc, opacity:0.5});
+    add('text',{x:lHypMidX - 6, y:lHypMidY - 6, 'text-anchor':'middle', 'font-size':8, fill:'#2563eb',
+      transform:`rotate(${Math.atan2(lHorizEnd[1]-lVertEnd[1], lHorizEnd[0]-lVertEnd[0]) * 180/Math.PI} ${lHypMidX-6} ${lHypMidY-6})`}).textContent=`½" hem`;
+
+    // Right gusset hypotenuse
+    const rHypMidX = (rVertEnd[0] + rHorizEnd[0]) / 2;
+    const rHypMidY = (rVertEnd[1] + rHorizEnd[1]) / 2;
+    add('line',{x1:rVertEnd[0], y1:rVertEnd[1], x2:rHorizEnd[0], y2:rHorizEnd[1],
+      stroke:'#3b82f6', 'stroke-width':hypHem * sc, opacity:0.5});
+    add('text',{x:rHypMidX + 6, y:rHypMidY - 6, 'text-anchor':'middle', 'font-size':8, fill:'#2563eb',
+      transform:`rotate(${Math.atan2(rHorizEnd[1]-rVertEnd[1], rHorizEnd[0]-rVertEnd[0]) * 180/Math.PI} ${rHypMidX+6} ${rHypMidY-6})`}).textContent=`½" hem`;
+
+    // Labels
+    const lCx = (lCorner[0] + lVertEnd[0] + lHorizEnd[0]) / 3;
+    const lCy = (lCorner[1] + lVertEnd[1] + lHorizEnd[1]) / 3;
+    const rCx = (rCorner[0] + rVertEnd[0] + rHorizEnd[0]) / 3;
+    const rCy = (rCorner[1] + rVertEnd[1] + rHorizEnd[1]) / 3;
+
+    add('text',{x:lCx, y:lCy - 4, 'text-anchor':'middle',
+      'font-size':10, fill:'#52525b', 'font-weight':'bold'}).textContent='GUSSET';
+    add('text',{x:lCx, y:lCy + 10, 'text-anchor':'middle',
+      'font-size':9, fill:'#52525b'}).textContent=`${rIn(gussetSide)}" sides`;
+
+    add('text',{x:rCx, y:rCy - 4, 'text-anchor':'middle',
+      'font-size':10, fill:'#52525b', 'font-weight':'bold'}).textContent='GUSSET';
+    add('text',{x:rCx, y:rCy + 10, 'text-anchor':'middle',
+      'font-size':9, fill:'#52525b'}).textContent=`${rIn(gussetSide)}" sides`;
+
+    // Gusset material info (for reference in the diagram)
+    const gussetMatSide = gussetSide + hem; // 37" square needed for material
+    add('text',{x:lCx, y:lCy + 22, 'text-anchor':'middle',
+      'font-size':8, fill:'#71717a'}).textContent=`(${rIn(gussetMatSide)}" sq material)`;
+    add('text',{x:rCx, y:rCy + 22, 'text-anchor':'middle',
+      'font-size':8, fill:'#71717a'}).textContent=`(${rIn(gussetMatSide)}" sq material)`;
+  }
+
+  // === DIAGONAL CUT LINES ===
+  // The diagonal tapers from backWidth at the back to frontWidth at the front
+  // On the flat layout: from half-backWidth at y=0 to half-frontWidth at y=ML
+  // These are cut lines through the material
+
+  // Left diagonal cut
+  add('line',{x1:fx(-halfBack), y1:fy(0), x2:fx(-halfFront), y2:fy(ML),
+    stroke:'#0f172a', 'stroke-width':2, 'stroke-dasharray':'8,4'});
+  // Right diagonal cut
+  add('line',{x1:fx(halfBack), y1:fy(0), x2:fx(halfFront), y2:fy(ML),
+    stroke:'#0f172a', 'stroke-width':2, 'stroke-dasharray':'8,4'});
+
+  // === CHAIR WIDTH REFERENCE LINES (W) ===
+  // Vertical dotted lines showing the actual chair width, running full length
+  const halfW = W / 2;
+  add('line',{x1:fx(-halfW), y1:fy(0), x2:fx(-halfW), y2:fy(ML),
+    stroke:'#0369a1', 'stroke-width':1.2, 'stroke-dasharray':'6,4'});
+  add('line',{x1:fx(halfW), y1:fy(0), x2:fx(halfW), y2:fy(ML),
+    stroke:'#0369a1', 'stroke-width':1.2, 'stroke-dasharray':'6,4'});
+  // W dimension at bottom
+  arrow(fx(-halfW), fy(ML+14), fx(halfW), fy(ML+14), '#0369a1');
+  add('text',{x:cx, y:fy(ML+14)-6, 'text-anchor':'middle', 'font-size':10, fill:'#0369a1', 'font-weight':'bold'}).textContent=`Chair width (W): ${rIn(W)}"`;
+
+  // === BACKREST WIDTH REFERENCE LINES (WB) ===
+  // Always show WB lines through the backrest zone (back edge to backrest top)
+  // If WB = W, they overlap the chair width lines but get their own label
+  if (WB < W) {
+    // Draw separate inner lines only if WB is narrower than W
+    add('line',{x1:fx(-halfWB), y1:fy(0), x2:fx(-halfWB), y2:fy(yBRTop),
+      stroke:'#7c3aed', 'stroke-width':1.2, 'stroke-dasharray':'4,3'});
+    add('line',{x1:fx(halfWB), y1:fy(0), x2:fx(halfWB), y2:fy(yBRTop),
+      stroke:'#7c3aed', 'stroke-width':1.2, 'stroke-dasharray':'4,3'});
+  }
+  // WB dimension arrow inside the backrest zone, between the purple lines
+  const wbArrowY = fy(yBREnd + BR / 2);  // vertically centered in BR zone
+  arrow(fx(-halfWB), wbArrowY, fx(halfWB), wbArrowY, '#7c3aed');
+  add('text',{x:cx, y:wbArrowY - 6, 'text-anchor':'middle', 'font-size':10, fill:'#7c3aed', 'font-weight':'bold'}).textContent=`WB: ${rIn(WB)}"`;
+
+
+  // === CORNER HEIGHT MARKINGS (H - FC) ===
+  // At the backrest base (yBREnd), the side drop from backrest to floor = H - FC
+  // Mark this on left and right where the corner forms, and at back edge
+  const cornerDrop = H - FC;
+  const cornerLabelStyle = {'font-size':9, fill:'#be123c', 'font-weight':'bold'};
+
+  // Left side — vertical arrow from back edge (y=0) to backrest base (yBREnd)
+  const cornerLeftX = fx(-halfBack) - 14;
+  arrow(cornerLeftX, fy(0), cornerLeftX, fy(yBREnd), '#be123c');
+  add('text',{x:cornerLeftX - 4, y:fy(yBREnd/2)+4, 'text-anchor':'end', ...cornerLabelStyle,
+    transform:`rotate(-90 ${cornerLeftX-4} ${fy(yBREnd/2)+4})`}).textContent=`H−FC: ${rIn(cornerDrop)}"`;
+
+  // Right side — same
+  const cornerRightX = fx(halfBack) + 14;
+  arrow(cornerRightX, fy(0), cornerRightX, fy(yBREnd), '#be123c');
+  add('text',{x:cornerRightX + 4, y:fy(yBREnd/2)+4, 'text-anchor':'start', ...cornerLabelStyle,
+    transform:`rotate(90 ${cornerRightX+4} ${fy(yBREnd/2)+4})`}).textContent=`H−FC: ${rIn(cornerDrop)}"`;
+
+  // === SIDE PANEL DIMENSION LABELS ===
+  // Show the width of the side panel at its top (back/gusset end) and bottom (front end)
+  if (sidePanelsNeeded) {
+    const diagHalfAtY = y => halfBack + (halfFront - halfBack) * (y / ML);
+
+    // Width at top of panel (backrest base = yBREnd)
+    const panelWidthAtTop = diagHalfAtY(yBREnd) - halfBolt;
+    if (panelWidthAtTop > 0) {
+      // Left panel top width
+      add('text',{x:(fx(-diagHalfAtY(yBREnd)) + fx(-halfBolt))/2, y:fy(yBREnd)-6,
+        'text-anchor':'middle', 'font-size':9, fill:'#166534', 'font-weight':'bold'}).textContent=`${rIn(panelWidthAtTop)}"`;
+      // Right panel top width
+      add('text',{x:(fx(diagHalfAtY(yBREnd)) + fx(halfBolt))/2, y:fy(yBREnd)-6,
+        'text-anchor':'middle', 'font-size':9, fill:'#166534', 'font-weight':'bold'}).textContent=`${rIn(panelWidthAtTop)}"`;
+    }
+
+    // Width at bottom of panel (front edge = ML)
+    const panelWidthAtBot = halfFront - halfBolt;
+    if (panelWidthAtBot > 0) {
+      // Left panel bottom width
+      add('text',{x:(fx(-halfFront) + fx(-halfBolt))/2, y:fy(ML)+12,
+        'text-anchor':'middle', 'font-size':9, fill:'#166534', 'font-weight':'bold'}).textContent=`${rIn(panelWidthAtBot)}"`;
+      // Right panel bottom width
+      add('text',{x:(fx(halfFront) + fx(halfBolt))/2, y:fy(ML)+12,
+        'text-anchor':'middle', 'font-size':9, fill:'#166534', 'font-weight':'bold'}).textContent=`${rIn(panelWidthAtBot)}"`;
+    } else {
+      // Panel tapers to zero — note that
+      add('text',{x:fx(-halfBolt)-4, y:fy(ML)+12,
+        'text-anchor':'end', 'font-size':8, fill:'#166534'}).textContent='Panel tapers to 0"';
+      add('text',{x:fx(halfBolt)+4, y:fy(ML)+12,
+        'text-anchor':'start', 'font-size':8, fill:'#166534'}).textContent='Panel tapers to 0"';
+    }
+  }
+
+  // === CONFIRM COVERAGE LINE at armrest ===
+  const armrestY = fy(yArmrest);
+  add('line',{x1:fx(-halfCC), y1:armrestY, x2:fx(halfCC), y2:armrestY,
+    stroke:'#f59e0b', 'stroke-width':1.5, 'stroke-dasharray':'4,3'});
+  add('text',{x:fx(halfCC)+4, y:armrestY+4, 'font-size':9, fill:'#f59e0b', 'font-weight':'bold'}).textContent=
+    `CC: ${rIn(confirmCoverageWidth)}"`;
+
+  // === ZONE SEPARATOR LINES (horizontal dashed) ===
+  // BR end (where backrest meets the back drop)
+  add('line',{x1:fx(-halfBolt), y1:fy(yBREnd), x2:fx(halfBolt), y2:fy(yBREnd),
+    stroke:'#94a3b8', 'stroke-dasharray':'3,3', 'stroke-width':0.8});
+  add('text',{x:fx(halfBolt)+4, y:fy(yBREnd)+4, 'font-size':9, fill:'#64748b'}).textContent='← Backrest base';
+
+  // BR top (top of backrest / start of seat drape)
+  add('line',{x1:fx(-halfBolt), y1:fy(yBRTop), x2:fx(halfBolt), y2:fy(yBRTop),
+    stroke:'#94a3b8', 'stroke-dasharray':'3,3', 'stroke-width':0.8});
+  add('text',{x:fx(halfBolt)+4, y:fy(yBRTop)+4, 'font-size':9, fill:'#64748b'}).textContent='← Backrest top / seat start';
+
+  // Armrest line
+  add('line',{x1:fx(-halfBolt), y1:armrestY, x2:fx(halfBolt), y2:armrestY,
+    stroke:'#94a3b8', 'stroke-dasharray':'3,3', 'stroke-width':0.8});
+  add('text',{x:fx(halfBolt)+4, y:armrestY+14, 'font-size':9, fill:'#64748b'}).textContent='Armrest height';
+
+  // === MAIN PIECE LABEL ===
+  add('text',{x:cx, y:fy(ML/2) - 10, 'text-anchor':'middle', 'font-size':13, fill:'#991b1b', 'font-weight':'bold'}).textContent='MAIN PIECE';
+  add('text',{x:cx, y:fy(ML/2) + 6, 'text-anchor':'middle', 'font-size':11, fill:'#991b1b'}).textContent=`${rIn(ML)}" × ${rIn(B)}"`;
+
+  // Zone labels within main piece
+  add('text',{x:cx, y:fy(yBackEdge + backDrop/2)+4, 'text-anchor':'middle', 'font-size':9, fill:'#7f1d1d'}).textContent=`Back drop: ${rIn(backDrop)}"`;
+  add('text',{x:cx, y:fy(yBREnd + BR/2)+4, 'text-anchor':'middle', 'font-size':9, fill:'#7f1d1d'}).textContent=`BR: ${rIn(BR)}"`;
+  add('text',{x:cx, y:fy(yBRTop + AT2F/2)+4, 'text-anchor':'middle', 'font-size':9, fill:'#7f1d1d'}).textContent=`AT2F: ${rIn(AT2F)}"`;
+  add('text',{x:cx, y:fy(yArmrest + frontExtDrop/2)+4, 'text-anchor':'middle', 'font-size':9, fill:'#7f1d1d'}).textContent=`Front drop: ${rIn(frontExtDrop)}"`;
+
+  // === DIMENSION ARROWS ===
+  // ML along left side
+  const dimX = fx(-Math.max(halfBack, halfBolt)) - 24;
+  arrow(dimX, fy(0), dimX, fy(ML), '#334155');
+  add('text',{x:dimX - 4, y:fy(ML/2)+4, 'text-anchor':'end', 'font-size':11, fill:'#334155', 'font-weight':'bold',
+    transform:`rotate(-90 ${dimX-4} ${fy(ML/2)+4})`}).textContent=`ML: ${rIn(ML)}"`;
+
+  // Back width across top
+  arrow(fx(-halfBack), fy(-6), fx(halfBack), fy(-6), '#334155');
+  add('text',{x:cx, y:fy(-6)-6, 'text-anchor':'middle', 'font-size':10, fill:'#334155', 'font-weight':'bold'}).textContent=`Back width: ${rIn(backWidth)}"`;
+
+  // Front width across bottom
+  arrow(fx(-halfFront), fy(ML+6), fx(halfFront), fy(ML+6), '#334155');
+  add('text',{x:cx, y:fy(ML+6)+14, 'text-anchor':'middle', 'font-size':10, fill:'#334155', 'font-weight':'bold'}).textContent=`Front width: ${rIn(frontWidth)}"`;
+
+  // Bolt width (B) indicator if side panels present
+  if (sidePanelsNeeded) {
+    const boltY = fy(ML + 18);
+    arrow(fx(-halfBolt), boltY, fx(halfBolt), boltY, '#94a3b8');
+    add('text',{x:cx, y:boltY+14, 'text-anchor':'middle', 'font-size':9, fill:'#94a3b8'}).textContent=`Bolt width (B): ${B}"`;
+  }
+
+  // === EDGE LABELS ===
+  add('text',{x:cx, y:fy(-2), 'text-anchor':'middle', 'font-size':10, fill:'#475569', 'font-weight':'bold'}).textContent='← BACK EDGE (goes to floor behind chair) →';
+  add('text',{x:cx, y:fy(ML+2), 'text-anchor':'middle', 'font-size':10, fill:'#475569', 'font-weight':'bold'}).textContent='← FRONT EDGE (goes to floor in front) →';
+}
+
+function compute(){
+  try{
+    const rounded = document.getElementById('roundToggle').checked;
+
+    const B    = parseNum('B');
+    const W    = parseNum('W');
+    const WB   = parseNum('WB');
+    const H    = parseNum('H');
+    const D    = parseNum('D');
+    const F2A  = parseNum('F2A');
+    const F2BS = parseNum('F2BS');
+    const BR   = parseNum('BR');
+    const FC   = parseNum('FC');
+    const hem  = parseNum('hem');
+    const seam = parseNum('seam');
+
+    // === MAIN PIECE CALCULATIONS ===
+    // AT2F: diagonal drape from top of backrest to front of seat
+    const AT2F = Math.sqrt(Math.max(0, H - F2A)**2 + Math.max(0, D)**2);
+
+    // Main piece length (full front-to-back along bolt):
+    // (H + BR + AT2F + F2A) - 2×FC
+    // = back drop (H-FC) + BR + AT2F + front drop (F2A-FC)
+    const backDrop = H - FC;       // back face: backrest top to floor clearance
+    const frontExtDrop = F2A - FC; // front face: armrest to floor clearance
+    const ML = (H + BR + AT2F + F2A) - (2 * FC);
+
+    // Main piece width (wraps over both sides, across bolt):
+    // (W + 2×H) - 2×FC
+    const MW = (W + 2 * H) - (2 * FC);
+
+    // === SIDE PANELS ===
+    const sidePanelsNeeded = MW > B;
+    // (MW - B) + 3 = overage + 1.5" lap seam per side panel × 2 panels
+    const addWidth = sidePanelsNeeded ? Math.max(0, MW - B) + (2 * seam) : 0;
+    const sideEach = sidePanelsNeeded ? addWidth / 2 : 0;
+
+    // === DIAGONAL CUT / SIDE ANGLE ===
+    // The diagonal applies to the coverage portion (BR + AT2F + frontExtDrop)
+    const ML_eff = BR + AT2F + frontExtDrop;
+
+    // Confirm Coverage at armrest height
+    const confirmCoverageWidth = W + 2 * (F2A - FC);
+    // Width at back edge (where side drops are full height)
+    const backWidth = MW;
+
+    // Linear interpolation for diagonal cut
+    // Measured from front edge of the coverage area:
+    //   0 (front): frontWidth
+    //   F2A-FC (armrest): confirmCoverageWidth
+    //   ML_eff (back): backWidth
+    const armrestDist = F2A - FC;
+    const backDist = ML_eff - armrestDist; // = BR + AT2F
+
+    const startCutFromCenterLine = (confirmCoverageWidth / 2) -
+      ((backWidth - confirmCoverageWidth) / 2 * armrestDist / backDist);
+    const frontWidth = startCutFromCenterLine * 2;
+
+    // === SIDE PANEL ATTACHMENT ===
+    let setbackFromFront = 0;
+    if (sidePanelsNeeded && frontWidth < B) {
+      if (B <= confirmCoverageWidth) {
+        setbackFromFront = armrestDist * (B - frontWidth) / (confirmCoverageWidth - frontWidth);
+      } else {
+        setbackFromFront = armrestDist + backDist * (B - confirmCoverageWidth) / (backWidth - confirmCoverageWidth);
+      }
+    }
+
+    // Side panel length: H - FC + 2×hem (matches old calculator SPEL)
+    // This is the drop from top of backrest to floor clearance + hem allowances
+    const sidePanelLength = sidePanelsNeeded ? (H - FC + 2 * hem) : 0;
+
+    // === NESTING / MATERIAL TO BUY ===
+    let totalLength;
+    let nestingNote = '';
+    let nestingStrategy = 'no-panels';
+
+    if (!sidePanelsNeeded) {
+      // Just the main piece — no side panels needed
+      totalLength = ML;
+      nestingNote = `Main piece only. Bolt width (${B}") covers full wrap width (${fmtExact(MW)}").`;
+    } else {
+      // Need to fit: 2 side panels after main piece
+      // Each side panel: sidePanelLength × sideEach
+      const strategies = [];
+
+      // Strategy A: Panels stacked across bolt (SPL along bolt, 2×sideEach across bolt)
+      if (2 * sideEach <= B) {
+        const len = ML + sidePanelLength;
+        strategies.push({len, name:'panels-stacked',
+          note:`Panels stacked: ${fmtExact(sidePanelLength)}" along bolt, 2×${fmtExact(sideEach)}" = ${fmtExact(2*sideEach)}" across bolt (≤ ${B}").`});
+      }
+
+      // Strategy B: Panels turned (sideEach along bolt, SPL across bolt, if SPL ≤ B)
+      if (sidePanelLength <= B) {
+        const len = ML + addWidth; // addWidth = 2×sideEach total along bolt
+        strategies.push({len, name:'panels-turned',
+          note:`Panels turned: ${fmtExact(sideEach)}" along bolt each (${fmtExact(addWidth)}" total), ${fmtExact(sidePanelLength)}" across bolt (≤ ${B}").`});
+      }
+
+      // Strategy C: Fully sequential (worst case)
+      {
+        const len = ML + 2 * sidePanelLength;
+        strategies.push({len, name:'sequential',
+          note:`Both panels sequential along bolt.`});
+      }
+
+      strategies.sort((a,b) => a.len - b.len);
+      const best = strategies[0];
+      totalLength = best.len;
+      nestingStrategy = best.name;
+      nestingNote = best.note;
+    }
+
+    // === DISPLAY RESULTS ===
+    const rows = [
+      ['Diagonal drape (AT2F)', `${fmtInch(AT2F, rounded)} in`,
+        `√[(H − F2A)² + D²] = √[(${H} − ${F2A})² + ${D}²] = ${fmtExact(AT2F)}<br/>Diagonal from top of backrest to front of seat`],
+      ['Main length ML (full front→back)', `${fmtInch(ML, rounded)} in`,
+        `(H + BR + AT2F + F2A) − 2×FC = (${H} + ${BR} + ${fmtExact(AT2F)} + ${F2A}) − 2×${FC} = ${fmtExact(ML)}<br/>Back drop (${fmtExact(backDrop)}") + backrest (${BR}") + diagonal drape (${fmtExact(AT2F)}") + front drop (${fmtExact(frontExtDrop)}")`],
+      ['Wrap width needed (MW)', `${fmtInch(MW, rounded)} in`,
+        `(W + 2×H) − 2×FC = (${W} + 2×${H}) − 2×${FC} = ${fmtExact(MW)}<br/>Left floor → over left arm → seat → over right arm → right floor`],
+      ['Fits across bolt (MW ≤ B)', MW <= B ? 'Yes — no side panels needed' : `No — need ${fmtInch(addWidth, rounded)}" extra`,
+        MW <= B
+          ? `MW (${fmtExact(MW)}) ≤ B (${B})`
+          : `MW (${fmtExact(MW)}) > B (${B}), extra = (MW − B) + 2×seam = (${fmtExact(MW)} − ${B}) + ${fmtExact(2*seam)} = ${fmtExact(addWidth)}<br/><span style="font-size:10px;color:var(--sub);">+${fmtExact(2*seam)}" for ${fmtExact(seam)}" lap seam per panel × 2 panels. Each side panel: ${fmtExact(sideEach)}" wide × ${fmtExact(sidePanelLength)}" long</span>`],
+    ];
+
+    if (sidePanelsNeeded) {
+      rows.push(['Side panel effective length', `${fmtInch(sidePanelLength, rounded)} in`,
+        `H − FC + 2×hem = ${H} − ${FC} + 2×${hem} = ${fmtExact(sidePanelLength)}<br/><span style="font-size:10px;color:var(--sub);">From backrest top to floor clearance + hem allowances</span>`]);
+    }
+
+    const results = document.getElementById('results');
+    results.innerHTML = '';
+    rows.forEach(([label, value, calc], i)=>{
+      const div = document.createElement('div');
+      div.className = 'row';
+      div.style.display = 'block';
+      div.style.padding = '8px 0';
+      if (i>0) div.style.borderTop = '1px dashed var(--muted)';
+      div.innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span>${label}</span><strong>${value}</strong>
+        </div>
+        ${calc ? `<div style="font-size:11px;color:var(--sub);margin-top:4px;">${calc}</div>` : ''}
+      `;
+      results.appendChild(div);
+    });
+
+    // === MATERIAL TO BUY ===
+    const buy = document.getElementById('buy');
+    buy.innerHTML = '';
+    const bRows = [
+      ['Total bolt length', `${fmtInch(totalLength, rounded)} in`,
+        `${fmtExact(totalLength)}<br/><span style="font-size:10px;color:var(--sub);">${nestingNote}</span>`],
+      ['Yards to buy', `${fmtYardsFromInches(totalLength, rounded)} yd`,
+        `${fmtExact(totalLength)} ÷ 36 = ${fmtExact(totalLength/36)} yards`],
+    ];
+    bRows.forEach(([label, value, calc], i)=>{
+      const div = document.createElement('div');
+      div.className = 'row';
+      div.style.display = 'block';
+      div.style.padding = '8px 0';
+      if (i>0) div.style.borderTop = '1px dashed var(--muted)';
+      div.innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span>${label}</span><strong>${value}</strong>
+        </div>
+        ${calc ? `<div style="font-size:11px;color:var(--sub);margin-top:4px;">${calc}</div>` : ''}
+      `;
+      buy.appendChild(div);
+    });
+
+    // === GROMMET PLACEMENT ===
+    const grommetInsetFromFrontBack = 5;
+    const grommetHeightFromBottom = 5;
+    const grommetHorizontalFromCenter = W / 2 - 5;
+    const bungeeLength = D + grommetInsetFromFrontBack * 2 + 10;
+
+    const grommetsSection = document.getElementById('grommets');
+    grommetsSection.innerHTML = `
+      <div class="row" style="display:block; padding:8px 0;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span>Horizontal position from center</span><strong>${fmtExact(grommetHorizontalFromCenter)} in</strong>
+        </div>
+        <div style="font-size:11px;color:var(--sub);margin-top:4px;">W ÷ 2 - 5 = ${W} ÷ 2 - 5 = ${fmtExact(grommetHorizontalFromCenter)}</div>
+      </div>
+      <div class="row" style="display:block; padding:8px 0; border-top:1px dashed var(--muted);">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span>Inset from front/back edges</span><strong>${grommetInsetFromFrontBack} in</strong>
+        </div>
+      </div>
+      <div class="row" style="display:block; padding:8px 0; border-top:1px dashed var(--muted);">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span>Height from bottom edge of fabric</span><strong>${grommetHeightFromBottom} in</strong>
+        </div>
+      </div>
+      <div class="row" style="display:block; padding:8px 0; border-top:1px dashed var(--muted);">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span>Bungee length (each side)</span><strong>${fmtExact(bungeeLength)} in</strong>
+        </div>
+        <div style="font-size:11px;color:var(--sub);margin-top:4px;">D + insets + 10" surplus = ${D} + ${2*grommetInsetFromFrontBack} + 10 = ${fmtExact(bungeeLength)} in</div>
+      </div>
+    `;
+
+    // === SNAP STRAP PLACEMENT ===
+    const strapLength = 8;
+    const snapInset = 1;
+    const strapHorizontalFromCenter = (W / 2) - 2;
+    const frontDrapingLength = AT2F + (F2A - FC);
+    const frontSnapFromSeam = (frontDrapingLength / 3) * 2;
+
+    const snapStrapsSection = document.getElementById('snapstraps');
+    snapStrapsSection.innerHTML = `
+      <div class="row" style="display:block; padding:8px 0;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span>Strap horizontal position from center</span><strong>${fmtExact(strapHorizontalFromCenter)} in</strong>
+        </div>
+        <div style="font-size:11px;color:var(--sub);margin-top:4px;">W ÷ 2 - 2 = ${W} ÷ 2 - 2 = ${fmtExact(strapHorizontalFromCenter)}</div>
+      </div>
+      <div class="row" style="display:block; padding:8px 0; border-top:1px dashed var(--muted);">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span>Back strap snap position</span><strong>2 in below backrest seam</strong>
+        </div>
+      </div>
+      <div class="row" style="display:block; padding:8px 0; border-top:1px dashed var(--muted);">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span>Front snap position (from seam)</span><strong>${fmtExact(frontSnapFromSeam)} in</strong>
+        </div>
+        <div style="font-size:11px;color:var(--sub);margin-top:4px;">2/3 down from backrest seam: ((AT2F + (F2A−FC)) ÷ 3) × 2 = ${fmtExact(frontSnapFromSeam)}</div>
+      </div>
+      <div class="row" style="display:block; padding:8px 0; border-top:1px dashed var(--muted);">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span>Strap length</span><strong>${strapLength} in</strong>
+        </div>
+        <div style="font-size:11px;color:var(--sub);margin-top:4px;">Snaps inset ${snapInset}" from each end (${strapLength - 2*snapInset}" snap-to-snap)</div>
+      </div>
+    `;
+
+    // === SIDE ANGLE CUT ===
+    const sideAngle = document.getElementById('sideanglecut');
+    sideAngle.innerHTML = `
+      <div class="row" style="display:block; padding:8px 0;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span>Confirm Coverage (width at armrest)</span><strong>${fmtInch(confirmCoverageWidth, rounded)} in</strong>
+        </div>
+        <div style="font-size:11px;color:var(--sub);margin-top:4px;">
+          W + 2(F2A − FC) = ${W} + 2(${F2A} − ${FC}) = ${fmtExact(confirmCoverageWidth)} in<br/>
+          At armrest height, the cover spans this width.
+        </div>
+      </div>
+      <div class="row" style="display:block; padding:8px 0; border-top:1px dashed var(--muted);">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span>Diagonal cut starts from center line</span><strong>${fmtExact(startCutFromCenterLine)} in</strong>
+        </div>
+        <div style="font-size:11px;color:var(--sub);margin-top:4px;">
+          (CC ÷ 2) − [(backWidth − CC) ÷ 2 × (F2A−FC) ÷ (BR + AT2F)]<br/>
+          = (${fmtExact(confirmCoverageWidth)} ÷ 2) − [(${fmtExact(backWidth)} − ${fmtExact(confirmCoverageWidth)}) ÷ 2 × ${fmtExact(armrestDist)} ÷ ${fmtExact(backDist)}]<br/>
+          = ${fmtExact(confirmCoverageWidth / 2)} − ${fmtExact((backWidth - confirmCoverageWidth) / 2 * armrestDist / backDist)} = ${fmtExact(startCutFromCenterLine)}
+        </div>
+      </div>
+      <div class="row" style="display:block; padding:8px 0; border-top:1px dashed var(--muted);">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span>Front width (after diagonal cuts)</span><strong>${fmtInch(frontWidth, rounded)} in</strong>
+        </div>
+        <div style="font-size:11px;color:var(--sub);margin-top:4px;">
+          Start cut × 2 = ${fmtExact(startCutFromCenterLine)} × 2 = ${fmtExact(frontWidth)} in<br/>
+          The material at the front edge will be this wide after diagonal cuts.
+        </div>
+      </div>
+      <div class="row" style="display:block; padding:8px 0; border-top:1px dashed var(--muted);">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span>Width at back edge (before cuts)</span><strong>${fmtInch(backWidth, rounded)} in</strong>
+        </div>
+        <div style="font-size:11px;color:var(--sub);margin-top:4px;">
+          MW − BR = ${fmtExact(MW)} − ${BR} = ${fmtExact(backWidth)} in
+        </div>
+      </div>
+    `;
+
+    // === SIDE PANEL ATTACHMENT ===
+    const attachSection = document.getElementById('sidepanelattachment');
+    if (sidePanelsNeeded) {
+      attachSection.innerHTML = `
+        <div class="row" style="display:block; padding:8px 0;">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <span>Panel front edge position</span><strong>${setbackFromFront > 0.5 ? fmtInch(setbackFromFront, rounded) + '" from front' : 'At front edge'}</strong>
+          </div>
+          <div style="font-size:11px;color:var(--sub);margin-top:4px;">
+            ${setbackFromFront > 0.5
+              ? `The diagonal narrows the cover to ≤ ${B}" at ${fmtExact(setbackFromFront)}" from the front edge. The side panel starts here.`
+              : `Front width (${fmtExact(frontWidth)}") exceeds bolt width (${B}"), so the side panel extends all the way to the front edge of the main piece.`}
+          </div>
+        </div>
+        <div class="row" style="display:block; padding:8px 0; border-top:1px dashed var(--muted);">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <span>Panel back edge position</span><strong>At back edge of main piece (minus seam)</strong>
+          </div>
+          <div style="font-size:11px;color:var(--sub);margin-top:4px;">
+            The panel's back edge aligns with the coverage area of the main piece (${fmtExact(ML_eff)}" from front edge).
+          </div>
+        </div>
+        <div class="row" style="display:block; padding:8px 0; border-top:1px dashed var(--muted);">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <span>Seam length (per side)</span><strong>${fmtInch(sidePanelLength, rounded)} in</strong>
+          </div>
+          <div style="font-size:11px;color:var(--sub);margin-top:4px;">
+            Sew the side panel along the edge of the main piece for this length. The panel's wider end goes at the back, narrower at the front (diagonal will be cut after attachment).
+          </div>
+        </div>
+        <div class="row" style="display:block; padding:8px 0; border-top:1px dashed var(--muted);">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <span>Extra width at back</span><strong>${fmtExact((MW - B) / 2)} in per side</strong>
+          </div>
+        </div>
+        <div class="row" style="display:block; padding:8px 0; border-top:1px dashed var(--muted);">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <span>Extra width at front</span><strong>${frontWidth > B ? fmtExact((frontWidth - B) / 2) + ' in per side' : 'None (bolt width sufficient)'}</strong>
+          </div>
+        </div>
+      `;
+    } else {
+      attachSection.innerHTML = `
+        <div class="row" style="padding:8px 0;">
+          <span>No side panels needed — bolt width (${B}") covers the full wrap width (${fmtExact(MW)}").</span>
+        </div>
+      `;
+    }
+
+    // === DRAW DIAGRAM ===
+    const payload = {B, ML, MW, W, WB, BR, D, AT2F, H, F2A, F2BS, FC, hem, seam,
+      sidePanelsNeeded, sideEach, addWidth, sidePanelLength, setbackFromFront,
+      backDrop, frontExtDrop, frontWidth, confirmCoverageWidth, backWidth,
+      startCutFromCenterLine, totalLength, nestingStrategy, rounded};
+    drawDiagram(payload);
+    updateCutList(payload);
+    drawAssemblyDiagramSide(payload);
+    drawAssemblyDiagramFlat(payload);
+
+    const exp = document.getElementById('exportPng');
+    if (exp && !exp._wired){ exp._wired = true; exp.addEventListener('click', exportDiagramPNG); }
+
+    document.getElementById('err').style.display = 'none';
+  } catch (e) {
+    const err = document.getElementById('err');
+    err.style.display = 'block';
+    err.textContent = 'Error: ' + e.message;
+  }
+}
+
+function exportAsText(){
+  const rounded = document.getElementById('roundToggle').checked;
+  const date = new Date().toLocaleDateString();
+  let text = `COVER CALCULATOR — FRONT-TO-BACK DESIGN — RESULTS\n`;
+  text += `Generated: ${date}\n`;
+  text += `Design: Front-to-back (full length, one piece)\n`;
+  text += `Rounding: ${rounded ? 'ON (rounded up)' : 'OFF (exact)'}\n\n`;
+  text += `INPUTS:\n`;
+  ['B','W','WB','H','D','F2A','F2BS','BR','FC','hem','seam'].forEach(id => {
+    text += `${id}: ${parseNum(id)}\n`;
+  });
+  text += `\nRESULTS:\n`;
+  document.getElementById('results').querySelectorAll('.row').forEach(row => {
+    const mainText = row.querySelector('div:first-child')?.textContent || '';
+    if(mainText) text += `${mainText}\n`;
+  });
+  text += `\nMATERIAL TO BUY:\n`;
+  document.getElementById('buy').querySelectorAll('.row').forEach(row => {
+    const buyText = row.querySelector('div:first-child')?.textContent || '';
+    if(buyText) text += `${buyText}\n`;
+  });
+  const blob = new Blob([text], {type: 'text/plain'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `front-to-back-cover-calc-${date.replace(/\//g,'-')}.txt`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function copyToClipboard(){
+  let text = `COVER CALCULATOR — FRONT-TO-BACK DESIGN — RESULTS\n`;
+  text += `Inputs: B=${parseNum('B')}, W=${parseNum('W')}, WB=${parseNum('WB')}, H=${parseNum('H')}, D=${parseNum('D')}, F2A=${parseNum('F2A')}, F2BS=${parseNum('F2BS')}, BR=${parseNum('BR')}, FC=${parseNum('FC')}, hem=${parseNum('hem')}, seam=${parseNum('seam')}\n\n`;
+  document.getElementById('results').querySelectorAll('.row').forEach(row => {
+    const mainDiv = row.querySelector('div:first-child');
+    if(mainDiv) text += `${mainDiv.textContent}\n`;
+  });
+  text += `\n`;
+  document.getElementById('buy').querySelectorAll('.row').forEach(row => {
+    const mainDiv = row.querySelector('div:first-child');
+    if(mainDiv) text += `${mainDiv.textContent}\n`;
+  });
+  navigator.clipboard.writeText(text).then(() => {
+    alert('Results copied to clipboard!');
+  }).catch(() => {
+    alert('Failed to copy to clipboard. Please copy manually.');
+  });
+}
+
+function printPage(){ window.print(); }
+
+function saveInputs(){
+  const fields = ['B', 'W', 'WB', 'H', 'D', 'F2A', 'F2BS', 'BR', 'FC', 'hem', 'seam'];
+  const values = {};
+  fields.forEach(field => {
+    const el = document.getElementById(field);
+    if (el) values[field] = el.value;
+  });
+  values.roundToggle = document.getElementById('roundToggle').checked;
+  localStorage.setItem('frontToBackCalculatorInputs', JSON.stringify(values));
+}
+
+function loadSavedInputs(){
+  try {
+    const saved = localStorage.getItem('frontToBackCalculatorInputs');
+    if (saved) {
+      const values = JSON.parse(saved);
+      Object.entries(values).forEach(([field, value]) => {
+        if (field === 'roundToggle') {
+          document.getElementById('roundToggle').checked = value;
+        } else {
+          const el = document.getElementById(field);
+          if (el) el.value = value;
+        }
+      });
+      return true;
+    }
+  } catch (e) { console.error('Error loading saved inputs:', e); }
+  return false;
+}
+
+function loadFromURL(){
+  const params = new URLSearchParams(window.location.search);
+  const fields = ['B', 'W', 'WB', 'H', 'D', 'F2A', 'F2BS', 'BR', 'FC', 'hem', 'seam'];
+  let loaded = false;
+  fields.forEach(field => {
+    const value = params.get(field);
+    if (value !== null) {
+      const el = document.getElementById(field);
+      if (el) { el.value = value; loaded = true; }
+    }
+  });
+  return loaded;
+}
+
+function wire(){
+  const wasLoadedFromURL = loadFromURL();
+  if (wasLoadedFromURL) {
+    saveInputs();
+  } else {
+    loadSavedInputs();
+  }
+
+  const inputsCard = document.getElementById('inputsCard');
+  ['input','change','keyup'].forEach(ev => {
+    inputsCard.addEventListener(ev, () => { compute(); saveInputs(); });
+  });
+  document.getElementById('roundToggle').addEventListener('change', () => { saveInputs(); compute(); });
+
+  document.getElementById('recalc').addEventListener('click', compute);
+  document.getElementById('resetBtn').addEventListener('click', ()=>{
+    const defaults = {B:54, W:36, WB:36, H:39, D:30, F2A:26, F2BS:18, BR:4, FC:3, hem:1, seam:1.5};
+    Object.entries(defaults).forEach(([id,val])=>{ const el=document.getElementById(id); if(el) el.value=val; });
+    document.getElementById('roundToggle').checked = true;
+    compute();
+    saveInputs();
+  });
+  document.getElementById('exportTxt').addEventListener('click', exportAsText);
+  document.getElementById('printPage').addEventListener('click', printPage);
+  document.getElementById('copyResults').addEventListener('click', copyToClipboard);
+
+  compute();
+}
+
+document.addEventListener('DOMContentLoaded', wire);
+</script>
+</body>
+</html>

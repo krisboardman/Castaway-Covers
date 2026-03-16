@@ -24,12 +24,75 @@ interface ChairMeasurements extends BaseMeasurements {
 
 type Measurements = BaseMeasurements | ChairMeasurements;
 
+// Soft validation ranges per furniture type and field.
+// Values outside these ranges trigger a gentle warning, but never block submission.
+const validationRanges: Record<string, Record<string, { min: number; max: number; label: string }>> = {
+  'chairs-recliners': {
+    width:          { min: 18, max: 50,  label: 'Chair width' },
+    length:         { min: 18, max: 45,  label: 'Front-to-back depth' },
+    height:         { min: 28, max: 50,  label: 'Chair height' },
+    backrestDepth:  { min: 1,  max: 14,  label: 'Backrest depth' },
+    armrestHeight:  { min: 14, max: 34,  label: 'Ground-to-armrest height' },
+    backWidth:      { min: 12, max: 50,  label: 'Back width' },
+  },
+  'sofas-loveseats': {
+    width:          { min: 40, max: 130, label: 'Sofa length' },
+    length:         { min: 20, max: 50,  label: 'Front-to-back depth' },
+    height:         { min: 28, max: 50,  label: 'Sofa height' },
+    backrestDepth:  { min: 1,  max: 14,  label: 'Backrest depth' },
+    armrestHeight:  { min: 14, max: 34,  label: 'Ground-to-armrest height' },
+  },
+  'chaise-lounge': {
+    width:          { min: 20, max: 50,  label: 'Chaise width' },
+    length:         { min: 40, max: 100, label: 'Chaise length' },
+    height:         { min: 6,  max: 28,  label: 'Floor-to-seat height' },
+    armrestHeight:  { min: 14, max: 40,  label: 'Floor-to-armrest height' },
+    armLength:      { min: 8,  max: 70,  label: 'Arm length' },
+  },
+  'ottomans': {
+    width:  { min: 10, max: 72, label: 'Ottoman width' },
+    length: { min: 10, max: 72, label: 'Ottoman length' },
+    height: { min: 8,  max: 28, label: 'Ottoman height' },
+  },
+  'tables': {
+    width:  { min: 18, max: 84,  label: 'Table width' },
+    length: { min: 18, max: 130, label: 'Table length' },
+    height: { min: 12, max: 36,  label: 'Table height' },
+  },
+  'table-sets': {
+    width:  { min: 30, max: 108, label: 'Table set width' },
+    length: { min: 30, max: 130, label: 'Table set length' },
+    height: { min: 20, max: 38,  label: 'Table set height' },
+  },
+};
+
+/** Return a warning message if the value is outside the soft range, or null if it looks fine. */
+function getMeasurementWarning(productType: string, field: string, value: number): string | null {
+  if (!value || value <= 0) return null; // Don't warn on empty/zero — the required-fields check handles that
+  const ranges = validationRanges[productType];
+  if (!ranges || !ranges[field]) return null;
+  const { min, max, label } = ranges[field];
+  if (value < min) return `${label} under ${min}″ — double-check this measurement`;
+  if (value > max) return `${label} over ${max}″ — double-check this measurement`;
+  return null;
+}
+
+// Helper hints shown below specific field labels to clarify measurement technique
+const fieldHints: Record<string, Record<string, string>> = {
+  'chairs-recliners': {
+    length: 'Measure along the ground from below the back of the chair to the front edge',
+  },
+  'sofas-loveseats': {
+    length: 'Measure along the ground from below the back of the sofa to the front edge',
+  },
+};
+
 const productConfigs = {
   'chairs-recliners': {
     fields: ['width', 'length', 'height', 'backrestDepth', 'armrestHeight', 'backWidth'],
     labels: {
       width: 'Width',
-      length: 'Depth (drop a line straight down from the back of the chair to the ground, then measure horizontally to the front edge)',
+      length: 'Front-to-Back Depth',
       height: 'Height',
       backrestDepth: 'Backrest Depth',
       armrestHeight: 'Ground to Top of Armrest',
@@ -42,7 +105,7 @@ const productConfigs = {
     fields: ['width', 'length', 'height', 'backrestDepth', 'armrestHeight'],
     labels: {
       width: 'Length',
-      length: 'Depth (drop a line straight down from the back to the ground, then measure horizontally to the front edge)',
+      length: 'Front-to-Back Depth',
       height: 'Height',
       backrestDepth: 'Backrest Depth',
       armrestHeight: 'Ground to Top of Armrest'
@@ -393,7 +456,7 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
         <div className="flex gap-2">
           <button
             onClick={() => setShowGuide(!showGuide)}
-            className="text-blue-600 hover:text-blue-800 text-sm underline"
+            className="text-brand-teal hover:text-brand-teal-dark text-sm underline"
           >
             {showGuide ? 'Hide' : 'Show'} Measurement Guide
           </button>
@@ -450,22 +513,36 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
       </div>
       
       <div className="grid grid-cols-2 gap-4 mb-4">
-        {config.fields.map((field) => (
-          <div key={field}>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              {config.labels[field as keyof typeof config.labels]}
-            </label>
-            <input
-              type="number"
-              min="0"
-              step="1"
-              value={measurements[field] || ''}
-              onChange={(e) => handleMeasurementChange(field, e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="0"
-            />
-          </div>
-        ))}
+        {config.fields.map((field) => {
+          const warning = getMeasurementWarning(productType, field, measurements[field]);
+          const hint = fieldHints[productType]?.[field];
+          return (
+            <div key={field}>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {config.labels[field as keyof typeof config.labels]}
+              </label>
+              {hint && (
+                <p className="text-xs text-gray-500 mb-1">{hint}</p>
+              )}
+              <input
+                type="number"
+                min="0"
+                step="1"
+                value={measurements[field] || ''}
+                onChange={(e) => handleMeasurementChange(field, e.target.value)}
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 ${
+                  warning
+                    ? 'border-amber-400 focus:ring-amber-400'
+                    : 'border-gray-300 focus:ring-brand-teal'
+                }`}
+                placeholder="0"
+              />
+              {warning && (
+                <p className="text-xs text-amber-600 mt-1">⚠️ {warning}</p>
+              )}
+            </div>
+          );
+        })}
         
         {/* Angle is calculated internally but not shown to customers */}
       </div>

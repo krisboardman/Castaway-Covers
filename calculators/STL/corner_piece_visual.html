@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Corner Piece Template Visual</title>
+<style>
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f8fafc; margin: 0; padding: 20px; }
+  h1 { color: #1e293b; text-align: center; margin-bottom: 4px; }
+  .subtitle { color: #64748b; text-align: center; margin-bottom: 20px; font-size: 14px; }
+  .container { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; }
+  .card { background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); padding: 16px; }
+  .card h3 { margin: 0 0 8px 0; color: #334155; font-size: 15px; }
+  .legend { display: flex; gap: 16px; justify-content: center; margin: 12px 0; flex-wrap: wrap; font-size: 13px; color: #475569; }
+  .legend-item { display: flex; align-items: center; gap: 5px; }
+  .legend-swatch { width: 20px; height: 12px; border-radius: 2px; border: 1px solid #94a3b8; }
+  .controls { text-align: center; margin: 12px 0; }
+  .controls label { margin: 0 8px; font-size: 13px; color: #475569; }
+  .controls input[type=range] { width: 80px; vertical-align: middle; }
+  .controls input[type=number] { width: 55px; padding: 2px 4px; }
+</style>
+</head>
+<body>
+<h1>Corner Piece Template</h1>
+<div class="subtitle">L-shaped corner piece connecting two standard wave templates at 90°</div>
+
+<div class="legend">
+  <div class="legend-item"><div class="legend-swatch" style="background:#22c55e;"></div> Corner piece</div>
+  <div class="legend-item"><div class="legend-swatch" style="background:#3b82f6;"></div> Standard wave templates</div>
+  <div class="legend-item"><div class="legend-swatch" style="background:#fbbf24; opacity:0.4;"></div> Material / fabric</div>
+  <div class="legend-item"><div class="legend-swatch" style="background:#ef4444;"></div> Cut line on material</div>
+</div>
+
+<div class="controls">
+  <label>Arm length: <input type="number" id="armLen" value="12.75" step="0.25" min="6" max="20" style="width:55px"> in</label>
+  <label>Arm width (flat): <input type="number" id="armW" value="3.25" step="0.25" min="2" max="6" style="width:55px"> in</label>
+  <label>Wave height: <input type="number" id="waveH" value="3" step="0.25" min="1" max="5" style="width:55px"> in</label>
+  <label>Corner cut depth: <input type="range" id="cornerCut" value="2.5" step="0.25" min="0" max="5"> <span id="cornerCutVal">2.5</span> in</label>
+  <button onclick="draw()" style="padding:4px 14px; margin-left:8px;">Redraw</button>
+</div>
+
+<div class="container">
+  <div class="card">
+    <h3>Corner Assembly — Top View (template on material)</h3>
+    <canvas id="mainCanvas" width="900" height="700"></canvas>
+  </div>
+</div>
+
+<div class="container" style="margin-top:16px;">
+  <div class="card">
+    <h3>Corner Piece Only — Flat (two halves)</h3>
+    <canvas id="pieceCanvas" width="900" height="400"></canvas>
+  </div>
+</div>
+
+<script>
+// Wave profile from STL data (one half-wave, normalized 0..1)
+const WAVE_HALF_NORM = [
+  [0,1],[.01515,.9989],[.0303,.99551],[.04546,.98992],[.06061,.98212],
+  [.07576,.97208],[.09091,.95988],[.10606,.94555],[.12122,.92909],[.13636,.91051],
+  [.15151,.88991],[.16666,.86731],[.18182,.84279],[.19697,.81637],[.21212,.7881],
+  [.22727,.7581],[.24242,.72636],[.25758,.69301],[.27273,.65809],[.28788,.62171],
+  [.30303,.58391],[.31818,.54482],[.33334,.50454],[.34849,.46308],[.36364,.42053],
+  [.37879,.37701],[.39394,.33259],[.4091,.28741],[.42424,.24156],[.43939,.19516],
+  [.45454,.14833],[.4697,.10118],[.48484,.05382],[.5,.00636],[.51515,-.04111],
+  [.5303,-.08847],[.54546,-.13563],[.56061,-.18247],[.57576,-.22886],[.59091,-.27471],
+  [.60606,-.31989],[.62122,-.36429],[.63636,-.40783],[.65151,-.45038],[.66666,-.49181],
+  [.68182,-.53205],[.69697,-.57097],[.71212,-.60849],[.72727,-.64453],[.74242,-.67901],
+  [.75758,-.71185],[.77273,-.743],[.78788,-.7724],[.80303,-.80003],[.81818,-.82586],
+  [.83334,-.84982],[.84849,-.87193],[.86364,-.89214],[.87879,-.91043],[.89394,-.9268],
+  [.9091,-.94124],[.92424,-.95373],[.93939,-.96429],[.95454,-.97291],[.9697,-.97961],
+  [.98484,-.98442],[1,-1]
+];
+
+const HALF_WL = 6.467; // one half-wave length in inches
+
+function interpWave(tNorm) {
+  if (tNorm <= 0) return WAVE_HALF_NORM[0][1];
+  if (tNorm >= 1) return WAVE_HALF_NORM[WAVE_HALF_NORM.length-1][1];
+  for (let i = 1; i < WAVE_HALF_NORM.length; i++) {
+    if (WAVE_HALF_NORM[i][0] >= tNorm) {
+      const [t0,w0] = WAVE_HALF_NORM[i-1];
+      const [t1,w1] = WAVE_HALF_NORM[i];
+      const f = (tNorm - t0)/(t1 - t0);
+      return w0 + f*(w1 - w0);
+    }
+  }
+  return WAVE_HALF_NORM[WAVE_HALF_NORM.length-1][1];
+}
+
+// Wave profile: distance from straight edge to wave edge at distance d along template
+// waveCenter = waveH/2, amplitude = waveH/2 (so wave goes from 0 to waveH)
+function waveWidth(d, waveH) {
+  const amp = waveH / 2;
+  const center = waveH / 2;
+  // Normalize d to half-wavelengths
+  const nHalf = d / HALF_WL;
+  const halfIndex = Math.floor(nHalf);
+  let tLocal = nHalf - halfIndex;
+  // Odd half-waves are mirrored
+  let w = interpWave(tLocal);
+  if (halfIndex % 2 === 1) w = -w;
+  return center + amp * w;
+}
+
+function draw() {
+  const armLen = parseFloat(document.getElementById('armLen').value) || 12.75;
+  const armW = parseFloat(document.getElementById('armW').value) || 3.25;
+  const waveH = parseFloat(document.getElementById('waveH').value) || 3;
+  const cornerCut = parseFloat(document.getElementById('cornerCut').value) || 2.5;
+  document.getElementById('cornerCutVal').textContent = cornerCut;
+
+  drawMain(armLen, armW, waveH, cornerCut);
+  drawPiece(armLen, armW, waveH, cornerCut);
+}
+
+function drawMain(armLen, armW, waveH, cornerCut) {
+  const canvas = document.getElementById('mainCanvas');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0,0,W,H);
+
+  // Scale: fit the assembly with templates extending
+  const totalExtent = armLen + 2 * HALF_WL + 4; // longest dimension
+  const sc = Math.min((W - 80) / (totalExtent + 4), (H - 80) / (totalExtent + 4));
+
+  // Origin at the material corner (top-right of canvas area)
+  const ox = W * 0.55;
+  const oy = H * 0.38;
+
+  function tx(x) { return ox + x * sc; }
+  function ty(y) { return oy + y * sc; }
+
+  // Material fills the corner region (extends right and down from corner)
+  ctx.save();
+  ctx.fillStyle = '#fef3c7';
+  ctx.globalAlpha = 0.4;
+  ctx.fillRect(tx(0), ty(0), (totalExtent+10)*sc, (totalExtent+10)*sc);
+  ctx.globalAlpha = 1;
+  // Material edges
+  ctx.strokeStyle = '#d97706';
+  ctx.lineWidth = 2;
+  ctx.setLineDash([6,4]);
+  ctx.beginPath();
+  ctx.moveTo(tx(-5), ty(0));
+  ctx.lineTo(tx(totalExtent), ty(0));
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(tx(0), ty(-5));
+  ctx.lineTo(tx(0), ty(totalExtent));
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.restore();
+
+  // Material corner label
+  ctx.fillStyle = '#92400e';
+  ctx.font = 'bold 13px sans-serif';
+  ctx.fillText('Material corner', tx(0.3), ty(-1.5));
+  ctx.fillText('(fold/edge)', tx(0.3), ty(-0.5));
+
+  // --- Draw standard wave templates extending from corner piece ends ---
+  // Template along top edge (horizontal, extends left from corner piece)
+  // The corner piece's horizontal arm goes from x=0 leftward to x=-armLen
+  // Standard templates continue from x=-armLen further left
+
+  function drawWaveTemplate(startX, startY, angle, length, label) {
+    ctx.save();
+    ctx.translate(tx(startX), ty(startY));
+    ctx.rotate(angle);
+
+    const steps = 100;
+    // Draw template body
+    ctx.fillStyle = 'rgba(59,130,246,0.2)';
+    ctx.strokeStyle = '#3b82f6';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    for (let i = 0; i <= steps; i++) {
+      const d = (i/steps) * length;
+      const ww = waveWidth(d, waveH);
+      ctx.lineTo(d * sc, -ww * sc);
+    }
+    for (let i = steps; i >= 0; i--) {
+      const d = (i/steps) * length;
+      ctx.lineTo(d * sc, 0);
+    }
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Wave edge in blue
+    ctx.strokeStyle = '#2563eb';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    for (let i = 0; i <= steps; i++) {
+      const d = (i/steps) * length;
+      const ww = waveWidth(d, waveH);
+      if (i === 0) ctx.moveTo(d * sc, -ww * sc);
+      else ctx.lineTo(d * sc, -ww * sc);
+    }
+    ctx.stroke();
+
+    // Straight edge
+    ctx.strokeStyle = '#93c5fd';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(length * sc, 0);
+    ctx.stroke();
+
+    // Label
+    ctx.fillStyle = '#1d4ed8';
+    ctx.font = '11px sans-serif';
+    ctx.fillText(label, (length/2 - 2) * sc, -waveH * 0.3 * sc);
+
+    ctx.restore();
+  }
+
+  // Horizontal standard templates (extending left from horizontal arm end)
+  // Corner piece horizontal arm: from corner going left (negative x)
+  // So standard template starts at (-armLen, 0) going further left
+  // But let's orient: material corner is at origin, top edge goes LEFT, side edge goes DOWN
+  // Horizontal arm: along top edge, wave faces INTO material (downward = +y)
+  // Vertical arm: along side edge, wave faces INTO material (rightward = +x)
+
+  // Let me re-think the coordinate system:
+  // Material is in the positive-x, positive-y quadrant
+  // Top edge of material: y = 0, goes right (+x)
+  // Left edge of material: x = 0, goes down (+y)
+  // The corner piece sits AT the corner (0,0)
+  // Horizontal arm extends along x=0..armLen in the +x direction at y=0
+  //   Wait, looking at the photo again - the corner piece sits in the corner where two edges meet.
+  //   One arm along each edge. The wave faces INTO the material.
+
+  // Let me simplify:
+  // Corner is at origin.
+  // Arm 1 (horizontal): goes along top edge in -x direction, wave extends in +y (into material)
+  // Arm 2 (vertical): goes along left edge in +y direction, wave extends in +x (into material)
+
+  // Actually let's place the corner at origin with material in +x, +y quadrant
+  // Arm 1 goes along y=0 in -x direction (template hugs top edge, wave goes into material +y)
+  // Arm 2 goes along x=0 in +y direction (template hugs left edge, wave goes into material +x)
+
+  // But that puts templates OUTSIDE material. Actually:
+  // The template sits ON the material. The straight edge aligns with the material edge.
+  // The wave edge is the CUT LINE on the material.
+
+  // So: straight edge of template = material edge
+  // Wave edge = cut line (inside the material)
+
+  // Arm 1 (top): straight edge at y=0, wave extends into material (+y direction)
+  // Arm 2 (left): straight edge at x=0, wave extends into material (+x direction)
+
+  // Draw the cut line on material (red)
+  const steps = 200;
+
+  // === CORNER PIECE (green) ===
+  ctx.save();
+
+  // Horizontal arm: from (0,0) going in -x direction, wave in +y
+  // Vertical arm: from (0,0) going in +y direction, wave in +x
+
+  // Build horizontal arm outline
+  let horizWave = []; // wave edge points
+  let horizStraight = []; // straight edge points
+  for (let i = 0; i <= steps; i++) {
+    const d = (i/steps) * armLen;
+    const x = -d; // goes left
+    const ww = waveWidth(d, waveH);
+    horizStraight.push([x, 0]);
+    horizWave.push([x, ww]);
+  }
+
+  // Build vertical arm outline
+  let vertWave = [];
+  let vertStraight = [];
+  for (let i = 0; i <= steps; i++) {
+    const d = (i/steps) * armLen;
+    const y = d; // goes down
+    const ww = waveWidth(d, waveH);
+    vertStraight.push([0, y]);
+    vertWave.push([ww, y]);
+  }
+
+  // Corner cut: remove the inner corner area
+  // The corner cut takes a chunk out where the two arms would overlap
+  // Without cut: both arms extend armW from their respective edges
+  // With cut: we trim the inner corner
+
+  // Draw corner piece as two separate arms with a corner cut
+  // Horizontal arm: full shape
+  ctx.fillStyle = 'rgba(34,197,94,0.25)';
+  ctx.strokeStyle = '#16a34a';
+  ctx.lineWidth = 2;
+
+  // Horizontal arm
+  ctx.beginPath();
+  // Straight edge (along material top edge, y=0) from x=0 to x=-armLen
+  ctx.moveTo(tx(0), ty(0));
+  for (let i = 0; i <= steps; i++) {
+    const d = (i/steps) * armLen;
+    ctx.lineTo(tx(-d), ty(0));
+  }
+  // Wave edge going back from x=-armLen to x=0
+  for (let i = steps; i >= 0; i--) {
+    const d = (i/steps) * armLen;
+    const ww = waveWidth(d, waveH);
+    // Corner cut: limit wave width near the corner
+    let effectiveW = ww;
+    if (-(-d) < cornerCut && ww > armW) {
+      // Near corner, cap the width so it doesn't extend too far
+      effectiveW = Math.min(ww, armW);
+    }
+    ctx.lineTo(tx(-d), ty(effectiveW));
+  }
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+
+  // Vertical arm
+  ctx.beginPath();
+  ctx.moveTo(tx(0), ty(0));
+  for (let i = 0; i <= steps; i++) {
+    const d = (i/steps) * armLen;
+    ctx.lineTo(tx(0), ty(d));
+  }
+  for (let i = steps; i >= 0; i--) {
+    const d = (i/steps) * armLen;
+    const ww = waveWidth(d, waveH);
+    let effectiveW = ww;
+    if (d < cornerCut && ww > armW) {
+      effectiveW = Math.min(ww, armW);
+    }
+    ctx.lineTo(tx(effectiveW), ty(d));
+  }
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.restore();
+
+  // Wave edges (cut lines) in red
+  ctx.strokeStyle = '#ef4444';
+  ctx.lineWidth = 2.5;
+  // Horizontal arm wave edge
+  ctx.beginPath();
+  for (let i = 0; i <= steps; i++) {
+    const d = (i/steps) * armLen;
+    const ww = waveWidth(d, waveH);
+    let effectiveW = ww;
+    if (d < cornerCut && ww > armW) effectiveW = Math.min(ww, armW);
+    if (i === 0) ctx.moveTo(tx(-d), ty(effectiveW));
+    else ctx.lineTo(tx(-d), ty(effectiveW));
+  }
+  ctx.stroke();
+  // Vertical arm wave edge
+  ctx.beginPath();
+  for (let i = 0; i <= steps; i++) {
+    const d = (i/steps) * armLen;
+    const ww = waveWidth(d, waveH);
+    let effectiveW = ww;
+    if (d < cornerCut && ww > armW) effectiveW = Math.min(ww, armW);
+    if (i === 0) ctx.moveTo(tx(effectiveW), ty(d));
+    else ctx.lineTo(tx(effectiveW), ty(d));
+  }
+  ctx.stroke();
+
+  // Standard templates continuing from corner piece ends
+  // Horizontal: from (-armLen, 0) continuing left
+  drawWaveTemplate(-armLen, 0, Math.PI, 2 * HALF_WL, 'Standard template');
+
+  // Vertical: from (0, armLen) continuing down
+  // Need to rotate 90° CW and draw
+  ctx.save();
+  ctx.translate(tx(0), ty(armLen));
+  ctx.rotate(Math.PI / 2);
+  const tLen = 2 * HALF_WL;
+  const tsteps = 100;
+  ctx.fillStyle = 'rgba(59,130,246,0.2)';
+  ctx.strokeStyle = '#3b82f6';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  for (let i = 0; i <= tsteps; i++) {
+    const d = (i/tsteps) * tLen;
+    const ww = waveWidth(d + armLen, waveH); // continue wave phase
+    ctx.lineTo(d * sc, -ww * sc);
+  }
+  for (let i = tsteps; i >= 0; i--) {
+    const d = (i/tsteps) * tLen;
+    ctx.lineTo(d * sc, 0);
+  }
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+  // Wave edge
+  ctx.strokeStyle = '#2563eb';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  for (let i = 0; i <= tsteps; i++) {
+    const d = (i/tsteps) * tLen;
+    const ww = waveWidth(d + armLen, waveH);
+    if (i === 0) ctx.moveTo(d * sc, -ww * sc);
+    else ctx.lineTo(d * sc, -ww * sc);
+  }
+  ctx.stroke();
+  ctx.fillStyle = '#1d4ed8';
+  ctx.font = '11px sans-serif';
+  ctx.fillText('Standard template', (tLen/2 - 2) * sc, -waveH * 0.3 * sc);
+  ctx.restore();
+
+  // Dimension labels
+  ctx.fillStyle = '#334155';
+  ctx.font = '12px sans-serif';
+
+  // Arm length dimension (horizontal)
+  ctx.save();
+  ctx.strokeStyle = '#475569';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([3,2]);
+  const dimY = -2;
+  ctx.beginPath();
+  ctx.moveTo(tx(0), ty(dimY));
+  ctx.lineTo(tx(-armLen), ty(dimY));
+  ctx.stroke();
+  ctx.setLineDash([]);
+  // Arrowheads
+  ctx.beginPath(); ctx.moveTo(tx(0), ty(dimY)); ctx.lineTo(tx(-0.3), ty(dimY-0.2)); ctx.lineTo(tx(-0.3), ty(dimY+0.2)); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(tx(-armLen), ty(dimY)); ctx.lineTo(tx(-armLen+0.3), ty(dimY-0.2)); ctx.lineTo(tx(-armLen+0.3), ty(dimY+0.2)); ctx.fill();
+  ctx.fillText(`${armLen}"`, tx(-armLen/2 - 0.5), ty(dimY - 0.4));
+  ctx.restore();
+
+  // Arm width dimension
+  ctx.save();
+  ctx.strokeStyle = '#475569';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([3,2]);
+  const dimX = -armLen - 1.5;
+  ctx.beginPath();
+  ctx.moveTo(tx(dimX), ty(0));
+  ctx.lineTo(tx(dimX), ty(armW));
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = '#334155';
+  ctx.font = '11px sans-serif';
+  ctx.fillText(`${armW}"`, tx(dimX - 1.8), ty(armW/2 + 0.3));
+  ctx.restore();
+
+  // Wave height dimension
+  ctx.save();
+  ctx.strokeStyle = '#dc2626';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([3,2]);
+  const wdimX = -armLen * 0.5;
+  const maxWW = waveH; // max wave width
+  ctx.beginPath();
+  ctx.moveTo(tx(wdimX), ty(0));
+  ctx.lineTo(tx(wdimX), ty(maxWW));
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = '#dc2626';
+  ctx.font = '11px sans-serif';
+  ctx.fillText(`${waveH}" wave`, tx(wdimX + 0.3), ty(maxWW/2 + 0.3));
+  ctx.restore();
+
+  // Labels
+  ctx.fillStyle = '#16a34a';
+  ctx.font = 'bold 13px sans-serif';
+  ctx.fillText('CORNER PIECE', tx(-armLen * 0.6), ty(armW + 2));
+
+  ctx.fillStyle = '#64748b';
+  ctx.font = '11px sans-serif';
+  ctx.fillText('Material edge (top)', tx(-armLen * 0.4), ty(-0.3));
+
+  ctx.save();
+  ctx.translate(tx(-0.3), ty(armLen * 0.4));
+  ctx.rotate(-Math.PI/2);
+  ctx.fillText('Material edge (side)', 0, 0);
+  ctx.restore();
+
+  // Split line label
+  ctx.strokeStyle = '#f97316';
+  ctx.lineWidth = 1.5;
+  ctx.setLineDash([4,3]);
+  // Diagonal split from corner area
+  ctx.beginPath();
+  ctx.moveTo(tx(0), ty(0));
+  ctx.lineTo(tx(-armW * 0.8), ty(armW * 0.8));
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = '#ea580c';
+  ctx.font = '10px sans-serif';
+  ctx.fillText('Split line (tape/glue)', tx(-armW * 0.8 - 5), ty(armW * 0.8 + 1));
+}
+
+function drawPiece(armLen, armW, waveH, cornerCut) {
+  const canvas = document.getElementById('pieceCanvas');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0,0,W,H);
+
+  const sc = Math.min((W - 120) / (armLen + 6), (H - 80) / (waveH + 4));
+  const gap = 30; // px gap between pieces
+
+  // Piece 1: horizontal arm (laid flat)
+  const p1x = 40;
+  const p1y = H * 0.3;
+
+  ctx.fillStyle = '#334155';
+  ctx.font = 'bold 12px sans-serif';
+  ctx.fillText('Piece 1 (horizontal arm)', p1x, p1y - waveH * sc - 15);
+
+  const steps = 200;
+
+  // Draw piece 1
+  ctx.fillStyle = 'rgba(34,197,94,0.2)';
+  ctx.strokeStyle = '#16a34a';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  // Bottom edge (straight) left to right
+  ctx.moveTo(p1x, p1y);
+  ctx.lineTo(p1x + armLen * sc, p1y);
+  // Right end cap
+  const endWW = waveWidth(armLen, waveH);
+  ctx.lineTo(p1x + armLen * sc, p1y - endWW * sc);
+  // Top edge (wave) right to left
+  for (let i = steps; i >= 0; i--) {
+    const d = (i/steps) * armLen;
+    let ww = waveWidth(d, waveH);
+    ctx.lineTo(p1x + d * sc, p1y - ww * sc);
+  }
+  // Left end cap back to start
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+
+  // Wave edge highlight
+  ctx.strokeStyle = '#ef4444';
+  ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  for (let i = 0; i <= steps; i++) {
+    const d = (i/steps) * armLen;
+    const ww = waveWidth(d, waveH);
+    if (i === 0) ctx.moveTo(p1x + d * sc, p1y - ww * sc);
+    else ctx.lineTo(p1x + d * sc, p1y - ww * sc);
+  }
+  ctx.stroke();
+
+  // Straight edge label
+  ctx.strokeStyle = '#93c5fd';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(p1x, p1y);
+  ctx.lineTo(p1x + armLen * sc, p1y);
+  ctx.stroke();
+  ctx.fillStyle = '#475569';
+  ctx.font = '10px sans-serif';
+  ctx.fillText('Straight edge (material edge)', p1x + armLen * sc * 0.3, p1y + 14);
+
+  // Dimension
+  ctx.fillStyle = '#334155';
+  ctx.font = '11px sans-serif';
+  ctx.fillText(`${armLen}"`, p1x + armLen * sc / 2 - 10, p1y + 30);
+
+  // Piece 2: vertical arm (laid flat, same shape)
+  const p2x = 40;
+  const p2y = H * 0.75;
+
+  ctx.fillStyle = '#334155';
+  ctx.font = 'bold 12px sans-serif';
+  ctx.fillText('Piece 2 (vertical arm) — mirror of Piece 1', p2x, p2y - waveH * sc - 15);
+
+  ctx.fillStyle = 'rgba(34,197,94,0.2)';
+  ctx.strokeStyle = '#16a34a';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(p2x, p2y);
+  ctx.lineTo(p2x + armLen * sc, p2y);
+  const endWW2 = waveWidth(armLen, waveH);
+  ctx.lineTo(p2x + armLen * sc, p2y - endWW2 * sc);
+  for (let i = steps; i >= 0; i--) {
+    const d = (i/steps) * armLen;
+    let ww = waveWidth(d, waveH);
+    ctx.lineTo(p2x + d * sc, p2y - ww * sc);
+  }
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.strokeStyle = '#ef4444';
+  ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  for (let i = 0; i <= steps; i++) {
+    const d = (i/steps) * armLen;
+    const ww = waveWidth(d, waveH);
+    if (i === 0) ctx.moveTo(p2x + d * sc, p2y - ww * sc);
+    else ctx.lineTo(p2x + d * sc, p2y - ww * sc);
+  }
+  ctx.stroke();
+
+  ctx.strokeStyle = '#93c5fd';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(p2x, p2y);
+  ctx.lineTo(p2x + armLen * sc, p2y);
+  ctx.stroke();
+  ctx.fillStyle = '#475569';
+  ctx.font = '10px sans-serif';
+  ctx.fillText('Straight edge (material edge)', p2x + armLen * sc * 0.3, p2y + 14);
+
+  ctx.fillStyle = '#334155';
+  ctx.font = '11px sans-serif';
+  ctx.fillText(`${armLen}"`, p2x + armLen * sc / 2 - 10, p2y + 30);
+
+  // Connection note
+  ctx.fillStyle = '#ea580c';
+  ctx.font = '12px sans-serif';
+  ctx.fillText('Join at corner end (d=0) with tape/glue at 90°', p1x, p2y + 50);
+
+  // Connection indicators
+  ctx.strokeStyle = '#f97316';
+  ctx.lineWidth = 2;
+  ctx.setLineDash([4,3]);
+  // Circle at d=0 end of each piece
+  ctx.beginPath();
+  ctx.arc(p1x, p1y - waveH/2 * sc, 8, 0, Math.PI*2);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(p2x, p2y - waveH/2 * sc, 8, 0, Math.PI*2);
+  ctx.stroke();
+  ctx.setLineDash([]);
+}
+
+draw();
+
+document.getElementById('cornerCut').addEventListener('input', function() {
+  document.getElementById('cornerCutVal').textContent = this.value;
+});
+</script>
+</body>
+</html>

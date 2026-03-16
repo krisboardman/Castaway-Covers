@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Castaway Covers — 3D Drape Preview</title>
+<style>
+  :root { --bg:#f8fafc; --card:#fff; --text:#1e293b; --sub:#64748b; --muted:#cbd5e1; --accent:#2563eb; --border:#e2e8f0; }
+  *{box-sizing:border-box;margin:0;}
+  body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);padding:16px;}
+  h1{font-size:20px;margin-bottom:2px;}
+  .sub{color:var(--sub);font-size:12px;margin-bottom:12px;}
+  .layout{display:flex;gap:14px;flex-wrap:wrap;}
+  .panel{min-width:240px;max-width:280px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;font-size:12px;}
+  .panel h3{font-size:13px;margin-bottom:8px;color:var(--accent);}
+  .f{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;}
+  .f label{color:var(--sub);}
+  .f input[type=number]{width:54px;text-align:center;border:1px solid var(--muted);border-radius:5px;padding:3px;font-size:12px;}
+  .f input[type=range]{width:100px;}
+  .canvas-wrap{flex:1;min-width:580px;background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden;position:relative;}
+  canvas{display:block;width:100%;height:auto;}
+  .info{position:absolute;bottom:8px;left:8px;right:8px;background:rgba(255,255,255,0.92);border-radius:8px;padding:8px 10px;font-size:11px;color:var(--sub);line-height:1.5;}
+  .info strong{color:var(--text);}
+  .controls-row{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;}
+  .controls-row button{padding:5px 10px;font-size:11px;border:1px solid var(--muted);border-radius:5px;background:var(--card);cursor:pointer;transition:0.15s;}
+  .controls-row button:hover{background:#f1f5f9;}
+  .controls-row button.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+  .note{font-size:11px;color:var(--sub);margin-top:8px;line-height:1.4;padding:6px 8px;background:#f1f5f9;border-radius:6px;}
+  .tag{display:inline-block;padding:1px 6px;border-radius:3px;font-size:10px;font-weight:600;margin-right:4px;}
+</style>
+</head>
+<body>
+<h1>3D Drape Preview — Chair Cover</h1>
+<p class="sub">Drag to rotate &middot; See how the fabric actually drapes over the chair</p>
+
+<div class="layout">
+  <div class="panel">
+    <h3>Chair Dimensions (inches)</h3>
+    <div class="f"><label>W (arm-to-arm)</label><input id="W" type="number" value="36" step="1"/></div>
+    <div class="f"><label>WB (back width)</label><input id="WB" type="number" value="25" step="1"/></div>
+    <div class="f"><label>H (height)</label><input id="H" type="number" value="39" step="1"/></div>
+    <div class="f"><label>D (depth)</label><input id="D" type="number" value="30" step="1"/></div>
+    <div class="f"><label>F2A (floor-to-arm)</label><input id="F2A" type="number" value="26" step="1"/></div>
+    <div class="f"><label>F2BS (floor-to-seat)</label><input id="F2BS" type="number" value="18" step="1"/></div>
+    <div class="f"><label>BR (backrest depth)</label><input id="BR" type="number" value="4" step="1"/></div>
+    <div class="f"><label>FC + Wave</label><input id="FC" type="number" value="6" step="1"/></div>
+
+    <h3 style="margin-top:12px;">Display</h3>
+    <div class="f"><label>Cover opacity</label><input id="coverAlpha" type="range" min="0.10" max="0.80" step="0.05" value="0.35"/></div>
+    <div class="f"><label>Show diagonal cut</label><input id="showDiag" type="checkbox" checked/></div>
+    <div class="f"><label>Show FC line</label><input id="showFC" type="checkbox" checked/></div>
+    <div class="f"><label>Show chair</label><input id="showChair" type="checkbox" checked/></div>
+
+    <h3 style="margin-top:12px;">Camera</h3>
+    <div class="controls-row">
+      <button onclick="setCam(35,20)" class="active" id="cam0">3/4 View</button>
+      <button onclick="setCam(0,15)" id="cam1">Front</button>
+      <button onclick="setCam(90,15)" id="cam2">Side</button>
+      <button onclick="setCam(35,55)" id="cam3">Above</button>
+    </div>
+
+    <div class="note" id="readout"></div>
+  </div>
+
+  <div class="canvas-wrap">
+    <canvas id="c" width="880" height="620"></canvas>
+    <div class="info">
+      <span class="tag" style="background:#dbeafe;color:#1e40af;">Blue</span> Side panels
+      <span class="tag" style="background:#bfdbfe;color:#1e40af;">Light blue</span> Top &amp; seat drape
+      <span class="tag" style="background:#c7d2fe;color:#3730a3;">Purple-blue</span> Front drape
+      <span class="tag" style="background:#fca5a533;color:#991b1b;border:1px dashed #dc2626;">Red dashed</span> Diagonal cut
+      <span class="tag" style="background:#bbf7d0;color:#166534;">Green dashed</span> Floor clearance
+    </div>
+  </div>
+</div>
+
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+let camAngle = 35, camElev = 20;
+let dragging = false, lastX = 0, lastY = 0;
+
+canvas.addEventListener('mousedown', e => { dragging = true; lastX = e.clientX; lastY = e.clientY; });
+window.addEventListener('mouseup', () => dragging = false);
+window.addEventListener('mousemove', e => {
+  if (!dragging) return;
+  camAngle += (e.clientX - lastX) * 0.4;
+  camElev = Math.max(2, Math.min(80, camElev + (lastY - e.clientY) * 0.3));
+  lastX = e.clientX; lastY = e.clientY; render();
+});
+canvas.addEventListener('touchstart', e => { dragging=true; lastX=e.touches[0].clientX; lastY=e.touches[0].clientY; e.preventDefault(); }, {passive:false});
+window.addEventListener('touchend', ()=> dragging=false);
+window.addEventListener('touchmove', e => {
+  if (!dragging||!e.touches[0]) return;
+  camAngle += (e.touches[0].clientX - lastX) * 0.4;
+  camElev = Math.max(2, Math.min(80, camElev + (lastY - e.touches[0].clientY) * 0.3));
+  lastX=e.touches[0].clientX; lastY=e.touches[0].clientY; render();
+}, {passive:false});
+
+function setCam(a, e) {
+  camAngle = a; camElev = e;
+  document.querySelectorAll('.controls-row button').forEach(b => b.className = '');
+  if (event && event.target) event.target.className = 'active';
+  render();
+}
+function val(id) { return parseFloat(document.getElementById(id).value) || 0; }
+['W','WB','H','D','F2A','F2BS','BR','FC','coverAlpha','showDiag','showFC','showChair'].forEach(id => {
+  const el = document.getElementById(id);
+  el.addEventListener('input', render);
+  el.addEventListener('change', render);
+});
+
+// 3D projection
+function project(x, y, z) {
+  const ar = camAngle * Math.PI / 180, er = camElev * Math.PI / 180;
+  const rx = x * Math.cos(ar) - z * Math.sin(ar);
+  const rz = x * Math.sin(ar) + z * Math.cos(ar);
+  const py = y * Math.cos(er) - rz * Math.sin(er);
+  const pz = y * Math.sin(er) + rz * Math.cos(er);
+  const fov = 560, dist = fov + pz;
+  const s = fov / Math.max(dist, 80);
+  return { x: canvas.width / 2 + rx * s * 4, y: canvas.height * 0.56 - py * s * 4, z: pz };
+}
+
+function darken(hex, amt) {
+  const n = parseInt(hex.replace('#', ''), 16);
+  const r = Math.max(0, (n >> 16) - amt);
+  const g = Math.max(0, ((n >> 8) & 0xFF) - amt);
+  const b = Math.max(0, (n & 0xFF) - amt);
+  return `rgb(${r},${g},${b})`;
+}
+
+function render() {
+  const W = val('W'), WB = val('WB'), H = val('H'), D = val('D');
+  const F2A = val('F2A'), F2BS = val('F2BS'), BR = val('BR'), FC = val('FC');
+  const alpha = parseFloat(document.getElementById('coverAlpha').value);
+  const showDiag = document.getElementById('showDiag').checked;
+  const showFCLine = document.getElementById('showFC').checked;
+  const showChair = document.getElementById('showChair').checked;
+
+  // Derived values
+  const sideDrop = H - FC;
+  const frontExtDrop = F2A - FC;
+  const ML = WB + 2 * sideDrop;
+  const frontWidth = W + 2 * frontExtDrop;
+  const halfML = ML / 2, halfFW = frontWidth / 2;
+  const halfW = W / 2, halfWB = WB / 2;
+
+  document.getElementById('readout').innerHTML =
+    `<strong>ML:</strong> ${ML}" &nbsp; <strong>Front:</strong> ${frontWidth}"<br>` +
+    `<strong>Back drop:</strong> ${sideDrop}" &nbsp; <strong>Front drop:</strong> ${frontExtDrop}"<br>` +
+    `<strong>FC:</strong> ${FC}" clearance all around`;
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const bg = ctx.createLinearGradient(0, 0, 0, canvas.height);
+  bg.addColorStop(0, '#f0f4f8'); bg.addColorStop(1, '#e2e8f0');
+  ctx.fillStyle = bg; ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  const faces = [];
+
+  function addFace(verts3d, fill, stroke, type, lineW) {
+    const projected = verts3d.map(v => project(v[0], v[1], v[2]));
+    faces.push({ v: projected, color: fill, stroke: stroke || null, t: type || 'misc', lineW: lineW || 0.6 });
+  }
+
+  // ========================
+  // CHAIR
+  // ========================
+  if (showChair) {
+    function addBox(cx, cz, w, d, y0, y1, color) {
+      const hw = w / 2, hd = d / 2;
+      const c = [[-hw,-hd],[hw,-hd],[hw,hd],[-hw,hd]].map(([dx,dz]) => [cx+dx, cz+dz]);
+      addFace(c.map(([x,z]) => [x, y1, z]), color, darken(color, 20), 'chair');
+      for (let i = 0; i < 4; i++) {
+        const j = (i + 1) % 4;
+        addFace([
+          [c[i][0], y0, c[i][1]], [c[j][0], y0, c[j][1]],
+          [c[j][0], y1, c[j][1]], [c[i][0], y1, c[i][1]]
+        ], darken(color, i < 2 ? 5 : 15), darken(color, 25), 'chair');
+      }
+    }
+    addBox(-halfW + 2, D - 2, 2.5, 2.5, 0, F2BS, '#aaa');
+    addBox(halfW - 2, D - 2, 2.5, 2.5, 0, F2BS, '#aaa');
+    addBox(-halfW + 2, 1, 2.5, 2.5, 0, H, '#999');
+    addBox(halfW - 2, 1, 2.5, 2.5, 0, H, '#999');
+    addBox(0, D / 2, W - 3, D - 3, F2BS, F2BS + 2, '#c8c8c8');
+    addBox(0, BR / 2, WB, BR, F2BS + 2, H, '#bbb');
+    addBox(-halfW + 2.5, D * 0.4, 3.5, D * 0.5, F2A - 1.5, F2A + 1.5, '#b8b8b8');
+    addBox(halfW - 2.5, D * 0.4, 3.5, D * 0.5, F2A - 1.5, F2A + 1.5, '#b8b8b8');
+  }
+
+  // ========================
+  // FABRIC COVER — Clean Panel Surfaces
+  // ========================
+  // The cover path front-to-back:
+  //   Back panel (behind backrest, H→FC) → over backrest top → down inner backrest →
+  //   across seat → front drape (seat front edge → FC)
+  //
+  // Side-to-side at any depth:
+  //   Left edge hangs from chair top to FC → across chair top → right edge hangs to FC
+  //   Width tapers from ML (at back) to frontWidth (at front) via inset diagonal
+
+  const cf = (r, g, b, a) => `rgba(${r},${g},${b},${a})`;
+  const sideColor = cf(59, 130, 246, alpha);
+  const sideStroke = cf(37, 99, 235, Math.min(0.45, alpha + 0.12));
+  const topColor = cf(96, 165, 250, alpha * 0.85);
+  const topStroke = cf(59, 130, 246, Math.min(0.35, alpha + 0.08));
+  const frontColor = cf(99, 102, 241, alpha);
+  const frontStroke = cf(79, 70, 229, Math.min(0.45, alpha + 0.1));
+  const backColor = cf(59, 130, 246, alpha * 0.85);
+  const backStroke = cf(30, 64, 175, Math.min(0.45, alpha + 0.1));
+  const innerColor = cf(147, 197, 253, alpha * 0.6);
+  const innerStroke = cf(96, 165, 250, Math.min(0.3, alpha + 0.05));
+
+  // Z positions
+  const zBackRear = -BR;       // rear face of backrest
+  const zBackFront = 0;        // front face of backrest (inner side)
+  const zSeatFront = D;        // front of seat
+  const zFront = D + 1.5;      // where front drape hangs
+
+  // Inset diagonal zones (bolt position mapping)
+  const hem = 1;
+  const backInset = hem + BR;
+  const frontInset = frontExtDrop;
+  const boltW = 54;
+  const boltToZ = (bp) => zBackRear + (bp / boltW) * (zFront - zBackRear);
+  const zTaperStart = boltToZ(backInset);
+  const zTaperEnd = boltToZ(boltW - frontInset);
+
+  // ---- SIDE PANELS ----
+  // Left side: 3 zones (back, taper, front)
+  // Back zone
+  addFace([
+    [-halfML, FC, zBackRear], [-halfML, H, zBackRear],
+    [-halfML, H, zTaperStart], [-halfML, FC, zTaperStart]
+  ], sideColor, sideStroke, 'cover-side');
+  // Taper zone (diagonal: top edge goes from H at -halfML to F2A at -halfFW)
+  addFace([
+    [-halfML, FC, zTaperStart], [-halfML, H, zTaperStart],
+    [-halfFW, F2A, zTaperEnd], [-halfFW, FC, zTaperEnd]
+  ], sideColor, sideStroke, 'cover-side');
+  // Front zone
+  addFace([
+    [-halfFW, FC, zTaperEnd], [-halfFW, F2A, zTaperEnd],
+    [-halfFW, F2A, zFront], [-halfFW, FC, zFront]
+  ], sideColor, sideStroke, 'cover-side');
+
+  // Right side: mirror
+  addFace([
+    [halfML, FC, zBackRear], [halfML, H, zBackRear],
+    [halfML, H, zTaperStart], [halfML, FC, zTaperStart]
+  ], sideColor, sideStroke, 'cover-side');
+  addFace([
+    [halfML, FC, zTaperStart], [halfML, H, zTaperStart],
+    [halfFW, F2A, zTaperEnd], [halfFW, FC, zTaperEnd]
+  ], sideColor, sideStroke, 'cover-side');
+  addFace([
+    [halfFW, FC, zTaperEnd], [halfFW, F2A, zTaperEnd],
+    [halfFW, F2A, zFront], [halfFW, FC, zFront]
+  ], sideColor, sideStroke, 'cover-side');
+
+  // ---- TOP DRAPE ----
+  // Over backrest top: from zBackRear to zBackFront, at height H, width=ML
+  addFace([
+    [-halfML, H, zBackRear], [halfML, H, zBackRear],
+    [halfML, H, zBackFront], [-halfML, H, zBackFront]
+  ], topColor, topStroke, 'cover-top');
+
+  // Over armrest/seat area: zBackFront to zFront, at height F2A
+  // Width transitions: at zBackFront it's ML, at zTaperEnd it's becoming frontWidth
+  // We approximate as the cover laying across at armrest height
+  // Split: back portion (still wide) and front portion (narrower)
+  addFace([
+    [-halfML, F2A + 1.5, zBackFront], [halfML, F2A + 1.5, zBackFront],
+    [halfFW + (halfML - halfFW) * 0.5, F2A, zTaperEnd],
+    [-(halfFW + (halfML - halfFW) * 0.5), F2A, zTaperEnd]
+  ], topColor, topStroke, 'cover-top');
+
+  addFace([
+    [-(halfFW + (halfML - halfFW) * 0.5), F2A, zTaperEnd],
+    [halfFW + (halfML - halfFW) * 0.5, F2A, zTaperEnd],
+    [halfFW, F2A, zFront], [-halfFW, F2A, zFront]
+  ], topColor, topStroke, 'cover-top');
+
+  // ---- INNER BACKREST (backrest front face → seat transition) ----
+  // Fabric goes from H at zBackFront down to the seat at zBackFront (inner face of backrest)
+  addFace([
+    [-halfWB - 1, H, zBackFront], [halfWB + 1, H, zBackFront],
+    [halfWB + 1, F2BS + 2, zBackFront + 1], [-halfWB - 1, F2BS + 2, zBackFront + 1]
+  ], innerColor, innerStroke, 'cover-inner');
+
+  // ---- SEAT DRAPE ----
+  // Fabric across seat from backrest base to front of seat
+  addFace([
+    [-halfW, F2BS + 2.5, zBackFront + 1], [halfW, F2BS + 2.5, zBackFront + 1],
+    [halfW, F2BS + 2.5, zSeatFront], [-halfW, F2BS + 2.5, zSeatFront]
+  ], innerColor, innerStroke, 'cover-inner');
+
+  // ---- FRONT DRAPE ----
+  // Fabric hanging down from front of seat to FC
+  addFace([
+    [-halfFW, FC, zFront], [halfFW, FC, zFront],
+    [halfFW, F2A, zFront], [-halfFW, F2A, zFront]
+  ], frontColor, frontStroke, 'cover-front');
+
+  // ---- BACK PANEL ----
+  // Fabric behind the backrest from H down to FC
+  addFace([
+    [-halfML, FC, zBackRear], [halfML, FC, zBackRear],
+    [halfML, H, zBackRear], [-halfML, H, zBackRear]
+  ], backColor, backStroke, 'cover-back');
+
+  // ========================
+  // DEPTH SORT (painter's algorithm)
+  // ========================
+  faces.forEach(f => { f.avgZ = f.v.reduce((s, p) => s + p.z, 0) / f.v.length; });
+  faces.sort((a, b) => a.avgZ - b.avgZ);
+
+  // ========================
+  // FLOOR GRID
+  // ========================
+  ctx.strokeStyle = '#dde3ea'; ctx.lineWidth = 0.4;
+  for (let x = -55; x <= 55; x += 10) {
+    const a = project(x, 0, -15), b = project(x, 0, D + 15);
+    ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+  }
+  for (let z = -15; z <= D + 15; z += 10) {
+    const a = project(-55, 0, z), b = project(55, 0, z);
+    ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+  }
+
+  // ========================
+  // FC PLANE
+  // ========================
+  if (showFCLine) {
+    ctx.strokeStyle = '#059669'; ctx.lineWidth = 1; ctx.setLineDash([7, 5]);
+    const fc = [
+      project(-halfML - 6, FC, zBackRear - 3), project(halfML + 6, FC, zBackRear - 3),
+      project(halfML + 6, FC, D + 6), project(-halfML - 6, FC, D + 6)
+    ];
+    ctx.beginPath(); fc.forEach((p, i) => i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y)); ctx.closePath(); ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  // ========================
+  // DRAW FACES
+  // ========================
+  faces.forEach(f => {
+    if (f.v.length < 3) return;
+    ctx.beginPath();
+    f.v.forEach((p, i) => i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
+    ctx.closePath();
+    ctx.fillStyle = f.color; ctx.fill();
+    if (f.stroke) {
+      ctx.strokeStyle = f.stroke;
+      ctx.lineWidth = f.lineW || 0.6;
+      ctx.stroke();
+    }
+  });
+
+  // ========================
+  // DIAGONAL CUT LINES
+  // ========================
+  if (showDiag) {
+    ctx.strokeStyle = '#dc2626'; ctx.lineWidth = 2.8; ctx.setLineDash([10, 6]);
+
+    // Left side: back zone top edge → diagonal → front zone top edge
+    const lBackTop = project(-halfML, H, zBackRear);
+    const lTaperStart = project(-halfML, H, zTaperStart);
+    const lTaperEnd = project(-halfFW, F2A, zTaperEnd);
+    const lFrontEnd = project(-halfFW, F2A, zFront);
+
+    // Back zone top edge (horizontal at H)
+    ctx.beginPath(); ctx.moveTo(lBackTop.x, lBackTop.y); ctx.lineTo(lTaperStart.x, lTaperStart.y); ctx.stroke();
+    // Diagonal taper (H → F2A)
+    ctx.beginPath(); ctx.moveTo(lTaperStart.x, lTaperStart.y); ctx.lineTo(lTaperEnd.x, lTaperEnd.y); ctx.stroke();
+    // Front zone top edge (horizontal at F2A)
+    ctx.beginPath(); ctx.moveTo(lTaperEnd.x, lTaperEnd.y); ctx.lineTo(lFrontEnd.x, lFrontEnd.y); ctx.stroke();
+
+    // Right mirror
+    const rBackTop = project(halfML, H, zBackRear);
+    const rTaperStart = project(halfML, H, zTaperStart);
+    const rTaperEnd = project(halfFW, F2A, zTaperEnd);
+    const rFrontEnd = project(halfFW, F2A, zFront);
+
+    ctx.beginPath(); ctx.moveTo(rBackTop.x, rBackTop.y); ctx.lineTo(rTaperStart.x, rTaperStart.y); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(rTaperStart.x, rTaperStart.y); ctx.lineTo(rTaperEnd.x, rTaperEnd.y); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(rTaperEnd.x, rTaperEnd.y); ctx.lineTo(rFrontEnd.x, rFrontEnd.y); ctx.stroke();
+
+    ctx.setLineDash([]);
+  }
+
+  // ========================
+  // LABELS
+  // ========================
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+
+  // ML label
+  ctx.fillStyle = '#1e40af'; ctx.font = 'bold 13px system-ui';
+  const mlL = project(0, H + 5, zBackRear);
+  ctx.fillText(`ML: ${ML}"`, mlL.x, mlL.y);
+
+  // Front width
+  ctx.fillStyle = '#4338ca'; ctx.font = 'bold 12px system-ui';
+  const fwL = project(0, FC - 4, zFront + 3);
+  ctx.fillText(`Front: ${frontWidth}"`, fwL.x, fwL.y);
+
+  // Back drop
+  ctx.fillStyle = '#2563eb'; ctx.font = 'bold 11px system-ui';
+  ctx.textAlign = 'right';
+  const sdL = project(-halfML - 4, (H + FC) / 2, (zBackRear + zTaperStart) / 2);
+  ctx.fillText(`${sideDrop}" drop`, sdL.x, sdL.y);
+
+  // Front drop
+  ctx.textAlign = 'left';
+  const fdL = project(halfFW + 4, (F2A + FC) / 2, (zTaperEnd + zFront) / 2);
+  ctx.fillText(`${frontExtDrop}" drop`, fdL.x, fdL.y);
+
+  // FC label
+  if (showFCLine) {
+    ctx.fillStyle = '#059669'; ctx.font = '11px system-ui';
+    ctx.textAlign = 'left';
+    const fcL = project(halfML + 8, FC, D / 2);
+    ctx.fillText(`${FC}" clearance`, fcL.x, fcL.y);
+  }
+
+  // Surface labels
+  ctx.font = 'italic 11px system-ui'; ctx.textAlign = 'center';
+
+  ctx.fillStyle = '#4338ca';
+  const fLabel = project(0, (F2A + FC) / 2, zFront + 4);
+  ctx.fillText('front drape', fLabel.x, fLabel.y);
+
+  ctx.fillStyle = '#1e40af';
+  const bLabel = project(0, (H + FC) / 2, zBackRear - 5);
+  ctx.fillText('back panel', bLabel.x, bLabel.y);
+
+  ctx.fillStyle = '#2563eb';
+  const sLabel = project(-halfML - 4, H - 3, (zTaperStart + zTaperEnd) / 2);
+  ctx.textAlign = 'right';
+  ctx.fillText('diagonal cut', sLabel.x, sLabel.y);
+}
+
+render();
+</script>
+</body>
+</html>

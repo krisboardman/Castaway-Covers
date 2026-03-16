@@ -207,7 +207,7 @@ export default function ProductPage() {
                 href="/features"
                 className="flex-shrink-0 inline-flex items-center bg-white text-brand-teal px-6 py-3 rounded-lg font-semibold text-base hover:bg-gray-100 transition-all shadow-md hover:shadow-lg group"
               >
-                View All Features
+                View Craftsmanship Details
                 <svg className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                 </svg>
@@ -388,8 +388,8 @@ export default function ProductPage() {
             
             <div className="space-y-2 mb-6">
               <div className="flex justify-between">
-                <span>Cover ({coverSKU}) x{quantity}</span>
-                <span>${(coverPrice * quantity).toFixed(2)}</span>
+                <span>Cover {coverSKU ? `(${coverSKU})` : ''} x{quantity}</span>
+                <span>{coverPrice > 0 ? `$${(coverPrice * quantity).toFixed(2)}` : '—'}</span>
               </div>
               
               {snapStraps && (

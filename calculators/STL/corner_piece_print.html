@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Corner Piece — Mustache Template</title>
+<style>
+  @media screen {
+    body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f1f5f9; margin: 0; padding: 20px; }
+    .card { max-width: 800px; margin: 0 auto 16px; background: white; border-radius: 10px; padding: 16px 20px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+    .card h2 { margin: 0 0 4px; color: #1e293b; font-size: 17px; }
+    .card p { margin: 3px 0; color: #475569; font-size: 13px; }
+    .controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 8px 0; }
+    .controls label { font-size: 12px; color: #334155; }
+    .controls input { width: 48px; padding: 2px 4px; font-size: 12px; }
+    .controls button { padding: 4px 12px; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; color: white; }
+    .print-area { border: 1px dashed #cbd5e1; padding: 4px; }
+  }
+  @media print {
+    body { margin: 0; padding: 0; }
+    .no-print { display: none !important; }
+    .print-area { border: none; padding: 0; }
+    .print-page { page-break-after: always; }
+    .print-page:last-child { page-break-after: auto; }
+  }
+</style>
+</head>
+<body>
+
+<div class="card no-print">
+  <h2>Corner Piece — "Mustache" Template</h2>
+  <p>Narrow (1") at center (corner fold point) → peaks at 3" → extensions taper back. Total straight edge: 19.5"</p>
+  <p>Tiles across 2 landscape pages with overlap marks. Print at 100%, verify 1" scale box, tape pages together.</p>
+  <div class="controls">
+    <label>Wave section: <input type="number" id="waveLen" value="13" step="0.25"> in</label>
+    <label>Extension: <input type="number" id="extLen" value="3.25" step="0.25"> in</label>
+    <label>Wave max: <input type="number" id="wMax" value="3" step="0.25"> in</label>
+    <label>Wave min: <input type="number" id="wMin" value="1" step="0.25"> in</label>
+    <button onclick="generate()" style="background:#2563eb;">Regenerate</button>
+    <button onclick="window.print()" style="background:#16a34a;">Print</button>
+  </div>
+</div>
+
+<div class="card">
+  <h2 class="no-print">Printable pages (1:1 scale)</h2>
+  <div class="print-area" id="printArea"></div>
+</div>
+
+<script>
+const WAVE_HALF_NORM = [
+  [0,1],[.01515,.9989],[.0303,.99551],[.04546,.98992],[.06061,.98212],
+  [.07576,.97208],[.09091,.95988],[.10606,.94555],[.12122,.92909],[.13636,.91051],
+  [.15151,.88991],[.16666,.86731],[.18182,.84279],[.19697,.81637],[.21212,.7881],
+  [.22727,.7581],[.24242,.72636],[.25758,.69301],[.27273,.65809],[.28788,.62171],
+  [.30303,.58391],[.31818,.54482],[.33334,.50454],[.34849,.46308],[.36364,.42053],
+  [.37879,.37701],[.39394,.33259],[.4091,.28741],[.42424,.24156],[.43939,.19516],
+  [.45454,.14833],[.4697,.10118],[.48484,.05382],[.5,.00636],[.51515,-.04111],
+  [.5303,-.08847],[.54546,-.13563],[.56061,-.18247],[.57576,-.22886],[.59091,-.27471],
+  [.60606,-.31989],[.62122,-.36429],[.63636,-.40783],[.65151,-.45038],[.66666,-.49181],
+  [.68182,-.53205],[.69697,-.57097],[.71212,-.60849],[.72727,-.64453],[.74242,-.67901],
+  [.75758,-.71185],[.77273,-.743],[.78788,-.7724],[.80303,-.80003],[.81818,-.82586],
+  [.83334,-.84982],[.84849,-.87193],[.86364,-.89214],[.87879,-.91043],[.89394,-.9268],
+  [.9091,-.94124],[.92424,-.95373],[.93939,-.96429],[.95454,-.97291],[.9697,-.97961],
+  [.98484,-.98442],[1,-1]
+];
+const HALF_WL = 6.467;
+
+function interpWave(tNorm) {
+  if (tNorm <= 0) return WAVE_HALF_NORM[0][1];
+  if (tNorm >= 1) return WAVE_HALF_NORM[WAVE_HALF_NORM.length-1][1];
+  for (let i = 1; i < WAVE_HALF_NORM.length; i++) {
+    if (WAVE_HALF_NORM[i][0] >= tNorm) {
+      const [t0,w0] = WAVE_HALF_NORM[i-1];
+      const [t1,w1] = WAVE_HALF_NORM[i];
+      return w0 + (tNorm-t0)/(t1-t0)*(w1-w0);
+    }
+  }
+  return WAVE_HALF_NORM[WAVE_HALF_NORM.length-1][1];
+}
+
+// Wave value (-1 to +1) at distance d along piece.
+// Phase: d=extLen → peak (+1), d=extLen+HALF_WL → trough (-1), etc.
+// So center of piece (d=extLen + waveLen/2) is at trough = narrow = CORNER
+function waveVal(d, extLen) {
+  const wd = d - extLen; // distance relative to wave section start
+  const nHalf = wd / HALF_WL;
+  const halfIdx = Math.floor(nHalf);
+  const tLocal = nHalf - halfIdx;
+  let w = interpWave(tLocal);
+  if (((halfIdx % 2) + 2) % 2 === 1) w = -w;
+  return w;
+}
+
+function pieceWidth(d, extLen, wMax, wMin) {
+  const center = (wMax + wMin) / 2;
+  const amp = (wMax - wMin) / 2;
+  return Math.max(0, center + amp * waveVal(d, extLen));
+}
+
+function generate() {
+  const waveLen = parseFloat(document.getElementById('waveLen').value) || 13;
+  const extLen = parseFloat(document.getElementById('extLen').value) || 3.25;
+  const wMax = parseFloat(document.getElementById('wMax').value) || 3;
+  const wMin = parseFloat(document.getElementById('wMin').value) || 1;
+  const totalLen = waveLen + 2 * extLen;
+
+  const area = document.getElementById('printArea');
+  area.innerHTML = '';
+  const steps = 600;
+  const DPI = 96;
+
+  // Tile full piece across pages
+  // Letter landscape printable: ~9.5" wide, ~7" tall (with margins)
+  const pageW = 9.5;
+  const overlap = 1.0;
+  const numPages = Math.ceil((totalLen - overlap) / (pageW - overlap));
+
+  for (let pg = 0; pg < numPages; pg++) {
+    const startD = pg * (pageW - overlap);
+    const endD = Math.min(startD + pageW, totalLen);
+    const segLen = endD - startD;
+
+    const margin = 0.25;
+    const svgW = segLen + 2 * margin;
+    const svgH = wMax + 1.8;
+    const yBase = wMax + 0.8; // straight edge position from top
+
+    let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${svgW}in" height="${svgH}in" viewBox="0 0 ${svgW*DPI} ${svgH*DPI}">`;
+    svg += `<rect width="100%" height="100%" fill="white"/>`;
+
+    const mx = margin * DPI;
+    function ix(localD) { return mx + localD * DPI; }
+    function iy(w) { return yBase * DPI - w * DPI; }
+
+    // Piece outline for this page segment
+    let path = `M ${ix(0)} ${iy(0)} L ${ix(segLen)} ${iy(0)} `;
+    for (let i = steps; i >= 0; i--) {
+      const localD = (i/steps) * segLen;
+      const d = startD + localD;
+      if (d > totalLen) continue;
+      const ww = pieceWidth(d, extLen, wMax, wMin);
+      path += `L ${ix(localD)} ${iy(ww)} `;
+    }
+    path += 'Z';
+    svg += `<path d="${path}" fill="#f0fdf4" stroke="#166534" stroke-width="2"/>`;
+
+    // Straight edge
+    svg += `<line x1="${ix(0)}" y1="${iy(0)}" x2="${ix(segLen)}" y2="${iy(0)}" stroke="#1e40af" stroke-width="2.5"/>`;
+
+    // Wave edge
+    let wp = '';
+    for (let i = 0; i <= steps; i++) {
+      const localD = (i/steps) * segLen;
+      const d = startD + localD;
+      if (d > totalLen) break;
+      const ww = pieceWidth(d, extLen, wMax, wMin);
+      wp += (i===0?'M':'L') + ` ${ix(localD)} ${iy(ww)} `;
+    }
+    svg += `<path d="${wp}" fill="none" stroke="#dc2626" stroke-width="2"/>`;
+
+    // Red lines at extension boundaries (if visible on this page)
+    const redLines = [extLen, totalLen - extLen];
+    for (const rl of redLines) {
+      const localRL = rl - startD;
+      if (localRL >= -0.1 && localRL <= segLen + 0.1) {
+        const wAtRL = pieceWidth(rl, extLen, wMax, wMin);
+        svg += `<line x1="${ix(localRL)}" y1="${iy(-0.05)}" x2="${ix(localRL)}" y2="${iy(wAtRL + 0.15)}" stroke="#ef4444" stroke-width="2"/>`;
+        svg += `<text x="${ix(localRL)}" y="${iy(wAtRL + 0.25)}" text-anchor="middle" font-size="9" fill="#ef4444" font-weight="bold">red line</text>`;
+      }
+    }
+
+    // Center fold line (if visible)
+    const centerD = totalLen / 2;
+    const localCenter = centerD - startD;
+    if (localCenter >= 0 && localCenter <= segLen) {
+      const wAtCenter = pieceWidth(centerD, extLen, wMax, wMin);
+      svg += `<line x1="${ix(localCenter)}" y1="${iy(-0.05)}" x2="${ix(localCenter)}" y2="${iy(wAtCenter + 0.15)}" stroke="#f97316" stroke-width="2" stroke-dasharray="4,3"/>`;
+      svg += `<text x="${ix(localCenter)}" y="${iy(wAtCenter + 0.25)}" text-anchor="middle" font-size="9" fill="#f97316" font-weight="bold">CENTER (fold at corner)</text>`;
+      svg += `<text x="${ix(localCenter)}" y="${iy(wAtCenter + 0.45)}" text-anchor="middle" font-size="8" fill="#f97316">${wAtCenter.toFixed(2)}" wide here</text>`;
+    }
+
+    // Inch ticks
+    for (let inch = Math.ceil(startD); inch <= Math.floor(endD); inch++) {
+      const ld = inch - startD;
+      svg += `<line x1="${ix(ld)}" y1="${iy(0)}" x2="${ix(ld)}" y2="${iy(-0.1)}" stroke="#333" stroke-width="0.8"/>`;
+      svg += `<text x="${ix(ld)}" y="${iy(-0.25)}" text-anchor="middle" font-size="7" fill="#555">${inch}"</text>`;
+    }
+
+    // Width markers at a few key points on this page
+    const markers = [];
+    for (let d = Math.ceil(startD); d <= Math.floor(endD); d += 2) {
+      markers.push(d);
+    }
+    // Also add red lines and center
+    for (const rl of [...redLines, centerD]) {
+      if (rl >= startD && rl <= endD) markers.push(rl);
+    }
+    for (const d of markers) {
+      const ld = d - startD;
+      const ww = pieceWidth(d, extLen, wMax, wMin);
+      svg += `<line x1="${ix(ld)}" y1="${iy(0)}" x2="${ix(ld)}" y2="${iy(ww)}" stroke="#cbd5e1" stroke-width="0.5" stroke-dasharray="2,2"/>`;
+    }
+
+    // Overlap marks
+    if (pg > 0) {
+      for (let m = 0; m <= 3; m++) {
+        const my = m * wMax / 3;
+        svg += `<line x1="${ix(0)}" y1="${iy(my)}" x2="${ix(0.1)}" y2="${iy(my)}" stroke="#f97316" stroke-width="2"/>`;
+      }
+      svg += `<text x="${ix(0.15)}" y="${iy(-0.15)}" font-size="8" fill="#f97316">← align here</text>`;
+    }
+    if (pg < numPages - 1) {
+      const olStart = segLen - overlap;
+      svg += `<line x1="${ix(olStart)}" y1="${iy(0)}" x2="${ix(olStart)}" y2="${iy(wMax+0.1)}" stroke="#f97316" stroke-width="0.8" stroke-dasharray="3,2"/>`;
+      for (let m = 0; m <= 3; m++) {
+        const my = m * wMax / 3;
+        svg += `<line x1="${ix(segLen-0.1)}" y1="${iy(my)}" x2="${ix(segLen)}" y2="${iy(my)}" stroke="#f97316" stroke-width="2"/>`;
+      }
+      svg += `<text x="${ix(segLen-0.15)}" y="${iy(-0.15)}" text-anchor="end" font-size="8" fill="#f97316">align here →</text>`;
+    }
+
+    // 1" scale box
+    const bx = segLen - 1.2;
+    svg += `<rect x="${ix(bx)}" y="${iy(wMax+0.15)}" width="${DPI}" height="${DPI}" fill="none" stroke="#000" stroke-width="1.5"/>`;
+    svg += `<text x="${ix(bx+0.5)}" y="${iy(wMax-0.4)}" text-anchor="middle" font-size="8" fill="#000">1"×1" scale check</text>`;
+
+    // Page label
+    svg += `<text x="${ix(segLen/2)}" y="${DPI*0.2}" text-anchor="middle" font-size="11" fill="#166534" font-weight="bold">`;
+    svg += `Page ${pg+1} of ${numPages} — piece d=${startD.toFixed(1)}" to ${endD.toFixed(1)}" — print LANDSCAPE at 100%`;
+    svg += `</text>`;
+
+    svg += '</svg>';
+
+    const div = document.createElement('div');
+    div.className = 'print-page';
+    div.innerHTML = svg;
+    area.appendChild(div);
+  }
+
+  // Full piece preview (screen only, not to scale)
+  let pv = `<div class="no-print" style="margin-top:10px;">`;
+  pv += `<p style="font-weight:bold;font-size:13px;color:#334155;margin:0 0 4px;">Full "mustache" preview (not to scale):</p>`;
+  const pvScale = 96;
+  const pvW = totalLen + 0.5, pvH = wMax + 1;
+  pv += `<svg width="100%" viewBox="0 0 ${pvW*pvScale} ${pvH*pvScale}" style="max-height:160px;border:1px solid #e2e8f0;border-radius:6px;background:white;">`;
+  const pvBase = (wMax + 0.5) * pvScale;
+  const pvOff = 0.25 * pvScale;
+
+  // Piece outline
+  let pp = `M ${pvOff} ${pvBase} L ${pvOff + totalLen*pvScale} ${pvBase} `;
+  for (let i = steps; i >= 0; i--) {
+    const d = (i/steps) * totalLen;
+    const ww = pieceWidth(d, extLen, wMax, wMin);
+    pp += `L ${pvOff + d*pvScale} ${pvBase - ww*pvScale} `;
+  }
+  pp += 'Z';
+  pv += `<path d="${pp}" fill="#f0fdf4" stroke="#166534" stroke-width="1.5"/>`;
+  pv += `<line x1="${pvOff}" y1="${pvBase}" x2="${pvOff+totalLen*pvScale}" y2="${pvBase}" stroke="#1e40af" stroke-width="2"/>`;
+
+  // Wave edge
+  let pvWave = '';
+  for (let i = 0; i <= steps; i++) {
+    const d = (i/steps) * totalLen;
+    const ww = pieceWidth(d, extLen, wMax, wMin);
+    pvWave += (i===0?'M':'L') + ` ${pvOff+d*pvScale} ${pvBase-ww*pvScale} `;
+  }
+  pv += `<path d="${pvWave}" fill="none" stroke="#dc2626" stroke-width="1.5"/>`;
+
+  // Red lines
+  for (const rl of [extLen, totalLen - extLen]) {
+    pv += `<line x1="${pvOff+rl*pvScale}" y1="${pvBase+5}" x2="${pvOff+rl*pvScale}" y2="${pvBase-wMax*pvScale-8}" stroke="#ef4444" stroke-width="1.5"/>`;
+  }
+  // Center
+  pv += `<line x1="${pvOff+totalLen/2*pvScale}" y1="${pvBase+5}" x2="${pvOff+totalLen/2*pvScale}" y2="${pvBase-wMax*pvScale-8}" stroke="#f97316" stroke-width="1.5" stroke-dasharray="4,3"/>`;
+
+  // Labels
+  pv += `<text x="${pvOff+extLen/2*pvScale}" y="${pvBase+14}" text-anchor="middle" font-size="9" fill="#ef4444">${extLen}" ext</text>`;
+  pv += `<text x="${pvOff+totalLen/2*pvScale}" y="${pvBase+14}" text-anchor="middle" font-size="9" fill="#166534">${waveLen}" wave section</text>`;
+  pv += `<text x="${pvOff+(totalLen-extLen/2)*pvScale}" y="${pvBase+14}" text-anchor="middle" font-size="9" fill="#ef4444">${extLen}" ext</text>`;
+  pv += `<text x="${pvOff+totalLen/2*pvScale}" y="${pvBase-wMax*pvScale-12}" text-anchor="middle" font-size="9" fill="#f97316">FOLD HERE (corner)</text>`;
+
+  // Width annotations
+  const annots = [
+    [0, 'tip'],
+    [extLen, 'red line'],
+    [totalLen/2, 'center'],
+    [totalLen-extLen, 'red line'],
+    [totalLen, 'tip']
+  ];
+  for (const [d, label] of annots) {
+    const ww = pieceWidth(d, extLen, wMax, wMin);
+    pv += `<text x="${pvOff+d*pvScale}" y="${pvBase-ww*pvScale-4}" text-anchor="middle" font-size="7" fill="#64748b">${ww.toFixed(1)}"</text>`;
+  }
+
+  pv += '</svg></div>';
+  area.insertAdjacentHTML('beforeend', pv);
+}
+
+generate();
+</script>
+</body>
+</html>

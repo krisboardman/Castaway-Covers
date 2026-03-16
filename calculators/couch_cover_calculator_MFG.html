@@ -1,0 +1,1040 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Couch Cover Calculator — Multi-Panel MFG</title>
+<style>
+  :root { --bg:#f8fafc; --card:#ffffff; --text:#0f172a; --sub:#475569; --muted:#e2e8f0; --accent:#22c55e; }
+  body { font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; background:var(--bg); color:var(--text); margin:0; padding:24px; }
+  .wrap { max-width: 1200px; margin: 0 auto; }
+  h1 { font-size: 24px; margin: 0 0 18px; }
+  .controls { display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin-bottom:12px; }
+  .pill { padding:6px 10px; border-radius:999px; border:1px solid #cbd5e1; background:#eff6ff; color:#1e293b; font-size:12px; }
+  .switch { display:flex; align-items:center; gap:8px; font-size:14px; }
+  .grid { display:grid; grid-template-columns: 1.1fr 0.9fr; gap:16px; }
+  .card { background:var(--card); border:1px solid var(--muted); border-radius:14px; padding:16px; box-shadow: 0 1px 8px rgba(0,0,0,0.04); }
+  .title { font-weight:600; margin-bottom:8px; }
+  .inputs { display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:10px; }
+  label.lbl { display:grid; gap:6px; font-size:12px; color:var(--sub); }
+  input[type="number"] { border:1px solid var(--muted); border-radius:10px; padding:10px 12px; font-size:14px; }
+  select { border:1px solid var(--muted); border-radius:10px; padding:10px 12px; font-size:14px; }
+  .row { display:flex; justify-content:space-between; align-items:center; font-size:14px; padding:8px 0; }
+  .row + .row { border-top:1px dashed var(--muted); }
+  .note { font-size:12px; color:var(--sub); margin-top:8px; }
+  .btn { padding:8px 10px; border-radius:10px; border:1px solid var(--muted); background:#fff; cursor:pointer; }
+  .danger { color:#b91c1c; }
+  .diagramBox { display:flex; flex-direction:column; gap:10px; }
+  svg { width:100%; height:520px; border:1px dashed #cbd5e1; border-radius:12px; background:#fcfdff; }
+  .legend { display:flex; gap:12px; align-items:center; font-size:12px; color:var(--sub); flex-wrap:wrap; }
+  .chip { display:inline-block; width:12px; height:12px; border-radius:2px; border:1px solid #0f172a22; }
+  .panel-info { background:#f0fdf4; border:1px solid #86efac; border-radius:10px; padding:12px; margin-top:12px; }
+  .panel-info .panel-title { font-weight:600; color:#166534; margin-bottom:6px; }
+
+  @media print {
+    body { padding: 8px; margin: 0; }
+    .wrap { max-width: 100%; }
+    h1 { font-size: 18px; margin: 0 0 8px; }
+    .controls { display: none; }
+    .card { padding: 8px; margin-bottom: 8px; page-break-inside: avoid; }
+    .grid { gap: 8px; }
+    .title { font-size: 13px; margin-bottom: 4px; font-weight: 600; }
+    .row { padding: 3px 0; font-size: 11px; }
+    .note { font-size: 9px; margin-top: 4px; }
+    svg { height: 260px; page-break-inside: avoid; }
+    .diagramBox { page-break-inside: avoid; }
+    .legend { font-size: 9px; gap: 8px; }
+    input[type="number"], select { font-size: 10px; padding: 3px 5px; }
+    label.lbl { font-size: 9px; }
+    .inputs { gap: 5px; }
+    .danger { font-size: 9px; }
+    ol, ul { margin: 0; padding-left: 16px; line-height: 1.5; font-size: 11px; }
+    ol li ul { margin-top: 2px; padding-left: 16px; font-size: 10px; }
+    .assembly-flat-card { page: landscape; page-break-before: always; page-break-inside: avoid !important; }
+    .assembly-flat-card svg { min-height: 0 !important; height: auto !important; width: 100%; max-height: 6.5in; }
+    @page landscape { size: landscape; }
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Couch Cover Calculator — Multi-Panel MFG</h1>
+    <div class="controls">
+      <span class="pill">Units: inches</span>
+      <label class="switch" style="gap:6px;"><span>Rounding:</span>
+        <select id="roundMode" style="border:1px solid #cbd5e1; border-radius:8px; padding:6px 10px; font-size:13px;">
+          <option value="exact">Exact (decimal)</option>
+          <option value="half">&frac12;" increments (MFG)</option>
+          <option value="whole" selected>Whole inch</option>
+        </select>
+      </label>
+      <button id="recalc" class="btn">Recalculate</button>
+      <button id="resetBtn" class="btn">Reset to sample</button>
+      <button id="exportTxt" class="btn">Export as Text</button>
+      <button id="printPage" class="btn">Print/PDF</button>
+      <button id="copyResults" class="btn">Copy Results</button>
+    </div>
+
+    <!-- Row 1: Inputs (left) | Results + Material to Buy + Cut List (right) -->
+    <div class="grid">
+      <div>
+        <div class="card" id="inputsCard">
+          <div class="title">Inputs</div>
+          <div class="inputs">
+            <label class="lbl">B (Bolt width - Fabric size)<input id="B" type="number" value="54" step="0.1" /></label>
+            <label class="lbl">W (Couch width arm-to-arm)<input id="W" type="number" value="84" step="1" /></label>
+            <label class="lbl">WB (Back width)<input id="WB" type="number" value="84" step="1" /></label>
+            <label class="lbl">H (Height)<input id="H" type="number" value="34" step="1" /></label>
+            <label class="lbl">D (Depth - seat depth)<input id="D" type="number" value="30" step="1" /></label>
+            <label class="lbl">F2A (Floor &rarr; Armrest)<input id="F2A" type="number" value="26" step="1" /></label>
+            <label class="lbl">F2BS (Floor &rarr; Bottom of seat)<input id="F2BS" type="number" value="18" step="1" /></label>
+            <label class="lbl">BR (Backrest thickness)<input id="BR" type="number" value="4" step="1" /></label>
+            <label class="lbl">FC (Floor clearance)<input id="FC" type="number" value="3" step="1" /></label>
+            <label class="lbl">Hem allowance (gusset/edges)<input id="hem" type="number" value="1" step="0.5" /></label>
+            <label class="lbl">Snap overlap (per panel edge)<input id="snapOverlap" type="number" value="2" step="0.5" /></label>
+          </div>
+          <div class="note" style="margin-top:8px;">
+            <strong>Design:</strong> Each panel runs front-to-back over the couch: from the back floor, up over the backrest, diagonally across the seat, and drapes down the front to floor clearance.
+            One bolt per panel. Panels are mirror images joined by snaps at the overlap seam.<br/>
+            <strong>Snap overlap:</strong> Each panel extends past its edge by the snap overlap amount. 2" per panel = 4" total overlap at each seam, held together by snaps.<br/>
+            <strong>Panel count:</strong> Automatically calculated based on couch width vs. bolt coverage.
+          </div>
+          <div id="err" class="note danger" style="display:none;"></div>
+        </div>
+
+        <!-- Panel Layout Summary -->
+        <div class="card" style="margin-top:16px;">
+          <div class="title">Panel Layout</div>
+          <div id="panelLayout"></div>
+        </div>
+      </div>
+
+      <div>
+        <div class="card">
+          <div class="title">Results (Per Panel)</div>
+          <div id="results"></div>
+          <div class="title" style="margin-top:10px;">Material to Buy (Total)</div>
+          <div id="buy"></div>
+          <div class="note">Each panel uses its own bolt. Rounded mode rounds <b>up</b>: inches to whole numbers; yards to the next whole yard.</div>
+        </div>
+        <div class="card" style="margin-top:16px;">
+          <div class="title">Cut List (Per Panel)</div>
+          <div id="cutlist"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cut Diagram — full width -->
+    <div class="card" style="margin-top:16px;">
+      <div class="title">Cut Diagram — Single Panel (to scale)</div>
+      <div class="diagramBox">
+        <svg id="diagram" viewBox="0 0 1200 560" preserveAspectRatio="xMidYMid meet" style="height:480px;"></svg>
+        <div class="legend">
+          <span class="chip" style="background:#eef2ff;"></span> Main piece (full bolt, front-to-back)
+          <span class="chip" style="background:#fde68a; border-color:#f59e0b66;"></span> Snap overlap zone
+          <span class="chip" style="background:#d4d4d8;"></span> Gusset (cut diag)
+          <span style="color:#b91c1c; font-weight:600;">Red = cut depths</span>
+          <span style="margin-left:auto; font-size:12px;">Each panel is one full bolt</span>
+        </div>
+        <div style="display:flex; gap:8px; align-items:center; justify-content:flex-end;">
+          <button id="exportPng" class="btn">Download PNG</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Side Angle Cut | Snap Placement — side by side -->
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px; margin-top:16px;">
+      <div class="card">
+        <div class="title">Side Angle Cut</div>
+        <div id="sideanglecut"></div>
+        <div class="note">The diagonal cut tapers each side from the full width at the backrest to a narrower width at the front. Same cut applied to each panel.</div>
+      </div>
+
+      <div class="card">
+        <div class="title">Snap Placement (Seam Lines)</div>
+        <div id="snaps"></div>
+        <div class="note">Snaps placed along each joining seam where panels overlap. Interval is 8" starting from backrest middle.</div>
+      </div>
+    </div>
+
+    <!-- Grommets | Assembly Instructions — side by side -->
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px; margin-top:16px;">
+      <div class="card">
+        <div class="title">Grommet Placement (for Bungee)</div>
+        <div id="grommets"></div>
+        <div class="note">Grommets on the outer edges only (left side of left panel, right side of right panel). Bungee runs lengthwise along each outer side.</div>
+      </div>
+
+      <div class="card">
+        <div class="title">Assembly Instructions</div>
+        <ol style="margin:0; padding-left:20px; line-height:1.8; font-size:13px;">
+          <li>Cut each panel (ML &times; B) from its own bolt</li>
+          <li>Mark the centerline on each panel</li>
+          <li>Draw diagonal angle cuts on each side of each panel and cut:
+            <ul style="margin-top:4px; padding-left:20px;">
+              <li>On each side drop, mark the diagonal start points</li>
+              <li>Draw a straight line from the back edge to the front edge</li>
+              <li>Verify coverage width at armrest before cutting</li>
+            </ul>
+          </li>
+          <li>Draw wavy pattern around outer edges and cut:
+            <ul style="margin-top:4px; padding-left:20px;">
+              <li>Do NOT wave the snap overlap edges (inner joining edges)</li>
+              <li>Wave the outer arm edges and front/back drape edges</li>
+            </ul>
+          </li>
+          <li>Sew in gussets:
+            <ul style="margin-top:4px; padding-left:20px;">
+              <li>Sew triangular gusset panels into back flap corners of each panel</li>
+              <li>Use 1" hem seam to attach each gusset</li>
+            </ul>
+          </li>
+          <li>Install snaps along each joining seam:
+            <ul style="margin-top:4px; padding-left:20px;">
+              <li>Left panel's right edge overlaps right panel's left edge</li>
+              <li>Male snaps on underside of overlapping panel, female on top of underlying panel</li>
+              <li>For 3-panel: center panel underlaps both outer panels</li>
+            </ul>
+          </li>
+          <li>Add grommets to outer edges only</li>
+          <li>Prepare bungee loops for outer edges</li>
+          <li>Add fabric glue to thread ends</li>
+          <li>Scotch guard ends</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- Assembly Diagram — Flat Layout showing all panels together -->
+    <div class="card assembly-flat-card" style="margin-top:24px; page-break-before:always;">
+      <div class="title" style="font-size:18px;">Assembly Diagram — All Panels (Top View)</div>
+      <div class="diagramBox">
+        <svg id="assemblyAllPanels" viewBox="0 0 1200 900" preserveAspectRatio="xMidYMid meet" style="width:100%; height:auto; min-height:600px;"></svg>
+        <div class="legend">
+          <span class="chip" style="background:#fca5a5;"></span> Left panel
+          <span class="chip" style="background:#86efac;"></span> Center panel (if 3-panel)
+          <span class="chip" style="background:#93c5fd;"></span> Right panel
+          <span class="chip" style="background:#fde68a;"></span> Snap overlap zones
+          <span class="chip" style="background:#d4d4d8;"></span> Gussets
+          <span style="color:var(--sub); font-size:11px;">— — Diagonal coverage line</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Single Panel Side View -->
+    <div class="card" style="margin-top:16px;">
+      <div class="title">Side View — Single Panel (same for all panels)</div>
+      <div class="diagramBox">
+        <svg id="assemblyDiagramSide" viewBox="0 0 820 500" preserveAspectRatio="xMidYMid meet" style="height:460px;"></svg>
+        <div class="legend">
+          <span class="chip" style="background:#3b82f6; opacity:0.3;"></span> Main piece (fabric path)
+          <span style="color:var(--sub); font-size:11px;">— — Diagonal cut line</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+<script>
+function parseNum(id){
+  const el = document.getElementById(id);
+  const v = Number(el.value);
+  return isFinite(v) ? v : 0;
+}
+function fmtExact(val){ return isFinite(val) ? (Math.round(val*100)/100).toFixed(2) : "–"; }
+function roundHalf(val){ return Math.ceil(val * 2) / 2; }
+function _resolveMode(m){ return m === true ? 'whole' : m === false ? 'exact' : m; }
+function fmtInch(val, roundMode){
+  const m = _resolveMode(roundMode);
+  if (m === 'whole') return Math.ceil(val).toString();
+  if (m === 'half') return roundHalf(val).toString();
+  return fmtExact(val);
+}
+function fmtYardsFromInches(inches, roundMode){
+  const m = _resolveMode(roundMode);
+  const y = inches / 36;
+  if (m === 'whole') return Math.ceil(y).toString();
+  if (m === 'half') return roundHalf(y).toString();
+  return fmtExact(y);
+}
+
+// === CUT DIAGRAM (single panel) ===
+function drawDiagram(params){
+  const {B, ML, MW, W, WB, H, FC, rounded, totalLength, AT2F, BR, backDrop, frontExtDrop,
+         backWidth, frontWidth, hem, snapOverlap, panelWidth, panelCount} = params;
+  const rIn = v => {
+    const m = _resolveMode(rounded);
+    if (m === 'whole') return Math.ceil(v);
+    if (m === 'half') return roundHalf(v);
+    return Math.round(v*100)/100;
+  };
+  const svg = document.getElementById('diagram');
+  while (svg.firstChild) svg.removeChild(svg.firstChild);
+  const VBW = svg.viewBox.baseVal.width, VBH = svg.viewBox.baseVal.height;
+  const pad = 50;
+
+  const add = (t,a,p=svg)=>{const e=document.createElementNS('http://www.w3.org/2000/svg',t); for(const k in a) e.setAttribute(k,a[k]); p.appendChild(e); return e;};
+  const defs = add('defs',{});
+  const m = add('marker',{id:'arr',markerWidth:8,markerHeight:8,refX:4,refY:4,orient:'auto',viewBox:'0 0 8 8'},defs);
+  const p = document.createElementNS('http://www.w3.org/2000/svg','path'); p.setAttribute('d','M0,0 L8,4 L0,8 Z'); p.setAttribute('fill','#334155'); m.appendChild(p);
+  const arrow=(x1,y1,x2,y2)=>add('line',{x1,y1,x2,y2,stroke:'#334155','marker-start':'url(#arr)','marker-end':'url(#arr)'});
+
+  // Gusset square to the right
+  const gussetMatSide = (H - FC) + hem;
+  const diagramTotalLength = ML + 30 + gussetMatSide;
+  const diagramTotalHeight = B;
+  const scale = Math.min((VBW - pad*2) / diagramTotalLength, (VBH - pad*2) / diagramTotalHeight) || 1;
+  const sx = pad, sy = pad;
+
+  const cutColor = '#b91c1c';
+  const cutFontSm = 9;
+
+  // === MAIN PIECE ===
+  const mainW = ML * scale;
+  const mainH = B * scale;
+  add('rect',{x:sx, y:sy, width:mainW, height:mainH, fill:'#eef2ff', stroke:'#0f172a'});
+
+  // Snap overlap zones (yellow highlight on inner edges)
+  if (snapOverlap > 0) {
+    const overlapPx = snapOverlap * scale;
+    // Top edge overlap (one joining edge)
+    add('rect',{x:sx, y:sy, width:mainW, height:overlapPx, fill:'#fde68a', stroke:'none', opacity:0.6});
+    // Bottom edge overlap (other joining edge or outer)
+    add('rect',{x:sx, y:sy + mainH - overlapPx, width:mainW, height:overlapPx, fill:'#fde68a', stroke:'none', opacity:0.6});
+
+    // Labels
+    add('text',{x:sx + mainW + 6, y:sy + overlapPx/2 + 3, 'font-size':9, fill:'#92400e'}).textContent=`${rIn(snapOverlap)}" snap overlap`;
+    add('text',{x:sx + mainW + 6, y:sy + mainH - overlapPx/2 + 3, 'font-size':9, fill:'#92400e'}).textContent=`${rIn(snapOverlap)}" snap overlap`;
+  }
+
+  add('text',{x:sx + mainW/2, y:sy + mainH/2 - 8, 'text-anchor':'middle', 'font-size':12, fill:'#334155', 'font-weight':'bold'}).textContent='PANEL (one bolt)';
+  add('text',{x:sx + mainW/2, y:sy + mainH/2 + 8, 'text-anchor':'middle', 'font-size':11, fill:'#475569'}).textContent=`${rIn(ML)}" × ${rIn(B)}"`;
+
+  // Back flap cut lines
+  const centerY = sy + mainH / 2;
+  const backHalf = (WB / 2) + hem;
+  const backFlapW = WB + 2 * hem;
+  const yBREndX = sx + backDrop * scale;
+  const halfBolt = B / 2;
+
+  const backTopY = centerY - backHalf * scale;
+  const backBotY = centerY + backHalf * scale;
+  add('line',{x1:sx, y1:backTopY, x2:yBREndX, y2:backTopY, stroke:'#0f172a', 'stroke-width':1.5, 'stroke-dasharray':'6,3'});
+  add('line',{x1:sx, y1:backBotY, x2:yBREndX, y2:backBotY, stroke:'#0f172a', 'stroke-width':1.5, 'stroke-dasharray':'6,3'});
+  add('line',{x1:yBREndX, y1:backTopY, x2:yBREndX, y2:sy, stroke:'#0f172a', 'stroke-width':1.5, 'stroke-dasharray':'6,3'});
+  add('line',{x1:yBREndX, y1:backBotY, x2:yBREndX, y2:sy + mainH, stroke:'#0f172a', 'stroke-width':1.5, 'stroke-dasharray':'6,3'});
+
+  // Diagonal cut lines
+  const halfFrontCut = Math.min(frontWidth / 2, halfBolt);
+  const frontTopY = centerY - halfFrontCut * scale;
+  const frontBotY = centerY + halfFrontCut * scale;
+  add('line',{x1:yBREndX, y1:sy, x2:sx+mainW, y2:frontTopY, stroke:'#0f172a', 'stroke-width':1.5, 'stroke-dasharray':'6,3'});
+  add('line',{x1:yBREndX, y1:sy+mainH, x2:sx+mainW, y2:frontBotY, stroke:'#0f172a', 'stroke-width':1.5, 'stroke-dasharray':'6,3'});
+
+  // Cut depth labels
+  const backCutInFromEdge = halfBolt - backHalf;
+  if (backCutInFromEdge > 0.5) {
+    const bcLabelX = sx + 12;
+    arrow(bcLabelX, sy, bcLabelX, backTopY);
+    add('text',{x:bcLabelX + 4, y:(sy + backTopY)/2 + 3, 'font-size':cutFontSm, fill:cutColor, 'font-weight':'bold'}).textContent=`${rIn(backCutInFromEdge)}"`;
+    arrow(bcLabelX, backBotY, bcLabelX, sy + mainH);
+    add('text',{x:bcLabelX + 4, y:(backBotY + sy + mainH)/2 + 3, 'font-size':cutFontSm, fill:cutColor, 'font-weight':'bold'}).textContent=`${rIn(backCutInFromEdge)}"`;
+  }
+
+  // Back flap width label
+  const bfLabelX = sx + (backDrop * scale) / 2;
+  arrow(bfLabelX, backTopY, bfLabelX, backBotY);
+  add('text',{x:bfLabelX - 4, y:centerY + 3, 'text-anchor':'end', 'font-size':cutFontSm, fill:'#334155'}).textContent=`${rIn(backFlapW)}"`;
+
+  // Back drop distance
+  const bdArrowY = sy + mainH + 14;
+  arrow(sx, bdArrowY, yBREndX, bdArrowY);
+  add('text',{x:(sx + yBREndX)/2, y:bdArrowY + 12, 'text-anchor':'middle', 'font-size':cutFontSm, fill:cutColor, 'font-weight':'bold'}).textContent=`${rIn(backDrop)}" (back drop)`;
+
+  // Front edge trim
+  const frontTrimFromEdge = halfBolt - halfFrontCut;
+  if (frontTrimFromEdge > 0.5) {
+    const ftLabelX = sx + mainW - 12;
+    arrow(ftLabelX, sy, ftLabelX, frontTopY);
+    add('text',{x:ftLabelX - 4, y:(sy + frontTopY)/2 + 3, 'text-anchor':'end', 'font-size':cutFontSm, fill:cutColor, 'font-weight':'bold'}).textContent=`${rIn(frontTrimFromEdge)}"`;
+    arrow(ftLabelX, frontBotY, ftLabelX, sy + mainH);
+    add('text',{x:ftLabelX - 4, y:(frontBotY + sy + mainH)/2 + 3, 'text-anchor':'end', 'font-size':cutFontSm, fill:cutColor, 'font-weight':'bold'}).textContent=`${rIn(frontTrimFromEdge)}"`;
+  }
+
+  // Overall dimension arrows
+  arrow(sx, sy - 18, sx + mainW, sy - 18);
+  add('text',{x:sx + mainW/2, y:sy - 24, 'text-anchor':'middle', 'font-size':12, fill:'#334155'}).textContent=`ML: ${rIn(ML)}"`;
+  arrow(sx - 18, sy, sx - 18, sy + mainH);
+  add('text',{x:sx - 22, y:sy + mainH/2, 'text-anchor':'end', 'dominant-baseline':'middle', 'font-size':12, fill:'#334155', transform:`rotate(-90 ${sx-22} ${sy + mainH/2})`}).textContent=`Bolt (B): ${rIn(B)}"`;
+
+  // === GUSSET SQUARE ===
+  const gussetMaxPx = Math.min(mainH * 0.65, 160);
+  const gussetPx = Math.min(gussetMatSide * scale, gussetMaxPx);
+  const gussetGapPx = 30;
+  const gx = sx + mainW + gussetGapPx;
+  const gy = sy + (mainH - gussetPx) / 2;
+
+  add('text',{x:gx + gussetPx/2, y:gy - 24, 'text-anchor':'middle', 'font-size':10, fill:'#94a3b8', 'font-style':'italic'}).textContent='(separate piece, per panel)';
+  add('rect',{x:gx, y:gy, width:gussetPx, height:gussetPx, fill:'#d4d4d833', stroke:'#71717a', 'stroke-width':1.5});
+  add('line',{x1:gx, y1:gy, x2:gx+gussetPx, y2:gy+gussetPx, stroke:'#0f172a', 'stroke-width':1.5, 'stroke-dasharray':'6,3'});
+  add('polygon',{points:`${gx},${gy} ${gx+gussetPx},${gy} ${gx+gussetPx},${gy+gussetPx}`, fill:'#d4d4d8', stroke:'none', opacity:0.25});
+  add('polygon',{points:`${gx},${gy} ${gx},${gy+gussetPx} ${gx+gussetPx},${gy+gussetPx}`, fill:'#a8a29e', stroke:'none', opacity:0.2});
+  add('text',{x:gx + gussetPx/2, y:gy + gussetPx/2 - 4, 'text-anchor':'middle', 'font-size':11, fill:'#52525b', 'font-weight':'bold'}).textContent='GUSSET';
+  add('text',{x:gx + gussetPx/2, y:gy + gussetPx/2 + 10, 'text-anchor':'middle', 'font-size':9, fill:'#52525b'}).textContent='Qty 2 per panel';
+  add('text',{x:gx + gussetPx/2, y:gy + gussetPx/2 + 22, 'text-anchor':'middle', 'font-size':8, fill:'#71717a'}).textContent='cut diag → 2 triangles ea';
+  arrow(gx, gy - 10, gx + gussetPx, gy - 10);
+  add('text',{x:gx + gussetPx/2, y:gy - 14, 'text-anchor':'middle', 'font-size':cutFontSm, fill:'#334155', 'font-weight':'bold'}).textContent=`${rIn(gussetMatSide)}"`;
+  arrow(gx - 10, gy, gx - 10, gy + gussetPx);
+  add('text',{x:gx - 14, y:gy + gussetPx/2 + 3, 'text-anchor':'end', 'font-size':cutFontSm, fill:'#334155', 'font-weight':'bold', transform:`rotate(-90 ${gx-14} ${gy + gussetPx/2 + 3})`}).textContent=`${rIn(gussetMatSide)}"`;
+}
+
+// === SIDE VIEW (reused from F2B, same for each panel) ===
+function drawAssemblyDiagramSide(params){
+  const {H, W, D, F2A, F2BS, BR, FC, AT2F, ML, MW, backDrop, frontExtDrop,
+         backWidth, frontWidth, rounded, hem, panelWidth} = params;
+  const rIn = v => {
+    const m = _resolveMode(rounded);
+    if (m === 'whole') return Math.ceil(v);
+    if (m === 'half') return roundHalf(v);
+    return Math.round(v*100)/100;
+  };
+  const svg = document.getElementById('assemblyDiagramSide');
+  while(svg.firstChild) svg.removeChild(svg.firstChild);
+  const add = (t,a,p=svg)=>{const e=document.createElementNS('http://www.w3.org/2000/svg',t); for(const k in a) e.setAttribute(k,a[k]); p.appendChild(e); return e;};
+
+  const defs = add('defs',{});
+  const mk = add('marker',{id:'arrS',markerWidth:8,markerHeight:8,refX:4,refY:4,orient:'auto',viewBox:'0 0 8 8'},defs);
+  const mp = document.createElementNS('http://www.w3.org/2000/svg','path');
+  mp.setAttribute('d','M0,0 L8,4 L0,8 Z'); mp.setAttribute('fill','#334155'); mk.appendChild(mp);
+
+  const VBW = 820, VBH = 500;
+  const pad = 60;
+
+  const chairTotalW = D + BR + 20;
+  const chairTotalH = H + 10;
+  const scaleX = (VBW - pad*2) / (chairTotalW + 40);
+  const scaleY = (VBH - pad*2) / (chairTotalH + 20);
+  const sc = Math.min(scaleX, scaleY);
+
+  const ox = pad + 20*sc;
+  const oy = VBH - pad;
+  const tx = x => ox + x * sc;
+  const ty = y => oy - y * sc;
+
+  // Floor line
+  add('line',{x1:pad-10, y1:oy, x2:VBW-pad+10, y2:oy, stroke:'#94a3b8', 'stroke-width':1});
+  add('text',{x:pad, y:oy+16, 'font-size':10, fill:'#94a3b8'}).textContent='Floor';
+  add('line',{x1:pad-10, y1:ty(FC), x2:VBW-pad+10, y2:ty(FC), stroke:'#94a3b8', 'stroke-dasharray':'3,3', 'stroke-width':0.5});
+  add('text',{x:VBW-pad+12, y:ty(FC)+4, 'font-size':9, fill:'#94a3b8'}).textContent=`FC: ${FC}"`;
+
+  // Chair profile
+  const seatH = F2BS, seatTop = F2BS + 4, backrestTop = H, seatFront = D;
+  const chairColor = '#d1d5db', chairStroke = '#6b7280';
+  add('rect',{x:tx(-2), y:ty(seatH), width:4*sc, height:seatH*sc, fill:chairColor, stroke:chairStroke, rx:2});
+  add('rect',{x:tx(seatFront-2), y:ty(seatH), width:4*sc, height:seatH*sc, fill:chairColor, stroke:chairStroke, rx:2});
+  add('rect',{x:tx(-2), y:ty(seatTop), width:(seatFront+4)*sc, height:(seatTop-seatH)*sc, fill:'#e5e7eb', stroke:chairStroke, rx:3});
+  add('text',{x:tx(seatFront/2), y:ty((seatTop+seatH)/2)+4, 'text-anchor':'middle', 'font-size':10, fill:'#6b7280'}).textContent='Seat';
+  add('rect',{x:tx(-BR), y:ty(backrestTop), width:BR*sc, height:(backrestTop-seatTop)*sc, fill:'#e5e7eb', stroke:chairStroke, rx:3});
+  add('text',{x:tx(-BR/2), y:ty((backrestTop+seatTop)/2)+4, 'text-anchor':'middle', 'font-size':9, fill:'#6b7280'}).textContent='Back';
+  const armH = F2A;
+  add('line',{x1:tx(0), y1:ty(armH), x2:tx(seatFront*0.7), y2:ty(armH), stroke:chairStroke, 'stroke-width':2.5, 'stroke-linecap':'round'});
+
+  // Fabric path
+  const fabricPts = [
+    [tx(-BR), ty(FC)], [tx(-BR), ty(backrestTop)], [tx(0), ty(backrestTop)],
+    [tx(seatFront), ty(armH)], [tx(seatFront), ty(FC)]
+  ];
+  const pathD = fabricPts.map((pt,i) => `${i===0?'M':'L'}${pt[0]},${pt[1]}`).join(' ');
+  add('path',{d:pathD, fill:'none', stroke:'#3b82f6', 'stroke-width':8, 'stroke-linecap':'round', 'stroke-linejoin':'round', opacity:0.35});
+  add('path',{d:pathD, fill:'none', stroke:'#3b82f6', 'stroke-width':2, 'stroke-linecap':'round', 'stroke-linejoin':'round', opacity:0.8});
+
+  // Labels
+  const backMidY = (ty(FC) + ty(backrestTop)) / 2;
+  add('line',{x1:tx(-BR)-30, y1:ty(FC), x2:tx(-BR)-30, y2:ty(backrestTop), stroke:'#2563eb', 'stroke-width':1, 'marker-start':'url(#arrS)', 'marker-end':'url(#arrS)'});
+  add('text',{x:tx(-BR)-34, y:backMidY+4, 'text-anchor':'end', 'font-size':10, fill:'#2563eb', 'font-weight':'bold'}).textContent=`${rIn(backDrop)}"`;
+  add('text',{x:tx(-BR)-34, y:backMidY+16, 'text-anchor':'end', 'font-size':9, fill:'#2563eb'}).textContent='Back drop';
+  add('text',{x:(tx(-BR)+tx(0))/2, y:ty(backrestTop)-10, 'text-anchor':'middle', 'font-size':10, fill:'#2563eb', 'font-weight':'bold'}).textContent=`BR: ${rIn(BR)}"`;
+  const at2fMidX = (tx(0) + tx(seatFront)) / 2;
+  const at2fMidY = (ty(backrestTop) + ty(armH)) / 2;
+  add('text',{x:at2fMidX, y:at2fMidY - 12, 'text-anchor':'middle', 'font-size':10, fill:'#2563eb', 'font-weight':'bold'}).textContent=`AT2F: ${rIn(AT2F)}"`;
+  const frontMidY = (ty(FC) + ty(armH)) / 2;
+  add('line',{x1:tx(seatFront)+30, y1:ty(FC), x2:tx(seatFront)+30, y2:ty(armH), stroke:'#2563eb', 'stroke-width':1, 'marker-start':'url(#arrS)', 'marker-end':'url(#arrS)'});
+  add('text',{x:tx(seatFront)+34, y:frontMidY+4, 'font-size':10, fill:'#2563eb', 'font-weight':'bold'}).textContent=`${rIn(frontExtDrop)}"`;
+  add('text',{x:tx(seatFront)+34, y:frontMidY+16, 'font-size':9, fill:'#2563eb'}).textContent='Front drop';
+
+  add('text',{x:VBW/2, y:28, 'text-anchor':'middle', 'font-size':13, fill:'#0f172a', 'font-weight':'bold'}).textContent=
+    `Main Length (ML): ${rIn(ML)}" = Back ${rIn(backDrop)}" + BR ${rIn(BR)}" + AT2F ${rIn(AT2F)}" + Front ${rIn(frontExtDrop)}"`;
+
+  // H dimension
+  add('line',{x1:tx(-BR)-60, y1:ty(0), x2:tx(-BR)-60, y2:ty(H), stroke:'#475569', 'stroke-width':1, 'marker-start':'url(#arrS)', 'marker-end':'url(#arrS)'});
+  add('text',{x:tx(-BR)-64, y:ty(H/2)+4, 'text-anchor':'end', 'font-size':10, fill:'#475569'}).textContent=`H: ${H}"`;
+  // D dimension
+  add('line',{x1:tx(0), y1:ty(-8), x2:tx(seatFront), y2:ty(-8), stroke:'#475569', 'stroke-width':1, 'marker-start':'url(#arrS)', 'marker-end':'url(#arrS)'});
+  add('text',{x:tx(seatFront/2), y:ty(-8)+16, 'text-anchor':'middle', 'font-size':10, fill:'#475569'}).textContent=`D: ${D}"`;
+}
+
+// === ASSEMBLY DIAGRAM — ALL PANELS TOP VIEW ===
+function drawAssemblyAllPanels(params){
+  const {H, W, WB, D, F2A, F2BS, BR, FC, B, AT2F, ML, MW, backDrop, frontExtDrop,
+         backWidth, frontWidth, rounded, hem, snapOverlap, panelCount,
+         panelWidth, confirmCoverageWidth} = params;
+  const rIn = v => {
+    const m = _resolveMode(rounded);
+    if (m === 'whole') return Math.ceil(v);
+    if (m === 'half') return roundHalf(v);
+    return Math.round(v*100)/100;
+  };
+  const svg = document.getElementById('assemblyAllPanels');
+  if (!svg) return;
+  while(svg.firstChild) svg.removeChild(svg.firstChild);
+  const add = (t,a,p=svg)=>{const e=document.createElementNS('http://www.w3.org/2000/svg',t); for(const k in a) e.setAttribute(k,a[k]); p.appendChild(e); return e;};
+
+  const mkrId = 'arrAP';
+  const defs = add('defs',{});
+  const mk = add('marker',{id:mkrId,markerWidth:8,markerHeight:8,refX:4,refY:4,orient:'auto',viewBox:'0 0 8 8'},defs);
+  const mp = document.createElementNS('http://www.w3.org/2000/svg','path');
+  mp.setAttribute('d','M0,0 L8,4 L0,8 Z'); mp.setAttribute('fill','#334155'); mk.appendChild(mp);
+  const arrow=(x1,y1,x2,y2,clr)=>add('line',{x1,y1,x2,y2,stroke:clr||'#334155','stroke-width':1,'marker-start':`url(#${mkrId})`,'marker-end':`url(#${mkrId})`});
+
+  const VBW = 1200, VBH = 900;
+  svg.setAttribute('viewBox', `0 0 ${VBW} ${VBH}`);
+  const pad = 60;
+
+  // Total assembled width = panelCount * panelWidth - (panelCount-1) * 2 * snapOverlap
+  // (the overlap zones overlap each other, so total is less)
+  const totalAssembledWidth = panelCount * panelWidth - (panelCount - 1) * 2 * snapOverlap;
+
+  const scX = (VBW - pad*2) / (totalAssembledWidth + 40);
+  const scY = (VBH - pad*2) / (ML + 30);
+  const sc = Math.min(scX, scY);
+
+  const cx = VBW / 2;
+  const topY = pad + 10;
+
+  const fx = dx => cx + dx * sc;
+  const fy = dy => topY + dy * sc;
+
+  const halfTotal = totalAssembledWidth / 2;
+  const panelColors = ['#fca5a5', '#86efac', '#93c5fd']; // left, center, right
+  const panelLabels = panelCount === 2 ? ['LEFT PANEL', 'RIGHT PANEL'] : ['LEFT PANEL', 'CENTER PANEL', 'RIGHT PANEL'];
+
+  // Y positions
+  const halfWB = WB / 2;
+  const halfBolt = B / 2;
+  const yBREnd = backDrop;
+  const yBRTop = backDrop + BR;
+
+  // Draw each panel
+  let currentX = -halfTotal; // start from left edge
+
+  for (let i = 0; i < panelCount; i++) {
+    const panelLeft = currentX;
+    const panelRight = currentX + panelWidth;
+    const colorIdx = panelCount === 2 ? (i === 0 ? 0 : 2) : i;
+    const color = panelColors[colorIdx];
+    const label = panelLabels[i];
+
+    // Panel rectangle (full ML height)
+    add('rect',{x:fx(panelLeft), y:fy(0), width:panelWidth * sc, height:ML * sc,
+      fill:color, stroke:'#0f172a', 'stroke-width':1, opacity:0.4});
+
+    // Back flap narrowing (from back edge to backrest base)
+    // Each panel's back flap is narrowed to WB portion
+    const panelCenterX = panelLeft + panelWidth / 2;
+
+    // Panel label
+    add('text',{x:fx(panelCenterX), y:fy(ML/2) - 6, 'text-anchor':'middle', 'font-size':12, fill:'#0f172a', 'font-weight':'bold'}).textContent=label;
+    add('text',{x:fx(panelCenterX), y:fy(ML/2) + 10, 'text-anchor':'middle', 'font-size':10, fill:'#475569'}).textContent=`${rIn(ML)}" × ${rIn(B)}"`;
+
+    // Snap overlap zones (yellow)
+    if (i > 0) {
+      // Left overlap zone of this panel
+      add('rect',{x:fx(panelLeft), y:fy(0), width:snapOverlap * sc, height:ML * sc,
+        fill:'#fde68a', stroke:'none', opacity:0.6});
+    }
+    if (i < panelCount - 1) {
+      // Right overlap zone of this panel
+      add('rect',{x:fx(panelRight - snapOverlap), y:fy(0), width:snapOverlap * sc, height:ML * sc,
+        fill:'#fde68a', stroke:'none', opacity:0.6});
+    }
+
+    // Diagonal cut lines on this panel
+    // Each panel has bolt width B, so half = B/2 from panel center
+    // Back flap: narrowed to panelBackFlapHalf from center
+    const panelBackHalf = Math.min(halfBolt, panelWidth / 2);
+    // Diag from backrest base to front: tapers from panelBackHalf to smaller at front
+    // The amount that tapers depends on the panel's share of coverage
+
+    currentX = panelRight - 2 * snapOverlap; // next panel starts overlapping
+  }
+
+  // Seam lines between panels
+  let seamX = -halfTotal + panelWidth - snapOverlap; // center of first overlap
+  for (let i = 0; i < panelCount - 1; i++) {
+    add('line',{x1:fx(seamX), y1:fy(-4), x2:fx(seamX), y2:fy(ML + 4),
+      stroke:'#f59e0b', 'stroke-width':2, 'stroke-dasharray':'6,4'});
+    add('text',{x:fx(seamX), y:fy(-8), 'text-anchor':'middle', 'font-size':10, fill:'#f59e0b', 'font-weight':'bold'}).textContent=`SNAP SEAM ${i+1}`;
+    // Overlap zone width label
+    add('text',{x:fx(seamX), y:fy(-16), 'text-anchor':'middle', 'font-size':9, fill:'#92400e'}).textContent=`${rIn(2 * snapOverlap)}" overlap (${rIn(snapOverlap)}" per panel)`;
+    seamX += panelWidth - 2 * snapOverlap;
+  }
+
+  // Overall couch width
+  arrow(fx(-halfTotal), fy(ML + 16), fx(halfTotal), fy(ML + 16), '#0f172a');
+  add('text',{x:cx, y:fy(ML + 16) + 14, 'text-anchor':'middle', 'font-size':12, fill:'#0f172a', 'font-weight':'bold'}).textContent=`Couch width covered: ${rIn(totalAssembledWidth)}" (W = ${rIn(W)}")`;
+
+  // Edge labels
+  add('text',{x:cx, y:fy(-2), 'text-anchor':'middle', 'font-size':10, fill:'#475569', 'font-weight':'bold'}).textContent='← BACK EDGE (goes to floor behind couch) →';
+  add('text',{x:cx, y:fy(ML+4), 'text-anchor':'middle', 'font-size':10, fill:'#475569', 'font-weight':'bold'}).textContent='← FRONT EDGE (goes to floor in front) →';
+
+  // ML dimension on left
+  const dimX = fx(-halfTotal) - 20;
+  arrow(dimX, fy(0), dimX, fy(ML), '#334155');
+  add('text',{x:dimX - 4, y:fy(ML/2)+4, 'text-anchor':'end', 'font-size':11, fill:'#334155', 'font-weight':'bold',
+    transform:`rotate(-90 ${dimX-4} ${fy(ML/2)+4})`}).textContent=`ML: ${rIn(ML)}"`;
+}
+
+function compute(){
+  try{
+    const roundMode = document.getElementById('roundMode').value;
+    const rounded = roundMode;
+
+    const B    = parseNum('B');
+    const W    = parseNum('W');
+    const WB   = parseNum('WB');
+    const H    = parseNum('H');
+    const D    = parseNum('D');
+    const F2A  = parseNum('F2A');
+    const F2BS = parseNum('F2BS');
+    const BR   = parseNum('BR');
+    const FC   = parseNum('FC');
+    const hem  = parseNum('hem');
+    const snapOverlap = parseNum('snapOverlap');
+
+    // === MAIN PIECE CALCULATIONS (same as F2B chair) ===
+    const AT2F = Math.sqrt(Math.max(0, H - F2A)**2 + Math.max(0, D)**2);
+    const backDrop = H - FC;
+    const frontExtDrop = F2A - FC;
+    const ML = (H + BR + AT2F + F2A) - (2 * FC);
+
+    // Each panel is one bolt width (B). The bolt wraps front-to-back.
+    // Width coverage per panel = B (bolt width)
+    // Usable width per panel = B - snapOverlap on each joining edge
+    // Outer panels: one outer edge (free) + one joining edge (snap overlap)
+    //   usable = B - snapOverlap
+    // Center panel (if 3-panel): two joining edges
+    //   usable = B - 2 * snapOverlap
+
+    // Panel count calculation
+    // 2 panels: total coverage = 2 * (B - snapOverlap) = 2B - 2*snapOverlap
+    // 3 panels: total coverage = 2 * (B - snapOverlap) + (B - 2*snapOverlap) = 3B - 4*snapOverlap
+    const coverage2 = 2 * B - 2 * snapOverlap;
+    const coverage3 = 3 * B - 4 * snapOverlap;
+    let panelCount;
+    if (W <= coverage2) {
+      panelCount = 2;
+    } else if (W <= coverage3) {
+      panelCount = 3;
+    } else {
+      panelCount = Math.ceil((W + 2 * snapOverlap) / (B - 2 * snapOverlap)); // fallback
+    }
+
+    // Panel widths (all panels use full bolt width B)
+    const panelWidth = B;
+
+    // Total assembled width with overlaps
+    // Each seam has 2*snapOverlap of overlap (snapOverlap from each panel)
+    const numSeams = panelCount - 1;
+    const totalCoverage = panelCount * B - numSeams * 2 * snapOverlap;
+
+    // Per-panel width for diagonal coverage
+    // The diagonal cut on each panel tapers from full coverage at back to chair-section width at front.
+    // MW for each panel = B (the full bolt covers the wrap width for that panel section)
+    const MW = (W + 2 * H) - (2 * FC); // total wrap width (same formula as chair)
+
+    // Since each panel is just a full bolt with diagonal cut, the diagonal is the same as the chair:
+    // The coverage width at any point is the chair coverage width
+    const confirmCoverageWidth = W + 2 * (F2A - FC);
+    const backWidth = MW;
+    const frontWidth = W;
+    const startCutFromCenterLine = W / 2;
+
+    // === DISPLAY RESULTS (per panel) ===
+    const rows = [
+      ['Diagonal drape (AT2F)', `${fmtInch(AT2F, rounded)} in`,
+        `√[(H − F2A)² + D²] = √[(${H} − ${F2A})² + ${D}²] = ${fmtExact(AT2F)}`],
+      ['Main length ML (front→back)', `${fmtInch(ML, rounded)} in`,
+        `(H + BR + AT2F + F2A) − 2×FC = (${H} + ${BR} + ${fmtExact(AT2F)} + ${F2A}) − 2×${FC} = ${fmtExact(ML)}<br/>Back drop (${fmtExact(backDrop)}") + BR (${BR}") + AT2F (${fmtExact(AT2F)}") + front drop (${fmtExact(frontExtDrop)}")`],
+      ['Panel width (bolt)', `${fmtInch(B, rounded)} in`, `Each panel uses one full bolt width`],
+      ['Panels needed', `${panelCount}`, `Couch W (${W}") ${panelCount === 2 ? '≤' : '>'} 2-panel coverage (${fmtExact(coverage2)}") → ${panelCount} panels`],
+      ['Total coverage (assembled)', `${fmtInch(totalCoverage, rounded)} in`,
+        `${panelCount} × ${B}" − ${numSeams} × ${2*snapOverlap}" overlap = ${fmtExact(totalCoverage)}"${totalCoverage > W ? ` (${fmtExact(totalCoverage - W)}" extra)` : ''}`],
+      ['Snap overlap per edge', `${fmtInch(snapOverlap, rounded)} in`,
+        `${fmtExact(snapOverlap)}" from each panel × 2 = ${fmtExact(2*snapOverlap)}" total overlap at each seam`],
+    ];
+
+    const results = document.getElementById('results');
+    results.innerHTML = '';
+    rows.forEach(([label, value, calc], i)=>{
+      const div = document.createElement('div');
+      div.className = 'row';
+      div.style.display = 'block';
+      div.style.padding = '8px 0';
+      if (i>0) div.style.borderTop = '1px dashed var(--muted)';
+      div.innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span>${label}</span><strong>${value}</strong>
+        </div>
+        ${calc ? `<div style="font-size:11px;color:var(--sub);margin-top:4px;">${calc}</div>` : ''}
+      `;
+      results.appendChild(div);
+    });
+
+    // === MATERIAL TO BUY (total across all panels) ===
+    const buy = document.getElementById('buy');
+    buy.innerHTML = '';
+    const exactYards = ML / 36;
+    const gussetMatSide = (H - FC) + hem;
+    const gussetYards = (gussetMatSide * 2) / 36; // 2 gusset squares per panel
+    const perPanelYards = exactYards + gussetYards;
+
+    const bRows = [
+      ['Bolt length per panel', `${fmtInch(ML, rounded)} in`,
+        `Main piece only — each panel is ML × B from one bolt`],
+      ['Yards per panel (bolt)', `${fmtYardsFromInches(ML, rounded)} yd`,
+        `${fmtExact(ML)} ÷ 36 = ${fmtExact(exactYards)} yd`],
+      ['Gusset material per panel', `2 squares × ${fmtInch(gussetMatSide, rounded)}"`,
+        `Each gusset square: ${fmtExact(gussetMatSide)}" × ${fmtExact(gussetMatSide)}", cut diagonally → 2 triangles`],
+      ['Number of panels (bolts)', `${panelCount}`, `Each panel = 1 bolt`],
+      ['Total yards to buy', `${fmtYardsFromInches(ML * panelCount, rounded)} yd`,
+        `${panelCount} panels × ${fmtExact(exactYards)} yd = ${fmtExact(exactYards * panelCount)} yd (plus gusset material from waste)`],
+    ];
+    bRows.forEach(([label, value, calc], i)=>{
+      const div = document.createElement('div');
+      div.className = 'row';
+      div.style.display = 'block';
+      div.style.padding = '8px 0';
+      if (i>0) div.style.borderTop = '1px dashed var(--muted)';
+      div.innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span>${label}</span><strong>${value}</strong>
+        </div>
+        ${calc ? `<div style="font-size:11px;color:var(--sub);margin-top:4px;">${calc}</div>` : ''}
+      `;
+      buy.appendChild(div);
+    });
+
+    // === PANEL LAYOUT ===
+    const panelLayoutSection = document.getElementById('panelLayout');
+    let panelHTML = `<div class="panel-info">
+      <div class="panel-title">${panelCount}-Panel Layout</div>
+      <div style="font-size:13px; line-height:1.7;">`;
+
+    if (panelCount === 2) {
+      const leftUsable = B - snapOverlap;
+      const rightUsable = B - snapOverlap;
+      panelHTML += `
+        <strong>Left panel:</strong> ${fmtInch(B, rounded)}" bolt — outer left edge is free (wave cut), right edge has ${fmtInch(snapOverlap, rounded)}" snap overlap<br/>
+        <strong>Right panel:</strong> ${fmtInch(B, rounded)}" bolt (mirror of left) — left edge has ${fmtInch(snapOverlap, rounded)}" snap overlap, outer right edge is free<br/><br/>
+        <strong>Seam:</strong> 1 center seam where panels overlap ${fmtInch(2 * snapOverlap, rounded)}" (${fmtInch(snapOverlap, rounded)}" from each panel)<br/>
+        <strong>Max couch width:</strong> ${fmtInch(coverage2, rounded)}"
+      `;
+    } else {
+      const outerUsable = B - snapOverlap;
+      const centerUsable = B - 2 * snapOverlap;
+      panelHTML += `
+        <strong>Left panel:</strong> ${fmtInch(B, rounded)}" bolt — outer left edge free, right edge has ${fmtInch(snapOverlap, rounded)}" overlap<br/>
+        <strong>Center panel:</strong> ${fmtInch(B, rounded)}" bolt — both edges have ${fmtInch(snapOverlap, rounded)}" overlap (usable: ${fmtInch(centerUsable, rounded)}")<br/>
+        <strong>Right panel:</strong> ${fmtInch(B, rounded)}" bolt (mirror of left) — left edge has ${fmtInch(snapOverlap, rounded)}" overlap, outer right edge free<br/><br/>
+        <strong>Seams:</strong> 2 seams, each ${fmtInch(2 * snapOverlap, rounded)}" overlap<br/>
+        <strong>Max couch width:</strong> ${fmtInch(coverage3, rounded)}"
+      `;
+    }
+    panelHTML += `</div></div>`;
+    panelLayoutSection.innerHTML = panelHTML;
+
+    // === CUT LIST ===
+    const cutlist = document.getElementById('cutlist');
+    const cutRows = [
+      ['Main piece (per panel)', `${fmtInch(ML, rounded)}" × ${fmtInch(B, rounded)}" (full bolt)`, `Qty ${panelCount} — one per panel, each from its own bolt`],
+      ['Gusset material (per panel)', `${fmtInch(gussetMatSide, rounded)}" × ${fmtInch(gussetMatSide, rounded)}" square, cut diag`, `Qty ${panelCount * 2} squares total (2 per panel) → 2 triangles each`],
+    ];
+    cutlist.innerHTML = cutRows.map((r,i)=>`<div class="row" style="${i? 'border-top:1px dashed var(--muted);':''}"><span>${r[0]}</span><strong>${r[1]}</strong><span style="color:var(--sub)">${r[2]}</span></div>`).join('');
+
+    // === SIDE ANGLE CUT ===
+    const sideAngle = document.getElementById('sideanglecut');
+    sideAngle.innerHTML = `
+      <div class="row" style="display:block; padding:8px 0;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span>Confirm Coverage (width at armrest)</span><strong>${fmtInch(confirmCoverageWidth, rounded)} in</strong>
+        </div>
+        <div style="font-size:11px;color:var(--sub);margin-top:4px;">
+          W + 2(F2A − FC) = ${W} + 2(${F2A} − ${FC}) = ${fmtExact(confirmCoverageWidth)} in<br/>
+          This is the total coverage across all panels at armrest height.
+        </div>
+      </div>
+      <div class="row" style="display:block; padding:8px 0; border-top:1px dashed var(--muted);">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span>Front width (narrowest point)</span><strong>${fmtInch(frontWidth, rounded)} in</strong>
+        </div>
+        <div style="font-size:11px;color:var(--sub);margin-top:4px;">
+          W = ${W} in — couch width at the bottom front edge. The diagonal widens from here up to the backrest.
+        </div>
+      </div>
+      <div class="row" style="display:block; padding:8px 0; border-top:1px dashed var(--muted);">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span>Back width (widest point)</span><strong>${fmtInch(backWidth, rounded)} in</strong>
+        </div>
+        <div style="font-size:11px;color:var(--sub);margin-top:4px;">
+          MW = (W + 2×H) − 2×FC = (${W} + 2×${H}) − 2×${FC} = ${fmtExact(MW)} in — full wrap width where gussets attach.
+        </div>
+      </div>
+      <div class="row" style="display:block; padding:8px 0; border-top:1px dashed var(--muted);">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span>Diagonal cut from center</span><strong>${fmtExact(startCutFromCenterLine)} in</strong>
+        </div>
+        <div style="font-size:11px;color:var(--sub);margin-top:4px;">
+          W ÷ 2 = ${W} ÷ 2 = ${fmtExact(startCutFromCenterLine)} in each side of center. Same diagonal on each panel.
+        </div>
+      </div>
+    `;
+
+    // === SNAP PLACEMENT ===
+    const snapInterval = 8;
+    const backrestMiddle = H - FC + (BR / 2);
+    const backwardSnaps = [];
+    let pos = backrestMiddle - snapInterval;
+    while (pos > 0) { backwardSnaps.push(pos); pos -= snapInterval; }
+    backwardSnaps.reverse();
+    const forwardSnaps = [];
+    pos = backrestMiddle + snapInterval;
+    while ((ML - pos) >= snapInterval) { forwardSnaps.push(pos); pos += snapInterval; }
+    const allSnaps = [...backwardSnaps, backrestMiddle, ...forwardSnaps];
+
+    const snapsSection = document.getElementById('snaps');
+    let snapsHTML = `
+      <div class="row" style="display:block; padding:8px 0;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span>Number of seams</span><strong>${numSeams}</strong>
+        </div>
+      </div>
+      <div class="row" style="display:block; padding:8px 0; border-top:1px dashed var(--muted);">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span>Snaps per seam</span><strong>${allSnaps.length}</strong>
+        </div>
+      </div>
+      <div class="row" style="display:block; padding:8px 0; border-top:1px dashed var(--muted);">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span>Total snaps needed</span><strong>${allSnaps.length * numSeams} pairs</strong>
+        </div>
+      </div>
+      <div class="row" style="display:block; padding:8px 0; border-top:1px dashed var(--muted);">
+        <div style="margin-bottom:6px;"><strong>Snap positions (from back edge):</strong></div>
+        <div style="font-size:12px;color:var(--text);line-height:1.6;">
+    `;
+    allSnaps.forEach((snapPos, idx) => {
+      const isMiddle = snapPos === backrestMiddle;
+      snapsHTML += `<div style="padding:2px 0;">${idx + 1}. ${fmtExact(snapPos)} in${isMiddle ? ' <span style="color:#22c55e;font-weight:600;">(backrest middle)</span>' : ''}</div>`;
+    });
+    snapsHTML += `</div></div>`;
+    snapsSection.innerHTML = snapsHTML;
+
+    // === GROMMET PLACEMENT ===
+    const frontDrop = F2A - FC;
+    const grommetHeightFromBottom = Math.round(frontDrop / 3);
+    const grommetInsetFromEdge = 5;
+    const bungeeLength = D + grommetInsetFromEdge * 2 + 10;
+
+    const grommetsSection = document.getElementById('grommets');
+    grommetsSection.innerHTML = `
+      <div class="row" style="display:block; padding:8px 0;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span>Height from bottom edge of fabric</span><strong>${grommetHeightFromBottom} in</strong>
+        </div>
+        <div style="font-size:11px;color:var(--sub);margin-top:4px;">
+          1/3 of front drop: (F2A − FC) ÷ 3 = (${F2A} − ${FC}) ÷ 3 ≈ ${grommetHeightFromBottom}"
+        </div>
+      </div>
+      <div class="row" style="display:block; padding:8px 0; border-top:1px dashed var(--muted);">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span>Inset from front/back edges</span><strong>${grommetInsetFromEdge} in</strong>
+        </div>
+      </div>
+      <div class="row" style="display:block; padding:8px 0; border-top:1px dashed var(--muted);">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span>Grommets total</span><strong>4 (outer edges only)</strong>
+        </div>
+        <div style="font-size:11px;color:var(--sub);margin-top:4px;">
+          2 on left panel's outer edge (front &amp; back), 2 on right panel's outer edge (front &amp; back).<br/>
+          No grommets on joining/snap edges.
+        </div>
+      </div>
+      <div class="row" style="display:block; padding:8px 0; border-top:1px dashed var(--muted);">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span>Bungee length (each outer side)</span><strong>${fmtExact(bungeeLength)} in</strong>
+        </div>
+      </div>
+    `;
+
+    // === DRAW DIAGRAMS ===
+    const payload = {B, ML, MW, W, WB, BR, D, AT2F, H, F2A, F2BS, FC, hem, snapOverlap,
+      backDrop, frontExtDrop, frontWidth, confirmCoverageWidth, backWidth,
+      startCutFromCenterLine, totalLength: ML, rounded, panelCount, panelWidth,
+      sidePanelsNeeded: false, sideEach: 0};
+    drawDiagram(payload);
+    drawAssemblyDiagramSide(payload);
+    drawAssemblyAllPanels(payload);
+
+    const exp = document.getElementById('exportPng');
+    if (exp && !exp._wired){ exp._wired = true; exp.addEventListener('click', exportDiagramPNG); }
+
+    document.getElementById('err').style.display = 'none';
+  } catch (e) {
+    const err = document.getElementById('err');
+    err.style.display = 'block';
+    err.textContent = 'Error: ' + e.message;
+    console.error(e);
+  }
+}
+
+function exportDiagramPNG(){
+  const svg = document.getElementById('diagram');
+  const serializer = new XMLSerializer();
+  const source = serializer.serializeToString(svg);
+  const svgBlob = new Blob([source], {type:'image/svg+xml;charset=utf-8'});
+  const url = URL.createObjectURL(svgBlob);
+  const img = new Image();
+  img.onload = function(){
+    const canvas = document.createElement('canvas');
+    canvas.width = svg.viewBox.baseVal.width;
+    canvas.height = svg.viewBox.baseVal.height;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.drawImage(img,0,0);
+    URL.revokeObjectURL(url);
+    const a = document.createElement('a');
+    a.download = 'couch-cover-panel-diagram.png';
+    a.href = canvas.toDataURL('image/png');
+    a.click();
+  };
+  img.src = url;
+}
+
+function exportAsText(){
+  const roundMode = document.getElementById('roundMode').value;
+  const date = new Date().toLocaleDateString();
+  let text = `COUCH COVER CALCULATOR — MULTI-PANEL MFG — RESULTS\n`;
+  text += `Generated: ${date}\n`;
+  text += `Rounding: ${roundMode}\n\n`;
+  text += `INPUTS:\n`;
+  ['B','W','WB','H','D','F2A','F2BS','BR','FC','hem','snapOverlap'].forEach(id => {
+    text += `${id}: ${parseNum(id)}\n`;
+  });
+  text += `\nRESULTS:\n`;
+  document.getElementById('results').querySelectorAll('.row').forEach(row => {
+    const mainText = row.querySelector('div:first-child')?.textContent || '';
+    if(mainText) text += `${mainText}\n`;
+  });
+  text += `\nMATERIAL TO BUY:\n`;
+  document.getElementById('buy').querySelectorAll('.row').forEach(row => {
+    const buyText = row.querySelector('div:first-child')?.textContent || '';
+    if(buyText) text += `${buyText}\n`;
+  });
+  const blob = new Blob([text], {type: 'text/plain'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `couch-cover-calc-${date.replace(/\//g,'-')}.txt`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function copyToClipboard(){
+  let text = `COUCH COVER CALCULATOR — MULTI-PANEL MFG\n`;
+  text += `Inputs: B=${parseNum('B')}, W=${parseNum('W')}, WB=${parseNum('WB')}, H=${parseNum('H')}, D=${parseNum('D')}, F2A=${parseNum('F2A')}, F2BS=${parseNum('F2BS')}, BR=${parseNum('BR')}, FC=${parseNum('FC')}, hem=${parseNum('hem')}, snapOverlap=${parseNum('snapOverlap')}\n\n`;
+  document.getElementById('results').querySelectorAll('.row').forEach(row => {
+    const mainDiv = row.querySelector('div:first-child');
+    if(mainDiv) text += `${mainDiv.textContent}\n`;
+  });
+  navigator.clipboard.writeText(text).then(() => alert('Copied!')).catch(() => alert('Copy failed.'));
+}
+
+function printPage(){ window.print(); }
+
+function saveInputs(){
+  const fields = ['B', 'W', 'WB', 'H', 'D', 'F2A', 'F2BS', 'BR', 'FC', 'hem', 'snapOverlap'];
+  const values = {};
+  fields.forEach(field => {
+    const el = document.getElementById(field);
+    if (el) values[field] = el.value;
+  });
+  values.roundMode = document.getElementById('roundMode').value;
+  localStorage.setItem('couchCoverMFGInputs', JSON.stringify(values));
+}
+
+function loadSavedInputs(){
+  try {
+    const saved = localStorage.getItem('couchCoverMFGInputs');
+    if (saved) {
+      const values = JSON.parse(saved);
+      Object.entries(values).forEach(([field, value]) => {
+        if (field === 'roundMode') {
+          document.getElementById('roundMode').value = value;
+        } else {
+          const el = document.getElementById(field);
+          if (el) el.value = value;
+        }
+      });
+      return true;
+    }
+  } catch (e) { console.error('Error loading saved inputs:', e); }
+  return false;
+}
+
+function loadFromURL(){
+  const params = new URLSearchParams(window.location.search);
+  const fields = ['B', 'W', 'WB', 'H', 'D', 'F2A', 'F2BS', 'BR', 'FC', 'hem', 'snapOverlap'];
+  let loaded = false;
+  fields.forEach(field => {
+    const value = params.get(field);
+    if (value !== null) {
+      const el = document.getElementById(field);
+      if (el) { el.value = value; loaded = true; }
+    }
+  });
+  return loaded;
+}
+
+function wire(){
+  const wasLoadedFromURL = loadFromURL();
+  if (wasLoadedFromURL) {
+    saveInputs();
+  } else {
+    loadSavedInputs();
+  }
+
+  const inputsCard = document.getElementById('inputsCard');
+  ['input','change','keyup'].forEach(ev => {
+    inputsCard.addEventListener(ev, () => { compute(); saveInputs(); });
+  });
+  document.getElementById('roundMode').addEventListener('change', () => { saveInputs(); compute(); });
+
+  document.getElementById('recalc').addEventListener('click', compute);
+  document.getElementById('resetBtn').addEventListener('click', ()=>{
+    const defaults = {B:54, W:84, WB:84, H:34, D:30, F2A:26, F2BS:18, BR:4, FC:3, hem:1, snapOverlap:2};
+    Object.entries(defaults).forEach(([id,val])=>{ const el=document.getElementById(id); if(el) el.value=val; });
+    document.getElementById('roundMode').value = 'whole';
+    compute();
+    saveInputs();
+  });
+  document.getElementById('exportTxt').addEventListener('click', exportAsText);
+  document.getElementById('printPage').addEventListener('click', printPage);
+  document.getElementById('copyResults').addEventListener('click', copyToClipboard);
+
+  compute();
+}
+
+document.addEventListener('DOMContentLoaded', wire);
+</script>
+</body>
+</html>

@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Junction V2 — Corner Assembly View</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0f172a; color: #e2e8f0; padding: 16px; }
+  h1 { font-size: 1.2rem; margin-bottom: 4px; color: #38bdf8; }
+  .subtitle { font-size: 0.85rem; color: #94a3b8; margin-bottom: 12px; }
+  .main { display: flex; gap: 12px; flex-wrap: wrap; }
+  .canvas-wrap { flex: 1 1 700px; min-width: 500px; }
+  .sidebar { flex: 0 0 280px; }
+  .panel { background: #1e293b; border-radius: 10px; padding: 14px; margin-bottom: 12px; }
+  canvas { width: 100%; border-radius: 8px; background: #ffffff; display: block; }
+  .section-title { font-size: 0.85rem; color: #38bdf8; font-weight: 600; margin-top: 10px; margin-bottom: 4px; border-bottom: 1px solid #334155; padding-bottom: 3px; }
+  .section-title:first-child { margin-top: 0; }
+  label { display: block; font-size: 0.78rem; color: #94a3b8; margin-top: 8px; }
+  input[type=range] { width: 100%; margin: 3px 0; accent-color: #38bdf8; }
+  .val { color: #e2e8f0; font-weight: 600; }
+  .btn { padding: 5px 12px; border-radius: 6px; border: 1px solid #334155; background: #1e293b; color: #e2e8f0; cursor: pointer; font-size: 0.78rem; margin: 2px; }
+  .btn:hover { background: #334155; }
+  .btn.active { background: #0ea5e9; border-color: #0ea5e9; color: #fff; }
+  .btn-row { display: flex; gap: 4px; flex-wrap: wrap; }
+  .info-box { background: #0f172a; border-radius: 6px; padding: 10px; margin-top: 8px; font-size: 0.78rem; line-height: 1.6; }
+  .info-box strong { color: #38bdf8; }
+  .status { font-size: 0.78rem; padding: 8px; border-radius: 6px; margin-top: 8px; line-height: 1.5; }
+  .status-good { background: rgba(34,197,94,0.15); color: #4ade80; border: 1px solid rgba(34,197,94,0.25); }
+</style>
+</head>
+<body>
+<h1>Junction V2 — Corner Assembly</h1>
+<p class="subtitle">Top-down: templates + corrected junction piece at the material corner</p>
+
+<div class="main">
+  <div class="canvas-wrap">
+    <div class="panel" style="padding:8px;">
+      <canvas id="cv" height="750"></canvas>
+    </div>
+  </div>
+  <div class="sidebar">
+    <div class="panel">
+      <div class="section-title">View</div>
+      <div class="btn-row">
+        <button class="btn active" id="btnCorner" onclick="setView('corner')">At Corner</button>
+        <button class="btn" id="btnFlat" onclick="setView('flat')">Flat (Unrolled)</button>
+      </div>
+
+      <div class="section-title">Templates</div>
+      <label>Side templates: <span class="val" id="vST">3</span></label>
+      <input type="range" id="sST" min="1" max="6" value="3" step="1">
+      <label>Diagonal templates: <span class="val" id="vDT">3</span></label>
+      <input type="range" id="sDT" min="1" max="6" value="3" step="1">
+
+      <div class="section-title">Material Corner</div>
+      <label>Show material edge: </label>
+      <div class="btn-row">
+        <button class="btn active" id="btnMatOn" onclick="toggleMat(true)">On</button>
+        <button class="btn" id="btnMatOff" onclick="toggleMat(false)">Off</button>
+      </div>
+
+      <div id="statusBox" class="status status-good"></div>
+
+      <div class="info-box">
+        <strong>V2 Corrected Junction:</strong><br>
+        Arc radius: <strong id="dispR">6.32</strong>"<br>
+        Path length: exactly 6.467" = 1 half-wave<br>
+        Extensions: 0.75" each end<br>
+        Turn: 45°<br><br>
+        <strong>What changed:</strong><br>
+        Old R=5.0" → path=5.43" (0.84 half-waves) → mismatch<br>
+        New R=6.32" → path=6.467" (1.00 half-waves) → perfect<br><br>
+        <strong>Color key:</strong><br>
+        <span style="color:#22c55e">■</span> Side templates (run along side edge)<br>
+        <span style="color:#3b82f6">■</span> Junction piece (turns the corner)<br>
+        <span style="color:#f59e0b">■</span> Diagonal templates (across corner)<br>
+        <span style="color:#94a3b8">—</span> Fabric/material edge<br>
+        <span style="color:#dc2626;opacity:0.3">■</span> Material corner (cutaway triangle)
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// === WAVE PROFILE ===
+const WAVE_HALF = [
+  [0.0,1.0],[0.01515,0.9989],[0.0303,0.99551],[0.04546,0.98992],[0.06061,0.98212],
+  [0.07576,0.97208],[0.09091,0.95988],[0.10606,0.94555],[0.12122,0.92909],[0.13636,0.91051],
+  [0.15151,0.88991],[0.16666,0.86731],[0.18182,0.84279],[0.19697,0.81637],[0.21212,0.7881],
+  [0.22727,0.7581],[0.24242,0.72636],[0.25758,0.69301],[0.27273,0.65809],[0.28788,0.62171],
+  [0.30303,0.58391],[0.31818,0.54482],[0.33334,0.50454],[0.34849,0.46308],[0.36364,0.42053],
+  [0.37879,0.37701],[0.39394,0.33259],[0.4091,0.28741],[0.42424,0.24156],[0.43939,0.19516],
+  [0.45454,0.14833],[0.4697,0.10118],[0.48484,0.05382],[0.5,0.00636],[0.51515,-0.04111],
+  [0.53030,-0.08847],[0.54546,-0.13563],[0.56061,-0.18247],[0.57576,-0.22886],[0.59091,-0.27471],
+  [0.60606,-0.31989],[0.62122,-0.36429],[0.63636,-0.40783],[0.65151,-0.45038],[0.66666,-0.49181],
+  [0.68182,-0.53205],[0.69697,-0.57097],[0.71212,-0.60849],[0.72727,-0.64453],[0.74242,-0.67901],
+  [0.75758,-0.71185],[0.77273,-0.743],[0.78788,-0.7724],[0.80303,-0.80003],[0.81818,-0.82586],
+  [0.83334,-0.84982],[0.84849,-0.87193],[0.86364,-0.89214],[0.87879,-0.91043],[0.89394,-0.9268],
+  [0.9091,-0.94124],[0.92424,-0.95373],[0.93939,-0.96429],[0.95454,-0.97291],[0.9697,-0.97961],
+  [0.98484,-0.98442],[1.0,-1.0]
+];
+const HALF_WL = 6.467;
+const FULL_WL = 2 * HALF_WL;
+const AMP = 1.0;
+const WAVE_CENTER = 2.0;
+const EXT = 0.75;
+const TURN_DEG = 45;
+const TURN_RAD = TURN_DEG * Math.PI / 180;
+const NEW_R = (HALF_WL - 2 * EXT) / TURN_RAD;
+
+let viewMode = 'corner';
+let showMaterial = true;
+
+function setView(m) {
+  viewMode = m;
+  document.getElementById('btnCorner').classList.toggle('active', m==='corner');
+  document.getElementById('btnFlat').classList.toggle('active', m==='flat');
+  draw();
+}
+function toggleMat(on) {
+  showMaterial = on;
+  document.getElementById('btnMatOn').classList.toggle('active', on);
+  document.getElementById('btnMatOff').classList.toggle('active', !on);
+  draw();
+}
+
+function interpWave(t) {
+  if (t <= 0) return WAVE_HALF[0][1];
+  if (t >= 1) return WAVE_HALF[WAVE_HALF.length-1][1];
+  for (let i = 1; i < WAVE_HALF.length; i++) {
+    if (WAVE_HALF[i][0] >= t) {
+      const t0 = WAVE_HALF[i-1][0], t1 = WAVE_HALF[i][0];
+      const w0 = WAVE_HALF[i-1][1], w1 = WAVE_HALF[i][1];
+      return w0 + (t - t0) / (t1 - t0) * (w1 - w0);
+    }
+  }
+  return WAVE_HALF[WAVE_HALF.length-1][1];
+}
+function waveAt(dist) {
+  let d = ((dist % FULL_WL) + FULL_WL) % FULL_WL;
+  const inSecondHalf = d >= HALF_WL;
+  const t = inSecondHalf ? (d - HALF_WL) / HALF_WL : d / HALF_WL;
+  let w = interpWave(t);
+  if (inSecondHalf) w = -w;
+  return w * AMP;
+}
+function waveWidth(dist) { return WAVE_CENTER + waveAt(dist); }
+
+// Sliders
+['sST','sDT'].forEach(id => {
+  document.getElementById(id).oninput = function() {
+    document.getElementById('v' + id.slice(1)).textContent = this.value;
+    draw();
+  };
+});
+
+document.getElementById('dispR').textContent = NEW_R.toFixed(2);
+
+const cv = document.getElementById('cv');
+const ctx = cv.getContext('2d');
+
+// Build straight piece in local coords (travel +X)
+// Wave edge at Y=0 (material edge), fabric extends in -Y (into material)
+function straightPiece(length, cumDist) {
+  const N = 100;
+  const fab = [], wave = [];
+  for (let i = 0; i <= N; i++) {
+    const t = i / N;
+    const x = t * length;
+    const d = cumDist + t * length;
+    wave.push([x, 0]);
+    fab.push([x, -waveWidth(d)]);
+  }
+  return { fab, wave };
+}
+
+// Build junction piece in local coords
+function junctionPiece(arcR, turnRad, cumDist) {
+  const N_E = 15, N_A = 100;
+  const fab = [], wave = [];
+
+  // Entry extension — wave at Y=0 (material edge), fab extends in -Y
+  for (let i = 0; i <= N_E; i++) {
+    const t = i / N_E;
+    const x = t * EXT;
+    const d = cumDist + t * EXT;
+    wave.push([x, 0]);
+    fab.push([x, -waveWidth(d)]);
+  }
+
+  const cx = EXT, cy = arcR;  // center on wave side (above fabric edge)
+  const startAng = -Math.PI / 2;  // pointing from center toward fabric edge
+  const arcLen = arcR * turnRad;
+
+  for (let i = 1; i <= N_A; i++) {
+    const t = i / N_A;
+    const theta = startAng + turnRad * t;  // counterclockwise
+    const fx = cx + arcR * Math.cos(theta);
+    const fy = cy + arcR * Math.sin(theta);
+    const d = cumDist + EXT + arcLen * t;
+    // Outward = radially inward (toward center), since fabric is on inside of curve
+    const outX = -Math.cos(theta);
+    const outY = -Math.sin(theta);
+    const ww = waveWidth(d);
+    // Wave at path point (material edge), fabric extends opposite to outward
+    wave.push([fx, fy]);
+    fab.push([fx - outX * ww, fy - outY * ww]);
+  }
+
+  const exitTheta = startAng + turnRad;
+  const exitFx = cx + arcR * Math.cos(exitTheta);
+  const exitFy = cy + arcR * Math.sin(exitTheta);
+  const exitDirX = -Math.sin(exitTheta);
+  const exitDirY = Math.cos(exitTheta);
+
+  for (let i = 1; i <= N_E; i++) {
+    const t = i / N_E;
+    const px = exitFx + exitDirX * EXT * t;
+    const py = exitFy + exitDirY * EXT * t;
+    const d = cumDist + EXT + arcLen + t * EXT;
+    const outX = -Math.cos(exitTheta);
+    const outY = -Math.sin(exitTheta);
+    const ww = waveWidth(d);
+    // Wave at path point (material edge), fabric extends opposite
+    wave.push([px, py]);
+    fab.push([px - outX * ww, py - outY * ww]);
+  }
+
+  const totalLen = EXT + arcLen + EXT;
+  const endWave = wave[wave.length-1];
+  return { fab, wave, totalLen, exitDirX, exitDirY, exitOutX: -Math.cos(exitTheta), exitOutY: -Math.sin(exitTheta), endWave };
+}
+
+function xform(pts, angle, tx, ty) {
+  const c = Math.cos(angle), s = Math.sin(angle);
+  return pts.map(([x,y]) => [x*c - y*s + tx, x*s + y*c + ty]);
+}
+
+function drawPieceOutline(fab, wave, fillColor, waveColor, lw, alpha) {
+  ctx.globalAlpha = alpha;
+  ctx.fillStyle = fillColor;
+  ctx.globalAlpha = alpha * 0.2;
+  ctx.beginPath();
+  ctx.moveTo(fab[0][0], fab[0][1]);
+  for (let i = 1; i < fab.length; i++) ctx.lineTo(fab[i][0], fab[i][1]);
+  for (let i = wave.length-1; i >= 0; i--) ctx.lineTo(wave[i][0], wave[i][1]);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.globalAlpha = alpha;
+  ctx.strokeStyle = '#6b7280';
+  ctx.lineWidth = lw * 0.7;
+  ctx.beginPath();
+  ctx.moveTo(fab[0][0], fab[0][1]);
+  for (let i = 1; i < fab.length; i++) ctx.lineTo(fab[i][0], fab[i][1]);
+  ctx.stroke();
+
+  ctx.strokeStyle = waveColor;
+  ctx.lineWidth = lw;
+  ctx.beginPath();
+  ctx.moveTo(wave[0][0], wave[0][1]);
+  for (let i = 1; i < wave.length; i++) ctx.lineTo(wave[i][0], wave[i][1]);
+  ctx.stroke();
+
+  ctx.strokeStyle = '#9ca3af';
+  ctx.lineWidth = lw * 0.5;
+  ctx.beginPath(); ctx.moveTo(fab[0][0], fab[0][1]); ctx.lineTo(wave[0][0], wave[0][1]); ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(fab[fab.length-1][0], fab[fab.length-1][1]);
+  ctx.lineTo(wave[wave.length-1][0], wave[wave.length-1][1]);
+  ctx.stroke();
+
+  ctx.globalAlpha = 1;
+}
+
+function drawLabel(fab, wave, text, color, size) {
+  const mi = Math.floor(fab.length / 2);
+  const cx = (fab[mi][0] + wave[mi][0]) / 2;
+  const cy = (fab[mi][1] + wave[mi][1]) / 2;
+  ctx.fillStyle = color;
+  ctx.font = `bold ${size}px system-ui`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(text, cx, cy);
+}
+
+function draw() {
+  const dpr = window.devicePixelRatio || 1;
+  const W = cv.clientWidth;
+  const H = 750;
+  cv.width = W * dpr; cv.height = H * dpr;
+  cv.style.height = H + 'px';
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, W, H);
+
+  const nSide = +document.getElementById('sST').value;
+  const nDiag = +document.getElementById('sDT').value;
+
+  if (viewMode === 'corner') drawAtCorner(W, H, nSide, nDiag);
+  else drawFlat(W, H, nSide, nDiag);
+}
+
+function drawAtCorner(W, H, nSide, nDiag) {
+  const margin = 50;
+  const sideRot = Math.PI / 2;
+  let cumDist = 0;
+  const pieces = [];
+
+  // Side templates (going downward)
+  for (let i = 0; i < nSide; i++) {
+    const sp = straightPiece(HALF_WL, cumDist);
+    pieces.push({
+      fab: xform(sp.fab, sideRot, 0, i * HALF_WL),
+      wave: xform(sp.wave, sideRot, 0, i * HALF_WL),
+      color: '#22c55e', label: (i % 2 === 0) ? 'A' : 'B', type: 'side'
+    });
+    cumDist += HALF_WL;
+  }
+
+  // Junction
+  const juncY = nSide * HALF_WL;
+  const junc = junctionPiece(NEW_R, TURN_RAD, cumDist);
+  pieces.push({
+    fab: xform(junc.fab, sideRot, 0, juncY),
+    wave: xform(junc.wave, sideRot, 0, juncY),
+    color: '#3b82f6', label: 'JUNCTION', type: 'junction'
+  });
+  cumDist += junc.totalLen;
+
+  // Compute exit in world coords
+  const jEnd = xform([junc.endWave], sideRot, 0, juncY)[0];
+  const cs = Math.cos(sideRot), ss = Math.sin(sideRot);
+  const wExitDirX = junc.exitDirX * cs - junc.exitDirY * ss;
+  const wExitDirY = junc.exitDirX * ss + junc.exitDirY * cs;
+  const diagAngle = Math.atan2(wExitDirY, wExitDirX);
+
+  let dx = jEnd[0], dy = jEnd[1];
+  for (let i = 0; i < nDiag; i++) {
+    const dp = straightPiece(HALF_WL, cumDist);
+    pieces.push({
+      fab: xform(dp.fab, diagAngle, dx, dy),
+      wave: xform(dp.wave, diagAngle, dx, dy),
+      color: '#f59e0b', label: (i % 2 === 0) ? 'A' : 'B', type: 'diag'
+    });
+    cumDist += HALF_WL;
+    dx += Math.cos(diagAngle) * HALF_WL;
+    dy += Math.sin(diagAngle) * HALF_WL;
+  }
+
+  // Bounding box
+  let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+  for (const p of pieces) {
+    for (const arr of [p.fab, p.wave]) {
+      for (const [x,y] of arr) {
+        minX = Math.min(minX, x); maxX = Math.max(maxX, x);
+        minY = Math.min(minY, y); maxY = Math.max(maxY, y);
+      }
+    }
+  }
+  const pad = 3;
+  minX -= pad; maxX += pad; minY -= pad; maxY += pad;
+  const rangeX = maxX - minX, rangeY = maxY - minY;
+  const scale = Math.min((W - 2*margin) / rangeX, (H - 2*margin) / rangeY);
+  const ox = margin + ((W - 2*margin) - rangeX * scale) / 2;
+  const oy = margin + ((H - 2*margin) - rangeY * scale) / 2;
+  const tx = x => ox + (x - minX) * scale;
+  const ty = y => oy + (y - minY) * scale;
+
+  // Grid
+  ctx.strokeStyle = '#f1f5f9'; ctx.lineWidth = 0.5;
+  for (let x = Math.floor(minX); x <= Math.ceil(maxX); x++) {
+    ctx.beginPath(); ctx.moveTo(tx(x), ty(minY)); ctx.lineTo(tx(x), ty(maxY)); ctx.stroke();
+  }
+  for (let y = Math.floor(minY); y <= Math.ceil(maxY); y++) {
+    ctx.beginPath(); ctx.moveTo(tx(minX), ty(y)); ctx.lineTo(tx(maxX), ty(y)); ctx.stroke();
+  }
+
+  // Material corner (the actual edge of the countertop/material)
+  if (showMaterial) {
+    // The material edge runs along X=0 going down (side), then turns at the corner
+    // The diagonal cut goes from the junction start toward the end of the diagonal templates
+    // Material: side edge is at X=0 (the fabric edge of side templates)
+    // Front edge extends horizontally from the corner
+    // The diagonal is cut across the corner
+
+    // Side edge: vertical line at X=0
+    const sideTop = 0;
+    const sideBottom = juncY + EXT; // where the junction starts turning
+    const cornerY = juncY + HALF_WL * 0.5; // approximate corner point
+
+    // Draw the material as a filled region
+    ctx.fillStyle = 'rgba(148, 163, 184, 0.08)';
+    ctx.strokeStyle = '#94a3b8';
+    ctx.lineWidth = 2;
+
+    // Side edge line (vertical)
+    ctx.beginPath();
+    ctx.moveTo(tx(0), ty(-2));
+    ctx.lineTo(tx(0), ty(juncY + HALF_WL));
+    ctx.stroke();
+
+    // The diagonal cut line on the material
+    // The junction's wave edge traces the arc at the material edge
+    const juncWavePts = pieces.find(p => p.type === 'junction').wave;
+    ctx.strokeStyle = '#dc2626';
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([6, 4]);
+    ctx.beginPath();
+    ctx.moveTo(tx(juncWavePts[0][0]), ty(juncWavePts[0][1]));
+    for (let i = 1; i < juncWavePts.length; i++) {
+      ctx.lineTo(tx(juncWavePts[i][0]), ty(juncWavePts[i][1]));
+    }
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Front edge (following the diagonal direction along the wave/material edge)
+    const lastDiag = pieces[pieces.length - 1];
+    ctx.strokeStyle = '#94a3b8';
+    ctx.lineWidth = 2;
+    // Draw from junction exit along the diagonal wave edge (material edge)
+    const diagWaveFirst = pieces.find(p => p.type === 'diag')?.wave[0];
+    const diagWaveLast = lastDiag.wave[lastDiag.wave.length - 1];
+    if (diagWaveFirst) {
+      ctx.beginPath();
+      ctx.moveTo(tx(diagWaveFirst[0] - Math.cos(diagAngle) * 1), ty(diagWaveFirst[1] - Math.sin(diagAngle) * 1));
+      ctx.lineTo(tx(diagWaveLast[0] + Math.cos(diagAngle) * 2), ty(diagWaveLast[1] + Math.sin(diagAngle) * 2));
+      ctx.stroke();
+    }
+
+    // Corner annotation
+    ctx.fillStyle = 'rgba(220, 38, 38, 0.1)';
+    const cornerX = 0;
+    const juncMidIdx = Math.floor(juncWavePts.length / 2);
+    const cornerPt = juncWavePts[juncMidIdx];
+    ctx.beginPath();
+    ctx.arc(tx(cornerPt[0]), ty(cornerPt[1]), 15, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#dc2626';
+    ctx.font = '10px system-ui';
+    ctx.textAlign = 'left';
+    ctx.fillText('material corner', tx(cornerPt[0]) + 18, ty(cornerPt[1]) + 4);
+  }
+
+  // Draw pieces
+  for (const p of pieces) {
+    const sf = p.fab.map(([x,y]) => [tx(x), ty(y)]);
+    const sw = p.wave.map(([x,y]) => [tx(x), ty(y)]);
+    drawPieceOutline(sf, sw, p.color, p.color, 2.5, 1);
+    drawLabel(sf, sw, p.label, p.color, p.type === 'junction' ? 10 : 13);
+  }
+
+  // Continuity check markers at piece boundaries
+  ctx.font = 'bold 14px system-ui';
+  for (let i = 0; i < pieces.length - 1; i++) {
+    const p1 = pieces[i];
+    const p2 = pieces[i+1];
+    // End of p1
+    const e1w = p1.wave[p1.wave.length-1];
+    // Start of p2
+    const s2w = p2.wave[0];
+
+    const dist = Math.sqrt((e1w[0]-s2w[0])**2 + (e1w[1]-s2w[1])**2);
+    const good = dist < 0.5; // less than 0.5" gap
+    const mx = (tx(e1w[0]) + tx(s2w[0])) / 2;
+    const my = (ty(e1w[1]) + ty(s2w[1])) / 2;
+
+    ctx.beginPath();
+    ctx.arc(mx, my, 8, 0, Math.PI*2);
+    ctx.fillStyle = good ? 'rgba(34,197,94,0.3)' : 'rgba(239,68,68,0.3)';
+    ctx.fill();
+    ctx.fillStyle = good ? '#16a34a' : '#dc2626';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(good ? '✓' : '!', mx, my);
+  }
+
+  // Side direction arrow
+  ctx.strokeStyle = '#22c55e';
+  ctx.lineWidth = 1.5;
+  const arrowX = -2;
+  ctx.beginPath();
+  ctx.moveTo(tx(arrowX), ty(0.5));
+  ctx.lineTo(tx(arrowX), ty(nSide * HALF_WL - 0.5));
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(tx(arrowX), ty(nSide * HALF_WL - 0.5));
+  ctx.lineTo(tx(arrowX - 0.3), ty(nSide * HALF_WL - 1.5));
+  ctx.stroke();
+  ctx.moveTo(tx(arrowX), ty(nSide * HALF_WL - 0.5));
+  ctx.lineTo(tx(arrowX + 0.3), ty(nSide * HALF_WL - 1.5));
+  ctx.stroke();
+
+  ctx.save();
+  ctx.translate(tx(arrowX - 0.5), ty(nSide * HALF_WL / 2));
+  ctx.rotate(-Math.PI/2);
+  ctx.fillStyle = '#22c55e'; ctx.font = '11px system-ui'; ctx.textAlign = 'center';
+  ctx.fillText(`SIDE (${nSide}× = ${(nSide * HALF_WL).toFixed(1)}")`, 0, 0);
+  ctx.restore();
+
+  // Diagonal direction label
+  const diagMidX = (jEnd[0] + dx) / 2;
+  const diagMidY = (jEnd[1] + dy) / 2;
+  const diagPerpX = -Math.sin(diagAngle);
+  const diagPerpY = Math.cos(diagAngle);
+  ctx.save();
+  ctx.translate(tx(diagMidX + diagPerpX * 4), ty(diagMidY + diagPerpY * 4));
+  ctx.rotate(diagAngle);
+  ctx.fillStyle = '#f59e0b'; ctx.font = '11px system-ui'; ctx.textAlign = 'center';
+  ctx.fillText(`DIAGONAL (${nDiag}× = ${(nDiag * HALF_WL).toFixed(1)}")`, 0, 0);
+  ctx.restore();
+
+  // Scale bar
+  const barLen = 5;
+  ctx.strokeStyle = '#6b7280'; ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(tx(maxX - barLen - 1), ty(maxY - 0.5));
+  ctx.lineTo(tx(maxX - 1), ty(maxY - 0.5));
+  ctx.stroke();
+  for (let i = 0; i <= barLen; i++) {
+    ctx.beginPath();
+    ctx.moveTo(tx(maxX - barLen - 1 + i), ty(maxY - 0.7));
+    ctx.lineTo(tx(maxX - barLen - 1 + i), ty(maxY - 0.3));
+    ctx.stroke();
+  }
+  ctx.fillStyle = '#6b7280'; ctx.font = '10px system-ui'; ctx.textAlign = 'center';
+  ctx.fillText('5"', tx(maxX - barLen/2 - 1), ty(maxY - 0.5) - 8);
+
+  // Status
+  const box = document.getElementById('statusBox');
+  box.innerHTML =
+    `Side: ${nSide} templates = ${(nSide*HALF_WL).toFixed(1)}"<br>` +
+    `Junction: R=${NEW_R.toFixed(2)}" (path=${HALF_WL}" = 1 half-wave)<br>` +
+    `Diagonal: ${nDiag} templates = ${(nDiag*HALF_WL).toFixed(1)}"<br>` +
+    `Total path: ${((nSide + 1 + nDiag) * HALF_WL).toFixed(1)}" continuous wave`;
+}
+
+function drawFlat(W, H, nSide, nDiag) {
+  const margin = 50;
+  const totalLen = (nSide + 1 + nDiag) * HALF_WL;
+  const maxWaveW = WAVE_CENTER + AMP + 0.5;
+
+  const scaleY = (H - 2*margin) / totalLen;
+  const scaleX = (W * 0.5) / (maxWaveW + 2);
+  const scale = Math.min(scaleX, scaleY);
+
+  const fabX = margin + maxWaveW * scale + 50;
+  const topY = margin;
+
+  let cumDist = 0;
+  let py = topY;
+
+  function drawStraightDown(cumD, pixY, color, label) {
+    const piece = straightPiece(HALF_WL, cumD);
+    const fab = piece.fab.map(([x,y]) => [fabX, pixY + x * scale]);
+    const wave = piece.fab.map(([x,y], i) => [fabX - piece.wave[i][1] * scale, pixY + x * scale]);
+    drawPieceOutline(fab, wave, color, color, 2.5, 1);
+    drawLabel(fab, wave, label, color, 12);
+    return HALF_WL;
+  }
+
+  function drawJuncFlat(cumD, pixY, color, label) {
+    const totalL = HALF_WL; // corrected junction = exactly 1 half-wave
+    const N = 100;
+    const fab = [], wave = [];
+    for (let i = 0; i <= N; i++) {
+      const t = i / N;
+      const d = cumD + t * totalL;
+      const ww = waveWidth(d);
+      fab.push([fabX, pixY + t * totalL * scale]);
+      wave.push([fabX - ww * scale, pixY + t * totalL * scale]);
+    }
+    drawPieceOutline(fab, wave, color, color, 2.5, 1);
+    drawLabel(fab, wave, label, color, 10);
+    return totalL;
+  }
+
+  // Side templates
+  for (let i = 0; i < nSide; i++) {
+    const len = drawStraightDown(cumDist, py, '#22c55e', (i%2===0) ? 'A' : 'B');
+    cumDist += len;
+    py += len * scale;
+  }
+
+  // Junction
+  const jLen = drawJuncFlat(cumDist, py, '#3b82f6', `JUNCTION (R=${NEW_R.toFixed(1)}")`);
+
+  // Check mark at junction boundaries
+  ctx.fillStyle = '#16a34a'; ctx.font = 'bold 12px system-ui';
+  ctx.textAlign = 'right';
+  ctx.fillText('✓ wave aligned', fabX - (WAVE_CENTER + AMP + 0.5) * scale - 8, py + 5);
+  ctx.fillText('✓ wave aligned', fabX - (WAVE_CENTER + AMP + 0.5) * scale - 8, py + jLen * scale - 5);
+
+  cumDist += jLen;
+  py += jLen * scale;
+
+  // Diagonal templates
+  for (let i = 0; i < nDiag; i++) {
+    const len = drawStraightDown(cumDist, py, '#f59e0b', (i%2===0) ? 'A' : 'B');
+    cumDist += len;
+    py += len * scale;
+  }
+
+  // Boundary lines
+  ctx.setLineDash([4, 3]);
+  ctx.strokeStyle = '#d1d5db';
+  ctx.lineWidth = 1;
+  let bDist = 0;
+  let bPy = topY;
+  for (let i = 0; i < nSide + 1 + nDiag; i++) {
+    ctx.beginPath();
+    ctx.moveTo(fabX - (WAVE_CENTER + AMP + 1) * scale, bPy);
+    ctx.lineTo(fabX + 25, bPy);
+    ctx.stroke();
+    bPy += HALF_WL * scale;
+  }
+  // Final line
+  ctx.beginPath();
+  ctx.moveTo(fabX - (WAVE_CENTER + AMP + 1) * scale, bPy);
+  ctx.lineTo(fabX + 25, bPy);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Labels
+  ctx.fillStyle = '#64748b'; ctx.font = '10px system-ui'; ctx.textAlign = 'left';
+  ctx.fillText('← fabric edge', fabX + 4, topY - 8);
+  ctx.textAlign = 'right';
+  ctx.fillText('wave →', fabX - (WAVE_CENTER + AMP) * scale, topY - 8);
+
+  // Dimension annotations on right
+  ctx.fillStyle = '#22c55e'; ctx.font = '11px system-ui'; ctx.textAlign = 'left';
+  const sideEndPy = topY + nSide * HALF_WL * scale;
+  ctx.fillText(`${nSide}× ${HALF_WL}" = ${(nSide*HALF_WL).toFixed(1)}"`, fabX + 14, topY + (sideEndPy - topY) / 2);
+
+  ctx.fillStyle = '#3b82f6';
+  ctx.fillText(`${HALF_WL}" (1 half-wave)`, fabX + 14, sideEndPy + HALF_WL * scale / 2);
+
+  ctx.fillStyle = '#f59e0b';
+  const diagStartPy = sideEndPy + HALF_WL * scale;
+  ctx.fillText(`${nDiag}× ${HALF_WL}" = ${(nDiag*HALF_WL).toFixed(1)}"`, fabX + 14, diagStartPy + (nDiag * HALF_WL * scale) / 2);
+
+  // Status
+  const box = document.getElementById('statusBox');
+  box.innerHTML =
+    `<strong style="color:#38bdf8">Flat layout (unrolled):</strong><br>` +
+    `Each piece = ${HALF_WL}" = exactly 1 half-wave<br>` +
+    `All boundaries align → continuous wave<br>` +
+    `Total: ${(nSide + 1 + nDiag)} pieces = ${((nSide+1+nDiag)*HALF_WL).toFixed(1)}"`;
+}
+
+window.addEventListener('resize', draw);
+draw();
+</script>
+</body>
+</html>
