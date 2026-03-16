@@ -118,7 +118,39 @@ export default function DesignPage() {
           ))}
         </div>
 
-        {/* Professional Measurement Service Banner - moved into the grid above */}
+        {/* Professional Measurement Service Banner */}
+        <div className="mt-8 mb-8">
+          <Link href="/measurement-service" className="block">
+            <div className="bg-gradient-to-r from-yellow-50 to-yellow-100 border-2 border-yellow-400 rounded-xl p-6 hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
+              <div className="flex flex-col md:flex-row items-center justify-between">
+                <div className="flex items-center mb-4 md:mb-0">
+                  <div className="text-5xl mr-6">📏</div>
+                  <div>
+                    <div className="flex items-center gap-3 mb-2">
+                      <h3 className="text-2xl font-bold text-gray-900">Professional Measurement Service</h3>
+                      <span className="bg-yellow-500 text-gray-900 px-3 py-1 rounded-full text-sm font-semibold">
+                        Local Service
+                      </span>
+                    </div>
+                    <p className="text-gray-700">
+                      <span className="font-semibold">Within Monmouth County</span> •
+                      We&apos;ll measure your furniture and create your perfect custom order
+                    </p>
+                  </div>
+                </div>
+                <div className="flex flex-col items-center md:items-end">
+                  <span className="text-2xl font-bold text-gray-900 mb-2">$75</span>
+                  <span className="bg-yellow-600 text-white px-6 py-2 rounded-full font-semibold hover:bg-yellow-700 transition-colors inline-flex items-center">
+                    Book Now
+                    <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </Link>
+        </div>
 
         {/* Help Section */}
         <div className="mt-12 text-center p-6 bg-[#FAF5ED] rounded-lg">
