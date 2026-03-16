@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getMeasurementLabel } from '@/lib/measurement-labels';
 
 export async function POST(request: NextRequest) {
   try {
@@ -22,9 +23,9 @@ export async function POST(request: NextRequest) {
         properties: [
           { name: 'Product Type', value: item.productType },
           { name: 'Color', value: item.selectedColor },
-          { name: 'Width', value: `${item.measurements?.width || 0}"` },
-          { name: 'Length', value: `${item.measurements?.length || 0}"` },
-          { name: 'Height', value: `${item.measurements?.height || 0}"` }
+          { name: getMeasurementLabel(item.productType, 'width'), value: `${item.measurements?.width || 0}"` },
+          { name: getMeasurementLabel(item.productType, 'length'), value: `${item.measurements?.length || 0}"` },
+          { name: getMeasurementLabel(item.productType, 'height'), value: `${item.measurements?.height || 0}"` }
         ]
       });
       

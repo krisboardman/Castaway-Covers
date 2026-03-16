@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { Resend } from 'resend';
+import { getMeasurementLabel } from '@/lib/measurement-labels';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -27,10 +28,12 @@ export async function POST(request: Request) {
       if (item.handles) addOns.push('Handles (+$20)');
       if (item.magnets) addOns.push('Split Cover with Snaps (+$35)');
 
-      // Determine if this is a sofa/loveseat (uses "Depth" instead of "Length")
-      const isSofa = item.productType === 'sofas-loveseats';
-      const lengthLabel = isSofa ? 'Depth' : 'Length';
-      const widthLabel = isSofa ? 'Length' : 'Width';
+      // Use shared labels so the email matches what the customer saw on the product page
+      const wLabel = getMeasurementLabel(item.productType, 'width');
+      const lLabel = getMeasurementLabel(item.productType, 'length');
+      const hLabel = getMeasurementLabel(item.productType, 'height');
+      const brLabel = getMeasurementLabel(item.productType, 'backrestDepth');
+      const arLabel = getMeasurementLabel(item.productType, 'armrestHeight');
 
       return `
 Item ${index + 1}: ${item.productType}
@@ -41,11 +44,11 @@ Quantity: ${item.quantity}
 Yards: ${item.yards}
 
 Measurements:
-  ${widthLabel}: ${item.measurements?.width || 0}"
-  ${lengthLabel}: ${item.measurements?.length || 0}"
-  Height: ${item.measurements?.height || 0}"
-  ${item.measurements?.backrestDepth ? `Backrest Depth: ${item.measurements.backrestDepth}"` : ''}
-  ${item.measurements?.armrestHeight ? `Armrest Height: ${item.measurements.armrestHeight}"` : ''}
+  ${wLabel}: ${item.measurements?.width || 0}"
+  ${lLabel}: ${item.measurements?.length || 0}"
+  ${hLabel}: ${item.measurements?.height || 0}"
+  ${item.measurements?.backrestDepth ? `${brLabel}: ${item.measurements.backrestDepth}"` : ''}
+  ${item.measurements?.armrestHeight ? `${arLabel}: ${item.measurements.armrestHeight}"` : ''}
   ${item.angle ? `Angle: ${item.angle}°` : ''}
 
 Add-ons: ${addOns.length > 0 ? addOns.join(', ') : 'None'}
@@ -84,9 +87,11 @@ NEXT STEPS:
       if (item.handles) addOns.push('Handles (+$20)');
       if (item.magnets) addOns.push('Split Cover with Snaps (+$35)');
 
-      const isSofa = item.productType === 'sofas-loveseats';
-      const lengthLabel = isSofa ? 'Depth' : 'Length';
-      const widthLabel = isSofa ? 'Length' : 'Width';
+      const wLabel2 = getMeasurementLabel(item.productType, 'width');
+      const lLabel2 = getMeasurementLabel(item.productType, 'length');
+      const hLabel2 = getMeasurementLabel(item.productType, 'height');
+      const brLabel2 = getMeasurementLabel(item.productType, 'backrestDepth');
+      const arLabel2 = getMeasurementLabel(item.productType, 'armrestHeight');
 
       return `
 Item ${index + 1}: ${item.productType}
@@ -97,11 +102,11 @@ Quantity: ${item.quantity}
 Yards: ${item.yards}
 
 Measurements:
-  ${widthLabel}: ${item.measurements?.width || 0}"
-  ${lengthLabel}: ${item.measurements?.length || 0}"
-  Height: ${item.measurements?.height || 0}"
-  ${item.measurements?.backrestDepth ? `Backrest Depth: ${item.measurements.backrestDepth}"` : ''}
-  ${item.measurements?.armrestHeight ? `Armrest Height: ${item.measurements.armrestHeight}"` : ''}
+  ${wLabel2}: ${item.measurements?.width || 0}"
+  ${lLabel2}: ${item.measurements?.length || 0}"
+  ${hLabel2}: ${item.measurements?.height || 0}"
+  ${item.measurements?.backrestDepth ? `${brLabel2}: ${item.measurements.backrestDepth}"` : ''}
+  ${item.measurements?.armrestHeight ? `${arLabel2}: ${item.measurements.armrestHeight}"` : ''}
 
 Add-ons: ${addOns.length > 0 ? addOns.join(', ') : 'None'}
 ${item.premiumColorCharge > 0 ? `Premium Color Charge: $${item.premiumColorCharge}` : ''}

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getMeasurementLabel } from '@/lib/measurement-labels';
 
 export async function POST(request: NextRequest) {
   try {
@@ -24,11 +25,11 @@ export async function POST(request: NextRequest) {
           { key: 'Product Type', value: item.productType },
           { key: 'SKU', value: item.coverSKU },
           { key: 'Color', value: item.selectedColor },
-          { key: 'Width', value: `${item.measurements?.width || 0}"` },
-          { key: 'Length', value: `${item.measurements?.length || 0}"` },
-          { key: 'Height', value: `${item.measurements?.height || 0}"` },
-          { key: 'Backrest Depth', value: `${item.measurements?.backrestDepth || 0}"` },
-          { key: 'Armrest Height', value: `${item.measurements?.armrestHeight || 0}"` },
+          { key: getMeasurementLabel(item.productType, 'width'), value: `${item.measurements?.width || 0}"` },
+          { key: getMeasurementLabel(item.productType, 'length'), value: `${item.measurements?.length || 0}"` },
+          { key: getMeasurementLabel(item.productType, 'height'), value: `${item.measurements?.height || 0}"` },
+          { key: getMeasurementLabel(item.productType, 'backrestDepth'), value: `${item.measurements?.backrestDepth || 0}"` },
+          { key: getMeasurementLabel(item.productType, 'armrestHeight'), value: `${item.measurements?.armrestHeight || 0}"` },
           { key: 'Yards', value: String(item.yards) },
           item.isPremiumColor && item.premiumColorCharge > 0 ? { key: 'Premium Color Charge', value: `$${item.premiumColorCharge.toFixed(2)}` } : null
         ].filter(attr => attr && attr.value && attr.value !== '0')

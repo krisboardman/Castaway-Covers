@@ -1,6 +1,7 @@
 'use client';
 
 import { useCartStore } from '@/store/cartStore';
+import { getMeasurementLabel } from '@/lib/measurement-labels';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
@@ -141,8 +142,8 @@ export default function CartPage() {
         const props = [
           `Item ${index + 1}: ${item.productType} - ${item.selectedColor}`,
           addOns.length > 0 ? `Add-ons: ${addOns.join(', ')}` : null,
-          `Measurements: ${item.measurements?.width || 0}"W x ${item.measurements?.length || 0}"L x ${item.measurements?.height || 0}"H`,
-          item.measurements?.backrestDepth ? `Backrest: ${item.measurements.backrestDepth}", Armrest: ${item.measurements?.armrestHeight || 0}"` : null,
+          `Measurements: ${getMeasurementLabel(item.productType, 'width')}: ${item.measurements?.width || 0}" x ${getMeasurementLabel(item.productType, 'length')}: ${item.measurements?.length || 0}" x ${getMeasurementLabel(item.productType, 'height')}: ${item.measurements?.height || 0}"`,
+          item.measurements?.backrestDepth ? `${getMeasurementLabel(item.productType, 'backrestDepth')}: ${item.measurements.backrestDepth}", ${getMeasurementLabel(item.productType, 'armrestHeight')}: ${item.measurements?.armrestHeight || 0}"` : null,
           `SKU: ${item.coverSKU}`,
           `Yards: ${item.yards}`,
           `Angle: ${item.angle || 0}°`,
@@ -211,11 +212,11 @@ export default function CartPage() {
             'Product Type': item.productType,
             'SKU': item.coverSKU,
             'Color': item.selectedColor,
-            'Width': `${item.measurements?.width || 0}"`,
-            'Length': `${item.measurements?.length || 0}"`,
-            'Height': `${item.measurements?.height || 0}"`,
-            'Backrest Depth': `${item.measurements?.backrestDepth || 0}"`,
-            'Armrest Height': `${item.measurements?.armrestHeight || 0}"`,
+            [getMeasurementLabel(item.productType, 'width')]: `${item.measurements?.width || 0}"`,
+            [getMeasurementLabel(item.productType, 'length')]: `${item.measurements?.length || 0}"`,
+            [getMeasurementLabel(item.productType, 'height')]: `${item.measurements?.height || 0}"`,
+            [getMeasurementLabel(item.productType, 'backrestDepth')]: `${item.measurements?.backrestDepth || 0}"`,
+            [getMeasurementLabel(item.productType, 'armrestHeight')]: `${item.measurements?.armrestHeight || 0}"`,
             'Yards': item.yards,
             'Snap Straps': item.snapStraps ? 'Yes' : 'No',
             'Handles': item.handles ? 'Yes' : 'No',
