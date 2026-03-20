@@ -76,7 +76,7 @@ const ShopifyBuyButton: React.FC<ShopifyBuyButtonProps> = ({
     }
   };
 
-  // ââ Custom order: no matching Shopify variant ââââââââââââââââââ
+  // ── Custom order: no matching Shopify variant ──────────────────
   if (isCustomOrder) {
     return (
       <div className="space-y-3">
@@ -84,7 +84,7 @@ const ShopifyBuyButton: React.FC<ShopifyBuyButtonProps> = ({
           <p className="text-sm font-semibold text-amber-900 mb-1">Custom Order Required</p>
           <p className="text-sm text-amber-800">
             We don't carry a ready-made cover for these dimensions. We can
-            make one â request a quote and we'll follow up within 24 hours.
+            make one — request a quote and we'll follow up within 24 hours.
           </p>
         </div>
         <button
