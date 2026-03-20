@@ -69,9 +69,11 @@ export default function FAQsPage() {
                     Are the covers waterproof?
                   </h3>
                   <p className="text-gray-700">
-                    Yes, all our covers are 100% waterproof. They feature sealed seams and a water-
-                    resistant coating that prevents water penetration while allowing air circulation 
-                    through the wavy edge design.
+                    Our covers are made from 100% waterproof marine-grade vinyl with sealed seams, providing
+                    excellent protection from rain, snow, and UV exposure. Because the covers drape over your
+                    furniture rather than forming a sealed enclosure, some moisture from wind-driven rain or
+                    splashing may reach the furniture underneath. For best results, use the bungee system to
+                    secure the cover snugly.
                   </p>
                 </div>
 
