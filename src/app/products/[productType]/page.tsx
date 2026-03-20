@@ -307,7 +307,7 @@ export default function ProductPage() {
                   className="w-10 h-10 rounded-full border-2 border-gray-300 flex items-center justify-center hover:bg-gray-100 transition-colors"
                   aria-label="Decrease quantity"
                 >
-                  <span className="text-xl">â</span>
+                  <span className="text-xl">−</span>
                 </button>
                 <input
                   type="number"
@@ -416,7 +416,7 @@ export default function ProductPage() {
             <div className="space-y-2 mb-6">
               <div className="flex justify-between">
                 <span>Cover {coverSKU ? `(${coverSKU})` : ''} x{quantity}</span>
-                <span>{coverPrice > 0 ? `$${(coverPrice * quantity).toFixed(2)}` : 'â'}</span>
+                <span>{coverPrice > 0 ? `$${(coverPrice * quantity).toFixed(2)}` : '—'}</span>
               </div>
               
               {snapStraps && (
