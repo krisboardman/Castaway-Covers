@@ -45,6 +45,7 @@ export default function ProductPage() {
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [measurementConfirmed, setMeasurementConfirmed] = useState(false);
+  const [isCustomOrder, setIsCustomOrder] = useState(false);
   
   const addToCart = useCartStore((state) => state.addToCart);
   const updateItem = useCartStore((state) => state.updateItem);
@@ -157,6 +158,31 @@ export default function ProductPage() {
     setEditingItemId(null);
   };
 
+  const handleRequestQuote = () => {
+    // Add the item to cart as a custom/quote item so the manual checkout
+    // form picks it up with all measurements pre-filled.
+    const cartItem = {
+      productType,
+      coverSKU,
+      coverVariantId: '', // no Shopify variant
+      coverPrice,
+      yards,
+      angle,
+      measurements,
+      snapStraps,
+      handles,
+      magnets,
+      selectedColor,
+      isPremiumColor,
+      premiumColorCharge,
+      quantity,
+      total: calculateTotal(),
+      isCustomOrder: true, // flag for the cart page
+    };
+    addToCart(cartItem);
+    window.location.href = '/cart';
+  };
+
   // Prevent hydration mismatch
   if (!mounted) {
     return (
@@ -248,6 +274,7 @@ export default function ProductPage() {
                 setAngle(calculatedAngle);
                 setMeasurements(allMeasurements);
                 setMeasurementConfirmed(false); // Reset confirmation when measurements change
+                setIsCustomOrder(!variantId); // No variant = custom order
               }}
               initialMeasurements={measurements}
             />
@@ -280,7 +307,7 @@ export default function ProductPage() {
                   className="w-10 h-10 rounded-full border-2 border-gray-300 flex items-center justify-center hover:bg-gray-100 transition-colors"
                   aria-label="Decrease quantity"
                 >
-                  <span className="text-xl">−</span>
+                  <span className="text-xl">â</span>
                 </button>
                 <input
                   type="number"
@@ -389,7 +416,7 @@ export default function ProductPage() {
             <div className="space-y-2 mb-6">
               <div className="flex justify-between">
                 <span>Cover {coverSKU ? `(${coverSKU})` : ''} x{quantity}</span>
-                <span>{coverPrice > 0 ? `$${(coverPrice * quantity).toFixed(2)}` : '—'}</span>
+                <span>{coverPrice > 0 ? `$${(coverPrice * quantity).toFixed(2)}` : 'â'}</span>
               </div>
               
               {snapStraps && (
@@ -464,7 +491,9 @@ export default function ProductPage() {
                 premiumColorCharge: premiumColorCharge.toString()
               }}
               onAddToCart={handleAddToCart}
-              disabled={!coverVariantId || !selectedColor || !measurementConfirmed}
+              disabled={!isCustomOrder && (!coverVariantId || !selectedColor || !measurementConfirmed)}
+              isCustomOrder={isCustomOrder && !!coverSKU && !!selectedColor && measurementConfirmed}
+              onRequestQuote={handleRequestQuote}
             />
           </div>
         </div>
