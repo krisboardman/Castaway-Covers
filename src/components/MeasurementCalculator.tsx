@@ -68,12 +68,12 @@ const validationRanges: Record<string, Record<string, { min: number; max: number
 
 /** Return a warning message if the value is outside the soft range, or null if it looks fine. */
 function getMeasurementWarning(productType: string, field: string, value: number): string | null {
-  if (!value || value <= 0) return null; // Don't warn on empty/zero — the required-fields check handles that
+  if (!value || value <= 0) return null; // Don't warn on empty/zero â the required-fields check handles that
   const ranges = validationRanges[productType];
   if (!ranges || !ranges[field]) return null;
   const { min, max, label } = ranges[field];
-  if (value < min) return `${label} under ${min}″ — double-check this measurement`;
-  if (value > max) return `${label} over ${max}″ — double-check this measurement`;
+  if (value < min) return `${label} under ${min}â³ â double-check this measurement`;
+  if (value > max) return `${label} over ${max}â³ â double-check this measurement`;
   return null;
 }
 
@@ -186,7 +186,7 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
   }, [measurements]);
 
   // Calculate AT2F (Armrest-Top to Front) for furniture with backrests
-  // This uses the HTML calculator formula: √[(H - F2A)² + D²]
+  // This uses the HTML calculator formula: â[(H - F2A)Â² + DÂ²]
   const calculateAngle = () => {
     if (measurements.length > 0 && measurements.height > 0 && measurements.armrestHeight > 0) {
       const vertical = measurements.height - measurements.armrestHeight;
@@ -266,11 +266,11 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
       const FC = 6;    // Floor clearance
       const hem = 0.5; // Hem allowance
 
-      // AT2F = √[(H - F2A)² + D²] where:
+      // AT2F = â[(H - F2A)Â² + DÂ²] where:
       // H = height, F2A = armrestHeight, D = length (depth)
       const AT2F = calculateAngle();
 
-      // ML = (H + BR + AT2F + F2A) - (2 × FC)
+      // ML = (H + BR + AT2F + F2A) - (2 Ã FC)
       // Main length calculation
       const ML = (height + backrestDepth + AT2F + armrestHeight) - (2 * FC);
 
@@ -294,10 +294,10 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
       const FC = 4;    // Floor clearance (different for sofas)
       const hem = 0.5; // Hem allowance
 
-      // AT2F = √[(H - F2A)² + D²]
+      // AT2F = â[(H - F2A)Â² + DÂ²]
       const AT2F = calculateAngle();
 
-      // ML = (H + BR + AT2F + F2A) - (2 × FC)
+      // ML = (H + BR + AT2F + F2A) - (2 Ã FC)
       const ML = (height + backrestDepth + AT2F + armrestHeight) - (2 * FC);
 
       // addLength = F2A + AT2F + BR - FC + hem
@@ -309,7 +309,7 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
       // Yards per lane
       const yardsPerLane = perLaneLength / 36;
 
-      // Total yards = (yards per lane × 2 lanes), rounded up
+      // Total yards = (yards per lane Ã 2 lanes), rounded up
       // Round AFTER multiplying to avoid over-rounding
       const totalYards = Math.ceil(yardsPerLane * 2);
 
@@ -434,7 +434,7 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
           }
         }
 
-        alert(`Product variant not found for ${yards} yards. Please contact support.`);
+        // No matching variant â signal custom order to parent (empty variantId)
         const angle = config.hasAngle ? calculateAngle() : 0;
         onCalculate(displaySKU, '', price, yards, angle, measurements);
       }
@@ -502,7 +502,7 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
       {/* Important measurement warning */}
       <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-md">
         <p className="text-sm font-semibold text-yellow-800 mb-1">
-          ⚠️ Important: Custom Cover Measurement Notice
+          â ï¸ Important: Custom Cover Measurement Notice
         </p>
         <p className="text-sm text-yellow-700">
           We manufacture exactly to the dimensions you provide. Please double-check all measurements before ordering.
@@ -538,7 +538,7 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
                 placeholder="0"
               />
               {warning && (
-                <p className="text-xs text-amber-600 mt-1">⚠️ {warning}</p>
+                <p className="text-xs text-amber-600 mt-1">â ï¸ {warning}</p>
               )}
             </div>
           );
@@ -557,7 +557,7 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
         disabled={!config.fields.filter(field => field !== 'backWidth' && field !== 'armLength').every(field => measurements[field] > 0)}
       >
         {config.fields.filter(field => field !== 'backWidth' && field !== 'armLength').every(field => measurements[field] > 0) && !hasCalculated
-          ? '⚠️ Click to Update Price & Size'
+          ? 'â ï¸ Click to Update Price & Size'
           : 'Calculate Cover Size & Price'}
       </button>
     </div>
