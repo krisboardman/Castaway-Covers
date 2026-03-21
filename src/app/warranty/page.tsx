@@ -25,7 +25,6 @@ export default function WarrantyPage() {
                 <li>Fabric defects including premature wear, tearing, or degradation</li>
                 <li>Stitching and seam failures</li>
                 <li>Snap, handle, or magnet malfunctions</li>
-                <li>Waterproofing failure under normal conditions</li>
               </ul>
             </section>
 
