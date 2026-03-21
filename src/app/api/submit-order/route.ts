@@ -3,6 +3,7 @@ import { Resend } from 'resend';
 import { getMeasurementLabel } from '@/lib/measurement-labels';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
+const SENDER_ADDRESS = process.env.RESEND_FROM_EMAIL || 'Castaway Covers <orders@castawaycovers.com>';
 
 export async function POST(request: Request) {
   try {
@@ -13,6 +14,18 @@ export async function POST(request: Request) {
     const items = JSON.parse(formData.get('items') as string);
     const totalPrice = parseFloat(formData.get('totalPrice') as string);
 
+    // ── ORDER BACKUP ──────────────────────────────────────────────
+    // Log the full order to stdout BEFORE attempting email so it
+    // always appears in Vercel Function Logs even if Resend is down.
+    const orderRecord = {
+      timestamp: new Date().toISOString(),
+      customer: customerInfo,
+      items,
+      totalPrice,
+      photoCount: 0, // updated below once we count photos
+    };
+    // We'll finalize photoCount after parsing, then log.
+
     // Get photo files
     const photos: File[] = [];
     let photoIndex = 0;
@@ -20,6 +33,10 @@ export async function POST(request: Request) {
       photos.push(formData.get(`photo${photoIndex}`) as File);
       photoIndex++;
     }
+
+    // Finalize and persist the order record to logs
+    orderRecord.photoCount = photos.length;
+    console.log('📦 ORDER_RECEIVED', JSON.stringify(orderRecord));
 
     // Format order details for email
     const orderDetails = items.map((item: any, index: number) => {
@@ -155,7 +172,7 @@ www.castawaycovers.com
 
       // Email to you (the business owner) - WITH PHOTOS
       await resend.emails.send({
-        from: 'Castaway Covers <onboarding@resend.dev>',
+        from: SENDER_ADDRESS,
         to: process.env.NOTIFICATION_EMAIL || 'support@castawaycovers.com',
         subject: `New Order from ${customerInfo.name} - $${totalPrice.toFixed(2)}${photos.length > 0 ? ` (${photos.length} photo${photos.length > 1 ? 's' : ''} attached)` : ''}`,
         text: emailToYou,
@@ -164,7 +181,7 @@ www.castawaycovers.com
 
       // Email to customer
       await resend.emails.send({
-        from: 'Castaway Covers <onboarding@resend.dev>',
+        from: SENDER_ADDRESS,
         to: customerInfo.email,
         subject: 'Your Castaway Covers Order Received',
         text: emailToCustomer,
@@ -173,9 +190,19 @@ www.castawaycovers.com
       console.log(`✅ Order emails sent successfully to ${customerInfo.email} and ${process.env.NOTIFICATION_EMAIL}`);
 
     } catch (emailError) {
-      // Log email error but don't fail the order
-      console.error('Error sending emails:', emailError);
-      // Still continue - order is recorded even if email fails
+      // Email failed — the order IS logged above, but the customer
+      // needs to know so they can follow up.
+      console.error('❌ EMAIL_SEND_FAILED', emailError);
+      console.error('❌ ORDER_NEEDS_MANUAL_RECOVERY — see ORDER_RECEIVED log above');
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            'Your order was received but we had trouble sending the confirmation email. ' +
+            'Please contact us at support@castawaycovers.com or call so we can confirm your order.',
+        },
+        { status: 502 }
+      );
     }
 
     return NextResponse.json({
