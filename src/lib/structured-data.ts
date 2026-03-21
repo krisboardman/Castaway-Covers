@@ -168,7 +168,7 @@ export function getFAQSchema() {
         "name": "What does the warranty cover?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "All Castaway Covers come with a 2-year limited warranty covering defects in materials and workmanship including fabric defects, stitching and seam failures, snap/handle/magnet malfunctions, and waterproofing failure under normal conditions."
+          "text": "All Castaway Covers come with a 2-year limited warranty covering defects in materials and workmanship including fabric defects, stitching and seam failures, and snap/handle/magnet malfunctions."
         }
       },
       {
