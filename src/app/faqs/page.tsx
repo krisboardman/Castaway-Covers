@@ -119,7 +119,7 @@ export default function FAQsPage() {
                   <p className="text-gray-700">
                     Currently, we ship within the continental United States only.
                   </p>
-                </div>
+                   </div>
 
                 <div>
                   <h3 className="font-semibold text-gray-900 mb-2">
@@ -182,9 +182,7 @@ export default function FAQsPage() {
                     <br />• Fabric defects including premature wear, tearing, or degradation
                     <br />• Stitching and seam failures
                     <br />• Snap, handle, or magnet malfunctions
-                    <br />• Waterproofing failure under normal conditions
-                  </p>
-                </div>
+                        </div>
 
                 <div>
                   <h3 className="font-semibold text-gray-900 mb-2">
@@ -221,4 +219,4 @@ export default function FAQsPage() {
       </div>
     </div>
   );
-}
+      }
