@@ -160,7 +160,7 @@ export function getFAQSchema() {
         "name": "Are the covers waterproof?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Yes, all our covers are 100% waterproof. They feature sealed seams and a water-resistant coating that prevents water penetration while allowing air circulation through the wavy edge design."
+          "text": "Our covers are made from 100% waterproof marine-grade vinyl with sealed seams, providing excellent protection from rain, snow, and UV exposure. Because the covers drape over your furniture rather than forming a sealed enclosure, some moisture from wind-driven rain or splashing may reach the furniture underneath. For best results, use the bungee system to secure the cover snugly."
         }
       },
       {
@@ -168,7 +168,7 @@ export function getFAQSchema() {
         "name": "What does the warranty cover?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "All Castaway Covers come with a 2-year limited warranty covering defects in materials and workmanship including fabric defects, stitching and seam failures, snap/handle/magnet malfunctions, and waterproofing failure under normal conditions."
+          "text": "All Castaway Covers come with a 2-year limited warranty covering defects in materials and workmanship including fabric defects, stitching and seam failures, and snap/handle/magnet malfunctions."
         }
       },
       {

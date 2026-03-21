@@ -184,8 +184,8 @@ export default function Home() {
                 />
               </div>
               <div className="p-5">
-                <h3 className="font-bold text-lg mb-2 text-gray-900">Waterproof & UV Protected</h3>
-                <p className="text-sm text-gray-600 leading-relaxed">Marine vinyl resists rain, sun, and mildew. Keeps furniture dry and fresh season after season.</p>
+                <h3 className="font-bold text-lg mb-2 text-gray-900">Waterproof Material & UV Protected</h3>
+                <p className="text-sm text-gray-600 leading-relaxed">Made from 100% waterproof marine-grade vinyl that resists rain, sun, and mildew. Keeps furniture protected season after season.</p>
               </div>
             </div>
 

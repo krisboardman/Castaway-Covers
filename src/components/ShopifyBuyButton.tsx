@@ -9,6 +9,8 @@ interface ShopifyBuyButtonProps {
   customAttributes: Record<string, string>;
   onAddToCart: () => void;
   disabled?: boolean;
+  isCustomOrder?: boolean;
+  onRequestQuote?: () => void;
 }
 
 const ShopifyBuyButton: React.FC<ShopifyBuyButtonProps> = ({
@@ -16,7 +18,9 @@ const ShopifyBuyButton: React.FC<ShopifyBuyButtonProps> = ({
   quantity,
   customAttributes,
   onAddToCart,
-  disabled = false
+  disabled = false,
+  isCustomOrder = false,
+  onRequestQuote
 }) => {
   const [client, setClient] = useState<any>(null);
   const [loading, setLoading] = useState(false);
@@ -57,10 +61,10 @@ const ShopifyBuyButton: React.FC<ShopifyBuyButtonProps> = ({
     try {
       // Add to local cart
       onAddToCart();
-      
+
       // Show success feedback
       setLoading(false);
-      
+
       // Optional: Add a temporary success state
       setTimeout(() => {
         // Reset any success states if needed
@@ -71,6 +75,27 @@ const ShopifyBuyButton: React.FC<ShopifyBuyButtonProps> = ({
       setLoading(false);
     }
   };
+
+  // ── Custom order: no matching Shopify variant ──────────────────
+  if (isCustomOrder) {
+    return (
+      <div className="space-y-3">
+        <div className="bg-amber-50 border border-amber-200 rounded-md p-4">
+          <p className="text-sm font-semibold text-amber-900 mb-1">Custom Order Required</p>
+          <p className="text-sm text-amber-800">
+            We don't carry a ready-made cover for these dimensions. We can
+            make one — request a quote and we'll follow up within 24 hours.
+          </p>
+        </div>
+        <button
+          onClick={onRequestQuote}
+          className="w-full py-3 px-6 rounded-md font-semibold transition-colors bg-brand-teal text-white hover:bg-brand-teal-dark"
+        >
+          Request a Quote
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-3">
@@ -85,7 +110,7 @@ const ShopifyBuyButton: React.FC<ShopifyBuyButtonProps> = ({
       >
         {loading ? 'Processing...' : 'Buy Now'}
       </button>
-      
+
       <button
         onClick={handleAddToCart}
         disabled={disabled || loading}
@@ -97,7 +122,7 @@ const ShopifyBuyButton: React.FC<ShopifyBuyButtonProps> = ({
       >
         {loading ? 'Processing...' : 'Add to Cart'}
       </button>
-      
+
       {disabled && (
         <p className="text-sm text-red-600 text-center">
           Please complete all required fields

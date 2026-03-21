@@ -434,7 +434,7 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
           }
         }
 
-        alert(`Product variant not found for ${yards} yards. Please contact support.`);
+        // No matching variant — signal custom order to parent (empty variantId)
         const angle = config.hasAngle ? calculateAngle() : 0;
         onCalculate(displaySKU, '', price, yards, angle, measurements);
       }

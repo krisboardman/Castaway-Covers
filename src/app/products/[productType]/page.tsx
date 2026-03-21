@@ -45,6 +45,7 @@ export default function ProductPage() {
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [measurementConfirmed, setMeasurementConfirmed] = useState(false);
+  const [isCustomOrder, setIsCustomOrder] = useState(false);
   
   const addToCart = useCartStore((state) => state.addToCart);
   const updateItem = useCartStore((state) => state.updateItem);
@@ -157,6 +158,31 @@ export default function ProductPage() {
     setEditingItemId(null);
   };
 
+  const handleRequestQuote = () => {
+    // Add the item to cart as a custom/quote item so the manual checkout
+    // form picks it up with all measurements pre-filled.
+    const cartItem = {
+      productType,
+      coverSKU,
+      coverVariantId: '', // no Shopify variant
+      coverPrice,
+      yards,
+      angle,
+      measurements,
+      snapStraps,
+      handles,
+      magnets,
+      selectedColor,
+      isPremiumColor,
+      premiumColorCharge,
+      quantity,
+      total: calculateTotal(),
+      isCustomOrder: true, // flag for the cart page
+    };
+    addToCart(cartItem);
+    window.location.href = '/cart';
+  };
+
   // Prevent hydration mismatch
   if (!mounted) {
     return (
@@ -248,6 +274,7 @@ export default function ProductPage() {
                 setAngle(calculatedAngle);
                 setMeasurements(allMeasurements);
                 setMeasurementConfirmed(false); // Reset confirmation when measurements change
+                setIsCustomOrder(!variantId); // No variant = custom order
               }}
               initialMeasurements={measurements}
             />
@@ -464,7 +491,9 @@ export default function ProductPage() {
                 premiumColorCharge: premiumColorCharge.toString()
               }}
               onAddToCart={handleAddToCart}
-              disabled={!coverVariantId || !selectedColor || !measurementConfirmed}
+              disabled={!isCustomOrder && (!coverVariantId || !selectedColor || !measurementConfirmed)}
+              isCustomOrder={isCustomOrder && !!coverSKU && !!selectedColor && measurementConfirmed}
+              onRequestQuote={handleRequestQuote}
             />
           </div>
         </div>
