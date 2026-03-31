@@ -59,8 +59,6 @@ export default function FAQsPage() {
                     <br />• Cold crack resistant to -25°F
                     <br />• Fire retardant (self-extinguishing)
                     <br />• 32 oz weight for durability
-                    <br /><br />
-                    <strong>Gussets:</strong> Durable outdoor waterproof fabric that provides flexibility and breathability while maintaining weather protection.
                   </p>
                 </div>
 

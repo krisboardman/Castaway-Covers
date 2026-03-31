@@ -66,13 +66,13 @@ export default function FeaturesPage() {
           <FeatureSection
             imagePath="/images/features/corner-construction.jpg"
             title="Tailored Corner Construction"
-            description="Our innovative corner design allows the cover to drape smoothly and fit snugly over your furniture without bunching or gaps. Each corner features a carefully hemmed cutout with a waterproof inner liner that folds discreetly inside, creating a clean appearance while keeping water out where it matters most. All seams are sewn with UV resistant high strength polyester thread for long-lasting durability."
+            description="Our tailored corner design allows the cover to drape smoothly and fit snugly over your furniture without bunching or gaps. Stainless steel snap closures at the back corners fold excess material neatly inward, creating a clean, streamlined appearance while helping keep the cover secure in windy conditions. All seams are sewn with UV resistant high strength polyester thread for long-lasting durability."
             benefits={[
-              "Carefully hemmed corner cutouts for durability and clean finish",
+              "Snap closures tuck corners neatly for a clean, tailored finish",
               "UV resistant high strength polyester thread won't rot or fade",
               "Corners contour perfectly to furniture shape for smooth fit",
-              "Waterproof inner liner folds discreetly within hemmed cutouts",
-              "Eliminates bunching and gaps for tailored appearance"
+              "Snaps keep cover secure and prevent wind from lifting edges",
+              "Snaps eliminate bunching and gaps for a streamlined appearance"
             ]}
             imagePosition="left"
           />

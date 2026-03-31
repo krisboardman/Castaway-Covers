@@ -93,14 +93,14 @@ const productData: { [key: string]: { name: string; description: string; image: 
   },
   'chaise-lounges': {
     name: 'Custom Chaise Lounge Covers',
-    description: 'Premium custom-fit covers for pool and patio chaise lounges. Marine-grade vinyl, waterproof, UV-resistant with custom corner cut-outs.',
+    description: 'Premium custom-fit covers for pool and patio chaise lounges. Marine-grade vinyl, waterproof, UV-resistant with snap closures for a tailored fit.',
     image: 'https://castawaycovers.com/images/ChaiseLounges/chaise1.jpg',
     category: 'Outdoor Furniture Covers',
     price: '90',
   },
   'chaise-lounge': {
     name: 'Custom Chaise Lounge Covers',
-    description: 'Premium custom-fit covers for pool and patio chaise lounges. Marine-grade vinyl, waterproof, UV-resistant with custom corner cut-outs.',
+    description: 'Premium custom-fit covers for pool and patio chaise lounges. Marine-grade vinyl, waterproof, UV-resistant with snap closures for a tailored fit.',
     image: 'https://castawaycovers.com/images/ChaiseLounges/chaise1.jpg',
     category: 'Outdoor Furniture Covers',
     price: '90',
