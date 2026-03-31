@@ -35,7 +35,7 @@ export default function Home() {
               Tailored Protection for Everyday Outdoor Living
             </h1>
             <p className="text-base md:text-lg text-gray-600 max-w-3xl mx-auto">
-              Custom-fit furniture covers that slip on in seconds and look refined.
+              The outdoor cover you'll actually use.
             </p>
           </div>
 
