@@ -99,7 +99,8 @@ const productConfigs = {
       backWidth: 'Back Width (if smaller than width)'
     },
     hasAngle: true,
-    measurementImage: '/images/Measurements/chair measurements.png'
+    measurementImage: '/images/Measurements/chair measurements.png',
+    curvedBackImage: '/images/Measurements/curved-back-measuring.svg'
   },
   'sofas-loveseats': {
     fields: ['width', 'length', 'height', 'backrestDepth', 'armrestHeight'],
@@ -111,7 +112,8 @@ const productConfigs = {
       armrestHeight: 'Ground to Top of Armrest'
     },
     hasAngle: true,
-    measurementImage: '/images/Measurements/sofa_measurements_text.jpg'
+    measurementImage: '/images/Measurements/sofa_measurements_text.jpg',
+    curvedBackImage: '/images/Measurements/curved-back-measuring.svg'
   },
   'chaise-lounge': {
     fields: ['width', 'length', 'height', 'armrestHeight', 'armLength'],
@@ -496,6 +498,17 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
           <p className="text-sm text-gray-600 mt-2">
             Measure your furniture at the widest points for each dimension
           </p>
+          {config.curvedBackImage && (
+            <div className="mt-4 pt-4 border-t border-gray-200">
+              <div className="flex justify-center">
+                <img
+                  src={config.curvedBackImage}
+                  alt="How to measure curved-back furniture — top view showing width and depth"
+                  className="max-h-48 md:max-h-72 w-auto"
+                />
+              </div>
+            </div>
+          )}
         </div>
       )}
       

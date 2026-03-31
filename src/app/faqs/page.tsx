@@ -77,10 +77,10 @@ export default function FAQsPage() {
 
                 <div>
                   <h3 className="font-semibold text-gray-900 mb-2">
-                    Do you make covers for round-backed furniture?
+                    Do you make covers for curved-back furniture?
                   </h3>
                   <p className="text-gray-700">
-                    Our covers are currently designed for straight-backed and square or rectangular furniture profiles. Round-backed designs are coming soon! In the meantime, if you have a unique piece you&apos;d like covered, <a href="/contact" className="text-blue-600 hover:text-blue-800 underline">contact us</a> to discuss custom options.
+                    Yes! Our covers work for both straight-backed and curved-back furniture. When measuring curved-back pieces, measure the depth from the center of the back (the furthest point) straight to the front, and measure the width side to side at the front of the chair. If you have a unique piece you&apos;d like covered, <a href="/contact" className="text-blue-600 hover:text-blue-800 underline">contact us</a> to discuss custom options.
                   </p>
                 </div>
 
