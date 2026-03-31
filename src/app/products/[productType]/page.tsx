@@ -10,6 +10,54 @@ import ShopifyBuyButton from '@/components/ShopifyBuyButton';
 import { useCartStore } from '@/store/cartStore';
 import { getProductSchemaForType } from '@/lib/structured-data';
 
+const measurementImages: Record<string, { main: string; curvedBack?: string }> = {
+  'chairs-recliners': {
+    main: '/images/Measurements/chair measurements.png',
+    curvedBack: '/images/Measurements/curved-back-measuring.svg'
+  },
+  'sofas-loveseats': {
+    main: '/images/Measurements/sofa_measurements_text.jpg',
+    curvedBack: '/images/Measurements/curved-back-measuring.svg'
+  },
+  'chaise-lounge': { main: '/images/Measurements/chaise measurements.jpg' },
+  'chaise-lounges': { main: '/images/Measurements/chaise measurements.jpg' },
+  'ottomans': { main: '/images/Measurements/ottoman measurements.jpg' },
+  'tables': { main: '/images/Measurements/table measurements.jpg' },
+  'table-sets': { main: '/images/Measurements/tableset measurements.jpg' },
+};
+
+function MeasurementDiagrams({ productType }: { productType: string }) {
+  const images = measurementImages[productType];
+  if (!images) return null;
+  return (
+    <div>
+      <div className="relative h-64 md:h-80 rounded overflow-hidden">
+        <Image
+          src={images.main}
+          alt={`${productType} measurement guide`}
+          fill
+          className="object-contain"
+        />
+      </div>
+      <p className="text-sm text-gray-500 mt-3">Measure at the widest points for each dimension</p>
+      {images.curvedBack && (
+        <details className="mt-3 pt-3 border-t border-gray-200">
+          <summary className="text-sm text-blue-600 hover:text-blue-800 cursor-pointer font-medium">
+            Have curved-back furniture? See how to measure
+          </summary>
+          <div className="mt-3 flex justify-center">
+            <img
+              src={images.curvedBack}
+              alt="How to measure curved-back furniture — top view showing width and depth"
+              className="max-h-48 md:max-h-64 w-auto"
+            />
+          </div>
+        </details>
+      )}
+    </div>
+  );
+}
+
 const productTypes = {
   'chairs-recliners': 'Chairs / Recliners',
   'sofas-loveseats': 'Sofas / Loveseats',
@@ -250,20 +298,16 @@ export default function ProductPage() {
           selectedColor={selectedColor}
         />
         
-        {/* Main Image and Measurements Side by Side */}
+        {/* Measurement Diagrams and Calculator Side by Side */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
-          {/* Left: Main Product Image */}
-          <div className="bg-white rounded-lg shadow-sm p-4">
-            <MainProductImage 
-              productType={productType} 
-              selectedIndex={selectedImageIndex}
-              selectedColor={selectedColor}
-            />
+          {/* Left: Measurement Diagrams */}
+          <div className="bg-white rounded-lg shadow-sm p-4 sticky top-4 self-start">
+            <h3 className="text-lg font-semibold mb-4">Measurement Guide</h3>
+            <MeasurementDiagrams productType={productType} />
           </div>
-          
+
           {/* Right: Measurements */}
           <div>
-            <p className="text-sm text-gray-500 mb-3 italic">Our covers fit straight-backed and curved-back furniture. See our <a href="/faqs" className="text-blue-600 hover:text-blue-800 underline">measuring guide</a> for tips on curved backs.</p>
             <MeasurementCalculator
               productType={productType}
               onCalculate={(sku, variantId, price, yardsNeeded, calculatedAngle, allMeasurements) => {

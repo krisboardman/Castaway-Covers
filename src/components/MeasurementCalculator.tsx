@@ -456,12 +456,6 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-lg font-semibold">Enter Measurements (inches)</h3>
         <div className="flex gap-2">
-          <button
-            onClick={() => setShowGuide(!showGuide)}
-            className="text-brand-teal hover:text-brand-teal-dark text-sm underline"
-          >
-            {showGuide ? 'Hide' : 'Show'} Measurement Guide
-          </button>
           {/* Debug button - only show in development */}
           {process.env.NODE_ENV === 'development' && (
             <button
@@ -477,43 +471,7 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
         </div>
       </div>
       
-      {showGuide && (
-        <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-          {config.measurementImage ? (
-            <div className="relative h-64 md:h-96 rounded overflow-hidden">
-              <Image
-                src={config.measurementImage}
-                alt={`${productType} measurement guide`}
-                fill
-                className="object-contain"
-              />
-            </div>
-          ) : (
-            <div className="h-64 bg-gray-200 rounded flex items-center justify-center">
-              <span className="text-gray-500">
-                Measurement guide not available yet
-              </span>
-            </div>
-          )}
-          <p className="text-sm text-gray-600 mt-2">
-            Measure your furniture at the widest points for each dimension
-          </p>
-          {config.curvedBackImage && (
-            <details className="mt-3 pt-3 border-t border-gray-200">
-              <summary className="text-sm text-blue-600 hover:text-blue-800 cursor-pointer font-medium">
-                Have curved-back furniture? See how to measure
-              </summary>
-              <div className="mt-3 flex justify-center">
-                <img
-                  src={config.curvedBackImage}
-                  alt="How to measure curved-back furniture — top view showing width and depth"
-                  className="max-h-48 md:max-h-64 w-auto"
-                />
-              </div>
-            </details>
-          )}
-        </div>
-      )}
+      {/* Measurement diagrams are now shown in the left panel on the product page */}
       
       {/* Important measurement warning */}
       <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-md">
