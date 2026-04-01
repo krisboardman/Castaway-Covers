@@ -582,14 +582,15 @@ const getGalleryImages = (productType: string, selectedColor?: string) => {
       { src: '/images/Sofas-Loveseats/sofa6.jpg', alt: 'Sofa Cover - Magnetic Closure' }
     ],
     'chaise-lounge': [
-      { src: '/images/ChaiseLounges/chaise1.jpg', alt: 'Chaise Lounge Cover - Front Side View' }
+      { src: '/images/ChaiseLounges/chaise1.jpg', alt: 'Chaise Lounge Cover - Front Side View' },
+      { src: '/images/ChaiseLounges/chaise2.jpg', alt: 'Chaise Lounge Cover - Cream' }
     ],
     'chaise-lounges': [
-      { src: '/images/ChaiseLounges/chaise1.jpg', alt: 'Chaise Lounge Cover - Front Side View' }
+      { src: '/images/ChaiseLounges/chaise1.jpg', alt: 'Chaise Lounge Cover - Front Side View' },
+      { src: '/images/ChaiseLounges/chaise2.jpg', alt: 'Chaise Lounge Cover - Cream' }
     ],
     'ottomans': [
-      { src: '/images/Ottomans/ottoman2.jpg', alt: 'Ottoman Cover - Grey' },
-      { src: '/images/Ottomans/ottoman3.jpg', alt: 'Ottoman Cover - Brown' }
+      { src: '/images/Ottomans/ottoman1.jpg', alt: 'Ottoman Cover' }
     ],
     'tables': [
       { src: '/images/Tables/table1.jpg', alt: 'Wine Table with Castaway Cover' },
