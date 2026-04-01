@@ -172,11 +172,18 @@ const ColorSelector: React.FC<ColorSelectorProps> = ({ onColorSelect }) => {
       </div>
       */}
       
+      <p className="mt-4 text-sm text-gray-600">
+        Don&apos;t see your color?{' '}
+        <a href="https://www.castawaycovers.com/contact" className="text-brand-teal hover:text-teal-700 font-medium underline">
+          Request a special color
+        </a>
+      </p>
+
       {/* Modal for viewing color texture */}
-      <ColorModal 
-        color={modalColor || { name: '', image: '' }} 
-        isOpen={!!modalColor} 
-        onClose={() => setModalColor(null)} 
+      <ColorModal
+        color={modalColor || { name: '', image: '' }}
+        isOpen={!!modalColor}
+        onClose={() => setModalColor(null)}
       />
     </div>
   );
