@@ -30,7 +30,7 @@ export default function HeroCarousel() {
   const [currentSlide, setCurrentSlide] = useState(0);
 
   return (
-    <div className="relative w-full h-[400px] md:h-[450px] lg:h-[550px] rounded-xl overflow-hidden bg-gray-100 shadow-2xl mb-8">
+    <div className="relative w-full h-[260px] md:h-[450px] lg:h-[550px] rounded-xl overflow-hidden bg-gray-100 shadow-2xl mb-8">
       {/* Slides */}
       {slides.map((slide, index) => (
         <div
@@ -43,17 +43,17 @@ export default function HeroCarousel() {
             src={slide.image}
             alt={slide.title}
             fill
-            className="object-cover"
+            className="object-contain md:object-cover"
             priority={index === 0}
           />
           
           {/* Text content (only if slide has text) */}
           {(slide.title || slide.subtitle) && (
-            <div className="absolute bottom-0 left-0 right-0 p-8 md:p-16 bg-gradient-to-t from-black/60 via-black/20 to-transparent">
-              <h2 className="text-4xl md:text-6xl font-bold text-white mb-3 drop-shadow-lg">
+            <div className="absolute bottom-0 left-0 right-0 p-4 md:p-16 bg-gradient-to-t from-black/60 via-black/20 to-transparent">
+              <h2 className="text-2xl md:text-6xl font-bold text-white mb-1 md:mb-3 drop-shadow-lg">
                 {slide.title}
               </h2>
-              <p className="text-xl md:text-2xl text-white/95 drop-shadow-md">
+              <p className="text-sm md:text-2xl text-white/95 drop-shadow-md">
                 {slide.subtitle}
               </p>
             </div>
