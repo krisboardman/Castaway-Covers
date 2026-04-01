@@ -620,12 +620,13 @@ const MainProductImage = ({ productType, selectedIndex, selectedColor }: { produ
   const selectedImage = images[selectedIndex] || images[0];
 
   return (
-    <div className="relative h-[400px] bg-gray-100 rounded-lg overflow-hidden">
+    <div className="relative h-[300px] md:h-[400px] lg:h-[500px] bg-gray-100 rounded-lg overflow-hidden">
       <Image
         src={selectedImage.src}
         alt={selectedImage.alt}
         fill
-        className="object-contain p-4"
+        className="object-contain p-2 md:p-4"
+        sizes="(max-width: 768px) 100vw, 80vw"
         priority
       />
     </div>
@@ -655,7 +656,7 @@ const ProductGallery = ({
             <button
               key={index}
               onClick={() => onImageSelect(index)}
-              className={`relative flex-shrink-0 w-32 h-32 rounded-lg overflow-hidden border-2 transition-all ${
+              className={`relative flex-shrink-0 w-24 h-24 md:w-32 md:h-32 rounded-lg overflow-hidden border-2 transition-all ${
                 selectedIndex === index 
                   ? 'border-brand-teal shadow-lg' 
                   : 'border-gray-200 hover:border-brand-teal'
