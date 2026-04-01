@@ -5,9 +5,14 @@ import Image from 'next/image';
 
 const slides = [
   {
-    image: '/images/hero/hero4.webp',
-    title: 'Beautiful Styling',
-    subtitle: 'Elegant wavy edges and premium marine-grade colors that complement any outdoor space'
+    image: '/images/hero/hero1.webp',
+    title: '',
+    subtitle: ''
+  },
+  {
+    image: '/images/hero/hero2.webp',
+    title: 'Marine-Grade Luxury',
+    subtitle: 'Heavy-duty vinyl that stays put and looks beautiful year after year'
   },
   {
     image: '/images/hero/hero3.webp',
@@ -15,14 +20,9 @@ const slides = [
     subtitle: 'Innovative snap straps let you fold back covers for instant relaxing'
   },
   {
-    image: '/images/hero/hero1.webp',
-    title: 'Effortless Protection',
-    subtitle: 'Just drape and go - our weighted design means no complicated tie-downs'
-  },
-  {
-    image: '/images/hero/hero2.webp',
-    title: 'Marine-Grade Luxury',
-    subtitle: 'Heavy-duty vinyl that stays put and looks beautiful year after year'
+    image: '/images/hero/hero4.webp',
+    title: 'Beautiful Styling',
+    subtitle: 'Elegant wavy edges and premium marine-grade colors that complement any outdoor space'
   }
 ];
 
@@ -43,19 +43,21 @@ export default function HeroCarousel() {
             src={slide.image}
             alt={slide.title}
             fill
-            className={index === 0 || index === 1 ? "object-contain" : "object-cover"}
+            className="object-cover"
             priority={index === 0}
           />
           
-          {/* Text content */}
-          <div className="absolute bottom-0 left-0 right-0 p-8 md:p-16 bg-gradient-to-t from-black/60 via-black/20 to-transparent">
-            <h2 className="text-4xl md:text-6xl font-bold text-white mb-3 drop-shadow-lg">
-              {slide.title}
-            </h2>
-            <p className="text-xl md:text-2xl text-white/95 drop-shadow-md">
-              {slide.subtitle}
-            </p>
-          </div>
+          {/* Text content (only if slide has text) */}
+          {(slide.title || slide.subtitle) && (
+            <div className="absolute bottom-0 left-0 right-0 p-8 md:p-16 bg-gradient-to-t from-black/60 via-black/20 to-transparent">
+              <h2 className="text-4xl md:text-6xl font-bold text-white mb-3 drop-shadow-lg">
+                {slide.title}
+              </h2>
+              <p className="text-xl md:text-2xl text-white/95 drop-shadow-md">
+                {slide.subtitle}
+              </p>
+            </div>
+          )}
         </div>
       ))}
 
