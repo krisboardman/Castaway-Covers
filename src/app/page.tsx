@@ -35,7 +35,7 @@ export default function Home() {
               Tailored Protection for Everyday Outdoor Living
             </h1>
             <p className="text-base md:text-lg text-gray-600 max-w-3xl mx-auto">
-              The outdoor cover you'll actually use.
+              Covers built for real life.
             </p>
           </div>
 
@@ -59,7 +59,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-8">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">
-              Covers Built for Real Life
+              Finally, Covers You&apos;ll Actually Use
             </h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
               From lounge chairs to tables — fitted covers you can toss on and off in seconds, every day.
