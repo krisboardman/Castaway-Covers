@@ -291,8 +291,13 @@ export default function ProductPage() {
         </div>
 
         {/* Product Gallery with new layout */}
-        <ProductGallery 
-          productType={productType} 
+        <MainProductImage
+          productType={productType}
+          selectedIndex={selectedImageIndex}
+          selectedColor={selectedColor}
+        />
+        <ProductGallery
+          productType={productType}
           selectedIndex={selectedImageIndex}
           onImageSelect={setSelectedImageIndex}
           selectedColor={selectedColor}
