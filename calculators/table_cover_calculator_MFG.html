@@ -44,7 +44,14 @@
           <label class="lbl">Bolt width (B)<input id="B" type="number" step="1" value="54"></label>
           <label class="lbl">Table length L (long side)<input id="L" type="number" step="1" value="60"></label>
           <label class="lbl">Table width W (short side)<input id="W" type="number" step="1" value="36"></label>
-          <label class="lbl">Side drop (how far the cover hangs past the table edge)<input id="drop" type="number" step="0.5" value="10"></label>
+          <label class="lbl">Table height H (top of table to floor)<input id="H" type="number" step="0.5" value="30"></label>
+          <label class="lbl">Cover style
+            <select id="style">
+              <option value="tablecloth" selected>Tablecloth — 10″ side drop, legs visible</option>
+              <option value="full">Full coverage — hangs ~3″ above floor</option>
+            </select>
+          </label>
+          <label class="lbl">Side drop (auto from style; override if needed)<input id="drop" type="number" step="0.5" value="10"></label>
           <label class="lbl">Snaps per corner (auto if blank — 1 per ~10" of drop)<input id="snapsPerCorner" type="number" step="1" placeholder="auto"></label>
         </div>
         <div class="note" style="margin-top:8px;">
@@ -463,12 +470,26 @@ function loadFromURL(){
   return loaded;
 }
 
+function applyStyleDrop(){
+  const style = document.getElementById('style').value;
+  const H = parseFloat(document.getElementById('H').value) || 0;
+  const dropEl = document.getElementById('drop');
+  if (style === 'tablecloth') {
+    dropEl.value = 10;
+  } else {
+    dropEl.value = Math.max(0, H - 3);
+  }
+}
 function wire(){
-  const inputsCard=document.getElementById('inputsCard'); ['input','change','keyup'].forEach(ev=>inputsCard.addEventListener(ev,compute));
+  const inputsCard=document.getElementById('inputsCard');
+  ['input','change','keyup'].forEach(ev=>inputsCard.addEventListener(ev,compute));
+  ['style','H'].forEach(id=>document.getElementById(id).addEventListener('change',()=>{applyStyleDrop();compute();}));
+  document.getElementById('H').addEventListener('input',()=>{applyStyleDrop();compute();});
   document.getElementById('recalc').addEventListener('click',compute);
   document.getElementById('reset').addEventListener('click',()=>{
-    const d={B:54,L:60,W:36,drop:10};
+    const d={B:54,L:60,W:36,H:30,drop:10};
     for(const k in d) document.getElementById(k).value=d[k];
+    document.getElementById('style').value='tablecloth';
     document.getElementById('snapsPerCorner').value='';
     document.getElementById('round').checked=true; compute();
   });

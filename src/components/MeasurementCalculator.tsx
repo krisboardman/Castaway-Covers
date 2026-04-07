@@ -188,6 +188,9 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
   // Tracks fields where the user attempted to enter a value above the hard cap.
   // Used to display a prominent error message so they know the value was clamped.
   const [capExceeded, setCapExceeded] = useState<Record<string, number | null>>({});
+  // Cover style for tables: 'tablecloth' = fixed 10" drop with legs visible;
+  // 'full' = drop derived from height so the cover hangs ~3" above the floor.
+  const [tableCoverStyle, setTableCoverStyle] = useState<'tablecloth' | 'full'>('tablecloth');
 
   const config = productConfigs[productType as keyof typeof productConfigs] || productConfigs['sofas-loveseats'];
 
@@ -375,8 +378,11 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
 
       const BOLT_WIDTH = 54;
       const TABLE_DROP = 10;
+      const FC = 3;
 
-      const drop = TABLE_DROP;
+      const drop = tableCoverStyle === 'full'
+        ? Math.max(0, height - FC)
+        : TABLE_DROP;
       const ML = Math.max(0, length + 2 * drop);
       const MD = Math.max(0, width  + 2 * drop);
 
@@ -588,7 +594,39 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
         
         {/* Angle is calculated internally but not shown to customers */}
       </div>
-      
+
+      {(productType === 'tables' || productType === 'table-sets') && (
+        <div className="mb-4 p-4 border border-gray-200 rounded-md bg-gray-50">
+          <p className="font-medium text-gray-800 mb-2">Cover style</p>
+          <label className="flex items-start gap-2 mb-2 cursor-pointer">
+            <input
+              type="radio"
+              name="tableCoverStyle"
+              value="tablecloth"
+              checked={tableCoverStyle === 'tablecloth'}
+              onChange={() => setTableCoverStyle('tablecloth')}
+              className="mt-1"
+            />
+            <span className="text-sm text-gray-700">
+              <strong>Tablecloth style</strong> — 10″ side drop, table legs visible (classic look for dining and console tables)
+            </span>
+          </label>
+          <label className="flex items-start gap-2 cursor-pointer">
+            <input
+              type="radio"
+              name="tableCoverStyle"
+              value="full"
+              checked={tableCoverStyle === 'full'}
+              onChange={() => setTableCoverStyle('full')}
+              className="mt-1"
+            />
+            <span className="text-sm text-gray-700">
+              <strong>Full coverage</strong> — cover hangs about 3″ above the floor
+            </span>
+          </label>
+        </div>
+      )}
+
       <button
         onClick={handleCalculate}
         className={`w-full py-3 px-4 rounded-md font-medium transition-all ${
