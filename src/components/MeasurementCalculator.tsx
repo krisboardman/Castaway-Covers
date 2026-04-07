@@ -185,6 +185,9 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
   });
   const [showGuide, setShowGuide] = useState(false);
   const [hasCalculated, setHasCalculated] = useState(false);
+  // Tracks fields where the user attempted to enter a value above the hard cap.
+  // Used to display a prominent error message so they know the value was clamped.
+  const [capExceeded, setCapExceeded] = useState<Record<string, number | null>>({});
 
   const config = productConfigs[productType as keyof typeof productConfigs] || productConfigs['sofas-loveseats'];
 
@@ -458,9 +461,18 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
   };
 
   const handleMeasurementChange = (field: string, value: string) => {
-    let numValue = parseFloat(value) || 0;
+    const rawValue = parseFloat(value) || 0;
+    let numValue = rawValue;
     const cap = hardMaximums[productType]?.[field];
-    if (cap != null && numValue > cap) numValue = cap;
+    if (cap != null && rawValue > cap) {
+      numValue = cap;
+      setCapExceeded(prev => ({ ...prev, [field]: rawValue }));
+    } else {
+      setCapExceeded(prev => {
+        if (prev[field] == null) return prev;
+        const next = { ...prev }; delete next[field]; return next;
+      });
+    }
     setMeasurements((prev: any) => ({
       ...prev,
       [field]: numValue
@@ -531,6 +543,18 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
               {warning && (
                 <p className="text-xs text-amber-600 mt-1">⚠️ {warning}</p>
               )}
+              {capExceeded[field] != null && (
+                <div className="mt-2 p-2 bg-red-50 border border-red-300 rounded">
+                  <p className="text-sm font-semibold text-red-700">
+                    🚫 You entered {capExceeded[field]}″, which exceeds our maximum of {hardMaximums[productType]?.[field]}″ for this measurement.
+                  </p>
+                  <p className="text-xs text-red-700 mt-1">
+                    The value has been reduced to {hardMaximums[productType]?.[field]}″. If your piece is actually larger,{' '}
+                    <a href="/contact" className="underline font-semibold">contact us for a custom quote</a>{' '}
+                    — do not place this order at the reduced size.
+                  </p>
+                </div>
+              )}
             </div>
           );
         })}
@@ -545,11 +569,13 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
             ? 'bg-orange-600 hover:bg-orange-700 text-white animate-pulse'
             : 'bg-brand-teal hover:bg-brand-teal-dark text-white'
         }`}
-        disabled={!config.fields.filter(field => field !== 'backWidth' && field !== 'armLength').every(field => measurements[field] > 0)}
+        disabled={!config.fields.filter(field => field !== 'backWidth' && field !== 'armLength').every(field => measurements[field] > 0) || Object.keys(capExceeded).length > 0}
       >
-        {config.fields.filter(field => field !== 'backWidth' && field !== 'armLength').every(field => measurements[field] > 0) && !hasCalculated
-          ? '⚠️ Click to Update Price & Size'
-          : 'Calculate Cover Size & Price'}
+        {Object.keys(capExceeded).length > 0
+          ? '🚫 Cannot order — measurement exceeds maximum'
+          : (config.fields.filter(field => field !== 'backWidth' && field !== 'armLength').every(field => measurements[field] > 0) && !hasCalculated
+            ? '⚠️ Click to Update Price & Size'
+            : 'Calculate Cover Size & Price')}
       </button>
     </div>
   );
