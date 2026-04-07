@@ -45,7 +45,7 @@
           <label class="lbl">Ottoman length L (long side)<input id="L" type="number" step="1" value="36"></label>
           <label class="lbl">Ottoman width W (short side)<input id="W" type="number" step="1" value="24"></label>
           <label class="lbl">Ottoman height H<input id="H" type="number" step="0.5" value="16"></label>
-          <label class="lbl">Floor clearance FC<input id="FC" type="number" step="0.5" value="1"></label>
+          <label class="lbl">Floor clearance FC<input id="FC" type="number" step="0.5" value="3"></label>
           <label class="lbl">Snaps per corner (auto if blank — 1 per ~10" of drop)<input id="snapsPerCorner" type="number" step="1" placeholder="auto"></label>
         </div>
         <div class="note" style="margin-top:8px;">
@@ -135,8 +135,27 @@ function compute(){
   const bungeeSlack = 6;
   const bungeeLen = W + 2*gromInset + bungeeSlack;
 
-  // Bolt-fit
-  const fitsBolt = MD <= B;
+  // Layout / bolt-fit. Two layouts:
+  //   single: cover fits within the bolt as one panel (MD ≤ B)
+  //   main+strips: cover is wider than the bolt, but the diagonal corner cuts
+  //     let us use a 54"-wide main panel down the bolt length plus two
+  //     trapezoidal side strips that are shortened by the chamfers. Strip
+  //     width = (MD - B)/2 per side; strip max length = W + 2*stripWidth
+  //     (the cover narrows at the chamfered corners). This works as long as
+  //     stripWidth ≤ drop (equivalently, the actual furniture width W ≤ B).
+  let layout, stripWidth, stripLength, totalBoltLen;
+  if (MD <= B) {
+    layout = 'single';
+    stripWidth = 0;
+    stripLength = 0;
+    totalBoltLen = ML;
+  } else {
+    layout = 'main+strips';
+    stripWidth = (MD - B) / 2;
+    stripLength = W + 2 * stripWidth;
+    totalBoltLen = ML + stripLength;
+  }
+  const fitsBolt = (W <= B);
 
   const r=v=>fin(v,rounded);
 
@@ -148,19 +167,28 @@ function compute(){
     <div class='row'><span>Diagonal corner cut (each)</span><strong>${r(drop)}" × ${r(drop)}" — outer triangle removed</strong></div>
     <div class='row'><span>Snaps per corner</span><strong>${snapsPerCorner}${snapOverride ? '' : ' (auto)'}</strong></div>
     <div class='row'><span>Total snaps</span><strong>${totalSnaps}</strong></div>
-    <div class='row'><span>Fits in bolt width?</span><strong>${fitsBolt ? `Yes — ${r(B-MD)}" of bolt waste per length` : `No — exceeds ${B}" bolt by ${r(MD-B)}"`}</strong></div>
+    <div class='row'><span>Layout</span><strong>${layout==='single' ? 'Single piece' : 'Main panel + 2 side strips'}</strong></div>
+    <div class='row'><span>Fits in bolt width?</span><strong>${fitsBolt
+      ? (layout==='single'
+          ? `Yes — single piece, ${r(B-MD)}" of bolt waste per length`
+          : `Yes — 54" main panel + two ${r(stripWidth)}"-wide side strips (chamfer-trimmed)`)
+      : `No — furniture width ${r(W)}" exceeds ${r(B)}" bolt; needs a different layout`}</strong></div>
   `;
 
   // Material to buy
   document.getElementById('buy').innerHTML = `
-    <div class='row'><span>Length to buy</span><strong>${r(ML)} in</strong></div>
-    <div class='row'><span>Yards to buy</span><strong>${yds(ML,rounded)} yd</strong></div>
-    <div class='row'><span>Cut to width</span><strong>${r(MD)} in (from ${r(B)}" bolt)</strong></div>
+    <div class='row'><span>Total bolt length to buy</span><strong>${r(totalBoltLen)} in</strong></div>
+    <div class='row'><span>Yards to buy</span><strong>${yds(totalBoltLen,rounded)} yd</strong></div>
+    <div class='row'><span>Cut to width</span><strong>${layout==='single' ? `${r(MD)}" wide (from ${r(B)}" bolt)` : `Main ${r(B)}" wide × ${r(ML)}" long, plus 2 strips ${r(stripWidth)}" × ${r(stripLength)}" (from ${r(B)}" bolt)`}</strong></div>
   `;
 
   // Cut list
   document.getElementById('cutlist').innerHTML = `
-    <div class='row'><span>Cover panel</span><strong>${r(ML)}" × ${r(MD)}" (single piece)</strong><span style='color:#64748b'>Qty 1</span></div>
+    ${layout==='single'
+      ? `<div class='row'><span>Cover panel</span><strong>${r(ML)}" × ${r(MD)}" (single piece)</strong><span style='color:#64748b'>Qty 1</span></div>`
+      : `<div class='row'><span>Main panel</span><strong>${r(B)}" × ${r(ML)}" (full bolt width)</strong><span style='color:#64748b'>Qty 1</span></div>
+         <div class='row'><span>Side strips</span><strong>${r(stripWidth)}" wide × ${r(stripLength)}" long max (trapezoidal, narrows to ${r(W)}" at outer edge from chamfers)</strong><span style='color:#64748b'>Qty 2</span></div>
+         <div class='row'><span>Side seams</span><strong>Each strip joined to the main panel along the long edge, 1.5" overlap, full ${r(stripLength)}" length</strong><span style='color:#64748b'>—</span></div>`}
     <div class='row'><span>Diagonal corner cuts</span><strong>4 corners — remove outer triangle from a ${r(drop)}" × ${r(drop)}" square</strong><span style='color:#64748b'>—</span></div>
   `;
 
@@ -192,11 +220,11 @@ function compute(){
   `;
 
   // Diagram
-  drawDiagram({rounded, B, L, W, drop, ML, MD, snapsPerCorner, gromInset});
+  drawDiagram({rounded, B, L, W, drop, ML, MD, snapsPerCorner, gromInset, layout, stripWidth, stripLength});
 }
 
 function drawDiagram(p){
-  const {rounded, B, L, W, drop, ML, MD, snapsPerCorner, gromInset} = p;
+  const {rounded, B, L, W, drop, ML, MD, snapsPerCorner, gromInset, layout, stripWidth, stripLength} = p;
   const svg = document.getElementById('diagram'); while(svg.firstChild) svg.removeChild(svg.firstChild);
   const VBW = svg.viewBox.baseVal.width, VBH = svg.viewBox.baseVal.height; const pad = 60;
   const r = v => rounded ? Math.ceil(v) : Math.round(v*100)/100;
@@ -238,6 +266,28 @@ function drawDiagram(p){
 
   // Show the original full rectangle dashed (so the removed triangles are visible)
   add('rect',{x:xL, y:yT, width:w, height:h, fill:'none', stroke:'#94a3b8', 'stroke-dasharray':'4,4'});
+
+  // Side seams (main panel + 2 side strips layout) — two horizontal lines
+  // marking where the side strips join the 54"-wide main panel. The cover is
+  // drawn with ML horizontal × MD vertical, so the strips are at the top and
+  // bottom of the diagram and the seams run horizontally.
+  if (layout === 'main+strips') {
+    const stripPx = stripWidth * scale;
+    const yTopSeam = yT + stripPx;
+    const yBotSeam = yB - stripPx;
+    add('line',{x1:xL, y1:yTopSeam, x2:xR, y2:yTopSeam, stroke:'#9333ea', 'stroke-width':2.5, 'stroke-dasharray':'8,3'});
+    add('line',{x1:xL, y1:yBotSeam, x2:xR, y2:yBotSeam, stroke:'#9333ea', 'stroke-width':2.5, 'stroke-dasharray':'8,3'});
+    add('text',{x:xL + 6, y:yTopSeam - 4, 'font-size':10, fill:'#7e22ce', 'font-weight':'bold'})
+      .textContent = `side seam (1.5" overlap)`;
+    add('text',{x:xL + 6, y:yBotSeam + 14, 'font-size':10, fill:'#7e22ce', 'font-weight':'bold'})
+      .textContent = `side seam (1.5" overlap)`;
+    add('text',{x:(xL+xR)/2, y:(yT+yTopSeam)/2 + 4, 'text-anchor':'middle','font-size':11, fill:'#7e22ce', 'font-weight':'bold'})
+      .textContent = `Side strip: ${r(stripWidth)}" × ${r(stripLength)}" (trapezoidal)`;
+    add('text',{x:(xL+xR)/2, y:(yBotSeam+yB)/2 + 4, 'text-anchor':'middle','font-size':11, fill:'#7e22ce', 'font-weight':'bold'})
+      .textContent = `Side strip: ${r(stripWidth)}" × ${r(stripLength)}" (trapezoidal)`;
+    add('text',{x:(xL+xR)/2, y:(yTopSeam+yBotSeam)/2 - 30, 'text-anchor':'middle','font-size':11, fill:'#7e22ce', 'font-weight':'bold'})
+      .textContent = `Main panel: ${r(B)}" × ${r(ML)}"`;
+  }
 
   // Diagonal cut lines (the chamfers themselves) — highlight them
   const diagCuts = [
@@ -408,7 +458,7 @@ function wire(){
   const inputsCard=document.getElementById('inputsCard'); ['input','change','keyup'].forEach(ev=>inputsCard.addEventListener(ev,compute));
   document.getElementById('recalc').addEventListener('click',compute);
   document.getElementById('reset').addEventListener('click',()=>{
-    const d={B:54,L:36,W:24,H:16,FC:1};
+    const d={B:54,L:36,W:24,H:16,FC:3};
     for(const k in d) document.getElementById(k).value=d[k];
     document.getElementById('snapsPerCorner').value='';
     document.getElementById('round').checked=true; compute();

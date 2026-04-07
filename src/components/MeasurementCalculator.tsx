@@ -335,45 +335,56 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
       return totalYards;
     }
     
-    // Calculation for ottomans / tables / table sets — matches the MFG
-    // calculator (table_cover_calculator_MFG.html / ottoman_cover_calculator_MFG.html).
-    // Both width AND length contribute, and the cover switches to a two-piece
-    // (front-to-back) layout when the cover width (MD) exceeds the bolt width.
-    if (productType === 'ottomans' || productType === 'tables' || productType === 'table-sets') {
+    // Calculation for ottomans — matches ottoman_cover_calculator_MFG.html.
+    // Cover is a rectangle (W+2*drop) × (L+2*drop) with diagonal corner cuts of
+    // size `drop`. When the cover width (MD) exceeds the bolt, we use the
+    // "main panel + two side strips" layout: a 54"-wide main panel along the
+    // bolt length, plus two trapezoidal side strips that are shortened by the
+    // chamfered corners. Strip max length = W + 2*stripWidth, where
+    // stripWidth = (MD - 54)/2. Total bolt length needed = ML + (W + 2*stripWidth).
+    if (productType === 'ottomans') {
       if (!width || !length || !height) return 0;
 
-      const BOLT_WIDTH = 54;     // bolt width
-      const FC = 4;              // floor clearance (used by ottomans)
-      const TABLE_DROP = 10;     // standard table cover drop (matches MFG calc)
-      const SEAM_OVERLAP = 1.5;  // total fabric consumed by the joining seam (matches MFG calc)
+      const BOLT_WIDTH = 54;
+      const FC = 3; // floor clearance (matches MFG calc default)
 
-      // Side drop on every side of the cover.
-      //   Tables / table sets: fixed 10" drop (covers shouldn't reach the floor;
-      //     they need to clear chair seats and avoid puddling).
-      //   Ottomans: drop to within FC of the floor (covers hang nearly to ground).
-      const drop = (productType === 'ottomans')
-        ? Math.max(0, height - FC)
-        : TABLE_DROP;
+      const drop = Math.max(0, height - FC);
+      const ML = Math.max(0, length + 2 * drop);
+      const MD = Math.max(0, width  + 2 * drop);
 
-      // Overall cover dimensions (length × width, with side drops)
-      const ML = Math.max(0, length + 2 * drop);  // long side, runs along the bolt when single-piece
-      const MD = Math.max(0, width  + 2 * drop);  // short side, must fit across the bolt when single-piece
+      let totalBoltLength: number;
+      if (MD <= BOLT_WIDTH) {
+        // Single-piece: cover fits across the bolt as one panel.
+        totalBoltLength = ML;
+      } else {
+        // Main panel + two side strips. Strips are trimmed by the chamfer.
+        const stripWidth = (MD - BOLT_WIDTH) / 2;
+        const stripLength = width + 2 * stripWidth; // max strip length (at the inner edge)
+        totalBoltLength = ML + stripLength;
+      }
 
-      // Layout selection:
-      //   single-piece: MD ≤ bolt width → buy ML of bolt
-      //   two-piece:    MD > bolt width → cut two pieces running front-to-back,
-      //                 each MD long, joined by a center seam down the long
-      //                 axis. Each piece is (ML + 1.5)/2 wide (across the bolt),
-      //                 total bolt length = 2 × MD.
+      const yardsNeeded = totalBoltLength / 36;
+      return Math.ceil(yardsNeeded);
+    }
+
+    // Calculation for tables / table sets — matches table_cover_calculator_MFG.html.
+    // Uses fixed 10" drop and a two-piece front-to-back layout when the cover
+    // width exceeds the bolt.
+    if (productType === 'tables' || productType === 'table-sets') {
+      if (!width || !length || !height) return 0;
+
+      const BOLT_WIDTH = 54;
+      const TABLE_DROP = 10;
+
+      const drop = TABLE_DROP;
+      const ML = Math.max(0, length + 2 * drop);
+      const MD = Math.max(0, width  + 2 * drop);
+
       let totalBoltLength: number;
       if (MD <= BOLT_WIDTH) {
         totalBoltLength = ML;
       } else {
         totalBoltLength = 2 * MD;
-        // (Each piece is (ML + SEAM_OVERLAP)/2 wide; the seam allowance is
-        // accounted for in the per-piece width but doesn't change total bolt
-        // length, since the bolt length is set by the front-to-back dimension.)
-        void SEAM_OVERLAP;
       }
 
       const yardsNeeded = totalBoltLength / 36;
