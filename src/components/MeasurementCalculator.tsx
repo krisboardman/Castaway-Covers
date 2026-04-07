@@ -36,7 +36,7 @@ const validationRanges: Record<string, Record<string, { min: number; max: number
     backWidth:      { min: 12, max: 50,  label: 'Back width' },
   },
   'sofas-loveseats': {
-    width:          { min: 40, max: 130, label: 'Sofa length' },
+    width:          { min: 40, max: 84, label: 'Sofa length' },
     length:         { min: 20, max: 50,  label: 'Front-to-back depth' },
     height:         { min: 28, max: 50,  label: 'Sofa height' },
     backrestDepth:  { min: 1,  max: 14,  label: 'Backrest depth' },
@@ -77,13 +77,27 @@ function getMeasurementWarning(productType: string, field: string, value: number
   return null;
 }
 
+// Hard maximums per furniture type/field. The input will not accept values
+// above these caps. Used to enforce manufacturable size limits (e.g., sofa
+// width is capped at 84" because anything wider exceeds our 3-bolt material
+// budget).
+const hardMaximums: Record<string, Record<string, number>> = {
+  'sofas-loveseats': {
+    width: 84,
+  },
+};
+
 // Helper hints shown below specific field labels to clarify measurement technique
 const fieldHints: Record<string, Record<string, string>> = {
   'chairs-recliners': {
     length: 'Measure along the ground from below the back of the chair to the front edge',
   },
   'sofas-loveseats': {
+    width: 'Maximum width 84″. Contact us for a quote on additional or larger pieces. Note: the cover will have a seam down the center, or snaps along the center if the split cover with straps option is chosen.',
     length: 'Measure along the ground from below the back of the sofa to the front edge',
+  },
+  'tables': {
+    width: 'Note: if the width exceeds 34″, the cover will have a seam down the middle.',
   },
 };
 
@@ -444,7 +458,9 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
   };
 
   const handleMeasurementChange = (field: string, value: string) => {
-    const numValue = parseFloat(value) || 0;
+    let numValue = parseFloat(value) || 0;
+    const cap = hardMaximums[productType]?.[field];
+    if (cap != null && numValue > cap) numValue = cap;
     setMeasurements((prev: any) => ({
       ...prev,
       [field]: numValue
@@ -502,6 +518,7 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
                 type="number"
                 min="0"
                 step="1"
+                max={hardMaximums[productType]?.[field] ?? undefined}
                 value={measurements[field] || ''}
                 onChange={(e) => handleMeasurementChange(field, e.target.value)}
                 className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 ${

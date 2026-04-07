@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Table Cover Calculator</title>
+<style>
+  :root { --bg:#f8fafc; --card:#ffffff; --text:#0f172a; --sub:#475569; --muted:#e2e8f0; }
+  body { font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; background:var(--bg); color:var(--text); margin:0; padding:24px; }
+  .wrap { max-width: 1100px; margin:0 auto; }
+  h1 { font-size:24px; margin:0 0 6px; }
+  .sub { font-size:13px; color:var(--sub); margin-bottom:14px; }
+  .controls { display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+  .btn { padding:8px 10px; border:1px solid var(--muted); border-radius:10px; background:#fff; cursor:pointer; }
+  .grid { display:grid; grid-template-columns: 1.05fr 0.95fr; gap:16px; }
+  .card { background:var(--card); border:1px solid var(--muted); border-radius:14px; padding:16px; }
+  .title { font-weight:600; margin-bottom:8px; }
+  .inputs { display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:10px; }
+  label.lbl { display:grid; gap:6px; font-size:12px; color:var(--sub); }
+  input[type="number"] { padding:10px 12px; border:1px solid var(--muted); border-radius:10px; font-size:14px; }
+  .row { display:flex; justify-content:space-between; align-items:center; font-size:14px; padding:8px 0; }
+  .row + .row { border-top:1px dashed var(--muted); }
+  .note { font-size:12px; color:var(--sub); }
+  svg { width:100%; height:560px; border:1px dashed #cbd5e1; border-radius:12px; background:#fcfdff; }
+  .legend { display:flex; gap:12px; align-items:center; font-size:12px; color:var(--sub); flex-wrap:wrap; }
+  .chip { display:inline-block; width:12px; height:12px; border-radius:2px; border:1px solid #0f172a22; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Table Cover Calculator</h1>
+  <div class="sub">Single-panel rectangular cover with diagonal corner cuts, corner snaps, and bungees that wrap each end (short side).</div>
+  <div class="controls">
+    <label><input id="round" type="checkbox" checked> Round inches up / yards to whole</label>
+    <button class="btn" id="recalc">Recalculate</button>
+    <button class="btn" id="reset">Reset sample</button>
+  </div>
+
+  <div class="grid">
+    <div>
+      <div class="card" id="inputsCard">
+        <div class="title">Inputs</div>
+        <div class="inputs">
+          <label class="lbl">Bolt width (B)<input id="B" type="number" step="1" value="54"></label>
+          <label class="lbl">Table length L (long side)<input id="L" type="number" step="1" value="60"></label>
+          <label class="lbl">Table width W (short side)<input id="W" type="number" step="1" value="36"></label>
+          <label class="lbl">Side drop (how far the cover hangs past the table edge)<input id="drop" type="number" step="0.5" value="10"></label>
+          <label class="lbl">Snaps per corner (auto if blank — 1 per ~10" of drop)<input id="snapsPerCorner" type="number" step="1" placeholder="auto"></label>
+        </div>
+        <div class="note" style="margin-top:8px;">
+          Recommended drop for tables is around 8–10" — enough to shed water past the edge and protect the upper legs without dragging on the ground or hitting chair seats.
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:16px;">
+        <div class="title">Grommets &amp; Bungees</div>
+        <div id="grommets"></div>
+        <div class="note">4 corner grommets (one at each corner of the long sides). Two bungees, one at each short end, run through the two corner grommets and wrap around the short side of the table to cinch the cover.</div>
+      </div>
+
+      <div class="card" style="margin-top:16px;">
+        <div class="title">Corner Snaps</div>
+        <div id="snaps"></div>
+        <div class="note">A diagonal cut at each corner removes the outer triangle and leaves a triangular flap. The two adjacent side drops fold together at 45°, and snaps hold the seam closed.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="title">Results</div>
+      <div id="results"></div>
+      <div class="title" style="margin-top:10px;">Material to Buy</div>
+      <div id="buy"></div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:16px;">
+    <div class="title">Cut Diagram (to scale)</div>
+    <svg id="diagram" viewBox="0 0 1000 580"></svg>
+    <div class="legend">
+      <span class="chip" style="background:#eef2ff; border-color:#0f172a;"></span> Cover panel (single piece)
+      <span class="chip" style="background:#fff; border:1px dashed #94a3b8;"></span> Diagonal corner cut (outer triangle removed)
+      <span class="chip" style="background:#0891b2; border-color:#0891b2;"></span> Table top (dotted)
+      <span class="chip" style="background:none; border:2px solid #b45309; border-radius:50%; width:10px; height:10px;"></span> Corner grommets
+      <span style="color:#22c55e; font-weight:600;">● Snaps</span>
+      <span style="color:#7e22ce; font-weight:600;">— — Center seam (only when table is too wide for one bolt width)</span>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:16px;">
+    <div class="title">Cut List</div>
+    <div id="cutlist"></div>
+  </div>
+
+  <div class="card" style="margin-top:16px;">
+    <div class="title">Assembly Instructions</div>
+    <ol style="margin:0; padding-left:20px; line-height:1.7; font-size:13px;">
+      <li><strong>Cut</strong> the cover panel from the bolt. If the cover width (MD) fits within the bolt width, cut a single ML × MD rectangle. If MD exceeds the bolt width, cut <strong>two pieces</strong> running front-to-back — each piece is MD long (along the bolt) × ((ML + 1.5)/2) wide — and join them along the long centerline with a 1.5" overlapped seam to form the full ML × MD panel.</li>
+      <li><strong>Mark and cut</strong> the diagonal at each corner: from a point one side-drop in along the long edge to a point one side-drop in along the short edge. Remove the outer triangle. A triangular flap (the inner half of the corner square) remains.</li>
+      <li>Add the wavy edge pattern around the perimeter (skip the diagonal cut edges, since they will be joined to each other).</li>
+      <li>At each corner, fold the two adjacent side drops together so the diagonal cut edges meet. <strong>Install one snap per corner</strong> (or more if the drop is taller than 10").</li>
+      <li><strong>Install corner grommets</strong> at the four corners where the long sides meet the short sides — one in each corner of the cover, on the long side, just inside the snap line.</li>
+      <li>Install the cover by laying it over the table top, snapping the four corners closed, then running a bungee through the two grommets on each short end and wrapping it under the short side of the table to cinch the cover tight.</li>
+    </ol>
+  </div>
+</div>
+
+<script>
+function n(id){const v=Number(document.getElementById(id).value);return isFinite(v)?v:0;}
+function nOpt(id){const el=document.getElementById(id);if(!el||el.value===''||el.value==null)return null;const v=Number(el.value);return isFinite(v)?v:null;}
+function fin(v,r){return r?Math.ceil(v):Math.round(v*100)/100}
+function yds(inch,r){const y=inch/36;return r?Math.ceil(y):Math.round(y*100)/100}
+
+function compute(){
+  const rounded=document.getElementById('round').checked;
+  const B=n('B'), L=n('L'), W=n('W'), drop=n('drop');
+  const snapOverride = nOpt('snapsPerCorner');
+
+  // Long side L, short side W. Cover panel:
+  //   ML (along the bolt) = L + 2*drop  — runs along the long side
+  //   MD (across)         = W + 2*drop  — runs across the short side
+  const ML = Math.max(0, L + 2*drop);
+  const MD = Math.max(0, W + 2*drop);
+
+  // Snaps per corner: minimum 2 (to keep the tucked-in corner bulk enclosed),
+  // plus 1 more per additional 10" of drop beyond the first 10".
+  const autoSnaps = Math.max(2, 1 + Math.ceil(drop / 10));
+  const snapsPerCorner = (snapOverride && snapOverride > 0) ? snapOverride : autoSnaps;
+  const totalSnaps = snapsPerCorner * 4;
+
+  // Grommets: 4 total, at the four cover corners on the long sides, 2" inset from each edge.
+  const gromInset = 2;
+  // Bungee runs through the two grommets at one short end, wraps the short side of the table.
+  // Length ≈ W (around the short side) + 2 × gromInset (across the grommet inset) + a bit of slack.
+  const bungeeSlack = 6;
+  const bungeeLen = W + 2*gromInset + bungeeSlack;
+
+  // Layout / bolt-fit.
+  // Single-piece layout: cover panel fits across the bolt as one piece (MD ≤ B).
+  // Two-piece layout: panel is too wide for the bolt, so split it into two pieces
+  //   that run front-to-back (each piece is MD long along the bolt), joined by a
+  //   single seam down the long centerline of the cover. Each piece is
+  //   (ML + seamOverlap)/2 wide (across the bolt width).
+  const seamOverlap = 1.5; // total fabric consumed by the joining seam (1.5")
+  let layout, pieceCount, pieceL, pieceW, totalBoltLen;
+  if (MD <= B) {
+    layout = 'single';
+    pieceCount = 1;
+    pieceL = ML;       // along the bolt length
+    pieceW = MD;       // across the bolt width
+    totalBoltLen = ML;
+  } else {
+    layout = 'two-piece';
+    pieceCount = 2;
+    pieceL = MD;                    // each piece runs front-to-back along bolt
+    pieceW = (ML + seamOverlap) / 2; // across bolt width
+    totalBoltLen = 2 * MD;
+  }
+  const fitsBolt = (layout === 'single') ? (MD <= B) : (pieceW <= B);
+
+  const r=v=>fin(v,rounded);
+
+  // Results
+  document.getElementById('results').innerHTML = `
+    <div class='row'><span>Cover length (ML)</span><strong>${r(ML)} in</strong></div>
+    <div class='row'><span>Cover width (MD)</span><strong>${r(MD)} in</strong></div>
+    <div class='row'><span>Side drop</span><strong>${r(drop)} in</strong></div>
+    <div class='row'><span>Diagonal corner cut (each)</span><strong>${r(drop)}" × ${r(drop)}" — outer triangle removed</strong></div>
+    <div class='row'><span>Snaps per corner</span><strong>${snapsPerCorner}${snapOverride ? '' : ' (auto)'}</strong></div>
+    <div class='row'><span>Total snaps</span><strong>${totalSnaps}</strong></div>
+    <div class='row'><span>Layout</span><strong>${layout==='single' ? 'Single piece' : 'Two pieces (center seam, front-to-back)'}</strong></div>
+    <div class='row'><span>Fits in bolt width?</span><strong>${fitsBolt
+      ? (layout==='single'
+          ? `Yes — single piece, ${r(B-MD)}" of bolt waste per length`
+          : `Yes (two-piece) — each piece ${r(pieceW)}" wide, ${r(B-pieceW)}" of bolt waste per piece`)
+      : `No — even two-piece layout needs ${r(pieceW)}" wide pieces, exceeds ${B}" bolt`}</strong></div>
+  `;
+
+  // Material to buy
+  document.getElementById('buy').innerHTML = `
+    <div class='row'><span>Total bolt length to buy</span><strong>${r(totalBoltLen)} in</strong></div>
+    <div class='row'><span>Yards to buy</span><strong>${yds(totalBoltLen,rounded)} yd</strong></div>
+    <div class='row'><span>Cut to width</span><strong>${layout==='single' ? `${r(MD)}" wide (from ${r(B)}" bolt)` : `2 pieces, each ${r(pieceW)}" wide × ${r(MD)}" long (from ${r(B)}" bolt)`}</strong></div>
+  `;
+
+  // Cut list
+  document.getElementById('cutlist').innerHTML = `
+    ${layout==='single'
+      ? `<div class='row'><span>Cover panel</span><strong>${r(ML)}" × ${r(MD)}" (single piece)</strong><span style='color:#64748b'>Qty 1</span></div>`
+      : `<div class='row'><span>Cover panel halves</span><strong>${r(pieceW)}" × ${r(MD)}" each (joined by center seam, ${seamOverlap}" overlap)</strong><span style='color:#64748b'>Qty 2</span></div>
+         <div class='row'><span>Center seam</span><strong>Runs front-to-back down the long centerline of the cover (${r(MD)}" long)</strong><span style='color:#64748b'>—</span></div>`}
+    <div class='row'><span>Diagonal corner cuts</span><strong>4 corners — remove outer triangle from a ${r(drop)}" × ${r(drop)}" square</strong><span style='color:#64748b'>—</span></div>
+  `;
+
+  // Grommets
+  document.getElementById('grommets').innerHTML = `
+    <div class='row'><span>Total grommets</span><strong>4 (one at each corner)</strong></div>
+    <div class='row'><span>Inset from each edge</span><strong>${gromInset} in</strong></div>
+    <div class='row'><span>Bungees</span><strong>2 pieces × ${r(bungeeLen)} in</strong></div>
+    <div class='row' style='display:block;'>
+      <div style='font-size:12px;color:var(--sub);margin-top:4px;'>
+        Each bungee runs through the two corner grommets at one short end of the cover and wraps under the short side of the table.<br/>
+        Length = W + 2×${gromInset}" inset + ${bungeeSlack}" slack = ${W} + ${2*gromInset} + ${bungeeSlack} = ${r(bungeeLen)}"
+      </div>
+    </div>
+  `;
+
+  // Snap card
+  document.getElementById('snaps').innerHTML = `
+    <div class='row'><span>Snaps per corner</span><strong>${snapsPerCorner}</strong></div>
+    <div class='row'><span>Total snaps</span><strong>${totalSnaps}</strong></div>
+    <div class='row' style='display:block;'>
+      <div style='font-size:12px;color:var(--sub);margin-top:4px;'>
+        Minimum 2 snaps per corner — they form a mating pair across the diagonal cut so when snapped together they gather the corner bulk inward, letting the fabric fall straight from the table edge. Add 1 more pair for every additional 10" of drop. At ${r(drop)}" of drop, that's ${autoSnaps} snaps per corner.
+        <br/><br/>
+        <strong>Snap placement (per corner):</strong> One snap on the long-side flap and one on the short-side flap, mirrored across the diagonal. From the outer fabric corner, measure <strong>${r(0.95*drop)}"</strong> along each adjacent edge toward the table corner, then in <strong>${r(0.50*drop)}"</strong> perpendicular toward the table edge (= halfway between the fabric edge and the table edge). Both snaps in a pair should be at the same distances so they line up when the corner is folded.
+        ${autoSnaps>2 ? `<br/><br/>For deeper drops, add the second pair at <strong>${r(0.65*drop)}"</strong> along × <strong>${r(0.50*drop)}"</strong> in.` : ''}
+      </div>
+    </div>
+  `;
+
+  // Diagram
+  drawDiagram({rounded, B, L, W, drop, ML, MD, snapsPerCorner, gromInset, layout, pieceW});
+}
+
+function drawDiagram(p){
+  const {rounded, B, L, W, drop, ML, MD, snapsPerCorner, gromInset, layout, pieceW} = p;
+  const svg = document.getElementById('diagram'); while(svg.firstChild) svg.removeChild(svg.firstChild);
+  const VBW = svg.viewBox.baseVal.width, VBH = svg.viewBox.baseVal.height; const pad = 60;
+  const r = v => rounded ? Math.ceil(v) : Math.round(v*100)/100;
+  const add = (t,a) => { const e=document.createElementNS('http://www.w3.org/2000/svg',t); for (const k in a) e.setAttribute(k,a[k]); svg.appendChild(e); return e; };
+
+  // Scale: MD wide × ML long. Draw with ML horizontal so the long side reads left-to-right.
+  const drawW = VBW - pad*2;
+  const drawH = VBH - pad*2;
+  const scale = Math.min(drawW / ML, drawH / MD);
+  const w = ML * scale;   // horizontal extent of cover
+  const h = MD * scale;   // vertical extent of cover
+  const x0 = (VBW - w) / 2;
+  const y0 = (VBH - h) / 2;
+  const dPx = drop * scale;
+
+  // Arrow marker
+  const defs = add('defs',{});
+  const m = add('marker',{id:'a',markerWidth:8,markerHeight:8,refX:4,refY:4,orient:'auto',viewBox:'0 0 8 8'},defs);
+  defs.appendChild(m);
+  const ahead = document.createElementNS('http://www.w3.org/2000/svg','path');
+  ahead.setAttribute('d','M0,0 L8,4 L0,8 Z'); ahead.setAttribute('fill','#334155');
+  m.appendChild(ahead);
+
+  // Cover polygon: rectangle with the four outer corners chamfered diagonally.
+  // Each corner removes the outer triangle of a (drop × drop) square,
+  // leaving the inner triangular flap intact.
+  const xL = x0, xR = x0 + w, yT = y0, yB = y0 + h;
+  const pts = [
+    [xL + dPx, yT],          // top-left chamfer start (along top edge)
+    [xR - dPx, yT],          // top-right chamfer start
+    [xR,       yT + dPx],    // top-right chamfer end (along right edge)
+    [xR,       yB - dPx],    // bottom-right chamfer start
+    [xR - dPx, yB],          // bottom-right chamfer end
+    [xL + dPx, yB],          // bottom-left chamfer start
+    [xL,       yB - dPx],    // bottom-left chamfer end
+    [xL,       yT + dPx]     // top-left chamfer end
+  ];
+  add('polygon',{points:pts.map(p=>p.join(',')).join(' '), fill:'#eef2ff', stroke:'#0f172a', 'stroke-width':2});
+
+  // Show the original full rectangle dashed (so the removed triangles are visible)
+  add('rect',{x:xL, y:yT, width:w, height:h, fill:'none', stroke:'#94a3b8', 'stroke-dasharray':'4,4'});
+
+  // Center seam (two-piece layout) — vertical line down the long centerline,
+  // running the full short direction of the cover.
+  if (layout === 'two-piece') {
+    const xMid = (xL + xR) / 2;
+    add('line',{x1:xMid, y1:yT, x2:xMid, y2:yB, stroke:'#9333ea', 'stroke-width':2.5, 'stroke-dasharray':'8,3'});
+    add('text',{x:xMid + 6, y:yT + 14, 'font-size':10, fill:'#7e22ce', 'font-weight':'bold'})
+      .textContent = `center seam (1.5" overlap)`;
+    // Per-piece dimension labels: each half is pieceW × MD
+    add('text',{x:(xL+xMid)/2, y:yB - 8, 'text-anchor':'middle','font-size':11, fill:'#7e22ce', 'font-weight':'bold'})
+      .textContent = `Piece 1: ${r(pieceW)}" × ${r(MD)}"`;
+    add('text',{x:(xMid+xR)/2, y:yB - 8, 'text-anchor':'middle','font-size':11, fill:'#7e22ce', 'font-weight':'bold'})
+      .textContent = `Piece 2: ${r(pieceW)}" × ${r(MD)}"`;
+  }
+
+  // Diagonal cut lines (the chamfers themselves) — highlight them
+  const diagCuts = [
+    [[xL+dPx,yT],[xL,yT+dPx]],
+    [[xR-dPx,yT],[xR,yT+dPx]],
+    [[xR-dPx,yB],[xR,yB-dPx]],
+    [[xL+dPx,yB],[xL,yB-dPx]],
+  ];
+  for (const [a,b] of diagCuts) {
+    add('line',{x1:a[0],y1:a[1],x2:b[0],y2:b[1], stroke:'#dc2626', 'stroke-width':2});
+  }
+  // Corner-cut dimension annotation on the top-right corner: shows that
+  // the diagonal starts `drop` inches in from the corner along each edge.
+  {
+    const fmt = (v)=> (Math.round(v*10)/10).toString();
+    const dLabel = fmt(drop);
+    // Along the top edge: from (xR, yT) inward to (xR - dPx, yT)
+    add('line',{x1:xR - dPx, y1:yT - 22, x2:xR, y2:yT - 22, stroke:'#dc2626','stroke-width':1});
+    add('line',{x1:xR - dPx, y1:yT - 25, x2:xR - dPx, y2:yT - 19, stroke:'#dc2626','stroke-width':1});
+    add('line',{x1:xR,       y1:yT - 25, x2:xR,       y2:yT - 19, stroke:'#dc2626','stroke-width':1});
+    add('text',{x:xR - dPx/2, y:yT - 26, 'text-anchor':'middle','font-size':11, fill:'#b91c1c','font-weight':'bold'})
+      .textContent = `${dLabel}"`;
+    // Along the right edge: from (xR, yT) downward to (xR, yT + dPx)
+    add('line',{x1:xR + 22, y1:yT, x2:xR + 22, y2:yT + dPx, stroke:'#dc2626','stroke-width':1});
+    add('line',{x1:xR + 19, y1:yT, x2:xR + 25, y2:yT, stroke:'#dc2626','stroke-width':1});
+    add('line',{x1:xR + 19, y1:yT + dPx, x2:xR + 25, y2:yT + dPx, stroke:'#dc2626','stroke-width':1});
+    add('text',{x:xR + 28, y:yT + dPx/2 + 4, 'font-size':11, fill:'#b91c1c','font-weight':'bold'})
+      .textContent = `${dLabel}"`;
+  }
+
+  // Table top — dotted rectangle, centered, W × L.
+  const tblW = L * scale;  // along horizontal (long side)
+  const tblH = W * scale;  // along vertical (short side)
+  const tblX = x0 + dPx;
+  const tblY = y0 + dPx;
+  add('rect',{x:tblX, y:tblY, width:tblW, height:tblH, fill:'none', stroke:'#0891b2', 'stroke-width':2, 'stroke-dasharray':'6,4'});
+  add('text',{x:tblX + tblW/2, y:tblY + tblH/2 + 4, 'text-anchor':'middle', 'font-size':12, fill:'#0891b2', 'font-weight':'bold'})
+    .textContent = `TABLE ${r(L)}" × ${r(W)}"`;
+  add('text',{x:tblX + tblW/2, y:tblY + tblH/2 + 18, 'text-anchor':'middle', 'font-size':9, fill:'#0891b2'})
+    .textContent = '(top-down — cover hangs around all 4 sides)';
+
+  // Side drop labels (one on each side)
+  add('text',{x:x0 + dPx/2, y:y0 + h/2, 'text-anchor':'middle','font-size':10, fill:'#334155',
+    transform:`rotate(-90 ${x0 + dPx/2} ${y0 + h/2})`}).textContent = `${r(drop)}" drop`;
+  add('text',{x:x0 + w - dPx/2, y:y0 + h/2, 'text-anchor':'middle','font-size':10, fill:'#334155',
+    transform:`rotate(-90 ${x0 + w - dPx/2} ${y0 + h/2})`}).textContent = `${r(drop)}" drop`;
+  add('text',{x:x0 + w/2, y:y0 + dPx/2 + 4, 'text-anchor':'middle','font-size':10, fill:'#334155'}).textContent = `${r(drop)}" drop`;
+  add('text',{x:x0 + w/2, y:y0 + h - dPx/2 + 4, 'text-anchor':'middle','font-size':10, fill:'#334155'}).textContent = `${r(drop)}" drop`;
+
+  // Corner grommets (one at each corner — on the long sides, just inside the diagonal cut)
+  const gIn = gromInset * scale;
+  const grommetPts = [
+    [xL + dPx + gIn, yT + gIn],          // top-left, on long (top) side
+    [xR - dPx - gIn, yT + gIn],          // top-right, on long (top) side
+    [xR - dPx - gIn, yB - gIn],          // bottom-right, on long (bottom) side
+    [xL + dPx + gIn, yB - gIn]           // bottom-left, on long (bottom) side
+  ];
+  for (const [gx,gy] of grommetPts) {
+    add('circle',{cx:gx, cy:gy, r:6, fill:'none', stroke:'#b45309', 'stroke-width':2.5});
+    add('circle',{cx:gx, cy:gy, r:2, fill:'#b45309'});
+  }
+
+  // Bungees — show a curved line at each short end going around the short side of the table
+  // Left short end (vertical edge on the left): bungee from top-left grommet to bottom-left grommet
+  const bungeeColor = '#0891b2';
+  const lg1 = grommetPts[0], lg2 = grommetPts[3];
+  const rg1 = grommetPts[1], rg2 = grommetPts[2];
+  // curve OUT past the cover edge (left)
+  const bowL = xL - 12, bowR = xR + 12;
+  add('path',{d:`M${lg1[0]},${lg1[1]} C${bowL},${lg1[1]} ${bowL},${lg2[1]} ${lg2[0]},${lg2[1]}`,
+    fill:'none', stroke:bungeeColor, 'stroke-width':2, 'stroke-dasharray':'5,3'});
+  add('path',{d:`M${rg1[0]},${rg1[1]} C${bowR},${rg1[1]} ${bowR},${rg2[1]} ${rg2[0]},${rg2[1]}`,
+    fill:'none', stroke:bungeeColor, 'stroke-width':2, 'stroke-dasharray':'5,3'});
+  add('text',{x:bowL - 6, y:(lg1[1]+lg2[1])/2, 'text-anchor':'end','font-size':10, fill:bungeeColor, 'font-weight':'bold'}).textContent = 'bungee';
+  add('text',{x:bowR + 6, y:(rg1[1]+rg2[1])/2, 'text-anchor':'start','font-size':10, fill:bungeeColor, 'font-weight':'bold'}).textContent = 'bungee';
+
+  // Snaps — NOT on the diagonal cut edge. Instead, each snap sits inside
+  // the corner-square (the drop×drop area at each corner), centered in one of
+  // the two adjacent side-drop strips. That puts each snap roughly halfway
+  // between the table edge and the outer fabric edge, just inside the
+  // diagonal cut, where it can grab both layers when the corner is folded.
+  const snapColor = '#22c55e';
+  // Per-corner local positions, expressed as (alongStrip, perpStrip) in units
+  // of the side drop d. The "alongStrip" axis runs from the cover's outer
+  // corner (0) toward the table corner (1); the "perpStrip" axis runs from
+  // the outer fabric edge (0) toward the table edge (1). Each candidate
+  // describes one of the two adjacent strips.
+  //   slot 0: snap on the long-side strip, centered in the strip, ¾ of the
+  //           way toward the table corner
+  //   slot 1: snap on the short-side strip, mirrored
+  //   slot 2: extra snap pushed deeper into the corner if drop is large
+  // Two snaps per corner form a mating pair across the diagonal: one on the
+  // long-side flap, one on the short-side flap. They sit at the same distance
+  // from the table corner so they snap to each other, gathering the corner
+  // bulk inward so the fabric falls roughly straight from the table edge.
+  const slots = [
+    {along:0.95, perp:0.50, axis:'long'},  // long-side flap snap
+    {along:0.95, perp:0.50, axis:'short'}, // short-side flap snap (mirror)
+    {along:0.65, perp:0.50, axis:'long'},  // extra pair for deeper drops
+    {along:0.65, perp:0.50, axis:'short'},
+  ];
+  // Corner descriptors: outer-corner pixel coords + sign of strip directions.
+  const corners = [
+    {ox:xL, oy:yT, sx:+1, sy:+1}, // top-left
+    {ox:xR, oy:yT, sx:-1, sy:+1}, // top-right
+    {ox:xR, oy:yB, sx:-1, sy:-1}, // bottom-right
+    {ox:xL, oy:yB, sx:+1, sy:-1}, // bottom-left
+  ];
+  for (const c of corners) {
+    for (let i = 0; i < snapsPerCorner; i++) {
+      const slot = slots[i % slots.length];
+      // For "long" axis snaps the along direction is horizontal (x),
+      // for "short" axis snaps it's vertical (y).
+      let lx, ly;
+      if (slot.axis === 'long') {
+        lx = c.ox + c.sx * slot.along * dPx;
+        ly = c.oy + c.sy * slot.perp  * dPx;
+      } else {
+        lx = c.ox + c.sx * slot.perp  * dPx;
+        ly = c.oy + c.sy * slot.along * dPx;
+      }
+      add('circle',{cx:lx, cy:ly, r:4, fill:snapColor, stroke:'#166534', 'stroke-width':1});
+    }
+  }
+  // Annotate the top-left corner with snap dimensions so the manufacturer
+  // can read the placement off the diagram.
+  {
+    const tl = corners[0];
+    const fmt = (v)=> (Math.round(v*10)/10).toString();
+    const alongIn = fmt(0.95 * drop);
+    const perpIn  = fmt(0.50 * drop);
+    // Long-side flap snap (top edge)
+    const sx1 = tl.ox + 0.95 * dPx;
+    const sy1 = tl.oy + 0.50 * dPx;
+    // Along dimension above the cover
+    add('line',{x1:tl.ox, y1:tl.oy-10, x2:sx1, y2:tl.oy-10, stroke:'#16a34a','stroke-width':1});
+    add('line',{x1:tl.ox, y1:tl.oy-13, x2:tl.ox, y2:tl.oy-7, stroke:'#16a34a','stroke-width':1});
+    add('line',{x1:sx1,    y1:tl.oy-13, x2:sx1,    y2:tl.oy-7, stroke:'#16a34a','stroke-width':1});
+    add('text',{x:(tl.ox+sx1)/2, y:tl.oy-14,'text-anchor':'middle','font-size':11, fill:'#15803d','font-weight':'bold'})
+      .textContent = `${alongIn}"`;
+    // Perpendicular dimension to the LEFT of the cover (outside) so it's not
+    // hidden under the corner grommet.
+    add('line',{x1:tl.ox-12, y1:tl.oy, x2:tl.ox-12, y2:sy1, stroke:'#16a34a','stroke-width':1});
+    add('line',{x1:tl.ox-15, y1:tl.oy, x2:tl.ox-9,  y2:tl.oy, stroke:'#16a34a','stroke-width':1});
+    add('line',{x1:tl.ox-15, y1:sy1,    x2:tl.ox-9,  y2:sy1,    stroke:'#16a34a','stroke-width':1});
+    add('text',{x:tl.ox-16, y:(tl.oy+sy1)/2+4,'text-anchor':'end','font-size':11, fill:'#15803d','font-weight':'bold'})
+      .textContent = `${perpIn}"`;
+    // Light leader lines from the dimensions to the actual snap point
+    add('line',{x1:sx1, y1:tl.oy-7, x2:sx1, y2:sy1, stroke:'#16a34a','stroke-width':0.5,'stroke-dasharray':'2 2'});
+    add('line',{x1:tl.ox-9, y1:sy1, x2:sx1, y2:sy1, stroke:'#16a34a','stroke-width':0.5,'stroke-dasharray':'2 2'});
+  }
+
+  // Outer dimension arrows
+  const arrow=(x1,y1,x2,y2)=>add('line',{x1,y1,x2,y2,stroke:'#334155','marker-start':'url(#a)','marker-end':'url(#a)'});
+  // Top: ML
+  arrow(xL, y0 - 28, xR, y0 - 28);
+  add('text',{x:(xL+xR)/2, y:y0 - 34, 'text-anchor':'middle','font-size':12, fill:'#334155', 'font-weight':'bold'})
+    .textContent = `Cover length (ML): ${r(ML)}"`;
+  // Right: MD
+  arrow(xR + 30, yT, xR + 30, yB);
+  add('text',{x:xR + 36, y:(yT+yB)/2, 'text-anchor':'middle','font-size':12, fill:'#334155', 'font-weight':'bold',
+    transform:`rotate(-90 ${xR + 36} ${(yT+yB)/2})`})
+    .textContent = `Cover width (MD): ${r(MD)}"`;
+
+  // Direction labels
+  add('text',{x:(xL+xR)/2, y:yB + 36, 'text-anchor':'middle','font-size':11, fill:'#475569', 'font-weight':'bold'})
+    .textContent = '← long side (L) →';
+}
+
+// Load values from URL parameters
+function loadFromURL(){
+  const params = new URLSearchParams(window.location.search);
+  const fields = ['B', 'L', 'W', 'drop', 'snapsPerCorner'];
+  let loaded = false;
+  fields.forEach(field => {
+    const value = params.get(field);
+    if (value !== null) {
+      const el = document.getElementById(field);
+      if (el) { el.value = value; loaded = true; }
+    }
+  });
+  return loaded;
+}
+
+function wire(){
+  const inputsCard=document.getElementById('inputsCard'); ['input','change','keyup'].forEach(ev=>inputsCard.addEventListener(ev,compute));
+  document.getElementById('recalc').addEventListener('click',compute);
+  document.getElementById('reset').addEventListener('click',()=>{
+    const d={B:54,L:60,W:36,drop:10};
+    for(const k in d) document.getElementById(k).value=d[k];
+    document.getElementById('snapsPerCorner').value='';
+    document.getElementById('round').checked=true; compute();
+  });
+  loadFromURL();
+  compute();
+}
+document.addEventListener('DOMContentLoaded',wire);
+</script>
+</body>
+</html>

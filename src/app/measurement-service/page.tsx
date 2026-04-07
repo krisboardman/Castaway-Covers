@@ -111,9 +111,7 @@ export default function MeasurementServicePage() {
     'Sofas/Loveseats',
     'Chaise Lounges',
     'Tables',
-    'Table Sets',
-    'Ottomans',
-    'Other'
+    'Ottomans'
   ];
 
   return (
@@ -171,7 +169,7 @@ export default function MeasurementServicePage() {
             </ol>
             <div className="mt-4 p-3 bg-blue-50 rounded-md">
               <p className="text-sm text-blue-800">
-                <strong>💡 Tip:</strong> The $75 service fee can be credited toward your cover purchase of $500 or more
+                <strong>💡 Tip:</strong> The $75 service fee can be credited toward your cover purchase of $400 or more
               </p>
             </div>
           </div>
