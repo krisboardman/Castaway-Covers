@@ -112,7 +112,7 @@ export default function CartPage() {
         clearCart();
 
         // Show success message
-        alert(`Thank you ${customerInfo.name}! Your order has been received. We'll send you an invoice at ${customerInfo.email} within 24 hours.`);
+        alert(`Thank you ${customerInfo.name}! Your order request has been received. We personally review every order before any payment is collected — you'll receive a detailed invoice at ${customerInfo.email} within 24 hours, and you'll only be charged once you approve it.`);
 
         // Redirect to home or confirmation page
         window.location.href = '/';
@@ -462,6 +462,11 @@ export default function CartPage() {
                           {photos.length} photo{photos.length > 1 ? 's' : ''} selected: {photos.map(p => p.name).join(', ')}
                         </div>
                       )}
+                    </div>
+
+                    <div className="mb-3 p-3 bg-brand-teal/10 border-l-4 border-brand-teal rounded-md text-sm text-gray-700">
+                      <p className="font-semibold text-brand-teal-dark mb-1">✓ We review every order before charging you</p>
+                      <p>After you submit, we'll personally review your order and send a detailed invoice within 24 hours. You'll only be charged once you approve it.</p>
                     </div>
 
                     <button

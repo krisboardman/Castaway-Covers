@@ -134,12 +134,14 @@ Item Total: $${item.total.toFixed(2)}
 
     // Email content to send to customer
     const emailToCustomer = `
-Thank you for your order!
-=========================
+Thank you for your order request!
+=================================
 
 Hi ${customerInfo.name},
 
-Thank you for your custom cover order from Castaway Covers! We've received your request and will send you a detailed invoice within 24 hours.
+Thank you for your custom cover order request from Castaway Covers! We've received your details and will personally review your order before any payment is collected. If everything looks good, you'll receive a detailed invoice within the next 24 hours. You will only be charged once you approve the invoice.
+
+If we have any questions about your measurements or specifications, we'll reach out before sending the invoice.
 
 ORDER SUMMARY:
 ${customerOrderDetails}
@@ -207,7 +209,7 @@ www.castawaycovers.com
 
     return NextResponse.json({
       success: true,
-      message: 'Order submitted successfully! We will send you an invoice within 24 hours.',
+      message: 'Order request submitted successfully! We will review your order and send you an invoice within 24 hours. You will only be charged after you approve the invoice.',
       orderDetails: {
         customerName: customerInfo.name,
         email: customerInfo.email,

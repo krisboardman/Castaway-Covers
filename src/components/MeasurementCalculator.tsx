@@ -501,6 +501,18 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
       
       {/* Measurement diagrams are now shown in the left panel on the product page */}
       
+      {/* Measurement service callout */}
+      <div className="mb-3 p-3 bg-brand-teal/10 border-l-4 border-brand-teal rounded-md flex items-start gap-3">
+        <span className="text-xl leading-none">📏</span>
+        <div className="flex-1 text-sm">
+          <p className="font-semibold text-brand-teal-dark">Not sure how to measure?</p>
+          <p className="text-gray-700">
+            We offer an in-home measurement service — $75, credited toward your cover purchase of $400+.{' '}
+            <a href="/measurement-service" className="underline font-semibold text-brand-teal hover:text-brand-teal-dark">Learn more</a>
+          </p>
+        </div>
+      </div>
+
       {/* Important measurement warning */}
       <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-md">
         <p className="text-sm font-semibold text-yellow-800 mb-1">
