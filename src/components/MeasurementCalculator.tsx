@@ -131,13 +131,11 @@ const productConfigs = {
     curvedBackImage: '/images/Measurements/curved-back-measuring.svg'
   },
   'chaise-lounge': {
-    fields: ['width', 'length', 'height', 'armrestHeight', 'armLength'],
+    fields: ['width', 'length', 'height'],
     labels: {
-      width: 'Width (arm to arm)',
-      length: 'Length (folded down)',
-      height: 'Floor to Bottom of Seat',
-      armrestHeight: 'Floor to Top of Armrest',
-      armLength: 'Arm Length'
+      width: 'Width',
+      length: 'Length (head to foot)',
+      height: 'Height (top of chaise to floor)'
     },
     hasAngle: false,
     measurementImage: '/images/Measurements/chaise measurements.jpg'
@@ -246,39 +244,23 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
   const calculateYards = (measurements: any): number => {
     const { width, length, height, backrestDepth, armrestHeight } = measurements;
 
-    // Calculation for chaise lounge (new formula based on spreadsheet)
+    // Chaise lounge — clean rectangle + chamfered corners, mirrors chaise_lounge_cover_calculator_MFG.html
     if (productType === 'chaise-lounge') {
-      if (!width || !length || !height || !armrestHeight) return 0;
-
-      // Constants
-      const BOLT_WIDTH = 54; // Width of material bolt from supplier
-      const CLEARANCE = 3;   // Floor clearance
-
-      // FTBS = height (floor to bottom of seat/cushion)
-      // FTA = armrestHeight (floor to top of armrest)
-      const FTBS = height;
-      const FTA = armrestHeight;
-
-      // Main length = length + 2(FTBS - 3 clearance)
-      const mainLength = length + 2 * (FTBS - CLEARANCE);
-
-      // Main width = width + 2(FTA - 3 clearance)
-      const mainWidth = width + 2 * (FTA - CLEARANCE);
-
-      // Additional length if main width > bolt width (54")
-      // Formula: (main width - bolt width) + 2
-      let additionalLength = 0;
-      if (mainWidth > BOLT_WIDTH) {
-        additionalLength = (mainWidth - BOLT_WIDTH) + 2;
+      if (!width || !length || !height) return 0;
+      const BOLT_WIDTH = 54;
+      const FC = 3;
+      const sideDrop = Math.max(0, height - FC);
+      const ML = length + 2 * sideDrop;  // along bolt (head-to-foot)
+      const MD = width + 2 * sideDrop;   // across bolt
+      let totalBoltLength: number;
+      if (MD <= BOLT_WIDTH) {
+        totalBoltLength = ML;
+      } else {
+        const stripWidth = (MD - BOLT_WIDTH) / 2;
+        const stripLength = width + 2 * stripWidth; // chamfer trims strip
+        totalBoltLength = ML + stripLength;
       }
-
-      // Total length needed
-      const totalLength = mainLength + additionalLength;
-
-      // Convert to yards and round up
-      const yardsNeeded = totalLength / 36;
-
-      return Math.ceil(yardsNeeded);
+      return Math.ceil(totalBoltLength / 36);
     }
 
     // Calculation for chairs/recliners — matches chair_cover_calculator_snap_back_MFG.html.
