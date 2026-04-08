@@ -289,7 +289,7 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
 
       // Constants — match MFG calculator defaults
       const B = 54;        // bolt width
-      const FC = 6;        // floor clearance + wave allowance
+      const FC = 3;        // floor clearance + wave allowance (matches MFG calc)
       const hem = 1;       // hem allowance
       const seam = 1.5;    // seam overlap
       const sideEase = 0;
@@ -339,32 +339,10 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
         }
       }
 
-      // --- Strategy B: split-back nested (cut trapezoid in half, rotate one 180°) ---
-      const splitBackCenterSeam = seam;
-      const splitBackHalfTop = backPieceTopWidth / 2 + splitBackCenterSeam;
-      const splitBackHalfBot = backPieceBottomWidth / 2 + splitBackCenterSeam;
-      const splitBackNestedWidth = splitBackHalfTop + splitBackHalfBot;
-      const splitBackTaper = splitBackHalfTop - splitBackHalfBot;
-      const splitBackMinOffset = splitBackNestedWidth <= B ? 0
-        : splitBackTaper > 0 ? (splitBackNestedWidth - B) * backPieceHeight / splitBackTaper : Infinity;
-      const splitBackFits = isFinite(splitBackMinOffset);
-      const splitBackBoltLength = splitBackFits ? backPieceHeight + splitBackMinOffset : backPieceLength;
-      const splitBackSavings = backPieceLength - splitBackBoltLength;
-
-      let totalB = Infinity;
-      if (splitBackFits && splitBackSavings > 1) {
-        totalB = ML + splitBackBoltLength;
-        if (frontFlapNeeded) {
-          if (splitBackNestedWidth + frontFlapWidth <= B) {
-            totalB = ML + Math.max(splitBackBoltLength, frontFlapLength);
-          } else {
-            totalB = ML + splitBackBoltLength + frontFlapLength;
-          }
-        }
-      }
-
-      const totalLength = Math.min(totalA, totalB);
-      return Math.ceil(totalLength / 36);
+      // Note: the MFG calculator also considers a split-back nesting strategy,
+      // but for simplicity (and to match the conservative yardage typically quoted)
+      // the website sticks with Strategy A.
+      return Math.ceil(totalA / 36);
     }
 
     // Calculation for sofas/loveseats (uses 2 lanes with center seam)
