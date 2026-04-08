@@ -95,7 +95,7 @@
             <label class="lbl">F2A (Floor → Armrest)<input id="F2A" type="number" value="26" step="1" /></label>
             <label class="lbl">F2BS (Floor → Bottom of seat cushion)<input id="F2BS" type="number" value="18" step="1" /></label>
             <label class="lbl">BR (Backrest thickness)<input id="BR" type="number" value="4" step="1" /></label>
-            <label class="lbl">FC + Wave Allowance<input id="FC" type="number" value="6" step="1" /></label>
+            <label class="lbl">FC + Wave Allowance<input id="FC" type="number" value="3" step="1" /></label>
             <label class="lbl">Hem allowance (edges)<input id="hem" type="number" value="1" step="0.5" /></label>
             <label class="lbl">Seam overlap (piece junctions)<input id="seam" type="number" value="1.5" step="0.5" /></label>
             <label class="lbl">Side ease (extra per side at front)<input id="sideEase" type="number" value="0" step="0.5" min="0" /></label>
@@ -244,6 +244,21 @@
           <span style="color:var(--sub); font-size:11px;">— — Diagonal cut line (inset: back zone → front zone)</span>
           <span class="chip" style="background:none; border:2px solid #b45309; border-radius:50%; width:10px; height:10px;"></span> <span style="font-size:11px;">Grommets (brass)</span>
           <span class="chip" style="background:#059669;"></span> <span style="font-size:11px;">Snap positions</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Assembly Diagram — Wavy Edge Layout -->
+    <div class="card assembly-flat-card" style="margin-top:24px;">
+      <div class="title" style="font-size:18px;">Assembly Diagram — Wavy Edge Layout</div>
+      <div class="diagramBox">
+        <svg id="assemblyWavyEdge" viewBox="0 0 1200 900" preserveAspectRatio="xMidYMid meet" style="width:100%; height:auto; min-height:700px;"></svg>
+        <div class="legend">
+          <span class="chip" style="background:#fca5a5;"></span> Main piece + front flap
+          <span class="chip" style="background:#93c5fd;"></span> Back piece (trapezoid)
+          <span style="color:#059669; font-weight:600;">Green wavy line = cut with wavy pattern</span>
+          <span style="color:#7c3aed; font-weight:600;">Purple straight line = seam (no wave)</span>
+          <span style="font-size:11px;">Wave: 1.5" tall × 13" per cycle</span>
         </div>
       </div>
     </div>
@@ -898,52 +913,95 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
     const mainSnapInset = 4;  // 4" from the fold/corner on main piece
     const backSnapFromFold = 4;  // 4" past WB/2 fold line on back piece
     const fullExt = (backPieceTopWidth - backPieceBottomWidth) / 2;
-    const snapFracs = [{frac: 1/3, label: '1'}, {frac: 2/3, label: '2'}];
+    const snapFracs = [{frac: 1/3, label: '1', fracLabel:'⅓'}, {frac: 2/3, label: '2', fracLabel:'⅔'}];
+
+    // Collect snap positions for the key
+    const snapInfo = [];
 
     for (const snap of snapFracs) {
       const downFromSeam = backPieceHeight * snap.frac;
 
-      // --- BACK PIECE snaps ---
-      // Fold line is at WB/2 from center. Snap is 4" past that into the extension.
-      // But cap it so we stay at least 1" from the diagonal edge.
+      // --- BACK PIECE snaps (solid green) ---
       const bpSnapY = mainTopY - downFromSeam * sc;
       const extAtHeight = fullExt * (1 - snap.frac);
-      const maxFromFold = extAtHeight - 1;  // leave 1" from diagonal edge
+      const maxFromFold = extAtHeight - 1;
       const actualFromFold = Math.min(backSnapFromFold, maxFromFold);
       const bpSnapDistFromCenter = WB / 2 + actualFromFold;
-      // Left
       const bpLeftSnapX = cx - bpSnapDistFromCenter * sc;
-      add('circle',{cx:bpLeftSnapX, cy:bpSnapY, r:6, fill:'#059669', stroke:'#fff', 'stroke-width':2});
-      add('text',{x:bpLeftSnapX, y:bpSnapY + 3, 'text-anchor':'middle', 'font-size':7, fill:'#fff', 'font-weight':'bold'}).textContent=snap.label;
-      // Right
       const bpRightSnapX = cx + bpSnapDistFromCenter * sc;
-      add('circle',{cx:bpRightSnapX, cy:bpSnapY, r:6, fill:'#059669', stroke:'#fff', 'stroke-width':2});
-      add('text',{x:bpRightSnapX, y:bpSnapY + 3, 'text-anchor':'middle', 'font-size':7, fill:'#fff', 'font-weight':'bold'}).textContent=snap.label;
+      add('circle',{cx:bpLeftSnapX, cy:bpSnapY, r:8, fill:'#059669', stroke:'#fff', 'stroke-width':2.5});
+      add('text',{x:bpLeftSnapX, y:bpSnapY + 4, 'text-anchor':'middle', 'font-size':9, fill:'#fff', 'font-weight':'bold'}).textContent=snap.label;
+      add('circle',{cx:bpRightSnapX, cy:bpSnapY, r:8, fill:'#059669', stroke:'#fff', 'stroke-width':2.5});
+      add('text',{x:bpRightSnapX, y:bpSnapY + 4, 'text-anchor':'middle', 'font-size':9, fill:'#fff', 'font-weight':'bold'}).textContent=snap.label;
 
-      // --- MAIN PIECE snaps ---
-      // At ⅓/⅔ down the side drop, 4" from the back edge (seam) toward the front.
-      // On flat layout: X = position along side drop, Y = 4" from seam toward front.
-      // The side drop runs from W/2 to ML/2. ⅓ down = W/2 + sideDrop*frac from center.
+      // --- MAIN PIECE snaps (green with red border) ---
       const mainSnapDistFromCenter = W / 2 + sideDrop * snap.frac;
-      const mainSnapY = mainTopY + mainSnapInset * sc;  // 4" from seam toward front
-      // Left
+      const mainSnapY = mainTopY + mainSnapInset * sc;
       const mainLeftSnapX = cx - mainSnapDistFromCenter * sc;
-      add('circle',{cx:mainLeftSnapX, cy:mainSnapY, r:6, fill:'#059669', stroke:'#dc2626', 'stroke-width':2});
-      add('text',{x:mainLeftSnapX, y:mainSnapY + 3, 'text-anchor':'middle', 'font-size':7, fill:'#fff', 'font-weight':'bold'}).textContent=snap.label;
-      // Right
       const mainRightSnapX = cx + mainSnapDistFromCenter * sc;
-      add('circle',{cx:mainRightSnapX, cy:mainSnapY, r:6, fill:'#059669', stroke:'#dc2626', 'stroke-width':2});
-      add('text',{x:mainRightSnapX, y:mainSnapY + 3, 'text-anchor':'middle', 'font-size':7, fill:'#fff', 'font-weight':'bold'}).textContent=snap.label;
+      add('circle',{cx:mainLeftSnapX, cy:mainSnapY, r:8, fill:'#059669', stroke:'#dc2626', 'stroke-width':2.5});
+      add('text',{x:mainLeftSnapX, y:mainSnapY + 4, 'text-anchor':'middle', 'font-size':9, fill:'#fff', 'font-weight':'bold'}).textContent=snap.label;
+      add('circle',{cx:mainRightSnapX, cy:mainSnapY, r:8, fill:'#059669', stroke:'#dc2626', 'stroke-width':2.5});
+      add('text',{x:mainRightSnapX, y:mainSnapY + 4, 'text-anchor':'middle', 'font-size':9, fill:'#fff', 'font-weight':'bold'}).textContent=snap.label;
 
       // --- Dashed lines connecting snap pairs ---
       add('line',{x1:bpLeftSnapX, y1:bpSnapY, x2:mainLeftSnapX, y2:mainSnapY,
-        stroke:'#059669', 'stroke-width':1.2, 'stroke-dasharray':'4,3', opacity:0.7});
+        stroke:'#059669', 'stroke-width':1.5, 'stroke-dasharray':'5,4', opacity:0.6});
       add('line',{x1:bpRightSnapX, y1:bpSnapY, x2:mainRightSnapX, y2:mainSnapY,
-        stroke:'#059669', 'stroke-width':1.2, 'stroke-dasharray':'4,3', opacity:0.7});
+        stroke:'#059669', 'stroke-width':1.5, 'stroke-dasharray':'5,4', opacity:0.6});
 
-      // --- Dimension label (left side only) ---
-      add('text',{x:bpLeftSnapX - 16, y:bpSnapY + 4, 'text-anchor':'end', 'font-size':8, fill:'#059669', 'font-weight':'bold'}).textContent=`Snap ${snap.label}`;
+      // Calculate horizontal position info for the key
+      // Width of back piece at this height (trapezoid tapers)
+      const bpWidthAtHeight = backPieceTopWidth - (backPieceTopWidth - backPieceBottomWidth) * snap.frac;
+      const fromCenter = bpSnapDistFromCenter;
+      const fromEdge = bpWidthAtHeight / 2 - bpSnapDistFromCenter;
+
+      const mainFromCenter = mainSnapDistFromCenter;
+      const mainFromEdge = ML / 2 - mainSnapDistFromCenter;
+
+      snapInfo.push({label: snap.label, fracLabel: snap.fracLabel, downFromSeam, mainSnapInset,
+        fromCenter, fromEdge, bpWidthAtHeight, actualFromFold,
+        mainFromCenter, mainFromEdge});
     }
+
+    // --- SNAP KEY: placed in top-right corner of the SVG (near the snaps) ---
+    const keyW = 265, keyH = 220;
+    const keyX = VBW - pad - keyW;
+    const keyY = pad;
+    // Background box
+    add('rect',{x:keyX, y:keyY, width:keyW, height:keyH, rx:6, fill:'#f0fdf4', stroke:'#059669', 'stroke-width':1.5});
+    add('text',{x:keyX + keyW/2, y:keyY + 16, 'text-anchor':'middle', 'font-size':11, fill:'#059669', 'font-weight':'bold'}).textContent='SNAP PLACEMENT';
+    // Legend: solid green = back piece, red border = main piece
+    add('circle',{cx:keyX + 14, cy:keyY + 32, r:6, fill:'#059669', stroke:'#fff', 'stroke-width':2});
+    add('text',{x:keyX + 24, y:keyY + 36, 'font-size':9, fill:'#334155'}).textContent='= on back piece';
+    add('circle',{cx:keyX + 130, cy:keyY + 32, r:6, fill:'#059669', stroke:'#dc2626', 'stroke-width':2});
+    add('text',{x:keyX + 140, y:keyY + 36, 'font-size':9, fill:'#334155'}).textContent='= on main piece';
+
+    // Snap 1 info
+    const s1 = snapInfo[0];
+    let row = keyY + 52;
+    add('text',{x:keyX + 10, y:row, 'font-size':10, fill:'#059669', 'font-weight':'bold'}).textContent=`Snap 1 (${s1.fracLabel} down from seam)`;
+    row += 13;
+    add('text',{x:keyX + 10, y:row, 'font-size':9, fill:'#334155'}).textContent=`Back: ${rIn(s1.downFromSeam)}" down, ${rIn(s1.fromCenter)}" from center`;
+    row += 11;
+    add('text',{x:keyX + 10, y:row, 'font-size':9, fill:'#475569'}).textContent=`(${rIn(s1.fromEdge)}" from edge — width at this height: ${rIn(s1.bpWidthAtHeight)}")`;
+    row += 13;
+    add('text',{x:keyX + 10, y:row, 'font-size':9, fill:'#334155'}).textContent=`Main: ${s1.mainSnapInset}" from seam, ${rIn(s1.mainFromCenter)}" from center`;
+    row += 11;
+    add('text',{x:keyX + 10, y:row, 'font-size':9, fill:'#475569'}).textContent=`(${rIn(s1.mainFromEdge)}" from edge)`;
+
+    // Snap 2 info
+    const s2 = snapInfo[1];
+    row += 18;
+    add('text',{x:keyX + 10, y:row, 'font-size':10, fill:'#059669', 'font-weight':'bold'}).textContent=`Snap 2 (${s2.fracLabel} down from seam)`;
+    row += 13;
+    add('text',{x:keyX + 10, y:row, 'font-size':9, fill:'#334155'}).textContent=`Back: ${rIn(s2.downFromSeam)}" down, ${rIn(s2.fromCenter)}" from center`;
+    row += 11;
+    add('text',{x:keyX + 10, y:row, 'font-size':9, fill:'#475569'}).textContent=`(${rIn(s2.fromEdge)}" from edge — width at this height: ${rIn(s2.bpWidthAtHeight)}")`;
+    row += 13;
+    add('text',{x:keyX + 10, y:row, 'font-size':9, fill:'#334155'}).textContent=`Main: ${s2.mainSnapInset}" from seam, ${rIn(s2.mainFromCenter)}" from center`;
+    row += 11;
+    add('text',{x:keyX + 10, y:row, 'font-size':9, fill:'#475569'}).textContent=`(${rIn(s2.mainFromEdge)}" from edge)`;
   }
 
   // === ZONE BOUNDARY LINES (bold, visible) ===
@@ -1167,6 +1225,25 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
     add('text',{x:gromFrontLeftX, y:gromFrontY - 9, 'text-anchor':'middle', 'font-size':7, fill:gromColor, 'font-weight':'bold'}).textContent='G';
     add('text',{x:gromBackRightX, y:gromBackY - 9, 'text-anchor':'middle', 'font-size':7, fill:gromColor, 'font-weight':'bold'}).textContent='G';
     add('text',{x:gromFrontRightX, y:gromFrontY - 9, 'text-anchor':'middle', 'font-size':7, fill:gromColor, 'font-weight':'bold'}).textContent='G';
+
+    // === BUNGEE TAB HOLDERS (back panel) ===
+    // Two small fabric tabs sewn onto the back piece, directly above the back grommets,
+    // 2" below the backrest crease (mainTopY). Bungees hook into these tabs.
+    const bungeeTabBelowBackrest = 2;  // inches below backrest crease
+    const bungeeTabY = mainTopY - bungeeTabBelowBackrest * sc;
+    const bungeeTabLeftX  = cx - gromBackHorizFromCenter * sc;
+    const bungeeTabRightX = cx + gromBackHorizFromCenter * sc;
+    const tabColor = '#0891b2';
+    function dBungeeTab(xPx, yPx) {
+      add('rect',{x:xPx-6, y:yPx-4, width:12, height:8, rx:2,
+        fill:'#cffafe', stroke:tabColor, 'stroke-width':1.8});
+      add('circle',{cx:xPx, cy:yPx, r:1.6, fill:tabColor});
+    }
+    dBungeeTab(bungeeTabLeftX,  bungeeTabY);
+    dBungeeTab(bungeeTabRightX, bungeeTabY);
+    add('text',{x:cx, y:bungeeTabY + 18, 'text-anchor':'middle', 'font-size':9,
+      fill:tabColor, 'font-weight':'bold'}).textContent=
+      `bungee tabs (${rIn(sideDrop - bungeeTabBelowBackrest)}" up from back floor, ±${rIn(gromBackHorizFromCenter)}" from center)`;
   }
 
   // === DIMENSION ARROWS ===
@@ -1191,8 +1268,324 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
   // === EDGE LABELS ===
   add('text',{x:(mainX + frontLeftX)/2, y:mainBotY + 16, 'text-anchor':'middle', 'font-size':9, fill:'#475569'}).textContent='← Left floor edge';
   add('text',{x:(mainX + mainW + frontRightX)/2, y:mainBotY + 16, 'text-anchor':'middle', 'font-size':9, fill:'#475569'}).textContent='Right floor edge →';
-  add('text',{x:cx, y:mainTopY - hemOverlapH - 4, 'text-anchor':'middle', 'font-size':10, fill:'#475569', 'font-weight':'bold'}).textContent='↑ BACK (behind chair) ↑';
+  add('text',{x:cx, y:mainTopY - hemOverlapH - 16, 'text-anchor':'middle', 'font-size':10, fill:'#475569', 'font-weight':'bold'}).textContent='↑ BACK (behind chair) ↑';
   add('text',{x:cx, y:mainBotY + (frontFlapNeeded ? (frontFlapWidth * sc) + 16 : 16), 'text-anchor':'middle', 'font-size':10, fill:'#475569', 'font-weight':'bold'}).textContent='↓ FRONT (in front of chair) ↓';
+}
+
+// === WAVY PATH HELPER ===
+// Generates an SVG path 'd' attribute for a sine wave along a line segment.
+// The wave cuts INWARD only: peaks sit at the original edge, troughs scoop inward.
+// amplitude = depth of scoop in inches; wavelength = one full cycle in inches.
+// inwardNDir: +1 or -1 to control which side is "inward" (into the material).
+function wavyPathD(x1, y1, x2, y2, amplitude, wavelength, sc, inwardNDir) {
+  const dx = x2 - x1, dy = y2 - y1;
+  const len = Math.sqrt(dx * dx + dy * dy);
+  if (len < 1) return `M${x1},${y1}L${x2},${y2}`;
+  // Unit tangent and inward normal
+  const ux = dx / len, uy = dy / len;
+  const dir = inwardNDir || 1;
+  const nx = -uy * dir, ny = ux * dir;
+  const depthPx = amplitude * sc;
+  const wavePx = wavelength * sc;
+  const steps = Math.max(Math.ceil(len / 1.5), 80);
+  let d = `M${x1.toFixed(1)},${y1.toFixed(1)}`;
+  for (let i = 1; i <= steps; i++) {
+    const t = i / steps;
+    const bx = x1 + dx * t;
+    const by = y1 + dy * t;
+    // (cos - 1)/2 ranges from -1 (trough) to 0 (peak at edge)
+    const wave = (Math.cos(2 * Math.PI * (len * t) / wavePx) - 1) / 2 * depthPx;
+    d += `L${(bx + nx * wave).toFixed(1)},${(by + ny * wave).toFixed(1)}`;
+  }
+  return d;
+}
+
+// Returns array of {x, y} points along a wavy edge, with amplitude tapering to zero
+// over taperPx pixels at the start and end so corners blend smoothly.
+function wavyEdgePoints(x1, y1, x2, y2, depthPx, wavePx, dir, taperPx) {
+  const dx = x2 - x1, dy = y2 - y1;
+  const len = Math.sqrt(dx * dx + dy * dy);
+  if (len < 1) return [{x: x1, y: y1}];
+  const ux = dx / len, uy = dy / len;
+  const nx = -uy * dir, ny = ux * dir;
+  const steps = Math.max(Math.ceil(len / 1.5), 80);
+  const pts = [];
+  for (let i = 0; i <= steps; i++) {
+    const t = i / steps;
+    const dist = len * t;
+    const bx = x1 + dx * t, by = y1 + dy * t;
+    let amp = depthPx;
+    if (taperPx > 0) {
+      if (dist < taperPx) amp *= dist / taperPx;
+      if (len - dist < taperPx) amp *= (len - dist) / taperPx;
+    }
+    const wave = (Math.cos(2 * Math.PI * dist / wavePx) - 1) / 2 * amp;
+    pts.push({x: bx + nx * wave, y: by + ny * wave});
+  }
+  return pts;
+}
+
+// Build a single SVG path 'd' string from an array of edge-point arrays.
+// Between edges, a small quadratic bezier rounds the corner through the actual corner point.
+function buildWavyPerimeterPath(edgePointArrays, cornerPts, closed) {
+  let d = '';
+  for (let e = 0; e < edgePointArrays.length; e++) {
+    const pts = edgePointArrays[e];
+    for (let i = 0; i < pts.length; i++) {
+      const p = pts[i];
+      if (e === 0 && i === 0) d += `M${p.x.toFixed(1)},${p.y.toFixed(1)}`;
+      else d += `L${p.x.toFixed(1)},${p.y.toFixed(1)}`;
+    }
+    // Round corner to next edge
+    if (e < edgePointArrays.length - 1 && cornerPts && cornerPts[e]) {
+      const cp = cornerPts[e]; // the actual geometric corner point
+      const nextStart = edgePointArrays[e + 1][0];
+      d += `Q${cp.x.toFixed(1)},${cp.y.toFixed(1)} ${nextStart.x.toFixed(1)},${nextStart.y.toFixed(1)}`;
+      // Skip the first point of next edge since the Q already lands on it
+      edgePointArrays[e + 1] = edgePointArrays[e + 1].slice(1);
+    }
+  }
+  if (closed) {
+    // Round last corner back to start
+    if (cornerPts && cornerPts[edgePointArrays.length - 1]) {
+      const cp = cornerPts[edgePointArrays.length - 1];
+      const firstPt = edgePointArrays[0][0] || {x: 0, y: 0};
+      d += `Q${cp.x.toFixed(1)},${cp.y.toFixed(1)} ${firstPt.x.toFixed(1)},${firstPt.y.toFixed(1)}`;
+    }
+    d += 'Z';
+  }
+  return d;
+}
+
+// === WAVY EDGE ASSEMBLY DIAGRAM ===
+function drawWavyEdgeDiagram(params) {
+  const {H, W, WB, D, F2A, F2BS, BR, FC, B, AT2F, ML, backDrop, frontExtDrop, sideDrop,
+         totalFB, roundMode, hem, seam,
+         backPieceTopWidth, backPieceBottomWidth, backPieceHeight,
+         frontFlapNeeded, frontFlapWidth, frontFlapLength,
+         backInset, frontInset, markFromSideEdge, frontWidthAfterCut} = params;
+  const rIn = v => roundMode === 'whole' ? Math.ceil(v) : roundMode === 'half' ? roundHalf(v) : Math.round(v*100)/100;
+  const svg = document.getElementById('assemblyWavyEdge');
+  if (!svg) return;
+  const VBW = 1200, VBH = 900;
+  svg.setAttribute('viewBox', `0 0 ${VBW} ${VBH}`);
+  while (svg.firstChild) svg.removeChild(svg.firstChild);
+  const add = (t,a,p=svg)=>{const e=document.createElementNS('http://www.w3.org/2000/svg',t); for(const k in a) e.setAttribute(k,a[k]); p.appendChild(e); return e;};
+
+  const pad = 60;
+  const waveAmp = 1.5;   // inches
+  const waveLen = 13;     // inches per full cycle
+
+  // --- Layout (same as main flat diagram) ---
+  const extraBack = backPieceHeight;
+  const extraFront = frontFlapNeeded ? frontFlapWidth : 0;
+  const totalDiagH = B + extraBack + extraFront + 20;
+  const totalDiagW = ML + 40;
+  const scX = (VBW - pad*2) / totalDiagW;
+  const scY = (VBH - pad*2) / totalDiagH;
+  const sc = Math.min(scX, scY);
+  const cx = VBW / 2;
+  const backPieceTopY = pad + 10;
+  const mainTopY = backPieceTopY + extraBack * sc;
+  const mainBotY = mainTopY + B * sc;
+  const mainW = ML * sc;
+  const mainH = B * sc;
+  const mainX = cx - mainW / 2;
+  const halfFWpx = (frontWidthAfterCut || W) / 2 * sc;
+  const trimPx = (markFromSideEdge || 0) * sc;
+  const bkInPx = (backInset || 0) * sc;
+  const frInPx = (frontInset || 0) * sc;
+  const ffH = frontFlapNeeded ? frontFlapWidth * sc : 0;
+  const frontBottomY = mainBotY + ffH;
+  const backInsetY = mainTopY + bkInPx;
+  const frontInsetY = mainBotY - frInPx;
+  const topLeftX = mainX;
+  const topRightX = mainX + mainW;
+  const frontLeftX = mainX + trimPx;
+  const frontRightX = mainX + mainW - trimPx;
+
+  // Back piece
+  const bpPhysH = backPieceHeight * sc;
+  const bpTopW = backPieceTopWidth * sc;
+  const bpBotW = backPieceBottomWidth * sc;
+  const bpTopY = mainTopY - bpPhysH;
+
+  // --- Draw filled shapes (light, so wavy lines stand out) ---
+  // Main piece + front flap
+  const shapePts = [
+    `${topLeftX},${mainTopY}`, `${topRightX},${mainTopY}`,
+    `${topRightX},${backInsetY}`, `${frontRightX},${frontInsetY}`,
+    `${frontRightX},${frontBottomY}`, `${frontLeftX},${frontBottomY}`,
+    `${frontLeftX},${frontInsetY}`, `${topLeftX},${backInsetY}`
+  ].join(' ');
+  add('polygon', {points: shapePts, fill: '#fca5a5', stroke: 'none', opacity: 0.5});
+
+  // Back piece trapezoid
+  const bpTrapPts = [
+    `${cx - bpTopW/2},${mainTopY}`, `${cx + bpTopW/2},${mainTopY}`,
+    `${cx + bpBotW/2},${bpTopY}`, `${cx - bpBotW/2},${bpTopY}`
+  ].join(' ');
+  add('polygon', {points: bpTrapPts, fill: '#93c5fd', stroke: 'none', opacity: 0.4});
+
+  // --- SEAM EDGES (straight, purple) — where pieces join ---
+  // Seam: main piece top edge (where back piece attaches)
+  add('line', {x1: topLeftX, y1: mainTopY, x2: topRightX, y2: mainTopY,
+    stroke: '#7c3aed', 'stroke-width': 2.5});
+  add('text', {x: cx, y: mainTopY + 14, 'text-anchor': 'middle', 'font-size': 10,
+    fill: '#7c3aed', 'font-weight': 'bold'}).textContent = 'SEAM — straight (no wave)';
+
+  // Seam: back piece bottom edge (same line, back piece side)
+  // (already drawn above)
+
+  // Seam: front flap junction (if exists)
+  if (frontFlapNeeded) {
+    add('line', {x1: frontLeftX, y1: mainBotY, x2: frontRightX, y2: mainBotY,
+      stroke: '#7c3aed', 'stroke-width': 2.5});
+    add('text', {x: cx, y: mainBotY - 6, 'text-anchor': 'middle', 'font-size': 9,
+      fill: '#7c3aed', 'font-weight': 'bold'}).textContent = 'SEAM — straight';
+  }
+
+  // --- WAVY OUTER EDGES (green, waves scoop INWARD into the material) ---
+  // Uses single continuous paths per piece with amplitude tapering at corners
+  // so transitions are smooth instead of pointy.
+  const wClr = '#059669';
+  const wStroke = 2.5;
+  const depthPx = waveAmp * sc;
+  const wavePx = waveLen * sc;
+  const taperPx = 4 * sc; // taper amplitude over 4" near corners
+  const cornerTrans = 13; // inches — front corner transition zone
+  const cornerPx = cornerTrans * sc;
+
+  // == MAIN PIECE — single continuous path ==
+  // Clockwise from top-left: seam(straight) → right back → right diag → right front →
+  // right corner curve → bottom → left corner curve → left front → left diag → left back
+  {
+    const cornerStopY = frontBottomY - cornerPx;
+    // Edge point arrays (with tapering at corners)
+    const rightBack = wavyEdgePoints(topRightX, mainTopY, topRightX, backInsetY, depthPx, wavePx, -1, taperPx);
+    const rightDiag = wavyEdgePoints(topRightX, backInsetY, frontRightX, frontInsetY, depthPx, wavePx, -1, taperPx);
+    const rightFront = wavyEdgePoints(frontRightX, frontInsetY, frontRightX, cornerStopY, depthPx, wavePx, -1, taperPx);
+    const bottom = wavyEdgePoints(frontLeftX + cornerPx, frontBottomY, frontRightX - cornerPx, frontBottomY, depthPx, wavePx, 1, taperPx);
+    const leftFront = wavyEdgePoints(frontLeftX, cornerStopY, frontLeftX, frontInsetY, depthPx, wavePx, -1, taperPx);
+    const leftDiag = wavyEdgePoints(frontLeftX, frontInsetY, topLeftX, backInsetY, depthPx, wavePx, -1, taperPx);
+    const leftBack = wavyEdgePoints(topLeftX, backInsetY, topLeftX, mainTopY, depthPx, wavePx, -1, taperPx);
+
+    // Build path: straight seam along top, then wavy edges with rounded corners
+    let d = `M${topLeftX.toFixed(1)},${mainTopY.toFixed(1)}`;
+    d += `L${topRightX.toFixed(1)},${mainTopY.toFixed(1)}`; // straight seam
+
+    // Right back zone
+    for (const p of rightBack) d += `L${p.x.toFixed(1)},${p.y.toFixed(1)}`;
+    // Round corner → right diagonal (corner at topRightX, backInsetY)
+    d += `Q${topRightX.toFixed(1)},${backInsetY.toFixed(1)} ${rightDiag[0].x.toFixed(1)},${rightDiag[0].y.toFixed(1)}`;
+    for (let i = 1; i < rightDiag.length; i++) d += `L${rightDiag[i].x.toFixed(1)},${rightDiag[i].y.toFixed(1)}`;
+    // Round corner → right front zone (corner at frontRightX, frontInsetY)
+    d += `Q${frontRightX.toFixed(1)},${frontInsetY.toFixed(1)} ${rightFront[0].x.toFixed(1)},${rightFront[0].y.toFixed(1)}`;
+    for (let i = 1; i < rightFront.length; i++) d += `L${rightFront[i].x.toFixed(1)},${rightFront[i].y.toFixed(1)}`;
+
+    // Right front corner curve (sweeps inward, cutting off corner)
+    const rfl = rightFront[rightFront.length - 1];
+    d += `C${(frontRightX - cornerPx * 0.15).toFixed(1)},${(cornerStopY + cornerPx * 0.55).toFixed(1)} ` +
+         `${(frontRightX - cornerPx * 0.55).toFixed(1)},${(frontBottomY - cornerPx * 0.15).toFixed(1)} ` +
+         `${(frontRightX - cornerPx).toFixed(1)},${frontBottomY.toFixed(1)}`;
+
+    // Bottom edge (right to left, reversed so we go clockwise; points were generated L→R)
+    for (let i = bottom.length - 1; i >= 0; i--) d += `L${bottom[i].x.toFixed(1)},${bottom[i].y.toFixed(1)}`;
+
+    // Left front corner curve
+    d += `C${(frontLeftX + cornerPx * 0.55).toFixed(1)},${(frontBottomY - cornerPx * 0.15).toFixed(1)} ` +
+         `${(frontLeftX + cornerPx * 0.15).toFixed(1)},${(cornerStopY + cornerPx * 0.55).toFixed(1)} ` +
+         `${frontLeftX.toFixed(1)},${cornerStopY.toFixed(1)}`;
+
+    // Left front zone (going upward: cornerStopY → frontInsetY)
+    for (const p of leftFront) d += `L${p.x.toFixed(1)},${p.y.toFixed(1)}`;
+    // Round corner → left diagonal (corner at frontLeftX, frontInsetY)
+    d += `Q${frontLeftX.toFixed(1)},${frontInsetY.toFixed(1)} ${leftDiag[0].x.toFixed(1)},${leftDiag[0].y.toFixed(1)}`;
+    for (let i = 1; i < leftDiag.length; i++) d += `L${leftDiag[i].x.toFixed(1)},${leftDiag[i].y.toFixed(1)}`;
+    // Round corner → left back zone (corner at topLeftX, backInsetY)
+    d += `Q${topLeftX.toFixed(1)},${backInsetY.toFixed(1)} ${leftBack[0].x.toFixed(1)},${leftBack[0].y.toFixed(1)}`;
+    for (let i = 1; i < leftBack.length; i++) d += `L${leftBack[i].x.toFixed(1)},${leftBack[i].y.toFixed(1)}`;
+
+    d += 'Z';
+    add('path', {d: d, fill: 'none', stroke: wClr, 'stroke-width': wStroke});
+
+    // Corner labels
+    add('text', {x: frontLeftX + cornerPx * 0.55, y: frontBottomY - cornerPx * 0.3, 'text-anchor': 'middle',
+      'font-size': 9, fill: '#dc2626', 'font-weight': 'bold'}).textContent = `${cornerTrans}" corner`;
+    add('text', {x: frontRightX - cornerPx * 0.55, y: frontBottomY - cornerPx * 0.3, 'text-anchor': 'middle',
+      'font-size': 9, fill: '#dc2626', 'font-weight': 'bold'}).textContent = `${cornerTrans}" corner`;
+  }
+
+  // == BACK PIECE — single continuous path ==
+  // Clockwise from bottom-left: seam(straight) → right diag → top edge → left diag
+  {
+    const rightDiag = wavyEdgePoints(cx + bpTopW/2, mainTopY, cx + bpBotW/2, bpTopY, depthPx, wavePx, -1, taperPx);
+    const topEdge = wavyEdgePoints(cx + bpBotW/2, bpTopY, cx - bpBotW/2, bpTopY, depthPx, wavePx, 1, taperPx);
+    const leftDiag = wavyEdgePoints(cx - bpBotW/2, bpTopY, cx - bpTopW/2, mainTopY, depthPx, wavePx, 1, taperPx);
+
+    let d = `M${(cx - bpTopW/2).toFixed(1)},${mainTopY.toFixed(1)}`;
+    d += `L${(cx + bpTopW/2).toFixed(1)},${mainTopY.toFixed(1)}`; // straight seam
+
+    // Right diagonal (going up from seam to narrow top)
+    for (const p of rightDiag) d += `L${p.x.toFixed(1)},${p.y.toFixed(1)}`;
+    // Round corner at top-right
+    d += `Q${(cx + bpBotW/2).toFixed(1)},${bpTopY.toFixed(1)} ${topEdge[0].x.toFixed(1)},${topEdge[0].y.toFixed(1)}`;
+    for (let i = 1; i < topEdge.length; i++) d += `L${topEdge[i].x.toFixed(1)},${topEdge[i].y.toFixed(1)}`;
+    // Round corner at top-left
+    d += `Q${(cx - bpBotW/2).toFixed(1)},${bpTopY.toFixed(1)} ${leftDiag[0].x.toFixed(1)},${leftDiag[0].y.toFixed(1)}`;
+    for (let i = 1; i < leftDiag.length; i++) d += `L${leftDiag[i].x.toFixed(1)},${leftDiag[i].y.toFixed(1)}`;
+
+    d += 'Z';
+    add('path', {d: d, fill: 'none', stroke: wClr, 'stroke-width': wStroke});
+  }
+
+  // --- LABELS ---
+  // Main piece
+  add('text', {x: cx, y: mainTopY + mainH/2 - 10, 'text-anchor': 'middle', 'font-size': 14,
+    fill: '#991b1b', 'font-weight': 'bold'}).textContent = 'MAIN PIECE';
+  add('text', {x: cx, y: mainTopY + mainH/2 + 8, 'text-anchor': 'middle', 'font-size': 11,
+    fill: '#991b1b'}).textContent = `${rIn(ML)}" × ${rIn(B)}"`;
+  // Back piece
+  add('text', {x: cx, y: bpTopY + bpPhysH/2 - 8, 'text-anchor': 'middle', 'font-size': 12,
+    fill: '#1e40af', 'font-weight': 'bold'}).textContent = 'BACK PIECE';
+  add('text', {x: cx, y: bpTopY + bpPhysH/2 + 8, 'text-anchor': 'middle', 'font-size': 10,
+    fill: '#1e40af'}).textContent = `${rIn(backPieceTopWidth)}" top / ${rIn(backPieceBottomWidth)}" bottom`;
+  // Front flap
+  if (frontFlapNeeded) {
+    const flapCY = (mainBotY + frontBottomY) / 2;
+    add('text', {x: cx, y: flapCY, 'text-anchor': 'middle', 'font-size': 11,
+      fill: '#92400e', 'font-weight': 'bold'}).textContent = 'FRONT FLAP';
+  }
+
+  // --- WAVE SPEC KEY (top-right corner) ---
+  const keyX = VBW - pad - 220, keyY = pad;
+  add('rect', {x: keyX, y: keyY, width: 220, height: 130, rx: 6, fill: '#f0fdf4', stroke: '#059669', 'stroke-width': 1.5});
+  add('text', {x: keyX + 110, y: keyY + 18, 'text-anchor': 'middle', 'font-size': 12, fill: '#059669', 'font-weight': 'bold'}).textContent = 'WAVY EDGE SPEC';
+  add('text', {x: keyX + 10, y: keyY + 38, 'font-size': 10, fill: '#334155'}).textContent = `Wave depth: ${waveAmp}" (scoops inward from edge)`;
+  add('text', {x: keyX + 10, y: keyY + 54, 'font-size': 10, fill: '#334155'}).textContent = `Full wave cycle: ${waveLen}"`;
+  // Mini wave preview (inward-only: peaks at top line, troughs scoop down)
+  const previewBaseY = keyY + 72;
+  add('line', {x1: keyX + 10, y1: previewBaseY, x2: keyX + 210, y2: previewBaseY,
+    stroke: '#cbd5e1', 'stroke-width': 1, 'stroke-dasharray': '4,3'});
+  add('text', {x: keyX + 212, y: previewBaseY + 3, 'font-size': 7, fill: '#94a3b8'}).textContent = 'edge';
+  let previewD = `M${keyX + 10},${previewBaseY}`;
+  for (let i = 1; i <= 60; i++) {
+    const px = keyX + 10 + (i / 60) * 200;
+    const py = previewBaseY - (Math.cos(2 * Math.PI * (i / 60) * 2.5) - 1) / 2 * 10;
+    previewD += `L${px.toFixed(1)},${py.toFixed(1)}`;
+  }
+  add('path', {d: previewD, fill: 'none', stroke: wClr, 'stroke-width': 2});
+  // Corner scoop info
+  add('line', {x1: keyX + 10, y1: keyY + 90, x2: keyX + 210, y2: keyY + 90,
+    stroke: '#e2e8f0', 'stroke-width': 1});
+  add('text', {x: keyX + 10, y: keyY + 106, 'font-size': 10, fill: '#dc2626', 'font-weight': 'bold'}).textContent = `Front corner transition: ${cornerTrans}"`;
+  add('text', {x: keyX + 10, y: keyY + 120, 'font-size': 9, fill: '#334155'}).textContent = 'Wave curves inward, cutting off corner';
+
+  // --- DIRECTION LABELS ---
+  add('text', {x: cx, y: mainTopY - bpPhysH - 16, 'text-anchor': 'middle', 'font-size': 10,
+    fill: '#475569', 'font-weight': 'bold'}).textContent = '↑ BACK (behind chair) ↑';
+  add('text', {x: cx, y: frontBottomY + 16, 'text-anchor': 'middle', 'font-size': 10,
+    fill: '#475569', 'font-weight': 'bold'}).textContent = '↓ FRONT (in front of chair) ↓';
 }
 
 function compute(){
@@ -2004,6 +2397,7 @@ function compute(){
     try { drawDiagram(payload); } catch(e) { diagramErrors.push('Cut diagram: ' + e.message); console.error('drawDiagram error:', e); }
     try { updateCutList(payload); } catch(e) { diagramErrors.push('Cut list: ' + e.message); console.error('updateCutList error:', e); }
     try { drawAssemblyDiagramFlat(payload, 'assemblyDiagramFlatFull', 1200, 900); } catch(e) { diagramErrors.push('Flat diagram: ' + e.message); console.error('drawAssemblyDiagramFlat error:', e); }
+    try { drawWavyEdgeDiagram(payload); } catch(e) { diagramErrors.push('Wavy edge diagram: ' + e.message); console.error('drawWavyEdgeDiagram error:', e); }
 
     const exp = document.getElementById('exportPng');
     if (exp && !exp._wired){ exp._wired = true; exp.addEventListener('click', exportDiagramPNG); }
