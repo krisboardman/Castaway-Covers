@@ -117,13 +117,14 @@ const productConfigs = {
     curvedBackImage: '/images/Measurements/curved-back-measuring.svg'
   },
   'sofas-loveseats': {
-    fields: ['width', 'length', 'height', 'backrestDepth', 'armrestHeight'],
+    fields: ['width', 'length', 'height', 'backrestDepth', 'armrestHeight', 'backWidth'],
     labels: {
       width: 'Length',
       length: 'Front-to-Back Depth',
       height: 'Height',
       backrestDepth: 'Backrest Depth',
-      armrestHeight: 'Ground to Top of Armrest'
+      armrestHeight: 'Ground to Top of Armrest',
+      backWidth: 'Back Width'
     },
     hasAngle: true,
     measurementImage: '/images/Measurements/sofa_measurements_text.jpg',
@@ -367,34 +368,58 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
       return Math.ceil(totalLength / 36);
     }
 
-    // Calculation for sofas/loveseats (uses 2 lanes with center seam)
+    // Calculation for sofas/loveseats — matches couch_cover_calculator_snap_back_MFG.html.
+    // Two main panels run front-to-back (each panelLen × bolt width). They join at a
+    // center snap-seam (loses 2*seam of usable width). If the assembled width
+    // (WB + 2*sideDrop) exceeds the joined usable width (2B - 2*seam), side
+    // extensions are added — 1 extra bolt if both fit across one bolt, else 2.
     if (productType === 'sofas-loveseats') {
       if (!width || !length || !height || !backrestDepth || !armrestHeight) return 0;
 
-      // Constants from HTML calculator
-      const FC = 4;    // Floor clearance (different for sofas)
-      const hem = 0.5; // Hem allowance
+      // Constants — match MFG calc defaults
+      const B = 54;        // bolt width
+      const FC = 3;        // floor clearance + wave allowance
+      const hem = 1;       // hem allowance
+      const seam = 1.5;    // center snap-seam overlap
 
-      // AT2F = √[(H - F2A)² + D²]
-      const AT2F = calculateAngle();
+      const W = width;
+      const D = length;
+      const H = height;
+      const BR = backrestDepth;
+      const F2A = armrestHeight;
+      const WB = (measurements.backWidth && measurements.backWidth > 0) ? measurements.backWidth : W;
 
-      // ML = (H + BR + AT2F + F2A) - (2 × FC)
-      const ML = (height + backrestDepth + AT2F + armrestHeight) - (2 * FC);
+      const AT2F = Math.sqrt(Math.max(0, H - F2A) ** 2 + Math.max(0, D - BR) ** 2);
+      const sideDrop = H - FC;
+      const frontExtDrop = F2A - FC;
 
-      // addLength = F2A + AT2F + BR - FC + hem
-      const addLength = armrestHeight + AT2F + backrestDepth - FC + hem;
+      // Panel-length build (mirrors MFG's chair-style flat layout for couches)
+      const backInset = hem + BR;                              // plateau zone
+      const frontInset = frontExtDrop;                         // front-drop straight zone
+      const totalFB = hem + BR + AT2F + frontExtDrop;          // physical front-to-back fabric path
+      const frontFlapShortage = Math.max(0, totalFB - B);
+      const frontFlapWidth = frontFlapShortage > 0 ? frontFlapShortage + hem : 0;
+      const taperLen = Math.max(0, B - backInset - frontInset);
+      const frontStraight = frontInset + frontFlapWidth;
+      const panelLen = sideDrop + backInset + taperLen + frontStraight;
 
-      // Per lane length needed = ML + addLength
-      const perLaneLength = ML + addLength;
+      // Assembled width across the back of the couch
+      const assembledW = WB + 2 * sideDrop;
+      const joinedUsableW = 2 * B - 2 * seam;
+      const extNeeded = assembledW > joinedUsableW;
 
-      // Yards per lane
-      const yardsPerLane = perLaneLength / 36;
+      let extraBolts = 0;
+      if (extNeeded) {
+        const extDeficit = assembledW - joinedUsableW;
+        const extEachUsable = extDeficit / 2;
+        const extSeamAllow = 1; // side-extension seam allowance
+        const extEachCut = extEachUsable + extSeamAllow;
+        extraBolts = (2 * extEachCut <= B) ? 1 : 2;
+      }
 
-      // Total yards = (yards per lane × 2 lanes), rounded up
-      // Round AFTER multiplying to avoid over-rounding
-      const totalYards = Math.ceil(yardsPerLane * 2);
-
-      return totalYards;
+      const totalBolts = 2 + extraBolts;
+      const totalInches = totalBolts * panelLen;
+      return Math.ceil(totalInches / 36);
     }
     
     // Calculation for ottomans — matches ottoman_cover_calculator_MFG.html.

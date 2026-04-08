@@ -88,7 +88,7 @@
           <div class="title">Inputs</div>
           <div class="inputs">
             <label class="lbl">B (Bolt width - Fabric size)<input id="B" type="number" value="54" step="0.1" /></label>
-            <label class="lbl">W (Chair width arm-to-arm)<input id="W" type="number" value="36" step="1" /></label>
+            <label class="lbl">W (Couch width arm-to-arm)<input id="W" type="number" value="36" step="1" /></label>
             <label class="lbl">WB (Back width)<input id="WB" type="number" value="25" step="1" /></label>
             <label class="lbl">H (Height)<input id="H" type="number" value="39" step="1" /></label>
             <label class="lbl">D (Depth)<input id="D" type="number" value="30" step="1" /></label>
@@ -290,6 +290,175 @@ function fmtYardsFromInches(inches, roundMode){
 }
 
 function drawDiagram(params){
+  const {B, W, WB, hem, roundMode, seam, sideDrop, frontExtDrop,
+         couch_panelLen, couch_panelW, couch_assembledW, couch_joinedUsableW,
+         couch_backInset, couch_taperLen, couch_frontStraight,
+         couch_extNeeded, couch_extEachCut, couch_extSeam, couch_extBoltsNeeded, couch_totalBolts} = params;
+  // === Compute actual extension length (the y-span where the polygon's
+  // half-width exceeds (B − seam)). The extension only needs to span this
+  // region — not the full panel length. ===
+  const sideOff_cut = B - (couch_extSeam || 1);
+  const halfBack_cut  = WB/2 + hem;
+  const halfMid_cut   = couch_assembledW/2;
+  const halfFront_cut = (W + 2*frontExtDrop) / 2;
+  // Edge polyline as (yInches, halfWidth):
+  //   (0, halfBack) → (sideDrop, halfMid)                                [back trapezoid]
+  //   (sideDrop, halfMid) → (sideDrop+backInset, halfMid)                [plateau]
+  //   (...+backInset, halfMid) → (...+backInset+taperLen, halfFront)     [diagonal]
+  //   (...+taperLen, halfFront) → (panelLen, halfFront)                  [front straight]
+  const edgeC = [
+    [0,                                                                 halfBack_cut],
+    [sideDrop,                                                          halfMid_cut],
+    [sideDrop + couch_backInset,                                        halfMid_cut],
+    [sideDrop + couch_backInset + couch_taperLen,                       halfFront_cut],
+    [couch_panelLen,                                                    halfFront_cut]
+  ];
+  let extEntryY = null, extExitY = null;
+  for (let i = 0; i < edgeC.length - 1; i++) {
+    const [y1, h1] = edgeC[i], [y2, h2] = edgeC[i+1];
+    const in1 = h1 >= sideOff_cut, in2 = h2 >= sideOff_cut;
+    if (extEntryY === null) {
+      if (in1) extEntryY = y1;
+      else if (in2) {
+        const t = (sideOff_cut - h1) / (h2 - h1);
+        extEntryY = y1 + t * (y2 - y1);
+      }
+    }
+    if (extEntryY !== null) {
+      if (in2) extExitY = y2;
+      else if (in1) {
+        const t = (sideOff_cut - h1) / (h2 - h1);
+        extExitY = y1 + t * (y2 - y1);
+        break;
+      }
+    }
+  }
+  const extActualLen = (extEntryY !== null && extExitY !== null && extExitY > extEntryY)
+    ? (extExitY - extEntryY) : couch_panelLen;
+  const rIn = v => roundMode === 'whole' ? Math.ceil(v) : roundMode === 'half' ? roundHalf(v) : Math.round(v*100)/100;
+  const svg = document.getElementById('diagram');
+  if (!svg) return;
+  while (svg.firstChild) svg.removeChild(svg.firstChild);
+  const VBW = svg.viewBox.baseVal.width, VBH = svg.viewBox.baseVal.height;
+  const pad = 50;
+  const add = (t,a,p=svg)=>{const e=document.createElementNS('http://www.w3.org/2000/svg',t); for(const k in a) e.setAttribute(k,a[k]); p.appendChild(e); return e;};
+  const defs = add('defs',{});
+  const m = add('marker',{id:'arr',markerWidth:8,markerHeight:8,refX:4,refY:4,orient:'auto',viewBox:'0 0 8 8'},defs);
+  const mp = document.createElementNS('http://www.w3.org/2000/svg','path');
+  mp.setAttribute('d','M0,0 L8,4 L0,8 Z'); mp.setAttribute('fill','#334155'); m.appendChild(mp);
+  const arrow=(x1,y1,x2,y2)=>add('line',{x1,y1,x2,y2,stroke:'#334155','marker-start':'url(#arr)','marker-end':'url(#arr)'});
+
+  // ============================================================
+  // COUCH CUT DIAGRAM — shows the actual pieces cut from bolt(s).
+  // Each bolt is B inches wide; pieces are laid out along bolt length.
+  //
+  //   Bolt 1: LEFT PANEL  (couch_panelLen × B)
+  //   Bolt 2: RIGHT PANEL (couch_panelLen × B)
+  //   Bolt 3 (if extensions needed): LEFT EXT + RIGHT EXT
+  //     - if 2×extEachCut ≤ B: both stacked side-by-side across bolt width on one bolt
+  //     - else: each extension on its own bolt
+  // ============================================================
+
+  const extNeeded = !!couch_extNeeded;
+  const extW = couch_extEachCut || 0;
+  const bothExtFitOneBolt = extNeeded && (2 * extW + (couch_extSeam || 1)) <= B;
+
+  // Build bolt list
+  const bolts = [];
+  bolts.push({label:'BOLT 1', pieces:[
+    {name:'LEFT PANEL', len:couch_panelLen, wid:B, fill:'#fca5a555', stroke:'#dc2626'}
+  ]});
+  bolts.push({label:'BOLT 2', pieces:[
+    {name:'RIGHT PANEL', len:couch_panelLen, wid:B, fill:'#bfdbfe55', stroke:'#2563eb'}
+  ]});
+  if (extNeeded) {
+    if (bothExtFitOneBolt) {
+      bolts.push({label:'BOLT 3', pieces:[
+        {name:'LEFT EXTENSION',  len:extActualLen, wid:extW, fill:'#d8b4fe55', stroke:'#7c3aed', yOffset:0},
+        {name:'RIGHT EXTENSION', len:extActualLen, wid:extW, fill:'#d8b4fe55', stroke:'#7c3aed', yOffset:extW}
+      ]});
+    } else {
+      bolts.push({label:'BOLT 3', pieces:[
+        {name:'LEFT EXTENSION', len:extActualLen, wid:extW, fill:'#d8b4fe55', stroke:'#7c3aed'}
+      ]});
+      bolts.push({label:'BOLT 4', pieces:[
+        {name:'RIGHT EXTENSION', len:extActualLen, wid:extW, fill:'#d8b4fe55', stroke:'#7c3aed'}
+      ]});
+    }
+  }
+
+  // Compute scale: width = couch_panelLen, height = B × number of bolts (stacked vertically)
+  const nBolts = bolts.length;
+  const boltGap = 22;  // px between bolts
+  const totalH_in = B * nBolts;
+  const scaleX = (VBW - pad*2) / (couch_panelLen + 40);
+  const scaleY = (VBH - pad*2 - 60 - boltGap*(nBolts-1)) / totalH_in;
+  const sc = Math.min(scaleX, scaleY);
+
+  const sx = pad + 30;
+  let sy = pad + 20;
+  const boltLenPx = couch_panelLen * sc;
+  const boltWPx = B * sc;
+
+  for (let bi = 0; bi < bolts.length; bi++) {
+    const bolt = bolts[bi];
+    // Bolt outline (full B-width strip)
+    add('rect',{x:sx, y:sy, width:boltLenPx, height:boltWPx,
+      fill:'#f8fafc', stroke:'#94a3b8', 'stroke-width':1, 'stroke-dasharray':'4,3'});
+    // Bolt label
+    add('text',{x:sx - 8, y:sy + boltWPx/2, 'text-anchor':'end', 'dominant-baseline':'middle',
+      'font-size':11, fill:'#475569', 'font-weight':'bold'}).textContent=bolt.label;
+    // Bolt width arrow (right side)
+    arrow(sx + boltLenPx + 8, sy, sx + boltLenPx + 8, sy + boltWPx);
+    add('text',{x:sx + boltLenPx + 14, y:sy + boltWPx/2, 'dominant-baseline':'middle', 'font-size':10,
+      fill:'#475569'}).textContent=`${rIn(B)}"`;
+
+    // Pieces
+    for (const pc of bolt.pieces) {
+      const pw = pc.len * sc;
+      const ph = pc.wid * sc;
+      const py = sy + (pc.yOffset || 0) * sc;
+      add('rect',{x:sx, y:py, width:pw, height:ph, fill:pc.fill, stroke:pc.stroke, 'stroke-width':1.5});
+      add('text',{x:sx + pw/2, y:py + ph/2 - 4, 'text-anchor':'middle', 'font-size':12,
+        fill:pc.stroke, 'font-weight':'bold'}).textContent=pc.name;
+      add('text',{x:sx + pw/2, y:py + ph/2 + 12, 'text-anchor':'middle', 'font-size':10,
+        fill:pc.stroke}).textContent=`${rIn(pc.len)}" × ${rIn(pc.wid)}"`;
+    }
+
+    // Length arrow above each bolt (only first one to avoid clutter)
+    if (bi === 0) {
+      arrow(sx, sy - 12, sx + boltLenPx, sy - 12);
+      add('text',{x:sx + boltLenPx/2, y:sy - 16, 'text-anchor':'middle', 'font-size':11,
+        fill:'#334155', 'font-weight':'bold'}).textContent=`Panel length: ${rIn(couch_panelLen)}"`;
+    }
+
+    sy += boltWPx + boltGap;
+  }
+
+  // Footer summary
+  const mainBoltsLen = couch_panelLen * 2;
+  const extBoltsLen = extNeeded ? (bothExtFitOneBolt ? extActualLen : extActualLen * 2) : 0;
+  const totalYards = (mainBoltsLen + extBoltsLen) / 36;
+  const totalLineParts = [`2 × ${rIn(couch_panelLen)}" main`];
+  if (extNeeded) totalLineParts.push(bothExtFitOneBolt
+    ? `1 × ${rIn(extActualLen)}" extension bolt`
+    : `2 × ${rIn(extActualLen)}" extension bolts`);
+  add('text',{x:VBW/2, y:sy + 18, 'text-anchor':'middle', 'font-size':12, fill:'#0f172a',
+    'font-weight':'bold'}).textContent=
+    `Total fabric: ${totalLineParts.join(' + ')} = ${rIn((mainBoltsLen + extBoltsLen))}" (${Math.ceil(totalYards*10)/10} yd)`;
+  if (extNeeded && bothExtFitOneBolt) {
+    add('text',{x:VBW/2, y:sy + 34, 'text-anchor':'middle', 'font-size':10, fill:'#475569'}).textContent=
+      `Both side extensions nest on Bolt 3 (2 × ${rIn(extW)}" + seam = ${rIn(2*extW + seam)}" ≤ ${rIn(B)}")`;
+  } else if (extNeeded) {
+    add('text',{x:VBW/2, y:sy + 34, 'text-anchor':'middle', 'font-size':10, fill:'#475569'}).textContent=
+      `Each extension is too wide to share a bolt — uses its own bolt.`;
+  } else {
+    add('text',{x:VBW/2, y:sy + 34, 'text-anchor':'middle', 'font-size':10, fill:'#475569'}).textContent=
+      `No side extensions needed — assembled width (${rIn(couch_assembledW)}") fits within 2×B − 2×seam = ${rIn(couch_joinedUsableW)}"`;
+  }
+}
+
+function _drawDiagram_chair_legacy(params){
   const {B, ML, W, WB, H, FC, roundMode, nestingStrategy, totalLength,
          backPieceTopWidth, backPieceBottomWidth, backPieceHeight,
          backPieceWidth, backPieceLength, frontFlapNeeded, frontFlapWidth, frontFlapLength,
@@ -340,66 +509,40 @@ function drawDiagram(params){
   const bpY = sy; // top-aligned with bolt
 
   if (useSplitBack) {
-    // SPLIT-BACK NESTING: Draw one fabric rectangle with a single diagonal cut
-    // line dividing it into Half 1 and Half 2. This matches how you'd actually
-    // cut the bolt: lay out the rectangle, run the cutter once along the diagonal,
-    // then rotate one half 180° before sewing.
-    const boltLenPx = splitBackBoltLength * scale;                          // along bolt (horizontal)
-    const acrossPx  = Math.min(splitBackNestedWidth, B) * scale;            // across bolt (vertical)
-    const h1TopPx   = splitBackHalfTop * scale;                             // cut line top x-offset
-    const h1BotPx   = splitBackHalfBot * scale;                             // cut line bottom x-offset
+    // SPLIT-BACK NESTING: Draw two nested trapezoid halves
+    const halfH = backPieceHeight * scale;  // height of each half (across bolt)
+    const h1TopPx = splitBackHalfTop * scale;   // half 1 wide end
+    const h1BotPx = splitBackHalfBot * scale;   // half 1 narrow end
+    const offsetPx = splitBackMinOffset * scale;
+    const boltLenPx = splitBackBoltLength * scale;
 
-    // Outer rectangle — the actual fabric you cut from the bolt
-    add('rect',{x:bpX, y:bpY, width:boltLenPx, height:acrossPx,
-      fill:'#f8fafc', stroke:'#1e40af', 'stroke-width':1.5});
+    // Half 1 (normal orientation): wide at top (y=bpY), narrow at bottom
+    const h1taper = (h1TopPx - h1BotPx) / 2;
+    const h1Points = `${bpX},${bpY} ${bpX + h1TopPx},${bpY} ${bpX + h1TopPx - h1taper},${bpY + halfH} ${bpX + h1taper},${bpY + halfH}`;
+    add('polygon',{points:h1Points, fill:'#93c5fd44', stroke:'#2563eb', 'stroke-width':1.5});
+    add('text',{x:bpX + h1TopPx/2, y:bpY + halfH/2 - 4, 'text-anchor':'middle', 'font-size':9, fill:'#1e40af', 'font-weight':'bold'}).textContent='BACK HALF 1';
+    add('text',{x:bpX + h1TopPx/2, y:bpY + halfH/2 + 8, 'text-anchor':'middle', 'font-size':7, fill:'#1e40af'}).textContent=`${rIn(splitBackHalfTop)}" / ${rIn(splitBackHalfBot)}"`;
 
-    // The diagonal cut line. Top of cut is at (h1TopPx, 0), bottom at (boltLenPx - h1TopPx, acrossPx).
-    // This produces two mirrored right-trapezoid halves whose diagonal edges meet.
-    const cutTopX = bpX + h1TopPx;
-    const cutBotX = bpX + boltLenPx - h1TopPx;
-    add('line',{x1:cutTopX, y1:bpY, x2:cutBotX, y2:bpY + acrossPx,
-      stroke:'#dc2626', 'stroke-width':2, 'stroke-dasharray':'6,4'});
+    // Half 2 (rotated 180°): placed with offset — narrow at top, wide at bottom
+    const h2X = bpX + offsetPx;
+    const h2TopPx = h1BotPx;   // narrow end at top after rotation
+    const h2BotPx = h1TopPx;   // wide end at bottom after rotation
+    const h2taper = (h2BotPx - h2TopPx) / 2;
+    const h2Points = `${h2X + h2taper},${bpY} ${h2X + h2TopPx + h2taper},${bpY} ${h2X + h2BotPx},${bpY + halfH} ${h2X},${bpY + halfH}`;
+    add('polygon',{points:h2Points, fill:'#c4b5fd44', stroke:'#7c3aed', 'stroke-width':1.5, 'stroke-dasharray':'4,3'});
+    add('text',{x:h2X + h2BotPx/2, y:bpY + halfH/2 - 4, 'text-anchor':'middle', 'font-size':9, fill:'#7c3aed', 'font-weight':'bold'}).textContent='BACK HALF 2';
+    add('text',{x:h2X + h2BotPx/2, y:bpY + halfH/2 + 8, 'text-anchor':'middle', 'font-size':7, fill:'#7c3aed'}).textContent=`(rotated 180°)`;
 
-    // Shade the two halves so the cut reads visually
-    const half1Pts = `${bpX},${bpY} ${cutTopX},${bpY} ${cutBotX},${bpY + acrossPx} ${bpX},${bpY + acrossPx}`;
-    add('polygon',{points:half1Pts, fill:'#93c5fd33', stroke:'none'});
-    const half2Pts = `${cutTopX},${bpY} ${bpX + boltLenPx},${bpY} ${bpX + boltLenPx},${bpY + acrossPx} ${cutBotX},${bpY + acrossPx}`;
-    add('polygon',{points:half2Pts, fill:'#c4b5fd33', stroke:'none'});
-
-    // Labels — centered in each half
-    const h1CenterX = (bpX + cutTopX + bpX + cutBotX) / 2 / 1; // rough centroid x for half 1
-    const h1Cx = (bpX + (cutTopX + cutBotX) / 2) / 2 + bpX / 2; // simpler: midpoint
-    add('text',{x:(bpX + cutTopX) / 2 + (cutBotX - cutTopX) / 4,
-      y:bpY + acrossPx / 2 - 2, 'text-anchor':'middle', 'font-size':10,
-      fill:'#1e40af', 'font-weight':'bold'}).textContent='BACK HALF 1';
-    add('text',{x:(bpX + cutTopX) / 2 + (cutBotX - cutTopX) / 4,
-      y:bpY + acrossPx / 2 + 11, 'text-anchor':'middle', 'font-size':8,
-      fill:'#1e40af'}).textContent='(as cut)';
-
-    add('text',{x:(cutTopX + bpX + boltLenPx) / 2 - (cutBotX - cutTopX) / 4,
-      y:bpY + acrossPx / 2 - 2, 'text-anchor':'middle', 'font-size':10,
-      fill:'#7c3aed', 'font-weight':'bold'}).textContent='BACK HALF 2';
-    add('text',{x:(cutTopX + bpX + boltLenPx) / 2 - (cutBotX - cutTopX) / 4,
-      y:bpY + acrossPx / 2 + 11, 'text-anchor':'middle', 'font-size':8,
-      fill:'#7c3aed'}).textContent='(rotate 180° after cut)';
-
-    // Cut line label
-    add('text',{x:(cutTopX + cutBotX) / 2 + 6, y:bpY + acrossPx / 2 + 24,
-      'text-anchor':'start', 'font-size':8, fill:'#dc2626',
-      'font-weight':'bold'}).textContent='← cut line';
-
-    // Dimension: bolt length consumed
+    // Dimension: total bolt length for split back
     arrow(bpX, bpY - 12, bpX + boltLenPx, bpY - 12);
-    add('text',{x:bpX + boltLenPx/2, y:bpY - 16, 'text-anchor':'middle',
-      'font-size':cutFontSm, fill:'#1e40af', 'font-weight':'bold'})
-      .textContent=`Split back: ${rIn(splitBackBoltLength)}"`;
-    // Dimension: across-bolt width used
-    arrow(bpX - 12, bpY, bpX - 12, bpY + acrossPx);
-    add('text',{x:bpX - 16, y:bpY + acrossPx/2, 'text-anchor':'end',
-      'dominant-baseline':'middle', 'font-size':cutFontSm, fill:'#1e40af',
-      'font-weight':'bold',
-      transform:`rotate(-90 ${bpX-16} ${bpY + acrossPx/2})`})
-      .textContent=`${rIn(Math.min(splitBackNestedWidth, B))}"`;
+    add('text',{x:bpX + boltLenPx/2, y:bpY - 16, 'text-anchor':'middle', 'font-size':cutFontSm, fill:'#1e40af', 'font-weight':'bold'}).textContent=`Split back: ${rIn(splitBackBoltLength)}"`;
+    // Height arrow
+    arrow(bpX - 12, bpY, bpX - 12, bpY + halfH);
+    add('text',{x:bpX - 16, y:bpY + halfH/2, 'text-anchor':'end', 'dominant-baseline':'middle', 'font-size':cutFontSm, fill:'#1e40af', 'font-weight':'bold', transform:`rotate(-90 ${bpX-16} ${bpY + halfH/2})`}).textContent=`${rIn(backPieceHeight)}"`;
+    // Offset label
+    if (splitBackMinOffset > 0) {
+      add('text',{x:bpX + offsetPx/2, y:bpY + halfH + 16, 'text-anchor':'middle', 'font-size':8, fill:'#7c3aed'}).textContent=`offset: ${rIn(splitBackMinOffset)}"`;
+    }
   } else {
     // FULL TRAPEZOID: Draw single trapezoid
     const topWidthPx = backPieceTopWidth * scale;
@@ -576,39 +719,41 @@ function drawDiagram(params){
 }
 
 function updateCutList(params){
-  const {B, ML, H, FC, WB, roundMode, seam, hem,
-         backPieceTopWidth, backPieceBottomWidth, backPieceHeight, frontFlapNeeded, frontFlapWidth, frontFlapLength,
-         useSplitFlap, splitHalfLength,
-         useWasteNesting, wasteNestIsSplit, wasteNestPieceW, wasteNestPieceH, wasteNestDiagonal,
-         useSplitBack, splitBackHalfTop, splitBackHalfBot, splitBackBoltLength, splitBackMinOffset, splitBackCenterSeam} = params;
+  const {B, roundMode, seam,
+         couch_panelLen, couch_panelW, couch_assembledW, couch_joinedUsableW,
+         couch_backInset, couch_taperLen, couch_frontStraight, couch_frontInset, couch_frontFlapWidth, couch_frontFlapNeeded,
+         couch_extNeeded, couch_extEachCut, couch_extBoltsNeeded, couch_totalBolts} = params;
   const rm = roundMode;
   const cutlist = document.getElementById('cutlist');
   const rows = [];
 
-  rows.push(['Main piece', `${fmtInch(ML, rm)}" × ${fmtInch(B, rm)}" (full bolt width)`, `Qty 1 — runs side-to-side over both armrests`]);
-  if (useSplitBack) {
-    rows.push(['Back piece (split trapezoid)', `2 halves: top ${fmtInch(splitBackHalfTop, rm)}" / bottom ${fmtInch(splitBackHalfBot, rm)}" / height ${fmtInch(backPieceHeight, rm)}"`,
-      `Qty 2 — cut trapezoid in half at center (+${fmtExact(splitBackCenterSeam)}" seam each). Nest on bolt with ${fmtInch(splitBackMinOffset, rm)}" offset (${fmtInch(splitBackBoltLength, rm)}" bolt length). Sew halves at center seam before attaching.`]);
+  rows.push(['Left panel',
+    `${fmtInch(couch_panelLen, rm)}" × ${fmtInch(couch_panelW, rm)}" (full bolt width)`,
+    `Qty 1 — runs front-to-back: floor → up back of couch → over backrest → over seat → down front to floor.`]);
+  rows.push(['Right panel',
+    `${fmtInch(couch_panelLen, rm)}" × ${fmtInch(couch_panelW, rm)}" (full bolt width)`,
+    `Qty 1 — mirrors left panel. Joined to left panel along the center snap seam (${fmtExact(seam)}" overlap each side).`]);
+
+  if (couch_extNeeded) {
+    rows.push(['Left side extension',
+      `${fmtInch(couch_extEachCut, rm)}" wide × actual length needed (see cut diagram)`,
+      `Qty 1 — sewn to outer edge of left panel (incl. ${fmtExact(seam)}" seam allowance). Adds width on the left side of the couch.`]);
+    rows.push(['Right side extension',
+      `${fmtInch(couch_extEachCut, rm)}" wide × actual length needed (see cut diagram)`,
+      `Qty 1 — sewn to outer edge of right panel (incl. ${fmtExact(seam)}" seam allowance). Adds width on the right side of the couch.`]);
   } else {
-    rows.push(['Back piece (trapezoid)', `Top: ${fmtInch(backPieceTopWidth, rm)}" / Bottom: ${fmtInch(backPieceBottomWidth, rm)}" / Height: ${fmtInch(backPieceHeight, rm)}"`, `Qty 1 — Trapezoid with wide top (ML+seam) tapering to narrow bottom (WB+2×hem). Side extensions wrap around corners and snap to main piece's side drops.`]);
+    rows.push(['Side extensions', 'Not required',
+      `Two joined bolts (${B}" + ${B}" − 2×${fmtExact(seam)}" snap-seam = ${fmtExact(couch_joinedUsableW)}") cover the assembled width (${fmtExact(couch_assembledW)}").`]);
   }
 
-  if (frontFlapNeeded && useWasteNesting && wasteNestIsSplit) {
-    rows.push(['Front flap (from waste)', `${fmtInch(wasteNestPieceW, rm)}" × ${fmtInch(wasteNestPieceH, rm)}"`,
-      `Qty 2 — cut from diagonal trim waste (one per side)${wasteNestDiagonal ? ', placed along the diagonal cut line' : ''}. Sew halves together, then attach. No extra bolt length!`]);
-  } else if (frontFlapNeeded && useWasteNesting) {
-    rows.push(['Front flap (from waste)', `${fmtInch(wasteNestPieceW, rm)}" × ${fmtInch(wasteNestPieceH, rm)}"`,
-      `Qty 1 — cut from diagonal trim waste${wasteNestDiagonal ? ', placed along the diagonal cut line' : ''}. No extra bolt length!`]);
-  } else if (frontFlapNeeded && useSplitFlap) {
-    rows.push(['Front flap (split)', `${fmtInch(splitHalfLength, rm)}" × ${fmtInch(frontFlapWidth, rm)}"`, `Qty 2 — each half is half the flap length + 0.5" center seam. Sew halves together, then attach to main piece.`]);
-  } else if (frontFlapNeeded) {
-    rows.push(['Front flap', `${fmtInch(frontFlapLength, rm)}" × ${fmtInch(frontFlapWidth, rm)}"`, `Qty 1 — extends front coverage. Sewn to main piece at front edge with ${fmtExact(hem)}" lap seam`]);
-  } else {
-    rows.push(['Front flap', 'Not required', `Bolt width (${B}") covers full front-to-back distance`]);
-  }
+  rows.push(['Total bolts',
+    `${couch_totalBolts} bolt${couch_totalBolts === 1 ? '' : 's'} × ${fmtInch(couch_panelLen, rm)}" each`,
+    couch_extNeeded
+      ? `2 main panels + ${couch_extBoltsNeeded} bolt(s) for the two side extensions (${2*couch_extEachCut <= B ? 'both fit across one bolt width' : 'extensions too wide to share a bolt'}).`
+      : `2 bolts — one per panel.`]);
 
-  // Snap placement (replaces gussets)
-  rows.push(['Snap hardware', 'Install 2 snaps per corner (4 total)', `Back piece side extensions snap to interior of main piece's side drops. One snap near top (close to seam), one partway down.`]);
+  rows.push(['Snap hardware', 'Center snap seam + back corner snaps',
+    `Center snap seam runs the full length of the panels. Plus back corner snaps where the cover wraps around the back corners of the couch.`]);
 
   cutlist.innerHTML = rows.map((r,i)=>`<div class="row" style="${i? 'border-top:1px dashed var(--muted);':''}"><span>${r[0]}</span><strong>${r[1]}</strong><span style="color:var(--sub)">${r[2]}</span></div>`).join('');
 }
@@ -785,6 +930,438 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
   svgId = svgId || 'assemblyDiagramFlatFull';
   vbw = vbw || 1200;
   vbh = vbh || 900;
+  const {H, W, WB, D, F2A, F2BS, BR, FC, B, AT2F, sideDrop, frontExtDrop,
+         hem, seam, rounded, roundMode,
+         couch_panelLen, couch_panelW, couch_assembledW, couch_joinedUsableW,
+         couch_backInset, couch_taperLen, couch_frontStraight, couch_frontInset, couch_frontFlapWidth, couch_frontFlapNeeded,
+         couch_extNeeded, couch_extEachCut, couch_extSeam, couch_extBoltsNeeded, couch_totalBolts} = params;
+  const rIn = v => roundMode === 'whole' ? Math.ceil(v) : roundMode === 'half' ? roundHalf(v) : Math.round(v*100)/100;
+  const svg = document.getElementById(svgId);
+  if (!svg) return;
+  svg.setAttribute('viewBox', `0 0 ${vbw} ${vbh}`);
+  while(svg.firstChild) svg.removeChild(svg.firstChild);
+  const add = (t,a,p=svg)=>{const e=document.createElementNS('http://www.w3.org/2000/svg',t); for(const k in a) e.setAttribute(k,a[k]); p.appendChild(e); return e;};
+
+  const mkrId = 'arrFL_' + svgId;
+  const defs = add('defs',{});
+  const m = add('marker',{id:mkrId,markerWidth:8,markerHeight:8,refX:4,refY:4,orient:'auto',viewBox:'0 0 8 8'},defs);
+  const mp = document.createElementNS('http://www.w3.org/2000/svg','path');
+  mp.setAttribute('d','M0,0 L8,4 L0,8 Z'); mp.setAttribute('fill','#334155'); m.appendChild(mp);
+  const arrow=(x1,y1,x2,y2,clr)=>add('line',{x1,y1,x2,y2,stroke:clr||'#334155','stroke-width':1,'marker-start':`url(#${mkrId})`,'marker-end':`url(#${mkrId})`});
+
+  // ============================================================
+  // COUCH FLAT LAYOUT
+  // x-axis: side-to-side across the couch (left edge → center seam → right edge)
+  // y-axis: front-to-back (top = back of couch, bottom = front of couch)
+  // Pieces (each is a rectangle):
+  //   [left side ext?] [LEFT PANEL B] [center snap seam overlap] [RIGHT PANEL B] [right side ext?]
+  // All pieces are couch_panelLen long (the front-to-back wrap distance).
+  // ============================================================
+  const VBW = vbw, VBH = vbh;
+  const pad = 60;
+  const legendH = 180;
+
+  const extW = couch_extNeeded ? couch_extEachCut : 0;
+  // Visual total width: assembled cover width (the silhouette's widest line at backrest).
+  const totalDiagW = couch_assembledW + 40;
+  const totalDiagH = couch_panelLen + 60;
+
+  const scX = (VBW - pad*2) / totalDiagW;
+  const scY = (VBH - pad*2 - legendH) / totalDiagH;
+  const sc  = Math.min(scX, scY);
+
+  const cx = VBW / 2;                                      // center seam x
+  const drawTopY = pad + 30;                               // top of panels (back of couch)
+  const drawBotY = drawTopY + couch_panelLen * sc;         // bottom of panels (front of couch)
+  const halfBpx  = B * sc / 2;                             // half-bolt pixel width
+  const extPx    = extW * sc;                              // extension width in px
+
+  // Panel x-edges
+  const leftPanelLeftX  = cx - 2 * halfBpx;                // outer edge of left panel
+  const leftPanelRightX = cx;                              // inner edge of left panel (snap seam center)
+  const rightPanelLeftX = cx;
+  const rightPanelRightX = cx + 2 * halfBpx;
+  const leftExtLeftX    = leftPanelLeftX - extPx;
+  const rightExtRightX  = rightPanelRightX + extPx;
+
+  // === ASSEMBLED COVER SILHOUETTE (matches chair calculator's overall shape, rotated) ===
+  // Vertical layout (top to bottom): back floor → up the back of the couch (sideDrop)
+  // → over backrest top (BR) → diagonal drape across seat (AT2F) → down the front (frontExtDrop) → front floor
+  const yBackFloor   = drawTopY;
+  const yBackrestTop = drawTopY + sideDrop * sc;                    // back trapezoid ends
+  const yBackrestEnd = yBackrestTop + couch_backInset * sc;         // plateau (= hem+BR, matches chair backInset)
+  const yBackrest    = yBackrestTop;                                // alias
+  const yPointA      = yBackrestEnd;                                // diagonal A starts here
+  const yPointB      = yBackrestEnd + couch_taperLen * sc;          // diagonal B ends here (uses chair's compressed taperLen)
+  const halfBack   = (WB / 2 + hem) * sc;                 // half-width at back floor edge
+  const halfMid    = (couch_assembledW / 2) * sc;         // half-width at backrest (widest)
+  // Front width after the diagonal cut, matching the chair: W + 2×frontExtDrop on each side
+  // (the side drop wraps around the front of the couch beyond the actual seat width).
+  const frontWidthAfterCut_couch = W + 2 * frontExtDrop;
+  const halfFront  = (frontWidthAfterCut_couch / 2) * sc;
+
+  // Right-half polygon (clockwise from top center)
+  const rightPts = [
+    [cx,               yBackFloor],
+    [cx + halfBack,    yBackFloor],
+    [cx + halfMid,     yBackrestTop],
+    [cx + halfMid,     yBackrestEnd],
+    [cx + halfFront,   yPointB],
+    [cx + halfFront,   drawBotY],
+    [cx,               drawBotY]
+  ];
+  // Left-half polygon (mirror)
+  const leftPts = [
+    [cx,               yBackFloor],
+    [cx,               drawBotY],
+    [cx - halfFront,   drawBotY],
+    [cx - halfFront,   yPointB],
+    [cx - halfMid,     yBackrestEnd],
+    [cx - halfMid,     yBackrestTop],
+    [cx - halfBack,    yBackFloor]
+  ];
+  const ptsStr = a => a.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
+
+  // LEFT PANEL (salmon)
+  add('polygon',{points:ptsStr(leftPts), fill:'#fca5a555', stroke:'#dc2626', 'stroke-width':2});
+  // RIGHT PANEL (blue)
+  add('polygon',{points:ptsStr(rightPts), fill:'#bfdbfe55', stroke:'#2563eb', 'stroke-width':2});
+
+  // Labels inside each half (in the wide seat area)
+  const labY = (yBackrest + yPointA)/2;
+  add('text',{x:cx - halfMid/2, y:labY - 4, 'text-anchor':'middle',
+    'font-size':14, fill:'#991b1b', 'font-weight':'bold'}).textContent='LEFT PANEL';
+  add('text',{x:cx - halfMid/2, y:labY + 12, 'text-anchor':'middle',
+    'font-size':10, fill:'#991b1b'}).textContent=`${rIn(couch_panelLen)}" × ${rIn(B)}" (bolt 1)`;
+  add('text',{x:cx + halfMid/2, y:labY - 4, 'text-anchor':'middle',
+    'font-size':14, fill:'#1e40af', 'font-weight':'bold'}).textContent='RIGHT PANEL';
+  add('text',{x:cx + halfMid/2, y:labY + 12, 'text-anchor':'middle',
+    'font-size':10, fill:'#1e40af'}).textContent=`${rIn(couch_panelLen)}" × ${rIn(B)}" (bolt 2)`;
+
+  // === CENTER SNAP SEAM (internal vertical division) ===
+  const seamPx = seam * sc;
+  add('rect',{x:cx - seamPx, y:yBackFloor, width:seamPx*2, height:drawBotY-yBackFloor,
+    fill:'#fde68a99', stroke:'none'});
+  add('line',{x1:cx, y1:yBackFloor, x2:cx, y2:drawBotY,
+    stroke:'#d97706', 'stroke-width':1.4, 'stroke-dasharray':'5,3'});
+  add('text',{x:cx + 4, y:yPointB + 14, 'font-size':9,
+    fill:'#92400e', 'font-weight':'bold'}).textContent=`center snap seam (${rIn(seam*2)}" overlap = 2 × ${rIn(seam)}")`;
+
+  // === SIDE SEAMS for extensions (if needed) ===
+  // The seam runs vertically at x = cx ± (B − seam) — i.e., the inner edge of the extension panel.
+  // It's only physically inside the polygon where the polygon's half-width ≥ (B − seam).
+  // We compute the entry/exit y-coordinates by walking the polygon's right edge segments.
+  if (couch_extNeeded) {
+    const sideOff = (B - (couch_extSeam || 1));  // inches from center to side seam (1" ext seam)
+    const sideOffPx = sideOff * sc;
+    // Right edge polyline of the silhouette (in inches from center, vs y in px):
+    // Segments where the polygon's right edge half-width changes:
+    //   (yBackFloor, halfBack/sc) → (yBackrestTop, halfMid/sc)   [back trapezoid taper]
+    //   (yBackrestTop, halfMid/sc) → (yBackrestEnd, halfMid/sc)  [backrest plateau]
+    //   (yBackrestEnd, halfMid/sc) → (yPointB, halfFront/sc)     [A→B diagonal]
+    //   (yPointB, halfFront/sc) → (drawBotY, halfFront/sc)       [front skirt]
+    const edge = [
+      [yBackFloor,   WB/2 + hem],
+      [yBackrestTop, couch_assembledW/2],
+      [yBackrestEnd, couch_assembledW/2],
+      [yPointB,      frontWidthAfterCut_couch/2],
+      [drawBotY,     frontWidthAfterCut_couch/2]
+    ];
+    // Find first y where edge half-width ≥ sideOff (entry into polygon from the back)
+    let entryY = null, exitY = null;
+    for (let i = 0; i < edge.length - 1; i++) {
+      const [y1, h1] = edge[i], [y2, h2] = edge[i+1];
+      const in1 = h1 >= sideOff, in2 = h2 >= sideOff;
+      if (entryY === null && !in1 && in2) {
+        // crossing inward
+        const t = (sideOff - h1) / (h2 - h1);
+        entryY = y1 + t * (y2 - y1);
+      } else if (entryY === null && in1 && i === 0) {
+        entryY = y1;
+      }
+      if (entryY !== null && in2) exitY = y2;
+      if (entryY !== null && in1 && !in2) {
+        const t = (sideOff - h1) / (h2 - h1);
+        exitY = y1 + t * (y2 - y1);
+        break;
+      }
+    }
+    if (entryY !== null && exitY !== null && exitY > entryY) {
+      // Left side seam
+      add('line',{x1:cx - sideOffPx, y1:entryY, x2:cx - sideOffPx, y2:exitY,
+        stroke:'#7c3aed', 'stroke-width':1.6, 'stroke-dasharray':'6,3'});
+      // Right side seam
+      add('line',{x1:cx + sideOffPx, y1:entryY, x2:cx + sideOffPx, y2:exitY,
+        stroke:'#7c3aed', 'stroke-width':1.6, 'stroke-dasharray':'6,3'});
+      // Tint the extension strips (outside the side seam, inside the polygon)
+      // Right strip: from sideOff to right edge, between entryY and exitY (approx with rect — visual hint only)
+      add('rect',{x:cx + sideOffPx, y:entryY, width:Math.max(0, (couch_assembledW/2 - sideOff))*sc,
+        height:exitY - entryY, fill:'#d8b4fe33', stroke:'none'});
+      add('rect',{x:cx - sideOffPx - Math.max(0, (couch_assembledW/2 - sideOff))*sc, y:entryY,
+        width:Math.max(0, (couch_assembledW/2 - sideOff))*sc,
+        height:exitY - entryY, fill:'#d8b4fe33', stroke:'none'});
+      // Labels
+      add('text',{x:cx - sideOffPx - 4, y:(entryY + exitY)/2 + 4, 'text-anchor':'end',
+        'font-size':9, fill:'#6b21a8', 'font-weight':'bold'}).textContent=`ext seam (1")`;
+      add('text',{x:cx + sideOffPx + 4, y:(entryY + exitY)/2 + 4,
+        'font-size':9, fill:'#6b21a8', 'font-weight':'bold'}).textContent=`ext seam (1")`;
+      add('text',{x:cx - sideOffPx - 4, y:(entryY + exitY)/2 + 16, 'text-anchor':'end',
+        'font-size':9, fill:'#6b21a8'}).textContent=`(${rIn(couch_extEachCut)}" wide)`;
+      add('text',{x:cx + sideOffPx + 4, y:(entryY + exitY)/2 + 16,
+        'font-size':9, fill:'#6b21a8'}).textContent=`(${rIn(couch_extEachCut)}" wide)`;
+    }
+  }
+
+  // === SNAP POSITION MARKERS (matches chair logic, rotated) ===
+  // Back-trapezoid region (yBackFloor → yBackrestTop) is the "back piece" zone.
+  // Main hexagon body (yBackrestEnd onward) is the "main piece" zone.
+  // For each snap fraction, the back piece snap sits "downFromSeam" from yBackrestTop
+  // toward yBackFloor, and the main piece snap sits 4" past yBackrestEnd into the body.
+  const snapInfo_couch = [];
+  {
+    const mainSnapInset = 4;
+    const backSnapFromFold = 4;
+    const fullExt_couch = (couch_assembledW - (WB + 2*hem)) / 2;  // half of (mid − back) trapezoid extension
+    const snapFracs = [{frac: 1/3, label:'1', fracLabel:'⅓'}, {frac: 2/3, label:'2', fracLabel:'⅔'}];
+    for (const snap of snapFracs) {
+      const downFromSeam = sideDrop * snap.frac;
+      // Back piece snap (in back trapezoid, measured up from yBackrestTop)
+      const bpSnapY = yBackrestTop - downFromSeam * sc;
+      // Width at this height: linear interp from halfMid (at yBackrestTop) to halfBack (at yBackFloor)
+      const halfWidthAtHeight = (couch_assembledW/2) - ((couch_assembledW/2) - (WB/2 + hem)) * snap.frac;
+      const extAtHeight = halfWidthAtHeight - (WB/2);
+      const maxFromFold = extAtHeight - 1;
+      const actualFromFold = Math.min(backSnapFromFold, Math.max(0, maxFromFold));
+      const bpDistFromCenter = WB/2 + actualFromFold;
+      const bpLeftX = cx - bpDistFromCenter * sc;
+      const bpRightX = cx + bpDistFromCenter * sc;
+      add('circle',{cx:bpLeftX, cy:bpSnapY, r:8, fill:'#059669', stroke:'#fff', 'stroke-width':2.5});
+      add('text',{x:bpLeftX, y:bpSnapY+4, 'text-anchor':'middle', 'font-size':9, fill:'#fff', 'font-weight':'bold'}).textContent=snap.label;
+      add('circle',{cx:bpRightX, cy:bpSnapY, r:8, fill:'#059669', stroke:'#fff', 'stroke-width':2.5});
+      add('text',{x:bpRightX, y:bpSnapY+4, 'text-anchor':'middle', 'font-size':9, fill:'#fff', 'font-weight':'bold'}).textContent=snap.label;
+
+      // Main piece snap (just past the plateau into the main body)
+      const mainDistFromCenter = W/2 + sideDrop * snap.frac;
+      const mainSnapY = yBackrestEnd + mainSnapInset * sc;
+      const mainLeftX = cx - mainDistFromCenter * sc;
+      const mainRightX = cx + mainDistFromCenter * sc;
+      add('circle',{cx:mainLeftX, cy:mainSnapY, r:8, fill:'#059669', stroke:'#dc2626', 'stroke-width':2.5});
+      add('text',{x:mainLeftX, y:mainSnapY+4, 'text-anchor':'middle', 'font-size':9, fill:'#fff', 'font-weight':'bold'}).textContent=snap.label;
+      add('circle',{cx:mainRightX, cy:mainSnapY, r:8, fill:'#059669', stroke:'#dc2626', 'stroke-width':2.5});
+      add('text',{x:mainRightX, y:mainSnapY+4, 'text-anchor':'middle', 'font-size':9, fill:'#fff', 'font-weight':'bold'}).textContent=snap.label;
+
+      // Connecting dashed lines
+      add('line',{x1:bpLeftX, y1:bpSnapY, x2:mainLeftX, y2:mainSnapY,
+        stroke:'#059669', 'stroke-width':1.5, 'stroke-dasharray':'5,4', opacity:0.6});
+      add('line',{x1:bpRightX, y1:bpSnapY, x2:mainRightX, y2:mainSnapY,
+        stroke:'#059669', 'stroke-width':1.5, 'stroke-dasharray':'5,4', opacity:0.6});
+
+      snapInfo_couch.push({
+        label:snap.label, fracLabel:snap.fracLabel, downFromSeam,
+        bpFromCenter:bpDistFromCenter, bpFromEdge: halfWidthAtHeight - bpDistFromCenter,
+        bpWidthAtHeight: halfWidthAtHeight*2, actualFromFold,
+        mainFromCenter:mainDistFromCenter, mainFromEdge: (couch_assembledW/2) - mainDistFromCenter,
+        mainSnapInset
+      });
+    }
+
+    // (Snap legend rendered in the bottom legend box below.)
+  }
+
+  // === POINT A & B MARKERS ===
+  add('circle',{cx:cx - halfMid,   cy:yPointA, r:5, fill:'#dc2626', stroke:'#fff', 'stroke-width':1.8});
+  add('circle',{cx:cx + halfMid,   cy:yPointA, r:5, fill:'#dc2626', stroke:'#fff', 'stroke-width':1.8});
+  add('text',{x:cx - halfMid - 8, y:yPointA + 4, 'text-anchor':'end', 'font-size':13, fill:'#dc2626', 'font-weight':'bold'}).textContent='A';
+  add('text',{x:cx + halfMid + 8, y:yPointA + 4, 'font-size':13, fill:'#dc2626', 'font-weight':'bold'}).textContent='A';
+  add('circle',{cx:cx - halfFront, cy:yPointB, r:5, fill:'#dc2626', stroke:'#fff', 'stroke-width':1.8});
+  add('circle',{cx:cx + halfFront, cy:yPointB, r:5, fill:'#dc2626', stroke:'#fff', 'stroke-width':1.8});
+  add('text',{x:cx - halfFront - 8, y:yPointB + 14, 'text-anchor':'end', 'font-size':13, fill:'#dc2626', 'font-weight':'bold'}).textContent='B';
+  add('text',{x:cx + halfFront + 8, y:yPointB + 14, 'font-size':13, fill:'#dc2626', 'font-weight':'bold'}).textContent='B';
+
+  // === FRONT / BACK direction labels ===
+  add('text',{x:cx, y:drawTopY - 22, 'text-anchor':'middle', 'font-size':12,
+    fill:'#334155', 'font-weight':'bold'}).textContent='↑ BACK (behind couch — floor) ↑';
+  add('text',{x:cx, y:drawBotY + 28, 'text-anchor':'middle', 'font-size':12,
+    fill:'#334155', 'font-weight':'bold'}).textContent='↓ FRONT (in front of couch — floor) ↓';
+
+  // === DIMENSIONS ===
+  // Panel length (far left of diagram)
+  const lenDimX = (cx - halfMid) - 96;
+  arrow(lenDimX, drawTopY, lenDimX, drawBotY, '#334155');
+  add('text',{x:lenDimX - 6, y:(drawTopY+drawBotY)/2,
+    'text-anchor':'middle', 'font-size':12, fill:'#334155', 'font-weight':'bold',
+    transform:`rotate(-90 ${lenDimX-6} ${(drawTopY+drawBotY)/2})`
+  }).textContent=`Panel length: ${rIn(couch_panelLen)}"`;
+
+  // === SEGMENT LABELS ON LEFT SIDE (matching chair calculator) ===
+  // Column 1 (closest to polygon): segment labels with mini brackets
+  const segX = (cx - halfMid) - 18;
+  function segLabel(y1, y2, color, text) {
+    add('line',{x1:segX, y1:y1, x2:segX, y2:y2, stroke:color, 'stroke-width':1.5});
+    add('line',{x1:segX-4, y1:y1, x2:segX+4, y2:y1, stroke:color, 'stroke-width':1.5});
+    add('line',{x1:segX-4, y1:y2, x2:segX+4, y2:y2, stroke:color, 'stroke-width':1.5});
+    add('text',{x:segX-6, y:(y1+y2)/2+4, 'text-anchor':'middle', 'font-size':10,
+      fill:color, 'font-weight':'bold',
+      transform:`rotate(-90 ${segX-6} ${(y1+y2)/2+4})`}).textContent=text;
+  }
+  segLabel(yBackFloor,   yBackrestTop, '#334155', `${rIn(sideDrop)}" (H−FC)`);
+  segLabel(yBackrestTop, yBackrestEnd, '#0f172a', `${rIn(couch_backInset)}" NO CUT`);
+  segLabel(yBackrestEnd, yPointB,      '#dc2626', `${rIn(couch_taperLen)}" DIAGONAL A→B`);
+  segLabel(yPointB,      drawBotY,     '#334155', `${rIn(couch_frontStraight)}" STRAIGHT`);
+
+  // Column 2 (further left): "back to B" purple bracket
+  const brkX = segX - 28;
+  add('line',{x1:brkX, y1:yBackrestTop, x2:brkX, y2:yPointB, stroke:'#7c3aed', 'stroke-width':1.5});
+  add('line',{x1:brkX-4, y1:yBackrestTop, x2:brkX+4, y2:yBackrestTop, stroke:'#7c3aed', 'stroke-width':1.5});
+  add('line',{x1:brkX-4, y1:yPointB, x2:brkX+4, y2:yPointB, stroke:'#7c3aed', 'stroke-width':1.5});
+  add('text',{x:brkX-6, y:(yBackrestTop+yPointB)/2+4, 'text-anchor':'middle', 'font-size':10,
+    fill:'#7c3aed', 'font-weight':'bold',
+    transform:`rotate(-90 ${brkX-6} ${(yBackrestTop+yPointB)/2+4})`}).textContent=`${rIn(couch_backInset+couch_taperLen)}" from back to B`;
+
+  // Assembled width arrow at backrest line (widest)
+  const wDimY = yBackrest - 16;
+  arrow(cx - halfMid, wDimY, cx + halfMid, wDimY, '#0f172a');
+  add('text',{x:cx, y:wDimY - 4, 'text-anchor':'middle', 'font-size':11,
+    fill:'#0f172a', 'font-weight':'bold'}).textContent=`Assembled width: ${rIn(couch_assembledW)}"`;
+
+  // Total cut width arrow (below the diagram)
+  const totDimY = drawBotY + 48;
+  arrow(cx - halfMid, totDimY, cx + halfMid, totDimY, '#0f172a');
+  add('text',{x:cx, y:totDimY + 16, 'text-anchor':'middle', 'font-size':12,
+    fill:'#0f172a', 'font-weight':'bold'}).textContent=
+    `Cut total: ${rIn(2*B + 2*extW)}"  ·  usable after seams: ${rIn(couch_assembledW)}"`;
+
+  // === TRIM PER SIDE (matches chair markFromSideEdge = (assembledW − frontWidthAfterCut)/2) ===
+  const trimPerSide = Math.max(0, (couch_assembledW - frontWidthAfterCut_couch) / 2);
+  const trimY = drawBotY + 18;
+  // Left trim arrow
+  arrow(cx - halfMid, trimY, cx - halfFront, trimY, '#b45309');
+  add('text',{x:(cx - halfMid + cx - halfFront)/2, y:trimY + 12,
+    'text-anchor':'middle', 'font-size':10, fill:'#b45309', 'font-weight':'bold'
+  }).textContent=`${rIn(trimPerSide)}" trim per side`;
+  // Right trim arrow
+  arrow(cx + halfFront, trimY, cx + halfMid, trimY, '#b45309');
+  add('text',{x:(cx + halfFront + cx + halfMid)/2, y:trimY + 12,
+    'text-anchor':'middle', 'font-size':10, fill:'#b45309', 'font-weight':'bold'
+  }).textContent=`${rIn(trimPerSide)}" trim per side`;
+
+  // === FRONT WIDTH AFTER CUT (front floor edge) ===
+  const fwY = drawBotY + 30;
+  arrow(cx - halfFront, fwY, cx + halfFront, fwY, '#475569');
+  add('text',{x:cx, y:fwY + 12, 'text-anchor':'middle', 'font-size':10,
+    fill:'#475569'}).textContent=`Front width: ${rIn(frontWidthAfterCut_couch)}" (W + 2×frontDrop)`;
+
+  // === BACK FLOOR WIDTH ===
+  const bwY = drawTopY - 30;
+  arrow(cx - halfBack, bwY, cx + halfBack, bwY, '#475569');
+  add('text',{x:cx, y:bwY - 4, 'text-anchor':'middle', 'font-size':10,
+    fill:'#475569'}).textContent=`Back floor width: ${rIn(WB + 2*hem)}" (WB + 2×hem)`;
+
+  // === GROMMETS at front and back floor edges ===
+  const gromInset = Math.max(1, (H - FC) / 3);  // 1/3 of side drop
+  const gromYBack  = drawTopY + gromInset * sc;
+  const gromYFront = drawBotY - gromInset * sc;
+  const gromBackX  = Math.max(0, WB/2 - 5);
+  const gromFrontX = Math.max(0, WB/2 - 5);  // align with back grommets — 5" in from couch edge
+  const gromColor = '#b45309';
+  function dGrom(xPx, yPx) {
+    add('circle',{cx:xPx, cy:yPx, r:6, fill:'none', stroke:gromColor, 'stroke-width':2.5});
+    add('circle',{cx:xPx, cy:yPx, r:1.8, fill:gromColor});
+  }
+  dGrom(cx - gromBackX  * sc, gromYBack);
+  dGrom(cx + gromBackX  * sc, gromYBack);
+  dGrom(cx - gromFrontX * sc, gromYFront);
+  dGrom(cx + gromFrontX * sc, gromYFront);
+  add('text',{x:cx, y:gromYBack - 9, 'text-anchor':'middle', 'font-size':9,
+    fill:gromColor, 'font-weight':'bold'}).textContent=`back grommets (WB/2−5 from center, ${rIn(gromInset)}" inset)`;
+  add('text',{x:cx, y:gromYFront + 14, 'text-anchor':'middle', 'font-size':9,
+    fill:gromColor, 'font-weight':'bold'}).textContent=`front grommets (W/2−5 from center, ${rIn(gromInset)}" inset)`;
+
+  // === BUNGEE TAB HOLDERS (back panel) ===
+  // Two small fabric tabs sewn onto the back panel, directly above the back grommets,
+  // 2" below the backrest crease (yBackrestTop). The bungees hook into these tabs.
+  const bungeeTabBelowBackrest = 2;  // inches below yBackrestTop
+  const bungeeTabY = yBackrestTop - bungeeTabBelowBackrest * sc;
+  const bungeeTabX = gromBackX;       // align horizontally with back grommets
+  const tabColor = '#0891b2';
+  function dBungeeTab(xPx, yPx) {
+    // Small rounded-rectangle tab + a hook arc
+    add('rect',{x:xPx-6, y:yPx-4, width:12, height:8, rx:2,
+      fill:'#cffafe', stroke:tabColor, 'stroke-width':1.8});
+    add('circle',{cx:xPx, cy:yPx, r:1.6, fill:tabColor});
+  }
+  dBungeeTab(cx - bungeeTabX * sc, bungeeTabY);
+  dBungeeTab(cx + bungeeTabX * sc, bungeeTabY);
+  add('text',{x:cx, y:bungeeTabY + 18, 'text-anchor':'middle', 'font-size':9,
+    fill:tabColor, 'font-weight':'bold'}).textContent=
+    `bungee tabs (${rIn(sideDrop - bungeeTabBelowBackrest)}" up from back floor, ±${rIn(bungeeTabX)}" from center)`;
+
+  // === BACK CORNER SNAPS ===
+  // Sit at the back floor corners of the assembled cover (the outer top corners of the panels/extensions).
+  const cornerInsetPx = 6;
+  const cornerLeftX  = (cx - halfBack) + cornerInsetPx;
+  const cornerRightX = (cx + halfBack) - cornerInsetPx;
+  const cornerY      = yBackFloor + cornerInsetPx;
+  add('circle',{cx:cornerLeftX,  cy:cornerY, r:5, fill:'#059669', stroke:'#fff', 'stroke-width':1.5});
+  add('circle',{cx:cornerRightX, cy:cornerY, r:5, fill:'#059669', stroke:'#fff', 'stroke-width':1.5});
+
+  // === BOTTOM LEGEND BOX (couch-specific snap/grommet info) ===
+  const keyTotalW = VBW - pad * 2;
+  const keyX = pad;
+  const keyY = VBH - legendH + 4;
+  const keyH = legendH - 14;
+  const colW = keyTotalW / 3;
+  add('rect',{x:keyX, y:keyY, width:keyTotalW, height:keyH, rx:6, fill:'#f0fdf4', stroke:'#059669', 'stroke-width':1.5});
+  add('text',{x:keyX + 10, y:keyY + 16, 'font-size':12, fill:'#059669', 'font-weight':'bold'}).textContent='COUCH SNAP-BACK ASSEMBLY KEY';
+  add('line',{x1:keyX + colW, y1:keyY + 22, x2:keyX + colW, y2:keyY + keyH - 6, stroke:'#86efac', 'stroke-width':1});
+  add('line',{x1:keyX + 2*colW, y1:keyY + 22, x2:keyX + 2*colW, y2:keyY + keyH - 6, stroke:'#86efac', 'stroke-width':1});
+
+  // Left column: snap seam + corner snaps
+  let row = keyY + 36;
+  add('text',{x:keyX + 12, y:row, 'font-size':11, fill:'#059669', 'font-weight':'bold'}).textContent='Center snap seam';
+  row += 14;
+  add('text',{x:keyX + 12, y:row, 'font-size':10, fill:'#334155'}).textContent=`Runs full ${rIn(couch_panelLen)}" length down the middle. Overlap zone: 2 × ${rIn(seam)}" = ${rIn(seam*2)}".`;
+  row += 18;
+  add('text',{x:keyX + 12, y:row, 'font-size':11, fill:'#059669', 'font-weight':'bold'}).textContent='Back corner snaps';
+  row += 14;
+  add('text',{x:keyX + 12, y:row, 'font-size':10, fill:'#334155'}).textContent='2 snaps at the back floor corners — wrap around the back corners of the couch.';
+
+  // Right column: grommets + bolt summary
+  row = keyY + 36;
+  const xR = keyX + colW + 12;
+  add('text',{x:xR, y:row, 'font-size':11, fill:'#b45309', 'font-weight':'bold'}).textContent='Grommets (4 total — for bungees)';
+  row += 14;
+  add('text',{x:xR, y:row, 'font-size':10, fill:'#334155'}).textContent=`Front: ±${rIn(gromFrontX)}" from center, ${rIn(gromInset)}" inset from front floor edge.`;
+  row += 12;
+  add('text',{x:xR, y:row, 'font-size':10, fill:'#334155'}).textContent=`Back:  ±${rIn(gromBackX)}" from center, ${rIn(gromInset)}" inset from back floor edge.`;
+  row += 16;
+  add('text',{x:xR, y:row, 'font-size':11, fill:'#7c3aed', 'font-weight':'bold'}).textContent='Side extension seams';
+  row += 14;
+  add('text',{x:xR, y:row, 'font-size':10, fill:'#334155'}).textContent=`1" seam allowance joining each extension to its main panel.`;
+
+  // Third column: snap placement info
+  const xS = keyX + 2*colW + 12;
+  let srow = keyY + 36;
+  add('text',{x:xS, y:srow, 'font-size':11, fill:'#059669', 'font-weight':'bold'}).textContent='Snap placement';
+  srow += 14;
+  add('circle',{cx:xS + 6, cy:srow - 3, r:5, fill:'#059669', stroke:'#fff', 'stroke-width':1.5});
+  add('text',{x:xS + 16, y:srow, 'font-size':9, fill:'#334155'}).textContent='= back piece';
+  add('circle',{cx:xS + 100, cy:srow - 3, r:5, fill:'#059669', stroke:'#dc2626', 'stroke-width':1.5});
+  add('text',{x:xS + 110, y:srow, 'font-size':9, fill:'#334155'}).textContent='= main piece';
+  for (let i = 0; i < snapInfo_couch.length; i++) {
+    const s = snapInfo_couch[i];
+    srow += 14;
+    add('text',{x:xS, y:srow, 'font-size':10, fill:'#059669', 'font-weight':'bold'}).textContent=`Snap ${s.label} (${s.fracLabel} up from seam)`;
+    srow += 11;
+    add('text',{x:xS, y:srow, 'font-size':9, fill:'#334155'}).textContent=`Back: ${rIn(s.downFromSeam)}" up, ${rIn(s.bpFromCenter)}" from center (${rIn(s.bpFromEdge)}" from edge)`;
+    srow += 11;
+    add('text',{x:xS, y:srow, 'font-size':9, fill:'#334155'}).textContent=`Main: ${s.mainSnapInset}" past plateau, ${rIn(s.mainFromCenter)}" from center (${rIn(s.mainFromEdge)}" from edge)`;
+  }
+}
+
+// (legacy chair flat layout retained below for reference, currently unused)
+function _drawAssemblyDiagramFlat_chair_legacy(params, svgId, vbw, vbh){
+  return; // disabled
   const {H, W, WB, D, F2A, F2BS, BR, FC, B, AT2F, ML, backDrop, frontExtDrop, sideDrop,
          totalFB, confirmCoverageWidth, backWidth, frontWidth, rounded, roundMode, hem, seam,
          backPieceTopWidth, backPieceBottomWidth, backPieceHeight,
@@ -806,6 +1383,7 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
 
   const VBW = vbw, VBH = vbh;
   const pad = 60;
+  const legendH = 110;  // reserved space at the bottom for snap placement legend
 
   // === SIDE-TO-SIDE FLAT LAYOUT ===
   // x-axis = side-to-side (ML direction): left floor → left arm → seat → right arm → right floor
@@ -827,7 +1405,7 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
   const totalDiagW = ML + 40;
 
   const scX = (VBW - pad*2) / totalDiagW;
-  const scY = (VBH - pad*2) / totalDiagH;
+  const scY = (VBH - pad*2 - legendH) / totalDiagH;
   const sc = Math.min(scX, scY);
 
   const cx = VBW / 2;
@@ -990,44 +1568,39 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
         mainFromCenter, mainFromEdge});
     }
 
-    // --- SNAP KEY: placed in top-right corner of the SVG (near the snaps) ---
-    const keyW = 265, keyH = 220;
-    const keyX = VBW - pad - keyW;
-    const keyY = pad;
-    // Background box
-    add('rect',{x:keyX, y:keyY, width:keyW, height:keyH, rx:6, fill:'#f0fdf4', stroke:'#059669', 'stroke-width':1.5});
-    add('text',{x:keyX + keyW/2, y:keyY + 16, 'text-anchor':'middle', 'font-size':11, fill:'#059669', 'font-weight':'bold'}).textContent='SNAP PLACEMENT';
-    // Legend: solid green = back piece, red border = main piece
-    add('circle',{cx:keyX + 14, cy:keyY + 32, r:6, fill:'#059669', stroke:'#fff', 'stroke-width':2});
-    add('text',{x:keyX + 24, y:keyY + 36, 'font-size':9, fill:'#334155'}).textContent='= on back piece';
-    add('circle',{cx:keyX + 130, cy:keyY + 32, r:6, fill:'#059669', stroke:'#dc2626', 'stroke-width':2});
-    add('text',{x:keyX + 140, y:keyY + 36, 'font-size':9, fill:'#334155'}).textContent='= on main piece';
+    // --- SNAP KEY: bottom of SVG, two columns (Snap 1 left, Snap 2 right) ---
+    const keyTotalW = VBW - pad * 2;
+    const keyX = pad;
+    const keyY = VBH - legendH + 4;
+    const keyH = legendH - 14;
+    const colW = keyTotalW / 2;
+    // Background box spanning the whole width
+    add('rect',{x:keyX, y:keyY, width:keyTotalW, height:keyH, rx:6, fill:'#f0fdf4', stroke:'#059669', 'stroke-width':1.5});
+    // Header row: title + legend
+    add('text',{x:keyX + 10, y:keyY + 14, 'font-size':11, fill:'#059669', 'font-weight':'bold'}).textContent='SNAP PLACEMENT';
+    add('circle',{cx:keyX + 130, cy:keyY + 11, r:5, fill:'#059669', stroke:'#fff', 'stroke-width':2});
+    add('text',{x:keyX + 140, y:keyY + 14, 'font-size':9, fill:'#334155'}).textContent='= on back piece';
+    add('circle',{cx:keyX + 240, cy:keyY + 11, r:5, fill:'#059669', stroke:'#dc2626', 'stroke-width':2});
+    add('text',{x:keyX + 250, y:keyY + 14, 'font-size':9, fill:'#334155'}).textContent='= on main piece';
+    // Vertical divider between columns
+    add('line',{x1:keyX + colW, y1:keyY + 22, x2:keyX + colW, y2:keyY + keyH - 6,
+      stroke:'#86efac', 'stroke-width':1});
 
-    // Snap 1 info
-    const s1 = snapInfo[0];
-    let row = keyY + 52;
-    add('text',{x:keyX + 10, y:row, 'font-size':10, fill:'#059669', 'font-weight':'bold'}).textContent=`Snap 1 (${s1.fracLabel} down from seam)`;
-    row += 13;
-    add('text',{x:keyX + 10, y:row, 'font-size':9, fill:'#334155'}).textContent=`Back: ${rIn(s1.downFromSeam)}" down, ${rIn(s1.fromCenter)}" from center`;
-    row += 11;
-    add('text',{x:keyX + 10, y:row, 'font-size':9, fill:'#475569'}).textContent=`(${rIn(s1.fromEdge)}" from edge — width at this height: ${rIn(s1.bpWidthAtHeight)}")`;
-    row += 13;
-    add('text',{x:keyX + 10, y:row, 'font-size':9, fill:'#334155'}).textContent=`Main: ${s1.mainSnapInset}" from seam, ${rIn(s1.mainFromCenter)}" from center`;
-    row += 11;
-    add('text',{x:keyX + 10, y:row, 'font-size':9, fill:'#475569'}).textContent=`(${rIn(s1.mainFromEdge)}" from edge)`;
-
-    // Snap 2 info
-    const s2 = snapInfo[1];
-    row += 18;
-    add('text',{x:keyX + 10, y:row, 'font-size':10, fill:'#059669', 'font-weight':'bold'}).textContent=`Snap 2 (${s2.fracLabel} down from seam)`;
-    row += 13;
-    add('text',{x:keyX + 10, y:row, 'font-size':9, fill:'#334155'}).textContent=`Back: ${rIn(s2.downFromSeam)}" down, ${rIn(s2.fromCenter)}" from center`;
-    row += 11;
-    add('text',{x:keyX + 10, y:row, 'font-size':9, fill:'#475569'}).textContent=`(${rIn(s2.fromEdge)}" from edge — width at this height: ${rIn(s2.bpWidthAtHeight)}")`;
-    row += 13;
-    add('text',{x:keyX + 10, y:row, 'font-size':9, fill:'#334155'}).textContent=`Main: ${s2.mainSnapInset}" from seam, ${rIn(s2.mainFromCenter)}" from center`;
-    row += 11;
-    add('text',{x:keyX + 10, y:row, 'font-size':9, fill:'#475569'}).textContent=`(${rIn(s2.mainFromEdge)}" from edge)`;
+    function drawSnapBlock(snap, colIdx){
+      const x0 = keyX + colIdx * colW + 12;
+      let row = keyY + 38;
+      add('text',{x:x0, y:row, 'font-size':11, fill:'#059669', 'font-weight':'bold'}).textContent=`${snap.label} (${snap.fracLabel} down from seam)`;
+      row += 16;
+      add('text',{x:x0, y:row, 'font-size':10, fill:'#334155'}).textContent=`Back: ${rIn(snap.downFromSeam)}" down, ${rIn(snap.fromCenter)}" from center`;
+      row += 12;
+      add('text',{x:x0, y:row, 'font-size':9, fill:'#475569'}).textContent=`(${rIn(snap.fromEdge)}" from edge — width at this height: ${rIn(snap.bpWidthAtHeight)}")`;
+      row += 14;
+      add('text',{x:x0, y:row, 'font-size':10, fill:'#334155'}).textContent=`Main: ${snap.mainSnapInset}" from seam, ${rIn(snap.mainFromCenter)}" from center`;
+      row += 12;
+      add('text',{x:x0, y:row, 'font-size':9, fill:'#475569'}).textContent=`(${rIn(snap.mainFromEdge)}" from edge)`;
+    }
+    drawSnapBlock(snapInfo[0], 0);
+    drawSnapBlock(snapInfo[1], 1);
   }
 
   // === ZONE BOUNDARY LINES (bold, visible) ===
@@ -1251,25 +1824,6 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
     add('text',{x:gromFrontLeftX, y:gromFrontY - 9, 'text-anchor':'middle', 'font-size':7, fill:gromColor, 'font-weight':'bold'}).textContent='G';
     add('text',{x:gromBackRightX, y:gromBackY - 9, 'text-anchor':'middle', 'font-size':7, fill:gromColor, 'font-weight':'bold'}).textContent='G';
     add('text',{x:gromFrontRightX, y:gromFrontY - 9, 'text-anchor':'middle', 'font-size':7, fill:gromColor, 'font-weight':'bold'}).textContent='G';
-
-    // === BUNGEE TAB HOLDERS (back panel) ===
-    // Two small fabric tabs sewn onto the back piece, directly above the back grommets,
-    // 2" below the backrest crease (mainTopY). Bungees hook into these tabs.
-    const bungeeTabBelowBackrest = 2;  // inches below backrest crease
-    const bungeeTabY = mainTopY - bungeeTabBelowBackrest * sc;
-    const bungeeTabLeftX  = cx - gromBackHorizFromCenter * sc;
-    const bungeeTabRightX = cx + gromBackHorizFromCenter * sc;
-    const tabColor = '#0891b2';
-    function dBungeeTab(xPx, yPx) {
-      add('rect',{x:xPx-6, y:yPx-4, width:12, height:8, rx:2,
-        fill:'#cffafe', stroke:tabColor, 'stroke-width':1.8});
-      add('circle',{cx:xPx, cy:yPx, r:1.6, fill:tabColor});
-    }
-    dBungeeTab(bungeeTabLeftX,  bungeeTabY);
-    dBungeeTab(bungeeTabRightX, bungeeTabY);
-    add('text',{x:cx, y:bungeeTabY + 18, 'text-anchor':'middle', 'font-size':9,
-      fill:tabColor, 'font-weight':'bold'}).textContent=
-      `bungee tabs (${rIn(sideDrop - bungeeTabBelowBackrest)}" up from back floor, ±${rIn(gromBackHorizFromCenter)}" from center)`;
   }
 
   // === DIMENSION ARROWS ===
@@ -1294,8 +1848,8 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
   // === EDGE LABELS ===
   add('text',{x:(mainX + frontLeftX)/2, y:mainBotY + 16, 'text-anchor':'middle', 'font-size':9, fill:'#475569'}).textContent='← Left floor edge';
   add('text',{x:(mainX + mainW + frontRightX)/2, y:mainBotY + 16, 'text-anchor':'middle', 'font-size':9, fill:'#475569'}).textContent='Right floor edge →';
-  add('text',{x:cx, y:mainTopY - hemOverlapH - 16, 'text-anchor':'middle', 'font-size':10, fill:'#475569', 'font-weight':'bold'}).textContent='↑ BACK (behind chair) ↑';
-  add('text',{x:cx, y:mainBotY + (frontFlapNeeded ? (frontFlapWidth * sc) + 16 : 16), 'text-anchor':'middle', 'font-size':10, fill:'#475569', 'font-weight':'bold'}).textContent='↓ FRONT (in front of chair) ↓';
+  add('text',{x:cx, y:mainTopY - hemOverlapH - 16, 'text-anchor':'middle', 'font-size':10, fill:'#475569', 'font-weight':'bold'}).textContent='↑ BACK (behind couch) ↑';
+  add('text',{x:cx, y:mainBotY + (frontFlapNeeded ? (frontFlapWidth * sc) + 16 : 16), 'text-anchor':'middle', 'font-size':10, fill:'#475569', 'font-weight':'bold'}).textContent='↓ FRONT (in front of couch) ↓';
 }
 
 // === WAVY PATH HELPER ===
@@ -1609,9 +2163,9 @@ function drawWavyEdgeDiagram(params) {
 
   // --- DIRECTION LABELS ---
   add('text', {x: cx, y: mainTopY - bpPhysH - 16, 'text-anchor': 'middle', 'font-size': 10,
-    fill: '#475569', 'font-weight': 'bold'}).textContent = '↑ BACK (behind chair) ↑';
+    fill: '#475569', 'font-weight': 'bold'}).textContent = '↑ BACK (behind couch) ↑';
   add('text', {x: cx, y: frontBottomY + 16, 'text-anchor': 'middle', 'font-size': 10,
-    fill: '#475569', 'font-weight': 'bold'}).textContent = '↓ FRONT (in front of chair) ↓';
+    fill: '#475569', 'font-weight': 'bold'}).textContent = '↓ FRONT (in front of couch) ↓';
 }
 
 function compute(){
@@ -1944,6 +2498,50 @@ function compute(){
         }
       }
     }
+
+    // ============================================================
+    // === COUCH MATERIAL MODEL (overrides chair material logic) ===
+    // ============================================================
+    // Each panel runs FRONT-TO-BACK, bolt width B going side-to-side.
+    // Panel length = back drop + BR + AT2F + front drop.
+    // Two panels are joined by a center snap seam (2" overlap each → loses 2*seam of usable width).
+    // If the assembled width (WB + 2*sideDrop) exceeds the joined usable width, side extensions are added.
+    // === Match the chair calculator's flat layout exactly ===
+    // The chair compresses the AT2F diagonal into the bolt-width B and adds a "front flap"
+    // continuation when the total fabric path exceeds B. We use the same divisions for the
+    // couch so the assembled outline is byte-identical to the chair's for the same inputs.
+    const couch_backInset      = hem + BR;                               // plateau zone (matches chair)
+    const couch_frontInset     = frontExtDrop;                           // front-drop straight zone
+    const couch_totalFB        = hem + BR + AT2F + frontExtDrop;         // physical front-to-back fabric
+    const couch_frontFlapShortage = Math.max(0, couch_totalFB - B);      // amount that doesn't fit in B
+    const couch_frontFlapNeeded   = couch_frontFlapShortage > 0;
+    const couch_frontFlapWidth    = couch_frontFlapNeeded ? couch_frontFlapShortage + hem : 0;
+    const couch_taperLen       = Math.max(0, B - couch_backInset - couch_frontInset); // diagonal cut height
+    const couch_frontStraight  = couch_frontInset + couch_frontFlapWidth;            // straight zone below diagonal
+    const couch_panelLen   = sideDrop + couch_backInset + couch_taperLen + couch_frontStraight; // = sideDrop + B + frontFlap
+    const couch_assembledW = WB + 2 * sideDrop;                          // assembled width at backrest (widest line)
+    const couch_panelW     = B;                                          // each main panel = full bolt width
+    const couch_joinedUsableW = 2 * couch_panelW - 2 * seam;             // 2 bolts joined at center, minus snap-seam overlap
+    const couch_extNeeded  = couch_assembledW > couch_joinedUsableW;
+    const couch_extDeficit = Math.max(0, couch_assembledW - couch_joinedUsableW);
+    const couch_extEachUsable = couch_extDeficit / 2;
+    const couch_extSeam = 1;                                             // side-extension seam allowance (1" — slimmer than center snap seam)
+    const couch_extEachCut = couch_extEachUsable + couch_extSeam;        // each side extension cut width (incl. seam to main panel)
+    // Bolt usage:
+    //   Main panels: always 2 bolts, each couch_panelLen long.
+    //   Side extensions (if needed): if both fit across one bolt width, 1 extra bolt of couch_panelLen.
+    //   Otherwise 2 extra bolts.
+    const couch_extBoltsNeeded = couch_extNeeded ? (2 * couch_extEachCut <= B ? 1 : 2) : 0;
+    const couch_totalBolts = 2 + couch_extBoltsNeeded;
+    const couch_bolts_yards_each = couch_panelLen / 36;
+    const couch_total_inches = couch_totalBolts * couch_panelLen;
+    const couch_total_yards = couch_total_inches / 36;
+
+    // Override totalLength used by Material to Buy
+    totalLength = couch_total_inches;
+    nestingNote = couch_extNeeded
+      ? `${couch_totalBolts} bolts × ${fmtExact(couch_panelLen)}" = ${fmtExact(couch_total_inches)}". 2 main panels + ${couch_extBoltsNeeded} bolt(s) for side extensions (each ext ${fmtExact(couch_extEachCut)}" wide).`
+      : `2 bolts × ${fmtExact(couch_panelLen)}" = ${fmtExact(couch_total_inches)}". Joined width 2×${B} − 2×${seam} = ${fmtExact(couch_joinedUsableW)}" covers assembled ${fmtExact(couch_assembledW)}" — no side extensions needed.`;
 
     // === DISPLAY RESULTS ===
     const rows = [
@@ -2417,7 +3015,12 @@ function compute(){
       wasteRectW, wasteRectH,
       wasteNestDiagonal, wasteNestDiagAngle, wasteNestDiagOffset,
       useSplitBack, splitBackHalfTop, splitBackHalfBot, splitBackBoltLength,
-      splitBackMinOffset, splitBackNestedWidth, splitBackSavings, splitBackCenterSeam};
+      splitBackMinOffset, splitBackNestedWidth, splitBackSavings, splitBackCenterSeam,
+      // Couch material model
+      couch_panelLen, couch_panelW, couch_assembledW, couch_joinedUsableW,
+         couch_backInset, couch_taperLen, couch_frontStraight, couch_frontInset, couch_frontFlapWidth, couch_frontFlapNeeded,
+      couch_extNeeded, couch_extEachCut, couch_extSeam, couch_extBoltsNeeded, couch_totalBolts,
+      couch_total_inches, couch_total_yards};
     // Call each diagram in its own try/catch so one failure doesn't block the others
     const diagramErrors = [];
     try { drawDiagram(payload); } catch(e) { diagramErrors.push('Cut diagram: ' + e.message); console.error('drawDiagram error:', e); }
