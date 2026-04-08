@@ -110,7 +110,7 @@ const productConfigs = {
       height: 'Height',
       backrestDepth: 'Backrest Depth',
       armrestHeight: 'Ground to Top of Armrest',
-      backWidth: 'Back Width (if smaller than width)'
+      backWidth: 'Back Width'
     },
     hasAngle: true,
     measurementImage: '/images/Measurements/chair measurements.png',
@@ -280,32 +280,91 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
       return Math.ceil(yardsNeeded);
     }
 
-    // Calculation for chairs/recliners (single piece)
+    // Calculation for chairs/recliners — matches chair_cover_calculator_snap_back_MFG.html.
+    // Main piece (ML × B, side-to-side) + trapezoidal back piece + optional front flap.
+    // Considers full-trapezoid (Strategy A) and split-back nested (Strategy B), takes the
+    // smaller bolt length, and nests the front flap alongside the back piece when it fits.
     if (productType === 'chairs-recliners') {
       if (!width || !length || !height || !backrestDepth || !armrestHeight) return 0;
 
-      // Constants from HTML calculator
-      const FC = 6;    // Floor clearance
-      const hem = 0.5; // Hem allowance
+      // Constants — match MFG calculator defaults
+      const B = 54;        // bolt width
+      const FC = 6;        // floor clearance + wave allowance
+      const hem = 1;       // hem allowance
+      const seam = 1.5;    // seam overlap
+      const sideEase = 0;
 
-      // AT2F = √[(H - F2A)² + D²] where:
-      // H = height, F2A = armrestHeight, D = length (depth)
-      const AT2F = calculateAngle();
+      const W = width;
+      const D = length;            // depth (front-to-back)
+      const H = height;
+      const BR = backrestDepth;
+      const F2A = armrestHeight;
+      // Back width: prefer measured backWidth; fall back to full width if not provided
+      const WB = (measurements.backWidth && measurements.backWidth > 0) ? measurements.backWidth : W;
 
-      // ML = (H + BR + AT2F + F2A) - (2 × FC)
-      // Main length calculation
-      const ML = (height + backrestDepth + AT2F + armrestHeight) - (2 * FC);
+      // AT2F: diagonal drape from front edge of backrest top to front of seat
+      const AT2F = Math.sqrt(Math.max(0, H - F2A) ** 2 + Math.max(0, D - BR) ** 2);
 
-      // addLength = F2A + AT2F + BR - FC + hem
-      const addLength = armrestHeight + AT2F + backrestDepth - FC + hem;
+      const sideDrop = H - FC;
+      const frontExtDrop = F2A - FC;
 
-      // Total length needed = ML + addLength
-      const lengthNeeded = ML + addLength;
+      // Main piece: ML wraps side-to-side over the chair
+      const ML = WB + 2 * sideDrop;
 
-      // Convert to yards and round up
-      const yardsNeeded = lengthNeeded / 36;
+      // Front-to-back coverage required (across the bolt)
+      const totalFB = hem + BR + AT2F + frontExtDrop;
 
-      return Math.ceil(yardsNeeded);
+      // Back piece (trapezoid): top = ML+seam, bottom = WB+2*hem, height = H-FC
+      const backPieceTopWidth = ML + seam;
+      const backPieceBottomWidth = WB + 2 * hem;
+      const backPieceHeight = H - FC;
+      const backPieceLength = backPieceTopWidth;   // along bolt
+      const backPieceWidth = backPieceHeight;      // across bolt
+
+      // Front flap (if bolt can't cover full front-to-back)
+      const frontFlapNeeded = totalFB > B;
+      const frontFlapShortage = frontFlapNeeded ? totalFB - B : 0;
+      const frontFlapWidth = frontFlapNeeded ? frontFlapShortage + hem : 0;
+      const frontWidthAfterCut = W + 2 * frontExtDrop + 2 * sideEase;
+      const frontFlapLength = frontFlapNeeded ? frontWidthAfterCut : 0;
+
+      // --- Strategy A: full trapezoid back piece ---
+      let totalA = ML + backPieceLength;
+      if (frontFlapNeeded) {
+        if (backPieceWidth + frontFlapWidth <= B) {
+          // Flap nests alongside back piece across the bolt
+          totalA = ML + Math.max(backPieceLength, frontFlapLength);
+        } else {
+          totalA = ML + backPieceLength + frontFlapLength;
+        }
+      }
+
+      // --- Strategy B: split-back nested (cut trapezoid in half, rotate one 180°) ---
+      const splitBackCenterSeam = seam;
+      const splitBackHalfTop = backPieceTopWidth / 2 + splitBackCenterSeam;
+      const splitBackHalfBot = backPieceBottomWidth / 2 + splitBackCenterSeam;
+      const splitBackNestedWidth = splitBackHalfTop + splitBackHalfBot;
+      const splitBackTaper = splitBackHalfTop - splitBackHalfBot;
+      const splitBackMinOffset = splitBackNestedWidth <= B ? 0
+        : splitBackTaper > 0 ? (splitBackNestedWidth - B) * backPieceHeight / splitBackTaper : Infinity;
+      const splitBackFits = isFinite(splitBackMinOffset);
+      const splitBackBoltLength = splitBackFits ? backPieceHeight + splitBackMinOffset : backPieceLength;
+      const splitBackSavings = backPieceLength - splitBackBoltLength;
+
+      let totalB = Infinity;
+      if (splitBackFits && splitBackSavings > 1) {
+        totalB = ML + splitBackBoltLength;
+        if (frontFlapNeeded) {
+          if (splitBackNestedWidth + frontFlapWidth <= B) {
+            totalB = ML + Math.max(splitBackBoltLength, frontFlapLength);
+          } else {
+            totalB = ML + splitBackBoltLength + frontFlapLength;
+          }
+        }
+      }
+
+      const totalLength = Math.min(totalA, totalB);
+      return Math.ceil(totalLength / 36);
     }
 
     // Calculation for sofas/loveseats (uses 2 lanes with center seam)
@@ -408,7 +467,7 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
 
   const handleCalculate = async () => {
     // backWidth and armLength are optional, exclude them from required fields validation
-    const requiredFields = config.fields.filter(field => field !== 'backWidth' && field !== 'armLength');
+    const requiredFields = config.fields.filter(field => field !== 'armLength');
     const hasAllMeasurements = requiredFields.every(field => measurements[field] > 0);
     
     if (hasAllMeasurements) {
@@ -630,15 +689,15 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
       <button
         onClick={handleCalculate}
         className={`w-full py-3 px-4 rounded-md font-medium transition-all ${
-          config.fields.filter(field => field !== 'backWidth' && field !== 'armLength').every(field => measurements[field] > 0) && !hasCalculated
+          config.fields.filter(field => field !== 'armLength').every(field => measurements[field] > 0) && !hasCalculated
             ? 'bg-orange-600 hover:bg-orange-700 text-white animate-pulse'
             : 'bg-brand-teal hover:bg-brand-teal-dark text-white'
         }`}
-        disabled={!config.fields.filter(field => field !== 'backWidth' && field !== 'armLength').every(field => measurements[field] > 0) || Object.keys(capExceeded).length > 0}
+        disabled={!config.fields.filter(field => field !== 'armLength').every(field => measurements[field] > 0) || Object.keys(capExceeded).length > 0}
       >
         {Object.keys(capExceeded).length > 0
           ? '🚫 Cannot order — measurement exceeds maximum'
-          : (config.fields.filter(field => field !== 'backWidth' && field !== 'armLength').every(field => measurements[field] > 0) && !hasCalculated
+          : (config.fields.filter(field => field !== 'armLength').every(field => measurements[field] > 0) && !hasCalculated
             ? '⚠️ Click to Update Price & Size'
             : 'Calculate Cover Size & Price')}
       </button>
