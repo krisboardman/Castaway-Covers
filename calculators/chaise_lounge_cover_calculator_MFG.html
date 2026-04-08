@@ -91,8 +91,9 @@
             <label class="lbl">B (Bolt width - Fabric size)<input id="B" type="number" value="54" step="0.1" /></label>
             <label class="lbl">W (Chaise width)<input id="W" type="number" value="24" step="1" /></label>
             <label class="lbl">D (Chaise length, head-to-foot)<input id="D" type="number" value="72" step="1" /></label>
-            <label class="lbl">H (Height — top of chaise to floor)<input id="H" type="number" value="18" step="1" /></label>
+            <label class="lbl">H (Height — frame top to floor, <strong>no cushion</strong>)<input id="H" type="number" value="18" step="1" /></label>
             <label class="lbl">FC + Wave Allowance<input id="FC" type="number" value="3" step="1" /></label>
+            <label class="lbl">CC (Corner cut inset — blank = auto)<input id="CC" type="number" value="" step="0.5" placeholder="auto (H − FC)" /></label>
             <!-- Legacy inputs (unused in chaise calc — hidden but kept so legacy code refs don't break) -->
             <input id="WB" type="hidden" value="24" />
             <input id="F2A" type="hidden" value="0" />
@@ -872,7 +873,7 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
   svgId = svgId || 'assemblyDiagramFlatFull';
   vbw = vbw || 1200;
   vbh = vbh || 900;
-  const {H, W, WB, D, F2A, F2BS, BR, FC, B, AT2F, sideDrop, frontExtDrop,
+  const {H, W, WB, D, F2A, F2BS, BR, FC, B, AT2F, sideDrop, cornerCut, frontExtDrop,
          hem, seam, rounded, roundMode,
          couch_panelLen, couch_panelW, couch_assembledW, couch_joinedUsableW,
          couch_backInset, couch_taperLen, couch_frontStraight, couch_frontInset, couch_frontFlapWidth, couch_frontFlapNeeded,
@@ -963,20 +964,33 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
   ];
   const ptsStr = a => a.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
 
-  // SINGLE PANEL — combine left and right halves into one full polygon (no center seam)
-  // Front mirrors the back: same diagonal cut-in so the cover narrows at both ends.
+  // SINGLE PANEL — rectangle with chamfered (diagonal) corner cuts.
+  // cornerCut (inches) is the distance from each corner (along the cover edge)
+  // where the chamfer starts. Defaults to sideDrop; user-overridable via CC input.
+  const _cc = (cornerCut && cornerCut > 0) ? cornerCut : sideDrop;
+  // Chamfer size defaults to sideDrop so the adjacent side drops fold at 45° without bulk.
+  const chamPx = _cc * sc;
   const fullPts = [
-    [cx,               yBackFloor],
-    [cx + halfBack,    yBackFloor],
-    [cx + halfMid,     yBackrestTop],
-    [cx + halfMid,     yBackrestEnd],
-    [cx + halfBack,    drawBotY],
-    [cx - halfBack,    drawBotY],
-    [cx - halfMid,     yBackrestEnd],
-    [cx - halfMid,     yBackrestTop],
-    [cx - halfBack,    yBackFloor]
+    [cx - halfBack + chamPx, yBackFloor],
+    [cx + halfBack - chamPx, yBackFloor],
+    [cx + halfBack,          yBackFloor + chamPx],
+    [cx + halfBack,          drawBotY - chamPx],
+    [cx + halfBack - chamPx, drawBotY],
+    [cx - halfBack + chamPx, drawBotY],
+    [cx - halfBack,          drawBotY - chamPx],
+    [cx - halfBack,          yBackFloor + chamPx]
   ];
   add('polygon',{points:ptsStr(fullPts), fill:'#bfdbfe55', stroke:'#2563eb', 'stroke-width':2});
+  // Show the cut-off corner triangles faintly
+  const triStyle = {fill:'#fee2e2', 'fill-opacity':0.5, stroke:'#dc2626', 'stroke-width':1, 'stroke-dasharray':'3,3'};
+  const triPts = (a,b,c)=>`${a[0]},${a[1]} ${b[0]},${b[1]} ${c[0]},${c[1]}`;
+  add('polygon',{points:triPts([cx-halfBack,yBackFloor],[cx-halfBack+chamPx,yBackFloor],[cx-halfBack,yBackFloor+chamPx]), ...triStyle});
+  add('polygon',{points:triPts([cx+halfBack,yBackFloor],[cx+halfBack-chamPx,yBackFloor],[cx+halfBack,yBackFloor+chamPx]), ...triStyle});
+  add('polygon',{points:triPts([cx+halfBack,drawBotY],[cx+halfBack-chamPx,drawBotY],[cx+halfBack,drawBotY-chamPx]), ...triStyle});
+  add('polygon',{points:triPts([cx-halfBack,drawBotY],[cx-halfBack+chamPx,drawBotY],[cx-halfBack,drawBotY-chamPx]), ...triStyle});
+  // Cut label: placed just inside the cover body, next to the back-left chamfer,
+  // so it doesn't collide with the "Assembled width" arrow above the cover edge.
+  add('text',{x:cx-halfBack+chamPx+6, y:yBackFloor+14, 'font-size':10, fill:'#dc2626', 'font-weight':'bold'}).textContent=`corner cut ${rIn(_cc)}"×${rIn(_cc)}"${(cornerCut && cornerCut>0 && Math.abs(cornerCut-sideDrop)>0.01) ? ' (CC override)' : ''}`;
 
   // (Center label removed — assembled width and panel length already shown via dimension arrows.)
 
@@ -1160,6 +1174,44 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
   add('text',{x:cx, y:chaiseY + chaiseD_px/2 + 18, 'text-anchor':'middle',
     'font-size':9, fill:'#0891b2'}).textContent='(top-down — fabric hangs around all 4 sides)';
 
+  // === CORNER SNAPS — pair at each chamfer, halfway between chaise edge and cover edge ===
+  // When the two adjacent drops fold up the snaps pull the bulk of material INWARD.
+  {
+    const dIn = sideDrop / 2;
+    const dPx = dIn * sc;
+    const chaiseLeftX  = cx - (W / 2) * sc;
+    const chaiseRightX = cx + (W / 2) * sc;
+    const chaiseTopY   = chaiseY;
+    const chaiseBotY   = chaiseY + chaiseD_px;
+    const snapColor = '#059669';
+    const dSnap = (x, y) => add('circle',{cx:x, cy:y, r:6, fill:snapColor, stroke:'#fff', 'stroke-width':2});
+    // Each corner gets two snaps — one on the BACK/FRONT drop (top/bottom of
+    // the diagram) and one on the SIDE drop (left/right). Both are pulled
+    // halfway in from the material edge toward the furniture edge, and they
+    // sit right over the chaise corner line so that when snapped together the
+    // corner excess folds INSIDE the cover.
+    // TL corner
+    dSnap(chaiseLeftX,          yBackFloor + dPx);  // back drop
+    dSnap(cx - halfBack + dPx,  chaiseTopY);        // side drop
+    // TR corner
+    dSnap(chaiseRightX,         yBackFloor + dPx);
+    dSnap(cx + halfBack - dPx,  chaiseTopY);
+    // BR corner
+    dSnap(chaiseRightX,         drawBotY - dPx);
+    dSnap(cx + halfBack - dPx,  chaiseBotY);
+    // BL corner
+    dSnap(chaiseLeftX,          drawBotY - dPx);
+    dSnap(cx - halfBack + dPx,  chaiseBotY);
+    // Snap-pair callout — placed on the right between the back and front grommet
+    // label blocks so it doesn't crowd the "Assembled width" arrow at the top.
+    const snapLabelX = cx + halfMid + 18;
+    const snapLabelY = (yBackFloor + drawBotY) / 2;
+    add('text',{x:snapLabelX, y:snapLabelY - 6, 'text-anchor':'start', 'font-size':10,
+      fill:snapColor, 'font-weight':'bold'}).textContent=`Corner snap pairs`;
+    add('text',{x:snapLabelX, y:snapLabelY + 7, 'text-anchor':'start', 'font-size':9,
+      fill:snapColor}).textContent=`~${rIn(dIn)}" in from cover edge`;
+  }
+
   // === CHAISE CORNER GROMMETS (4 total — one per corner) ===
   // Positioned relative to the dotted chaise outline (the chair top), not the cover edge:
   //   • 5" in from the back/front dotted edge (toward the chair center)
@@ -1180,12 +1232,32 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
   dGrom(cx + gromBackX  * sc, gromYBack);
   dGrom(cx - gromFrontX * sc, gromYFront);
   dGrom(cx + gromFrontX * sc, gromYFront);
-  add('text',{x:cx, y:gromYBack - 9, 'text-anchor':'middle', 'font-size':9,
-    fill:gromColor, 'font-weight':'bold'}).textContent=
-    `back grommets (±${rIn(gromBackX)}" from center · ${gromEndIn}" in from back chaise edge · ${gromSideOut}" outside chaise sides)`;
-  add('text',{x:cx, y:gromYFront + 14, 'text-anchor':'middle', 'font-size':9,
-    fill:gromColor, 'font-weight':'bold'}).textContent=
-    `front grommets (±${rIn(gromFrontX)}" from center · ${gromEndIn}" in from front chaise edge · ${gromSideOut}" outside chaise sides)`;
+  // Grommet callouts — placed off to the right of the cover so they don't
+  // collide with the "Assembled width" arrow at the top of the diagram.
+  const gromLabelX = cx + halfMid + 18;
+  const gromRightGromX = cx + gromBackX * sc;
+  // Back grommet label + leader line to the right back grommet
+  add('line',{x1:gromRightGromX + 8, y1:gromYBack, x2:gromLabelX - 4, y2:gromYBack,
+    stroke:gromColor, 'stroke-width':1});
+  add('text',{x:gromLabelX, y:gromYBack - 4, 'text-anchor':'start', 'font-size':10,
+    fill:gromColor, 'font-weight':'bold'}).textContent=`Back grommets`;
+  add('text',{x:gromLabelX, y:gromYBack + 9, 'text-anchor':'start', 'font-size':9,
+    fill:gromColor}).textContent=
+    `±${rIn(gromBackX)}" from center · ${gromEndIn}" in from back chaise edge`;
+  add('text',{x:gromLabelX, y:gromYBack + 21, 'text-anchor':'start', 'font-size':9,
+    fill:gromColor}).textContent=
+    `${gromSideOut}" outside chaise sides`;
+  // Front grommet label + leader line to the right front grommet
+  add('line',{x1:gromRightGromX + 8, y1:gromYFront, x2:gromLabelX - 4, y2:gromYFront,
+    stroke:gromColor, 'stroke-width':1});
+  add('text',{x:gromLabelX, y:gromYFront - 4, 'text-anchor':'start', 'font-size':10,
+    fill:gromColor, 'font-weight':'bold'}).textContent=`Front grommets`;
+  add('text',{x:gromLabelX, y:gromYFront + 9, 'text-anchor':'start', 'font-size':9,
+    fill:gromColor}).textContent=
+    `±${rIn(gromFrontX)}" from center · ${gromEndIn}" in from front chaise edge`;
+  add('text',{x:gromLabelX, y:gromYFront + 21, 'text-anchor':'start', 'font-size':9,
+    fill:gromColor}).textContent=
+    `${gromSideOut}" outside chaise sides`;
 
   // === BOTTOM LEGEND BOX (chaise lounge assembly key) ===
   const keyTotalW = VBW - pad * 2;
@@ -1807,7 +1879,8 @@ function buildWavyPerimeterPath(edgePointArrays, cornerPts, closed) {
 
 // === WAVY EDGE ASSEMBLY DIAGRAM (chaise lounge — single rectangle, all 4 edges wavy) ===
 function drawWavyEdgeDiagram(params) {
-  const {H, W, WB, D, FC, B, sideDrop, roundMode, hem} = params;
+  const {H, W, WB, D, FC, B, sideDrop, cornerCut, roundMode, hem} = params;
+  const _cc = (cornerCut && cornerCut > 0) ? cornerCut : sideDrop;
   const rIn = v => roundMode === 'whole' ? Math.ceil(v) : roundMode === 'half' ? roundHalf(v) : Math.round(v*100)/100;
   const svg = document.getElementById('assemblyWavyEdge');
   if (!svg) return;
@@ -1832,8 +1905,8 @@ function drawWavyEdgeDiagram(params) {
   const xL = rectX, xR = rectX + rectW;
   const yT = rectY, yB = rectY + rectH;
 
-  // Chamfered corner cut: outer drop×drop triangle removed from each corner
-  const chamPx = sideDrop * sc;
+  // Chamfered corner cut: outer _cc×_cc triangle removed from each corner
+  const chamPx = _cc * sc;
   // Octagon (chamfered rectangle) fill
   const octPts = [
     [xL + chamPx, yT], [xR - chamPx, yT],
@@ -1898,7 +1971,7 @@ function drawWavyEdgeDiagram(params) {
   add('text',{x:keyX + 10, y:keyY + 38, 'font-size':10, fill:'#334155'}).textContent=`Wave depth: ${waveAmp}" (scoops inward)`;
   add('text',{x:keyX + 10, y:keyY + 54, 'font-size':10, fill:'#334155'}).textContent=`Full wave cycle: ${waveLen}"`;
   add('text',{x:keyX + 10, y:keyY + 72, 'font-size':10, fill:'#334155'}).textContent=`All 4 edges wavy — no seams.`;
-  add('text',{x:keyX + 10, y:keyY + 88, 'font-size':9, fill:'#dc2626'}).textContent=`Chamfer corner cut: ${rIn(sideDrop)}" × ${rIn(sideDrop)}"`;
+  add('text',{x:keyX + 10, y:keyY + 88, 'font-size':9, fill:'#dc2626'}).textContent=`Chamfer corner cut: ${rIn(_cc)}" × ${rIn(_cc)}"${(cornerCut && cornerCut>0 && Math.abs(cornerCut-sideDrop)>0.01) ? ' (CC override)' : ''}`;
 }
 function _legacy_drawWavyEdgeDiagram_unused() {
   const waveAmp_legacy = 1.5;
@@ -2129,6 +2202,7 @@ function compute(){
     const F2BS = parseNum('F2BS');
     const BR   = parseNum('BR');
     const FC   = parseNum('FC');
+    const CC_raw = parseNum('CC');
     const hem  = parseNum('hem');
     const seam = parseNum('seam');
     const sideEase = parseNum('sideEase');
@@ -2141,6 +2215,10 @@ function compute(){
     // Side drop: from floor (minus clearance/wave) up to top of backrest
     // The fabric must go up and over the FULL HEIGHT of the chair on each side
     const sideDrop = H - FC;
+    // Corner cut inset: user-adjustable. Blank/0 falls back to sideDrop (matches
+    // the overhang), which is the historical behavior. Entering a larger value
+    // moves the chamfer further inward from the corner of the chaise.
+    const cornerCut = CC_raw > 0 ? CC_raw : sideDrop;
 
     // Front extension drop: from armrest down to floor (used in front-to-back coverage calc)
     const frontExtDrop = F2A - FC;
@@ -2510,6 +2588,8 @@ function compute(){
     const rows = [
       ['Side drop (H − FC)', `${fmtInch(sideDrop, rounded)} in`,
         `H − FC = ${H} − ${FC} = ${fmtExact(sideDrop)}"<br/>Amount of fabric that hangs past each side, front, and back of the chaise.`],
+      ['Corner cut inset (CC)', `${fmtInch(cornerCut, rounded)} in${(CC_raw > 0 && Math.abs(CC_raw - sideDrop) > 0.01) ? ' (override)' : ' (auto = side drop)'}`,
+        `Distance from each corner (along the cover edge) where the 45° chamfer starts. Measured in from the corner of the chaise footprint. Leave CC blank to auto-match the side drop, or enter a value to start the cut further in (useful when the footrest end sits lower than the head).`],
       ['Cover width', `${fmtInch(couch_assembledW, rounded)} in`,
         `W + 2×(H − FC) = ${W} + 2×${fmtExact(sideDrop)} = ${fmtExact(couch_assembledW)}"<br/>Chaise width plus side drop on each side.`],
       ['Cover length', `${fmtInch(couch_panelLen, rounded)} in`,
@@ -2939,7 +3019,7 @@ function compute(){
       sidePanelsNeeded, sideEach, addWidth, sidePanelLength, setbackFromFront,
       backDrop, frontExtDrop, frontWidth, frontWidthAfterCut, confirmCoverageWidth, backWidth,
       startCutFromCenterLine, totalLength, nestingStrategy, rounded, roundMode, diagCrossDist,
-      diagSpan, ML_eff, totalFB, sideDrop, sideEase, flapExtension,
+      diagSpan, ML_eff, totalFB, sideDrop, cornerCut, sideEase, flapExtension,
       markFromSideEdge, markFromCenter, backInset, frontInset, taperZoneLength,
       backPieceTopWidth, backPieceBottomWidth, backPieceHeight, backPieceLength, backPieceWidth,
       frontFlapNeeded, frontFlapWidth, frontFlapLength,
@@ -2988,7 +3068,7 @@ function exportAsText(){
   text += `Design: Side-to-side (main piece over both armrests)\n`;
   text += `Rounding: ${roundMode === 'whole' ? 'Whole inch' : roundMode === 'half' ? '½" increments (MFG)' : 'Exact (decimal)'}\n\n`;
   text += `INPUTS:\n`;
-  ['B','W','WB','H','D','F2A','F2BS','BR','FC','hem','seam'].forEach(id => {
+  ['B','W','WB','H','D','F2A','F2BS','BR','FC','CC','hem','seam'].forEach(id => {
     text += `${id}: ${parseNum(id)}\n`;
   });
   text += `\nRESULTS:\n`;
@@ -3032,7 +3112,7 @@ function copyToClipboard(){
 function printPage(){ window.print(); }
 
 function saveInputs(){
-  const fields = ['B', 'W', 'WB', 'H', 'D', 'F2A', 'F2BS', 'BR', 'FC', 'hem', 'seam', 'sideEase'];
+  const fields = ['B', 'W', 'WB', 'H', 'D', 'F2A', 'F2BS', 'BR', 'FC', 'CC', 'hem', 'seam', 'sideEase'];
   const values = {};
   fields.forEach(field => {
     const el = document.getElementById(field);
@@ -3066,7 +3146,7 @@ function loadSavedInputs(){
 
 function loadFromURL(){
   const params = new URLSearchParams(window.location.search);
-  const fields = ['B', 'W', 'WB', 'H', 'D', 'F2A', 'F2BS', 'BR', 'FC', 'hem', 'seam', 'sideEase'];
+  const fields = ['B', 'W', 'WB', 'H', 'D', 'F2A', 'F2BS', 'BR', 'FC', 'CC', 'hem', 'seam', 'sideEase'];
   let loaded = false;
   fields.forEach(field => {
     const value = params.get(field);

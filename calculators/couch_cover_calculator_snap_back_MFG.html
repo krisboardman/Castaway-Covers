@@ -1296,15 +1296,6 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
     fill:tabColor, 'font-weight':'bold'}).textContent=
     `bungee tabs (${rIn(sideDrop - bungeeTabBelowBackrest)}" up from back floor, ±${rIn(bungeeTabX)}" from center)`;
 
-  // === BACK CORNER SNAPS ===
-  // Sit at the back floor corners of the assembled cover (the outer top corners of the panels/extensions).
-  const cornerInsetPx = 6;
-  const cornerLeftX  = (cx - halfBack) + cornerInsetPx;
-  const cornerRightX = (cx + halfBack) - cornerInsetPx;
-  const cornerY      = yBackFloor + cornerInsetPx;
-  add('circle',{cx:cornerLeftX,  cy:cornerY, r:5, fill:'#059669', stroke:'#fff', 'stroke-width':1.5});
-  add('circle',{cx:cornerRightX, cy:cornerY, r:5, fill:'#059669', stroke:'#fff', 'stroke-width':1.5});
-
   // === BOTTOM LEGEND BOX (couch-specific snap/grommet info) ===
   const keyTotalW = VBW - pad * 2;
   const keyX = pad;
@@ -1321,10 +1312,6 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
   add('text',{x:keyX + 12, y:row, 'font-size':11, fill:'#059669', 'font-weight':'bold'}).textContent='Center snap seam';
   row += 14;
   add('text',{x:keyX + 12, y:row, 'font-size':10, fill:'#334155'}).textContent=`Runs full ${rIn(couch_panelLen)}" length down the middle. Overlap zone: 2 × ${rIn(seam)}" = ${rIn(seam*2)}".`;
-  row += 18;
-  add('text',{x:keyX + 12, y:row, 'font-size':11, fill:'#059669', 'font-weight':'bold'}).textContent='Back corner snaps';
-  row += 14;
-  add('text',{x:keyX + 12, y:row, 'font-size':10, fill:'#334155'}).textContent='2 snaps at the back floor corners — wrap around the back corners of the couch.';
 
   // Right column: grommets + bolt summary
   row = keyY + 36;

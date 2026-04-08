@@ -99,6 +99,12 @@ const fieldHints: Record<string, Record<string, string>> = {
   'tables': {
     width: 'Note: if the width exceeds 34″, the cover will have a seam down the middle.',
   },
+  'chaise-lounge': {
+    height: 'Measure from the floor to the top of the chaise frame — remove or ignore the cushion. Including the cushion will produce a cover that drags on the ground.',
+  },
+  'ottomans': {
+    height: 'Measure from the floor to the top of the ottoman frame — remove or ignore the cushion. Including the cushion will produce a cover that drags on the ground.',
+  },
 };
 
 const productConfigs = {
@@ -135,7 +141,7 @@ const productConfigs = {
     labels: {
       width: 'Width',
       length: 'Length (head to foot)',
-      height: 'Height (top of chaise to floor)'
+      height: 'Height (frame top to floor — do not include cushion)'
     },
     hasAngle: false,
     measurementImage: '/images/Measurements/chaise measurements.jpg'
@@ -145,7 +151,7 @@ const productConfigs = {
     labels: {
       width: 'Width',
       length: 'Length',
-      height: 'Height'
+      height: 'Height (frame top to floor — do not include cushion)'
     },
     hasAngle: false,
     measurementImage: '/images/Measurements/ottoman measurements.jpg'
