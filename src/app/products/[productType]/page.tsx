@@ -302,7 +302,14 @@ export default function ProductPage() {
           onImageSelect={setSelectedImageIndex}
           selectedColor={selectedColor}
         />
-        
+
+        {/* Chaise flat-position note */}
+        {(productType === 'chaise-lounge' || productType === 'chaise-lounges') && (
+          <div className="mt-4 bg-amber-50 border border-amber-200 rounded-lg px-5 py-3 text-sm text-amber-800">
+            <strong>Note:</strong> Chaise lounge covers are designed to be used with the chaise in the fully flat (reclined) position.
+          </div>
+        )}
+
         {/* Measurement Diagrams and Calculator Side by Side */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
           {/* Left: Measurement Diagrams */}
@@ -587,12 +594,12 @@ const getGalleryImages = (productType: string, selectedColor?: string) => {
       { src: '/images/Sofas-Loveseats/sofa6.jpg', alt: 'Sofa Cover - Magnetic Closure' }
     ],
     'chaise-lounge': [
-      { src: '/images/ChaiseLounges/chaise1.jpg', alt: 'Chaise Lounge Cover - Front Side View' },
-      { src: '/images/ChaiseLounges/chaise2.jpg', alt: 'Chaise Lounge Cover - Cream' }
+      { src: '/images/ChaiseLounges/chaise1.jpg', alt: 'Chaise Lounge Cover in Blue - Flat Position' },
+      { src: '/images/ChaiseLounges/chaise2.jpg', alt: 'Chaise Lounge Cover in Cream - Flat Position' }
     ],
     'chaise-lounges': [
-      { src: '/images/ChaiseLounges/chaise1.jpg', alt: 'Chaise Lounge Cover - Front Side View' },
-      { src: '/images/ChaiseLounges/chaise2.jpg', alt: 'Chaise Lounge Cover - Cream' }
+      { src: '/images/ChaiseLounges/chaise1.jpg', alt: 'Chaise Lounge Cover in Blue - Flat Position' },
+      { src: '/images/ChaiseLounges/chaise2.jpg', alt: 'Chaise Lounge Cover in Cream - Flat Position' }
     ],
     'ottomans': [
       { src: '/images/Ottomans/ottoman1.jpg', alt: 'Ottoman Cover' }

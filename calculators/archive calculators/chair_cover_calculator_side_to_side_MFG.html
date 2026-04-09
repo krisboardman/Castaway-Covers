@@ -1123,8 +1123,9 @@ function compute(){
     const sideEase = parseNum('sideEase');
 
     // === MAIN PIECE CALCULATIONS (Side-to-Side Design) ===
-    // AT2F: diagonal drape from top of backrest to front of seat
-    const AT2F = Math.sqrt(Math.max(0, H - F2A)**2 + Math.max(0, D)**2);
+    // AT2F: diagonal drape from front edge of backrest top to front of seat
+    // Uses (D - BR) because the fabric has already traversed BR across the backrest top
+    const AT2F = Math.sqrt(Math.max(0, H - F2A)**2 + Math.max(0, D - BR)**2);
 
     // Side drop: from floor (minus clearance/wave) up to top of backrest
     // The fabric must go up and over the FULL HEIGHT of the chair on each side
@@ -1383,7 +1384,7 @@ function compute(){
     // === DISPLAY RESULTS ===
     const rows = [
       ['Diagonal drape (AT2F)', `${fmtInch(AT2F, rounded)} in`,
-        `√[(H − F2A)² + D²] = √[(${H} − ${F2A})² + ${D}²] = ${fmtExact(AT2F)}<br/>Diagonal from top of backrest to front of seat`],
+        `√[(H − F2A)² + (D − BR)²] = √[(${H} − ${F2A})² + (${D} − ${BR})²] = ${fmtExact(AT2F)}<br/>Diagonal from front edge of backrest top to front of seat`],
       ['Main length ML (side-to-side wrap)', `${fmtInch(ML, rounded)} in`,
         `WB + 2×(H − FC) = ${WB} + 2×(${H} − ${FC}) = ${fmtExact(ML)}<br/>Left side drop (${fmtExact(sideDrop)}") + back width (${WB}") + right side drop (${fmtExact(sideDrop)}")`],
       ['Front-to-back coverage needed', `${fmtInch(totalFB, rounded)} in`,

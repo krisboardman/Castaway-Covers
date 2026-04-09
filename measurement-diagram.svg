@@ -1,0 +1,175 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 620" font-family="'Segoe UI', Arial, sans-serif">
+  <defs>
+    <marker id="arrowL" markerWidth="8" markerHeight="6" refX="0" refY="3" orient="auto">
+      <path d="M8,0 L0,3 L8,6" fill="none" stroke="#1a1a1a" stroke-width="1.2"/>
+    </marker>
+    <marker id="arrowR" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6" fill="none" stroke="#1a1a1a" stroke-width="1.2"/>
+    </marker>
+    <marker id="arrowLblue" markerWidth="8" markerHeight="6" refX="0" refY="3" orient="auto">
+      <path d="M8,0 L0,3 L8,6" fill="none" stroke="#2563eb" stroke-width="1.2"/>
+    </marker>
+    <marker id="arrowRblue" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6" fill="none" stroke="#2563eb" stroke-width="1.2"/>
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="800" height="620" fill="#ffffff"/>
+
+  <!-- Title -->
+  <text x="400" y="32" text-anchor="middle" font-size="20" font-weight="700" fill="#1a1a1a">How to Measure Your Furniture</text>
+
+  <!-- ============ CHAIR BODY (isometric-ish 3D) ============ -->
+  <!-- Using a simple 3D projection: right = +1,+0.4  depth = -0.7,+0.35 -->
+  <!-- Origin at front-left-bottom corner = (200, 420) -->
+
+  <!-- LEGS (4 posts) -->
+  <!-- Front-left leg -->
+  <line x1="200" y1="420" x2="200" y2="440" stroke="#8B7355" stroke-width="5" stroke-linecap="round"/>
+  <!-- Front-right leg -->
+  <line x1="430" y1="512" x2="430" y2="532" stroke="#8B7355" stroke-width="5" stroke-linecap="round"/>
+  <!-- Back-left leg -->
+  <line x1="60" y1="490" x2="60" y2="510" stroke="#8B7355" stroke-width="5" stroke-linecap="round"/>
+  <!-- Back-right leg -->
+  <line x1="290" y1="582" x2="290" y2="602" stroke="#8B7355" stroke-width="5" stroke-linecap="round"/>
+
+  <!-- SEAT (top surface - parallelogram) -->
+  <polygon points="200,380 430,472 290,542 60,450" fill="#d4c4a8" stroke="#8B7355" stroke-width="2"/>
+
+  <!-- SEAT front face -->
+  <polygon points="200,380 430,472 430,512 200,420" fill="#c4b498" stroke="#8B7355" stroke-width="2"/>
+
+  <!-- SEAT left face -->
+  <polygon points="200,380 60,450 60,490 200,420" fill="#b4a488" stroke="#8B7355" stroke-width="2"/>
+
+  <!-- BACK REST (straight back version) -->
+  <!-- Back panel - rear face -->
+  <polygon points="60,450 290,542 290,342 60,250" fill="#d4c4a8" stroke="#8B7355" stroke-width="2"/>
+
+  <!-- Back panel - top edge -->
+  <polygon points="60,250 290,342 310,332 80,240" fill="#e4d4b8" stroke="#8B7355" stroke-width="2"/>
+
+  <!-- Back panel - right side edge -->
+  <polygon points="290,342 310,332 310,532 290,542" fill="#c4b498" stroke="#8B7355" stroke-width="2"/>
+
+  <!-- LEFT ARMREST -->
+  <!-- Armrest top -->
+  <polygon points="60,310 200,260 210,255 70,305" fill="#e4d4b8" stroke="#8B7355" stroke-width="2"/>
+  <!-- Armrest front -->
+  <polygon points="200,260 210,255 210,380 200,380" fill="#c4b498" stroke="#8B7355" stroke-width="1.5"/>
+  <!-- Armrest outer -->
+  <polygon points="60,310 70,305 210,255 200,260 200,380 200,380 60,450 60,310" fill="#d4c4a8" stroke="#8B7355" stroke-width="1.5"/>
+
+  <!-- RIGHT ARMREST -->
+  <!-- Armrest top -->
+  <polygon points="290,402 430,352 440,347 300,397" fill="#e4d4b8" stroke="#8B7355" stroke-width="2"/>
+  <!-- Armrest front -->
+  <polygon points="430,352 440,347 440,472 430,472" fill="#c4b498" stroke="#8B7355" stroke-width="1.5"/>
+  <!-- Armrest outer face -->
+  <polygon points="290,402 300,397 440,347 430,352 430,472 430,472 290,542 290,402" fill="#d4c4a8" stroke="#8B7355" stroke-width="1.5"/>
+
+  <!-- Cushion on seat -->
+  <polygon points="205,375 425,467 285,535 65,443" fill="#b8a88c" stroke="#a09078" stroke-width="1" opacity="0.5"/>
+
+  <!-- ============ DIMENSION LINES ============ -->
+
+  <!-- WIDTH (W) — across the front, including armrests -->
+  <!-- Arrow line from front-left to front-right, offset below -->
+  <line x1="195" y1="455" x2="435" y2="547" stroke="#1a1a1a" stroke-width="1.5" marker-start="url(#arrowL)" marker-end="url(#arrowR)"/>
+  <!-- Tick marks -->
+  <line x1="200" y1="420" x2="195" y2="462" stroke="#1a1a1a" stroke-width="0.8"/>
+  <line x1="430" y1="512" x2="435" y2="554" stroke="#1a1a1a" stroke-width="0.8"/>
+  <!-- Label -->
+  <text x="340" y="518" text-anchor="middle" font-size="15" font-weight="700" fill="#1a1a1a">W (Width)</text>
+
+  <!-- DEPTH (D) — from front to back along left side -->
+  <!-- Arrow from front-left to back-left, offset to the left -->
+  <line x1="170" y1="408" x2="30" y2="478" stroke="#1a1a1a" stroke-width="1.5" marker-start="url(#arrowL)" marker-end="url(#arrowR)"/>
+  <!-- Tick marks -->
+  <line x1="200" y1="420" x2="165" y2="403" stroke="#1a1a1a" stroke-width="0.8"/>
+  <line x1="60" y1="490" x2="25" y2="473" stroke="#1a1a1a" stroke-width="0.8"/>
+  <!-- Label -->
+  <text x="72" y="436" text-anchor="middle" font-size="15" font-weight="700" fill="#1a1a1a" transform="rotate(-27, 72, 436)">D (Depth)</text>
+
+  <!-- HEIGHT (H) — total height from ground to top of back, on the left side -->
+  <!-- Arrow from ground to top of back -->
+  <line x1="28" y1="245" x2="28" y2="508" stroke="#1a1a1a" stroke-width="1.5" marker-start="url(#arrowL)" marker-end="url(#arrowR)"/>
+  <!-- Tick marks -->
+  <line x1="22" y1="250" x2="55" y2="250" stroke="#1a1a1a" stroke-width="0.8"/>
+  <line x1="22" y1="510" x2="55" y2="510" stroke="#1a1a1a" stroke-width="0.8"/>
+  <!-- Label -->
+  <text x="18" y="380" text-anchor="middle" font-size="15" font-weight="700" fill="#1a1a1a" transform="rotate(-90, 18, 380)">H (Height)</text>
+
+  <!-- FC (Floor to Cushion/Armrest) — on the right side -->
+  <line x1="472" y1="350" x2="472" y2="530" stroke="#1a1a1a" stroke-width="1.5" marker-start="url(#arrowL)" marker-end="url(#arrowR)"/>
+  <!-- Tick marks -->
+  <line x1="435" y1="352" x2="478" y2="352" stroke="#1a1a1a" stroke-width="0.8"/>
+  <line x1="435" y1="532" x2="478" y2="532" stroke="#1a1a1a" stroke-width="0.8"/>
+  <!-- Label -->
+  <text x="482" y="448" text-anchor="start" font-size="14" font-weight="700" fill="#1a1a1a">FC</text>
+  <text x="482" y="464" text-anchor="start" font-size="11" fill="#555">(Floor to</text>
+  <text x="482" y="477" text-anchor="start" font-size="11" fill="#555">Cushion)</text>
+
+  <!-- WB (Width of Back) — across the back, BLUE to highlight -->
+  <!-- This goes across the back panel only, not including armrests -->
+  <line x1="75" y1="255" x2="295" y2="345" stroke="#2563eb" stroke-width="2" marker-start="url(#arrowLblue)" marker-end="url(#arrowRblue)"/>
+  <!-- Tick marks -->
+  <line x1="60" y1="250" x2="80" y2="240" stroke="#2563eb" stroke-width="1"/>
+  <line x1="290" y1="342" x2="300" y2="330" stroke="#2563eb" stroke-width="1"/>
+  <!-- Label -->
+  <text x="210" y="282" text-anchor="middle" font-size="15" font-weight="700" fill="#2563eb">WB (Width of Back)</text>
+
+  <!-- ============ CURVED BACK CALLOUT ============ -->
+  <!-- Callout box -->
+  <rect x="520" y="60" width="260" height="220" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5"/>
+
+  <!-- Callout title -->
+  <text x="650" y="88" text-anchor="middle" font-size="14" font-weight="700" fill="#2563eb">Measuring Curved Backs</text>
+
+  <!-- Mini diagram: curved back vs straight measurement -->
+  <!-- Curved back shape -->
+  <path d="M570,140 Q650,115 730,140 L730,200 L570,200 Z" fill="none" stroke="#8B7355" stroke-width="2.5"/>
+
+  <!-- Straight measurement line across -->
+  <line x1="575" y1="175" x2="725" y2="175" stroke="#2563eb" stroke-width="2" stroke-dasharray="6,3" marker-start="url(#arrowLblue)" marker-end="url(#arrowRblue)"/>
+  <!-- Check mark -->
+  <text x="650" y="170" text-anchor="middle" font-size="20" fill="#16a34a" font-weight="bold">&#x2713;</text>
+
+  <!-- Curved measurement (wrong way) -->
+  <path d="M575,140 Q650,118 725,140" fill="none" stroke="#dc2626" stroke-width="1.8" stroke-dasharray="4,3"/>
+  <!-- X mark -->
+  <text x="650" y="130" text-anchor="middle" font-size="16" fill="#dc2626" font-weight="bold">&#x2717;</text>
+
+  <!-- Labels -->
+  <text x="650" y="222" text-anchor="middle" font-size="12" fill="#1e40af">Measure straight across,</text>
+  <text x="650" y="238" text-anchor="middle" font-size="12" fill="#1e40af">not around the curve.</text>
+  <text x="650" y="260" text-anchor="middle" font-size="11" fill="#555">WB = widest point of the</text>
+  <text x="650" y="274" text-anchor="middle" font-size="11" fill="#555">back, measured flat.</text>
+
+  <!-- ============ MEASUREMENT KEY ============ -->
+  <rect x="520" y="300" width="260" height="200" rx="10" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1"/>
+  <text x="650" y="326" text-anchor="middle" font-size="14" font-weight="700" fill="#1a1a1a">Measurement Guide</text>
+
+  <text x="536" y="352" font-size="12" font-weight="600" fill="#1a1a1a">W</text>
+  <text x="560" y="352" font-size="11" fill="#555">Overall width (armrest to armrest)</text>
+
+  <text x="536" y="374" font-size="12" font-weight="600" fill="#1a1a1a">D</text>
+  <text x="560" y="374" font-size="11" fill="#555">Depth (front to back of seat)</text>
+
+  <text x="536" y="396" font-size="12" font-weight="600" fill="#1a1a1a">H</text>
+  <text x="560" y="396" font-size="11" fill="#555">Total height (ground to top of back)</text>
+
+  <text x="536" y="418" font-size="12" font-weight="600" fill="#1a1a1a">FC</text>
+  <text x="560" y="418" font-size="11" fill="#555">Floor to top of cushion/armrest</text>
+
+  <text x="536" y="440" font-size="12" font-weight="600" fill="#2563eb">WB</text>
+  <text x="560" y="440" font-size="11" fill="#555">Width of back only (see above)</text>
+
+  <line x1="536" y1="452" x2="764" y2="452" stroke="#e2e8f0" stroke-width="1"/>
+  <text x="650" y="472" text-anchor="middle" font-size="11" fill="#777">All measurements in inches.</text>
+  <text x="650" y="488" text-anchor="middle" font-size="11" fill="#777">Measure at the widest/tallest points.</text>
+
+  <!-- ============ FOOTER NOTE ============ -->
+  <text x="400" y="610" text-anchor="middle" font-size="11" fill="#999">Castaway Covers — Custom Outdoor Furniture Covers</text>
+</svg>
