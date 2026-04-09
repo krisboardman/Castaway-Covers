@@ -167,7 +167,7 @@
       <div class="card">
         <div class="title">Grommet Placement (for Bungee)</div>
         <div id="grommets"></div>
-        <div class="note">4 grommets total: 2 on left side (front & back), 2 on right side (front & back). Bungee runs lengthwise along each side.</div>
+        <div class="note">4 grommets total: 2 on left side (front & back), 2 on right side (front & back). All grommets sit ⅓ of the side drop from the nearest floor edge — front and back are on the same plane. When installed, the grommet hangs ⅔ down from where the cover folds over the furniture. Bungee runs lengthwise along each side.</div>
       </div>
 
       <div class="card">
@@ -222,7 +222,7 @@
               <li>Space snaps evenly for even support and smooth draping</li>
             </ul>
           </li>
-          <li>Add grommets</li>
+          <li><strong style="color:#b45309;">Add grommets</strong> — 4 total (2 front, 2 back). Each grommet sits <strong>⅓ of the side drop</strong> from the nearest floor edge. See Grommet Placement card and assembly diagram for exact dimensions.</li>
           <li>Prepare bungee loops</li>
           <li>Prepare and install snap straps</li>
           <li>Prepare bungees</li>
@@ -823,7 +823,8 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
   // NOT backPieceLength (which is the bolt cutting dimension = ML+seam)
   const extraBack = backPieceHeight; // physical back piece drop (H-FC)
   const extraFront = frontFlapNeeded ? frontFlapWidth : 0;
-  const totalDiagH = B + extraBack + extraFront + 20;
+  const topLabelSpace = 36;  // extra room above back piece for labels
+  const totalDiagH = B + extraBack + extraFront + 20 + topLabelSpace;
   const totalDiagW = ML + 40;
 
   const scX = (VBW - pad*2) / totalDiagW;
@@ -832,7 +833,7 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
 
   const cx = VBW / 2;
   // Position: back piece at top, main piece below, front flap at bottom
-  const backPieceTopY = pad + 10;
+  const backPieceTopY = pad + 10 + topLabelSpace;
   const mainTopY = backPieceTopY + extraBack * sc;
   const mainBotY = mainTopY + B * sc;
 
@@ -857,8 +858,9 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
     `${cx - bpBotW/2},${bpTopY}`,                // top-left (narrow, at floor)
   ].join(' ');
   add('polygon',{points:bpTrapPts, fill:'#93c5fd55', stroke:'#2563eb', 'stroke-width':1.5});
-  add('text',{x:cx, y:bpTopY + bpPhysH/2 - 8, 'text-anchor':'middle', 'font-size':12, fill:'#1e40af', 'font-weight':'bold'}).textContent='BACK PIECE (trapezoid)';
-  add('text',{x:cx, y:bpTopY + bpPhysH/2 + 8, 'text-anchor':'middle', 'font-size':10, fill:'#1e40af'}).textContent=`Top: ${rIn(backPieceTopWidth)}" / Bottom: ${rIn(backPieceBottomWidth)}" / H: ${rIn(backPieceHeight)}"`;
+  // Back piece label and dimensions — placed ABOVE the diagram to avoid grommet overlap
+  add('text',{x:cx, y:bpTopY - 22, 'text-anchor':'middle', 'font-size':12, fill:'#1e40af', 'font-weight':'bold'}).textContent='BACK PIECE (trapezoid)';
+  add('text',{x:cx, y:bpTopY - 10, 'text-anchor':'middle', 'font-size':10, fill:'#1e40af'}).textContent=`Top: ${rIn(backPieceTopWidth)}" / Bottom: ${rIn(backPieceBottomWidth)}" / H: ${rIn(backPieceHeight)}"`;
   const bpY = bpTopY;  // for compatibility with hem overlap code below
 
   // Hem overlap at back piece / main piece junction (main piece's hem serves as lap seam)
@@ -1210,41 +1212,52 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
 
   // === GROMMET PLACEMENT on flat layout ===
   // 4 grommets total: 2 per side. Bungee runs along each side of the chair.
-  // Front grommets: on main piece, W/2 - 5 from center, 5" from front edge
-  // Back grommets: on back piece, WB/2 - 5 from center, 12" up from floor edge
+  // ALL grommets sit at sideDrop/3 from the nearest floor edge (same plane front & back).
+  // Horizontal: 5" in from the nearest side edge (W/2-5 front, WB/2-5 back).
   {
-    const gromFrontHorizFromCenter = W / 2 - 5;  // 13" from center (front: armrest edge - 5")
-    const gromBackHorizFromCenter = WB / 2 - 5;  // 7.5" from center (back: chair back edge - 5")
-    const gromFrontEdgeInset = 5;  // 5" from front edge
-    const gromBackUpFromFloor = sideDrop / 3;  // 12" up from floor edge on back piece
+    const gromInset = sideDrop / 3;  // ⅓ up from floor = ⅔ down from fold
+    const gromFrontHorizFromCenter = W / 2 - 5;
+    const gromBackHorizFromCenter = WB / 2 - 5;
     const gromR = 5;
-    const gromColor = '#b45309';  // amber/brass color
+    const gromColor = '#b45309';
 
-    // --- FRONT GROMMETS (on main piece side drops, 5" from front edge) ---
+    // --- FRONT GROMMETS (gromInset up from the very bottom of all front material,
+    //     including front flap if present) ---
     const gromFrontLeftX = cx - gromFrontHorizFromCenter * sc;
     const gromFrontRightX = cx + gromFrontHorizFromCenter * sc;
-    const gromFrontY = mainBotY - gromFrontEdgeInset * sc;
+    const gromFrontY = frontBottomY - gromInset * sc;
 
     add('circle',{cx:gromFrontLeftX, cy:gromFrontY, r:gromR, fill:'none', stroke:gromColor, 'stroke-width':2.5});
     add('circle',{cx:gromFrontLeftX, cy:gromFrontY, r:1.5, fill:gromColor});
     add('circle',{cx:gromFrontRightX, cy:gromFrontY, r:gromR, fill:'none', stroke:gromColor, 'stroke-width':2.5});
     add('circle',{cx:gromFrontRightX, cy:gromFrontY, r:1.5, fill:gromColor});
 
-    // --- BACK GROMMETS (on back piece, WB/2 - 5 from center, 12" up from floor) ---
+    // --- BACK GROMMETS (on back piece, gromInset from back floor edge) ---
     const gromBackLeftX = cx - gromBackHorizFromCenter * sc;
     const gromBackRightX = cx + gromBackHorizFromCenter * sc;
-    const gromBackY = bpTopY + gromBackUpFromFloor * sc;
+    const gromBackY = bpTopY + gromInset * sc;
 
     add('circle',{cx:gromBackLeftX, cy:gromBackY, r:gromR, fill:'none', stroke:gromColor, 'stroke-width':2.5});
     add('circle',{cx:gromBackLeftX, cy:gromBackY, r:1.5, fill:gromColor});
     add('circle',{cx:gromBackRightX, cy:gromBackY, r:gromR, fill:'none', stroke:gromColor, 'stroke-width':2.5});
     add('circle',{cx:gromBackRightX, cy:gromBackY, r:1.5, fill:gromColor});
 
-    // --- Bungee lines connecting front (main piece) to back (back piece) ---
+    // --- Bungee lines connecting front to back ---
     add('line',{x1:gromBackLeftX, y1:gromBackY, x2:gromFrontLeftX, y2:gromFrontY,
       stroke:gromColor, 'stroke-width':1, 'stroke-dasharray':'6,4', opacity:0.5});
     add('line',{x1:gromBackRightX, y1:gromBackY, x2:gromFrontRightX, y2:gromFrontY,
       stroke:gromColor, 'stroke-width':1, 'stroke-dasharray':'6,4', opacity:0.5});
+
+    // --- DIMENSION CALLOUTS for grommets ---
+    // Front-left: perpendicular from very bottom of front material (incl. flap) → grommet
+    const flGx = gromFrontLeftX, flGy = gromFrontY;
+    add('line',{x1:flGx - 14, y1:frontBottomY, x2:flGx - 14, y2:flGy, stroke:gromColor, 'stroke-width':1, 'marker-start':`url(#${mkrId})`, 'marker-end':`url(#${mkrId})`});
+    add('text',{x:flGx - 18, y:(frontBottomY + flGy)/2 + 3, 'text-anchor':'end', 'font-size':8, fill:gromColor, 'font-weight':'bold'}).textContent=`${rIn(gromInset)}"`;
+
+    // Back-left: perpendicular (from back floor edge → grommet)
+    const blGx = gromBackLeftX, blGy = gromBackY;
+    add('line',{x1:blGx - 14, y1:bpTopY, x2:blGx - 14, y2:blGy, stroke:gromColor, 'stroke-width':1, 'marker-start':`url(#${mkrId})`, 'marker-end':`url(#${mkrId})`});
+    add('text',{x:blGx - 18, y:(bpTopY + blGy)/2 + 3, 'text-anchor':'end', 'font-size':8, fill:gromColor, 'font-weight':'bold'}).textContent=`${rIn(gromInset)}"`;
 
     // Labels
     add('text',{x:gromBackLeftX, y:gromBackY - 9, 'text-anchor':'middle', 'font-size':7, fill:gromColor, 'font-weight':'bold'}).textContent='G';
@@ -1252,10 +1265,48 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
     add('text',{x:gromBackRightX, y:gromBackY - 9, 'text-anchor':'middle', 'font-size':7, fill:gromColor, 'font-weight':'bold'}).textContent='G';
     add('text',{x:gromFrontRightX, y:gromFrontY - 9, 'text-anchor':'middle', 'font-size':7, fill:gromColor, 'font-weight':'bold'}).textContent='G';
 
+    // --- HORIZONTAL DIMENSION CALLOUTS (from center line to grommet) ---
+    // Front grommets: horizontal arrow from center to left grommet, with dimension
+    const fHorizArrowY = gromFrontY + 14;
+    add('line',{x1:cx, y1:fHorizArrowY, x2:gromFrontLeftX, y2:fHorizArrowY,
+      stroke:gromColor, 'stroke-width':1, 'marker-start':`url(#${mkrId})`, 'marker-end':`url(#${mkrId})`});
+    add('text',{x:(cx + gromFrontLeftX)/2, y:fHorizArrowY + 11, 'text-anchor':'middle',
+      'font-size':8, fill:gromColor, 'font-weight':'bold'}).textContent=`${rIn(gromFrontHorizFromCenter)}" from center`;
+    // Dotted leader from grommet down to the arrow
+    add('line',{x1:gromFrontLeftX, y1:gromFrontY + gromR, x2:gromFrontLeftX, y2:fHorizArrowY,
+      stroke:gromColor, 'stroke-width':0.5, 'stroke-dasharray':'2,2'});
+    add('line',{x1:cx, y1:fHorizArrowY - 4, x2:cx, y2:fHorizArrowY + 4,
+      stroke:gromColor, 'stroke-width':0.5}); // center tick
+
+    // Back grommets: horizontal arrow from center to left grommet
+    const bHorizArrowY = gromBackY + 14;
+    add('line',{x1:cx, y1:bHorizArrowY, x2:gromBackLeftX, y2:bHorizArrowY,
+      stroke:gromColor, 'stroke-width':1, 'marker-start':`url(#${mkrId})`, 'marker-end':`url(#${mkrId})`});
+    add('text',{x:(cx + gromBackLeftX)/2, y:bHorizArrowY + 11, 'text-anchor':'middle',
+      'font-size':8, fill:gromColor, 'font-weight':'bold'}).textContent=`${rIn(gromBackHorizFromCenter)}" from center`;
+    // Dotted leader from grommet down to the arrow
+    add('line',{x1:gromBackLeftX, y1:gromBackY + gromR, x2:gromBackLeftX, y2:bHorizArrowY,
+      stroke:gromColor, 'stroke-width':0.5, 'stroke-dasharray':'2,2'});
+    add('line',{x1:cx, y1:bHorizArrowY - 4, x2:cx, y2:bHorizArrowY + 4,
+      stroke:gromColor, 'stroke-width':0.5}); // center tick
+
+    // --- GROMMET INFO CARD (bottom-right of diagram) ---
+    const gcW = 220, gcH = 80;
+    const gcX = VBW - pad - gcW - 10;
+    const gcY = VBH - 30 - gcH - 10;
+    add('rect',{x:gcX, y:gcY, width:gcW, height:gcH, rx:6, fill:'#fffbeb', stroke:gromColor, 'stroke-width':1.5});
+    add('text',{x:gcX + 10, y:gcY + 14, 'font-size':10, fill:gromColor, 'font-weight':'bold'}).textContent='GROMMETS (4 total — brass)';
+    add('text',{x:gcX + 10, y:gcY + 28, 'font-size':9, fill:'#334155'}).textContent=`${rIn(gromInset)}" up from bottom of material (drop ÷ 3)`;
+    add('text',{x:gcX + 10, y:gcY + 40, 'font-size':9, fill:'#334155'}).textContent=`Front: ±${rIn(gromFrontHorizFromCenter)}" from center (5" from arm)`;
+    add('text',{x:gcX + 10, y:gcY + 52, 'font-size':9, fill:'#334155'}).textContent=`Back: ±${rIn(gromBackHorizFromCenter)}" from center (5" from back)`;
+    add('text',{x:gcX + 10, y:gcY + 64, 'font-size':9, fill:'#334155'}).textContent=`When installed: hangs ⅔ down from fold`;
+    add('circle',{cx:gcX + gcW - 16, cy:gcY + 14, r:5, fill:'none', stroke:gromColor, 'stroke-width':2});
+    add('circle',{cx:gcX + gcW - 16, cy:gcY + 14, r:1.5, fill:gromColor});
+
     // === BUNGEE TAB HOLDERS (back panel) ===
     // Two small fabric tabs sewn onto the back piece, directly above the back grommets,
     // 2" below the backrest crease (mainTopY). Bungees hook into these tabs.
-    const bungeeTabBelowBackrest = 2;  // inches below backrest crease
+    const bungeeTabBelowBackrest = 2;
     const bungeeTabY = mainTopY - bungeeTabBelowBackrest * sc;
     const bungeeTabLeftX  = cx - gromBackHorizFromCenter * sc;
     const bungeeTabRightX = cx + gromBackHorizFromCenter * sc;
@@ -2018,22 +2069,23 @@ function compute(){
     });
 
     // === GROMMET PLACEMENT ===
-    // Front grommets: on the main piece, W/2 - 5 from center, 5" from front edge
-    const gromFrontHorizFromCenter = W / 2 - 5;
-    const gromFrontEdgeInset = 5;  // 5" from front edge of main piece
-    // Back grommets: on the back piece, WB/2 - 5 from center, sideDrop/3 up from floor edge
-    const gromBackHorizFromCenter = WB / 2 - 5;
-    const gromBackUpFromFloor = Math.round(sideDrop / 3);  // 12" with defaults
-    const bungeeLength = D + gromFrontEdgeInset * 2 + 10;
+    // All grommets sit at sideDrop/3 from the floor edge (⅓ up from floor = ⅔ down
+    // from the fold when installed), so front and back grommets are on the same plane.
+    const gromInsetFromFloor = sideDrop / 3;
+    const gromFrontHorizFromCenter = W / 2 - 5;  // 5" in from each armrest edge
+    const gromBackHorizFromCenter = WB / 2 - 5;  // 5" in from each chair-back edge
+    const gromFrontEdgeInset = gromInsetFromFloor;  // same plane as back grommets
+    const gromBackUpFromFloor = gromInsetFromFloor;
+    const bungeeLength = D + gromInsetFromFloor * 2 + 10;
 
     const grommetsSection = document.getElementById('grommets');
     grommetsSection.innerHTML = `
       <div class="row" style="display:block; padding:8px 0; background:#eff6ff;">
         <div style="display:flex;justify-content:space-between;align-items:center;">
-          <span><strong>Front grommets (on main piece)</strong></span><strong style="color:#2563eb;">2 grommets</strong>
+          <span><strong>Front grommets</strong></span><strong style="color:#2563eb;">2 grommets</strong>
         </div>
         <div style="font-size:11px;color:var(--sub);margin-top:4px;">
-          Placed on the main piece near the front edge, one on each side.
+          Placed ${fmtExact(gromFrontEdgeInset)}" up from the very bottom of the front material${frontFlapNeeded ? ' (measured from the bottom of the front flap, NOT the main piece seam)' : ''}, one on each side.
         </div>
       </div>
       <div class="row" style="display:block; padding:8px 0; border-top:1px dashed var(--muted);">
@@ -2047,7 +2099,11 @@ function compute(){
       </div>
       <div class="row" style="display:block; padding:8px 0; border-top:1px dashed var(--muted);">
         <div style="display:flex;justify-content:space-between;align-items:center;">
-          <span>Distance from front edge</span><strong>${gromFrontEdgeInset} in</strong>
+          <span>Distance up from bottom of front material</span><strong>${fmtExact(gromFrontEdgeInset)} in</strong>
+        </div>
+        <div style="font-size:11px;color:var(--sub);margin-top:4px;">
+          ⅓ of side drop: (H − FC) ÷ 3 = (${H} − ${FC}) ÷ 3 = ${fmtExact(sideDrop / 3)}"
+          &nbsp;— same plane as back grommets (hangs ⅔ down from fold)${frontFlapNeeded ? `<br>Note: this places the grommet ${fmtExact(gromFrontEdgeInset - frontFlapWidth)}" ${gromFrontEdgeInset > frontFlapWidth ? 'above' : 'into'} the front flap seam` : ''}
         </div>
       </div>
 
@@ -2081,7 +2137,7 @@ function compute(){
         <div style="display:flex;justify-content:space-between;align-items:center;">
           <span>Bungee length (each side)</span><strong>${fmtExact(bungeeLength)} in</strong>
         </div>
-        <div style="font-size:11px;color:var(--sub);margin-top:4px;">D + insets + 10" surplus = ${D} + ${2*gromFrontEdgeInset} + 10 = ${fmtExact(bungeeLength)} in</div>
+        <div style="font-size:11px;color:var(--sub);margin-top:4px;">D + 2 × grommet inset + 10" surplus = ${D} + ${fmtExact(2*gromInsetFromFloor)} + 10 = ${fmtExact(bungeeLength)} in</div>
       </div>
     `;
 
@@ -2557,7 +2613,7 @@ function wire(){
 
   document.getElementById('recalc').addEventListener('click', compute);
   document.getElementById('resetBtn').addEventListener('click', ()=>{
-    const defaults = {B:54, W:36, WB:25, H:39, D:30, F2A:26, F2BS:18, BR:4, FC:6, hem:1, seam:1.5, sideEase:0};
+    const defaults = {B:54, W:36, WB:25, H:39, D:30, F2A:26, F2BS:18, BR:4, FC:3, hem:1, seam:1.5, sideEase:0};
     Object.entries(defaults).forEach(([id,val])=>{ const el=document.getElementById(id); if(el) el.value=val; });
     document.getElementById('roundMode').value = 'whole';
     compute();

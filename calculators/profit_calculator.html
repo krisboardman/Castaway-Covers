@@ -19,12 +19,15 @@
   .title { font-weight:600; margin-bottom:8px; }
   .inputs { display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:10px; }
   .inputs.single { grid-template-columns: 1fr; }
+  .inputs.triple { grid-template-columns: repeat(3, minmax(0,1fr)); }
   label.lbl { display:grid; gap:6px; font-size:12px; color:var(--sub); }
+  label.lbl.full { grid-column: 1 / -1; }
   input[type="number"], select { border:1px solid var(--muted); border-radius:10px; padding:10px 12px; font-size:14px; width:100%; box-sizing:border-box; }
   select { background: #fff; cursor: pointer; }
   .row { display:flex; justify-content:space-between; align-items:center; font-size:14px; padding:8px 0; }
   .row + .row { border-top:1px dashed var(--muted); }
   .row.total { font-weight: 700; font-size: 16px; border-top: 2px solid var(--text); padding-top: 12px; }
+  .row.subtotal { font-weight: 600; background:#f8fafc; border-radius:6px; padding:6px 4px; margin:2px -4px; }
   .note { font-size:12px; color:var(--sub); margin-top:8px; }
   .btn { padding:8px 14px; border-radius:10px; border:1px solid var(--muted); background:#fff; cursor:pointer; font-size:13px; }
   .btn:hover { background: #f1f5f9; }
@@ -39,11 +42,12 @@
 
   .bar-container { height:24px; background:#f1f5f9; border-radius:12px; overflow:hidden; margin:8px 0; position:relative; }
   .bar-segment { height:100%; display:inline-block; vertical-align:top; }
-  .bar-label { position:absolute; top:50%; transform:translateY(-50%); font-size:10px; font-weight:600; color:#fff; padding:0 6px; }
 
   .scenario-row { display:grid; grid-template-columns: 1fr 1fr 1fr 1fr 1fr; gap:8px; font-size:13px; padding:6px 0; align-items:center; }
   .scenario-row + .scenario-row { border-top:1px dashed var(--muted); }
   .scenario-header { font-weight:600; font-size:12px; color:var(--sub); text-transform:uppercase; letter-spacing:0.5px; }
+
+  .section-label { font-size:11px; font-weight:600; color:var(--sub); text-transform:uppercase; letter-spacing:0.5px; margin-top:10px; margin-bottom:4px; }
 
   @media (max-width: 768px) {
     .grid { grid-template-columns: 1fr; }
@@ -61,7 +65,7 @@
 <body>
 <div class="wrap">
   <h1>Castaway Covers — Profit Calculator</h1>
-  <div class="subtitle">Calculate per-unit profit, margins, and suggested pricing for chair covers</div>
+  <div class="subtitle">Per-cover profit based on manufacturer pricing, material cost, and your labor</div>
 
   <div class="controls">
     <span class="pill" id="statusPill">Ready</span>
@@ -75,50 +79,111 @@
   <div class="grid">
     <!-- LEFT: Inputs -->
     <div>
-      <div class="card" id="inputsCard">
-        <div class="title">Material Costs (per cover)</div>
-        <div class="inputs">
-          <label class="lbl">Vinyl fabric (yards needed)
-            <input id="fabricYards" type="number" value="3" step="0.25" min="0" />
-          </label>
-          <label class="lbl">Vinyl fabric price (per yard) $
-            <input id="fabricPrice" type="number" value="12.00" step="0.25" min="0" />
-          </label>
-          <label class="lbl">Gusset fabric (yards needed)
-            <input id="gussetYards" type="number" value="0" step="0.25" min="0" />
-          </label>
-          <label class="lbl">Gusset fabric price (per yard) $
-            <input id="gussetPrice" type="number" value="6.00" step="0.25" min="0" />
-          </label>
-          <label class="lbl">Thread / consumables $
-            <input id="threadCost" type="number" value="1.50" step="0.25" min="0" />
-          </label>
-          <label class="lbl">Grommets / hardware $
-            <input id="hardwareCost" type="number" value="3.00" step="0.25" min="0" />
-          </label>
-          <label class="lbl">Bungee / elastic $
-            <input id="bungeeCost" type="number" value="2.00" step="0.25" min="0" />
-          </label>
-          <label class="lbl">Snap straps / closures $
-            <input id="snapCost" type="number" value="2.50" step="0.25" min="0" />
+      <div class="card" id="typeCard">
+        <div class="title">Cover Type</div>
+        <div class="inputs single">
+          <label class="lbl">Furniture type
+            <select id="furnitureType">
+              <option value="chair">Chair</option>
+              <option value="sofa1">Sofa — Center Seam</option>
+              <option value="sofa2">Sofa — Center Snaps</option>
+              <option value="chaise">Chaise Lounge</option>
+              <option value="table">Table</option>
+              <option value="ottoman">Ottoman</option>
+            </select>
           </label>
         </div>
       </div>
 
-      <div class="card" style="margin-top:16px;" id="laborCard">
-        <div class="title">Labor</div>
+      <div class="card" style="margin-top:16px;" id="materialCard">
+        <div class="title">Material</div>
         <div class="inputs">
-          <label class="lbl">Time per cover (hours)
-            <input id="laborHours" type="number" value="2.0" step="0.25" min="0" />
+          <label class="lbl">Vinyl yards needed
+            <input id="fabricYards" type="number" value="5" step="0.25" min="0" />
           </label>
-          <label class="lbl">Hourly rate $
-            <input id="laborRate" type="number" value="20.00" step="1" min="0" />
+          <label class="lbl">Vinyl cost per yard $
+            <input id="fabricPrice" type="number" value="15.00" step="0.25" min="0" />
+          </label>
+          <label class="lbl">Bungee cords (qty)
+            <input id="bungeeQty" type="number" value="2" step="1" min="0" />
+          </label>
+          <label class="lbl">Bungee cost each $
+            <input id="bungeeCost" type="number" value="3.00" step="0.25" min="0" />
           </label>
         </div>
+      </div>
+
+      <div class="card" style="margin-top:16px;" id="mfgCard">
+        <div class="title">Manufacturer Costs (auto-filled by type)</div>
+        <div class="section-label">Design & Cutting</div>
+        <div class="inputs">
+          <label class="lbl">Dimension update (Rhino) $
+            <input id="mfgDimUpdate" type="number" value="5" step="1" min="0" />
+          </label>
+          <label class="lbl">Machine cutting $
+            <input id="mfgCutting" type="number" value="8" step="1" min="0" />
+          </label>
+        </div>
+        <div class="section-label">Sewing</div>
+        <div class="inputs">
+          <label class="lbl">Base sewing $
+            <input id="mfgBaseSewing" type="number" value="15" step="1" min="0" />
+          </label>
+          <label class="lbl">Additional seams (qty)
+            <input id="addlSeams" type="number" value="0" step="1" min="0" />
+          </label>
+          <label class="lbl">Cost per additional seam $
+            <input id="mfgSeamCost" type="number" value="5" step="1" min="0" />
+          </label>
+        </div>
+        <div class="section-label">Hardware (parts + install)</div>
+        <div class="inputs">
+          <label class="lbl">Grommets (parts) $
+            <input id="mfgGrommets" type="number" value="2" step="0.50" min="0" />
+          </label>
+          <label class="lbl">Snaps (parts) $
+            <input id="mfgSnaps" type="number" value="2" step="0.50" min="0" />
+          </label>
+          <label class="lbl">Center snaps (parts) $
+            <input id="mfgCenterSnaps" type="number" value="0" step="1" min="0" />
+          </label>
+          <label class="lbl">Hardware install labor $
+            <input id="mfgHWLabor" type="number" value="5" step="1" min="0" />
+          </label>
+        </div>
+        <div class="section-label">Add-ons</div>
+        <div class="inputs">
+          <label class="lbl">Handles (qty)
+            <input id="handleQty" type="number" value="0" step="1" min="0" />
+          </label>
+          <label class="lbl">Cost per handle $
+            <input id="handleCost" type="number" value="3" step="0.50" min="0" />
+          </label>
+          <label class="lbl">Snap straps (qty)
+            <input id="strapQty" type="number" value="0" step="1" min="0" />
+          </label>
+          <label class="lbl">Cost per snap strap $
+            <input id="strapCost" type="number" value="4" step="0.50" min="0" />
+          </label>
+        </div>
+        <div class="note">These values auto-fill when you change furniture type. Adjust as needed for specific orders.</div>
+      </div>
+
+      <div class="card" style="margin-top:16px;" id="myLaborCard">
+        <div class="title">Your Labor (Castaway)</div>
+        <div class="inputs">
+          <label class="lbl">Wavy edge cutting $
+            <input id="wavyCutting" type="number" value="20.00" step="1" min="0" />
+          </label>
+          <label class="lbl">Bungee install $
+            <input id="bungeeLabor" type="number" value="0" step="1" min="0" />
+          </label>
+        </div>
+        <div class="note">Your time: cutting wavy edges on covers, installing bungees, QC, etc.</div>
       </div>
 
       <div class="card" style="margin-top:16px;" id="overheadCard">
-        <div class="title">Overhead &amp; Fees (per cover)</div>
+        <div class="title">Overhead & Fees (per cover)</div>
         <div class="inputs">
           <label class="lbl">Shipping / packaging $
             <input id="shippingCost" type="number" value="8.00" step="0.50" min="0" />
@@ -139,13 +204,13 @@
         <div class="title">Pricing</div>
         <div class="inputs">
           <label class="lbl">Your selling price $
-            <input id="sellingPrice" type="number" value="125.00" step="1" min="0" />
+            <input id="sellingPrice" type="number" value="225.00" step="1" min="0" />
           </label>
           <label class="lbl">Target margin %
             <input id="targetMargin" type="number" value="50" step="5" min="0" max="95" />
           </label>
         </div>
-        <div class="note">Target margin is used to calculate a suggested selling price based on your costs.</div>
+        <div class="note">Retail is yards x $45. Adjust selling price to match or set your own.</div>
       </div>
     </div>
 
@@ -208,38 +273,121 @@
 </div>
 
 <script>
+// Manufacturer pricing presets (from Manufacturer_Pricing.xlsx suggested column)
+const PRESETS = {
+  chair: {
+    label: 'Chair',
+    mfgDimUpdate: 5, mfgCutting: 8,
+    mfgBaseSewing: 15, mfgSeamCost: 5, seamLabel: 'front flap',
+    mfgGrommets: 2, mfgSnaps: 2, mfgCenterSnaps: 0, mfgHWLabor: 5,
+    bungeeQty: 2
+  },
+  sofa1: {
+    label: 'Sofa — Center Seam',
+    mfgDimUpdate: 8, mfgCutting: 12,
+    mfgBaseSewing: 25, mfgSeamCost: 5, seamLabel: 'side extension',
+    mfgGrommets: 2, mfgSnaps: 2, mfgCenterSnaps: 0, mfgHWLabor: 6,
+    bungeeQty: 2
+  },
+  sofa2: {
+    label: 'Sofa — Center Snaps',
+    mfgDimUpdate: 8, mfgCutting: 12,
+    mfgBaseSewing: 25, mfgSeamCost: 5, seamLabel: 'side extension',
+    mfgGrommets: 2, mfgSnaps: 2, mfgCenterSnaps: 8, mfgHWLabor: 10,
+    bungeeQty: 2
+  },
+  chaise: {
+    label: 'Chaise Lounge',
+    mfgDimUpdate: 5, mfgCutting: 6,
+    mfgBaseSewing: 0, mfgSeamCost: 0, seamLabel: 'n/a',
+    mfgGrommets: 2, mfgSnaps: 3, mfgCenterSnaps: 0, mfgHWLabor: 5,
+    bungeeQty: 2
+  },
+  table: {
+    label: 'Table',
+    mfgDimUpdate: 5, mfgCutting: 6,
+    mfgBaseSewing: 5, mfgSeamCost: 5, seamLabel: 'center seam',
+    mfgGrommets: 2, mfgSnaps: 3, mfgCenterSnaps: 0, mfgHWLabor: 5,
+    bungeeQty: 2
+  },
+  ottoman: {
+    label: 'Ottoman',
+    mfgDimUpdate: 5, mfgCutting: 6,
+    mfgBaseSewing: 5, mfgSeamCost: 5, seamLabel: 'side strip',
+    mfgGrommets: 2, mfgSnaps: 3, mfgCenterSnaps: 0, mfgHWLabor: 5,
+    bungeeQty: 2
+  }
+};
+
 function parseNum(id) {
   const el = document.getElementById(id);
   const v = Number(el.value);
   return isFinite(v) ? v : 0;
 }
 
-function fmt(val) {
-  return '$' + val.toFixed(2);
-}
+function fmt(val) { return '$' + val.toFixed(2); }
+function fmtPct(val) { return val.toFixed(1) + '%'; }
 
-function fmtPct(val) {
-  return val.toFixed(1) + '%';
+function applyPreset() {
+  const type = document.getElementById('furnitureType').value;
+  const p = PRESETS[type];
+  if (!p) return;
+
+  document.getElementById('mfgDimUpdate').value = p.mfgDimUpdate;
+  document.getElementById('mfgCutting').value = p.mfgCutting;
+  document.getElementById('mfgBaseSewing').value = p.mfgBaseSewing;
+  document.getElementById('mfgSeamCost').value = p.mfgSeamCost;
+  document.getElementById('mfgGrommets').value = p.mfgGrommets;
+  document.getElementById('mfgSnaps').value = p.mfgSnaps;
+  document.getElementById('mfgCenterSnaps').value = p.mfgCenterSnaps;
+  document.getElementById('mfgHWLabor').value = p.mfgHWLabor;
+  document.getElementById('bungeeQty').value = p.bungeeQty;
+
+  // Reset add-on qtys and additional seams
+  document.getElementById('addlSeams').value = 0;
+
+  compute();
 }
 
 function compute() {
-  // Material costs
+  const type = document.getElementById('furnitureType').value;
+  const preset = PRESETS[type];
+
+  // Material
   const fabricYards = parseNum('fabricYards');
   const fabricPrice = parseNum('fabricPrice');
   const fabricTotal = fabricYards * fabricPrice;
-  const gussetYards = parseNum('gussetYards');
-  const gussetPrice = parseNum('gussetPrice');
-  const gussetTotal = gussetYards * gussetPrice;
-  const threadCost = parseNum('threadCost');
-  const hardwareCost = parseNum('hardwareCost');
+  const bungeeQty = parseNum('bungeeQty');
   const bungeeCost = parseNum('bungeeCost');
-  const snapCost = parseNum('snapCost');
-  const totalMaterials = fabricTotal + gussetTotal + threadCost + hardwareCost + bungeeCost + snapCost;
+  const bungeeTotal = bungeeQty * bungeeCost;
+  const totalMaterial = fabricTotal + bungeeTotal;
 
-  // Labor
-  const laborHours = parseNum('laborHours');
-  const laborRate = parseNum('laborRate');
-  const totalLabor = laborHours * laborRate;
+  // Manufacturer costs
+  const mfgDimUpdate = parseNum('mfgDimUpdate');
+  const mfgCutting = parseNum('mfgCutting');
+  const mfgBaseSewing = parseNum('mfgBaseSewing');
+  const addlSeams = parseNum('addlSeams');
+  const mfgSeamCost = parseNum('mfgSeamCost');
+  const addlSeamTotal = addlSeams * mfgSeamCost;
+  const mfgGrommets = parseNum('mfgGrommets');
+  const mfgSnaps = parseNum('mfgSnaps');
+  const mfgCenterSnaps = parseNum('mfgCenterSnaps');
+  const mfgHWLabor = parseNum('mfgHWLabor');
+  const handleQty = parseNum('handleQty');
+  const handleCost = parseNum('handleCost');
+  const handleTotal = handleQty * handleCost;
+  const strapQty = parseNum('strapQty');
+  const strapCost = parseNum('strapCost');
+  const strapTotal = strapQty * strapCost;
+
+  const totalMfg = mfgDimUpdate + mfgCutting + mfgBaseSewing + addlSeamTotal
+    + mfgGrommets + mfgSnaps + mfgCenterSnaps + mfgHWLabor
+    + handleTotal + strapTotal;
+
+  // Your labor
+  const wavyCutting = parseNum('wavyCutting');
+  const bungeeLabor = parseNum('bungeeLabor');
+  const totalMyLabor = wavyCutting + bungeeLabor;
 
   // Overhead
   const shippingCost = parseNum('shippingCost');
@@ -249,46 +397,74 @@ function compute() {
   const totalOverhead = shippingCost + platformFee + marketingCost + otherOverhead;
 
   // Totals
-  const totalCost = totalMaterials + totalLabor + totalOverhead;
+  const totalCost = totalMaterial + totalMfg + totalMyLabor + totalOverhead;
   const sellingPrice = parseNum('sellingPrice');
   const targetMargin = parseNum('targetMargin');
   const profit = sellingPrice - totalCost;
   const margin = sellingPrice > 0 ? (profit / sellingPrice) * 100 : 0;
   const markup = totalCost > 0 ? (profit / totalCost) * 100 : 0;
-
-  // Suggested price based on target margin
   const suggestedPrice = targetMargin < 100 ? totalCost / (1 - targetMargin / 100) : totalCost;
-  // Break-even price
   const breakEvenPrice = totalCost;
 
   // Cost Breakdown
-  const breakdown = document.getElementById('costBreakdown');
-  const costRows = [
-    ['Vinyl fabric (' + fabricYards + ' yd × ' + fmt(fabricPrice) + '/yd)', fmt(fabricTotal)],
-    ['Gusset fabric (' + gussetYards + ' yd × ' + fmt(gussetPrice) + '/yd)', fmt(gussetTotal)],
-    ['Thread / consumables', fmt(threadCost)],
-    ['Grommets / hardware', fmt(hardwareCost)],
-    ['Bungee / elastic', fmt(bungeeCost)],
-    ['Snap straps / closures', fmt(snapCost)],
-    ['Materials subtotal', fmt(totalMaterials), true],
-    ['Labor (' + laborHours + ' hrs × ' + fmt(laborRate) + '/hr)', fmt(totalLabor)],
-    ['Shipping / packaging', fmt(shippingCost)],
-    ['Platform / listing fee', fmt(platformFee)],
-    ['Marketing / ads', fmt(marketingCost)],
-    ['Other overhead', fmt(otherOverhead)],
-    ['Overhead subtotal', fmt(totalOverhead), true],
-  ];
+  const seamLabel = preset ? preset.seamLabel : 'additional seam';
+  const rows = [];
 
-  breakdown.innerHTML = costRows.map((r, i) => {
-    const isSub = r[2];
-    const style = isSub ? 'font-weight:600; background:#f8fafc; border-radius:6px; padding:6px 4px; margin:2px -4px;' : '';
-    return `<div class="row" style="${style}"><span>${r[0]}</span><span>${r[1]}</span></div>`;
+  // Material section
+  rows.push(['— MATERIAL —', '', 'header']);
+  rows.push([`Vinyl fabric (${fabricYards} yd x ${fmt(fabricPrice)}/yd)`, fmt(fabricTotal)]);
+  rows.push([`Bungee cords (${bungeeQty} x ${fmt(bungeeCost)})`, fmt(bungeeTotal)]);
+  rows.push(['Material subtotal', fmt(totalMaterial), 'subtotal']);
+
+  // Manufacturer section
+  rows.push(['— MANUFACTURER —', '', 'header']);
+  rows.push(['Dimension update (Rhino)', fmt(mfgDimUpdate)]);
+  rows.push(['Machine cutting', fmt(mfgCutting)]);
+  if (mfgBaseSewing > 0) {
+    rows.push(['Base sewing', fmt(mfgBaseSewing)]);
+  } else {
+    rows.push(['Sewing (none — single piece)', fmt(0)]);
+  }
+  if (addlSeams > 0) {
+    rows.push([`Additional seams: ${addlSeams} ${seamLabel}(s) x ${fmt(mfgSeamCost)}`, fmt(addlSeamTotal)]);
+  }
+  rows.push(['Grommets (parts)', fmt(mfgGrommets)]);
+  rows.push(['Snaps (parts)', fmt(mfgSnaps)]);
+  if (mfgCenterSnaps > 0) {
+    rows.push(['Center snaps (parts)', fmt(mfgCenterSnaps)]);
+  }
+  rows.push(['Hardware install labor', fmt(mfgHWLabor)]);
+  if (handleQty > 0) rows.push([`Handles (${handleQty} x ${fmt(handleCost)})`, fmt(handleTotal)]);
+  if (strapQty > 0) rows.push([`Snap straps (${strapQty} x ${fmt(strapCost)})`, fmt(strapTotal)]);
+  rows.push(['Manufacturer subtotal', fmt(totalMfg), 'subtotal']);
+
+  // Your labor section
+  rows.push(['— YOUR LABOR —', '', 'header']);
+  rows.push(['Wavy edge cutting', fmt(wavyCutting)]);
+  if (bungeeLabor > 0) rows.push(['Bungee install', fmt(bungeeLabor)]);
+  rows.push(['Your labor subtotal', fmt(totalMyLabor), 'subtotal']);
+
+  // Overhead section
+  rows.push(['— OVERHEAD —', '', 'header']);
+  rows.push(['Shipping / packaging', fmt(shippingCost)]);
+  rows.push(['Platform / listing fee', fmt(platformFee)]);
+  rows.push(['Marketing / ads', fmt(marketingCost)]);
+  if (otherOverhead > 0) rows.push(['Other overhead', fmt(otherOverhead)]);
+  rows.push(['Overhead subtotal', fmt(totalOverhead), 'subtotal']);
+
+  const breakdown = document.getElementById('costBreakdown');
+  breakdown.innerHTML = rows.map(r => {
+    if (r[2] === 'header') {
+      return `<div style="font-size:11px;font-weight:600;color:var(--sub);text-transform:uppercase;letter-spacing:0.5px;margin-top:12px;padding-bottom:4px;border-bottom:1px solid var(--muted);">${r[0]}</div>`;
+    }
+    const cls = r[2] === 'subtotal' ? ' subtotal' : '';
+    return `<div class="row${cls}"><span>${r[0]}</span><span>${r[1]}</span></div>`;
   }).join('') + `<div class="row total"><span>Total Cost Per Cover</span><span>${fmt(totalCost)}</span></div>`;
 
   // Cost bar
-  const barColors = ['#6366f1', '#22c55e', '#f59e0b'];
-  const barLabels = ['Materials', 'Labor', 'Overhead'];
-  const barValues = [totalMaterials, totalLabor, totalOverhead];
+  const barColors = ['#6366f1', '#f97316', '#3b82f6', '#f59e0b'];
+  const barLabels = ['Material', 'Manufacturer', 'Your Labor', 'Overhead'];
+  const barValues = [totalMaterial, totalMfg, totalMyLabor, totalOverhead];
   const costBar = document.getElementById('costBar');
   const legend = document.getElementById('costBarLegend');
 
@@ -325,7 +501,7 @@ function compute() {
     <div class="row"><span>Break-even price (cost only)</span><strong>${fmt(breakEvenPrice)}</strong></div>
     <div class="row"><span>Suggested price for ${targetMargin}% margin</span><strong class="green">${fmt(suggestedPrice)}</strong></div>
     <div class="row"><span>Profit at suggested price</span><strong>${fmt(suggestedPrice - totalCost)}</strong></div>
-    <div class="note">To achieve a ${targetMargin}% profit margin, price each cover at <strong>${fmt(suggestedPrice)}</strong>. Your current price of ${fmt(sellingPrice)} gives you a ${fmtPct(margin)} margin.</div>
+    <div class="note">Retail reference: ${fabricYards} yards x $45/yd = <strong>${fmt(fabricYards * 45)}</strong>. Your current price of ${fmt(sellingPrice)} gives you a ${fmtPct(margin)} margin.</div>
   `;
 
   // Metric cards
@@ -363,34 +539,34 @@ function compute() {
   const pill = document.getElementById('statusPill');
   if (profit > 0 && margin >= targetMargin) {
     pill.textContent = 'Profitable';
-    pill.style.background = '#dcfce7';
-    pill.style.borderColor = '#86efac';
-    pill.style.color = '#166534';
+    pill.style.background = '#dcfce7'; pill.style.borderColor = '#86efac'; pill.style.color = '#166534';
   } else if (profit > 0) {
     pill.textContent = 'Profitable (below target)';
-    pill.style.background = '#fef3c7';
-    pill.style.borderColor = '#fcd34d';
-    pill.style.color = '#92400e';
+    pill.style.background = '#fef3c7'; pill.style.borderColor = '#fcd34d'; pill.style.color = '#92400e';
   } else {
     pill.textContent = 'Not profitable';
-    pill.style.background = '#fee2e2';
-    pill.style.borderColor = '#fca5a5';
-    pill.style.color = '#991b1b';
+    pill.style.background = '#fee2e2'; pill.style.borderColor = '#fca5a5'; pill.style.color = '#991b1b';
   }
 
   saveInputs();
 }
 
 function saveInputs() {
-  const fields = ['fabricYards','fabricPrice','gussetYards','gussetPrice','threadCost','hardwareCost','bungeeCost','snapCost','laborHours','laborRate','shippingCost','platformFee','marketingCost','otherOverhead','sellingPrice','targetMargin'];
+  const fields = ['furnitureType','fabricYards','fabricPrice','bungeeQty','bungeeCost',
+    'mfgDimUpdate','mfgCutting','mfgBaseSewing','addlSeams','mfgSeamCost',
+    'mfgGrommets','mfgSnaps','mfgCenterSnaps','mfgHWLabor',
+    'handleQty','handleCost','strapQty','strapCost',
+    'wavyCutting','bungeeLabor',
+    'shippingCost','platformFee','marketingCost','otherOverhead',
+    'sellingPrice','targetMargin'];
   const values = {};
   fields.forEach(f => { const el = document.getElementById(f); if (el) values[f] = el.value; });
-  localStorage.setItem('castawayProfitCalc', JSON.stringify(values));
+  localStorage.setItem('castawayProfitCalcV2', JSON.stringify(values));
 }
 
 function loadSavedInputs() {
   try {
-    const saved = localStorage.getItem('castawayProfitCalc');
+    const saved = localStorage.getItem('castawayProfitCalcV2');
     if (saved) {
       const values = JSON.parse(saved);
       Object.entries(values).forEach(([field, value]) => {
@@ -405,23 +581,40 @@ function loadSavedInputs() {
 
 function exportAsText() {
   const date = new Date().toLocaleDateString();
-  let text = 'CASTAWAY COVERS — PROFIT CALCULATOR\n';
-  text += 'Generated: ' + date + '\n\n';
+  const type = document.getElementById('furnitureType').value;
+  const preset = PRESETS[type];
+  const fabricYards = parseNum('fabricYards');
+  const fabricPrice = parseNum('fabricPrice');
+  const fabricTotal = fabricYards * fabricPrice;
+  const bungeeTotal = parseNum('bungeeQty') * parseNum('bungeeCost');
+  const totalMaterial = fabricTotal + bungeeTotal;
 
-  // Gather values
-  const fabricTotal = parseNum('fabricYards') * parseNum('fabricPrice');
-  const gussetTotal = parseNum('gussetYards') * parseNum('gussetPrice');
-  const totalMaterials = fabricTotal + gussetTotal + parseNum('threadCost') + parseNum('hardwareCost') + parseNum('bungeeCost') + parseNum('snapCost');
-  const totalLabor = parseNum('laborHours') * parseNum('laborRate');
+  const mfgDimUpdate = parseNum('mfgDimUpdate');
+  const mfgCutting = parseNum('mfgCutting');
+  const mfgBaseSewing = parseNum('mfgBaseSewing');
+  const addlSeamTotal = parseNum('addlSeams') * parseNum('mfgSeamCost');
+  const mfgGrommets = parseNum('mfgGrommets');
+  const mfgSnaps = parseNum('mfgSnaps');
+  const mfgCenterSnaps = parseNum('mfgCenterSnaps');
+  const mfgHWLabor = parseNum('mfgHWLabor');
+  const handleTotal = parseNum('handleQty') * parseNum('handleCost');
+  const strapTotal = parseNum('strapQty') * parseNum('strapCost');
+  const totalMfg = mfgDimUpdate + mfgCutting + mfgBaseSewing + addlSeamTotal + mfgGrommets + mfgSnaps + mfgCenterSnaps + mfgHWLabor + handleTotal + strapTotal;
+
+  const totalMyLabor = parseNum('wavyCutting') + parseNum('bungeeLabor');
   const totalOverhead = parseNum('shippingCost') + parseNum('platformFee') + parseNum('marketingCost') + parseNum('otherOverhead');
-  const totalCost = totalMaterials + totalLabor + totalOverhead;
+  const totalCost = totalMaterial + totalMfg + totalMyLabor + totalOverhead;
   const sellingPrice = parseNum('sellingPrice');
   const profit = sellingPrice - totalCost;
   const margin = sellingPrice > 0 ? (profit / sellingPrice) * 100 : 0;
 
+  let text = 'CASTAWAY COVERS — PROFIT CALCULATOR\n';
+  text += 'Generated: ' + date + '\n';
+  text += 'Cover type: ' + (preset ? preset.label : type) + '\n\n';
   text += 'COSTS:\n';
-  text += '  Materials: ' + fmt(totalMaterials) + '\n';
-  text += '  Labor: ' + fmt(totalLabor) + '\n';
+  text += '  Material: ' + fmt(totalMaterial) + '\n';
+  text += '  Manufacturer: ' + fmt(totalMfg) + '\n';
+  text += '  Your Labor: ' + fmt(totalMyLabor) + '\n';
   text += '  Overhead: ' + fmt(totalOverhead) + '\n';
   text += '  TOTAL COST: ' + fmt(totalCost) + '\n\n';
   text += 'PRICING:\n';
@@ -433,47 +626,74 @@ function exportAsText() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = 'profit-calc-' + date.replace(/\//g,'-') + '.txt';
+  a.download = 'profit-calc-' + type + '-' + date.replace(/\//g,'-') + '.txt';
   a.click();
   URL.revokeObjectURL(url);
 }
 
 function copyToClipboard() {
+  const type = document.getElementById('furnitureType').value;
+  const preset = PRESETS[type];
   const fabricTotal = parseNum('fabricYards') * parseNum('fabricPrice');
-  const gussetTotal = parseNum('gussetYards') * parseNum('gussetPrice');
-  const totalMaterials = fabricTotal + gussetTotal + parseNum('threadCost') + parseNum('hardwareCost') + parseNum('bungeeCost') + parseNum('snapCost');
-  const totalLabor = parseNum('laborHours') * parseNum('laborRate');
+  const bungeeTotal = parseNum('bungeeQty') * parseNum('bungeeCost');
+  const totalMaterial = fabricTotal + bungeeTotal;
+  const totalMfg = parseNum('mfgDimUpdate') + parseNum('mfgCutting') + parseNum('mfgBaseSewing')
+    + parseNum('addlSeams') * parseNum('mfgSeamCost')
+    + parseNum('mfgGrommets') + parseNum('mfgSnaps') + parseNum('mfgCenterSnaps') + parseNum('mfgHWLabor')
+    + parseNum('handleQty') * parseNum('handleCost') + parseNum('strapQty') * parseNum('strapCost');
+  const totalMyLabor = parseNum('wavyCutting') + parseNum('bungeeLabor');
   const totalOverhead = parseNum('shippingCost') + parseNum('platformFee') + parseNum('marketingCost') + parseNum('otherOverhead');
-  const totalCost = totalMaterials + totalLabor + totalOverhead;
+  const totalCost = totalMaterial + totalMfg + totalMyLabor + totalOverhead;
   const sellingPrice = parseNum('sellingPrice');
   const profit = sellingPrice - totalCost;
   const margin = sellingPrice > 0 ? (profit / sellingPrice) * 100 : 0;
 
-  let text = 'Castaway Covers Profit Calculator\n';
-  text += 'Cost: ' + fmt(totalCost) + ' | Price: ' + fmt(sellingPrice) + ' | Profit: ' + fmt(profit) + ' | Margin: ' + fmtPct(margin);
+  let text = `Castaway Covers — ${preset ? preset.label : type}\n`;
+  text += `Cost: ${fmt(totalCost)} | Price: ${fmt(sellingPrice)} | Profit: ${fmt(profit)} | Margin: ${fmtPct(margin)}`;
 
   navigator.clipboard.writeText(text).then(() => alert('Copied!')).catch(() => alert('Failed to copy.'));
 }
 
 function wire() {
-  loadSavedInputs();
+  const loaded = loadSavedInputs();
+
+  // Type change triggers preset
+  document.getElementById('furnitureType').addEventListener('change', applyPreset);
 
   // Listen to all input changes
-  ['inputsCard','laborCard','overheadCard','pricingCard'].forEach(cardId => {
+  ['typeCard','materialCard','mfgCard','myLaborCard','overheadCard','pricingCard'].forEach(cardId => {
     const card = document.getElementById(cardId);
     if (card) ['input','change','keyup'].forEach(ev => card.addEventListener(ev, compute));
   });
 
   document.getElementById('recalc').addEventListener('click', compute);
   document.getElementById('resetBtn').addEventListener('click', () => {
-    const defaults = {fabricYards:3, fabricPrice:12, gussetYards:0, gussetPrice:6, threadCost:1.5, hardwareCost:3, bungeeCost:2, snapCost:2.5, laborHours:2, laborRate:20, shippingCost:8, platformFee:3, marketingCost:2, otherOverhead:0, sellingPrice:125, targetMargin:50};
-    Object.entries(defaults).forEach(([id,val]) => { const el=document.getElementById(id); if(el) el.value=val; });
-    compute();
+    document.getElementById('furnitureType').value = 'chair';
+    document.getElementById('fabricYards').value = 5;
+    document.getElementById('fabricPrice').value = 15;
+    document.getElementById('bungeeQty').value = 2;
+    document.getElementById('bungeeCost').value = 3;
+    document.getElementById('addlSeams').value = 0;
+    document.getElementById('handleQty').value = 0;
+    document.getElementById('handleCost').value = 3;
+    document.getElementById('strapQty').value = 0;
+    document.getElementById('strapCost').value = 4;
+    document.getElementById('wavyCutting').value = 20;
+    document.getElementById('bungeeLabor').value = 0;
+    document.getElementById('shippingCost').value = 8;
+    document.getElementById('platformFee').value = 3;
+    document.getElementById('marketingCost').value = 2;
+    document.getElementById('otherOverhead').value = 0;
+    document.getElementById('sellingPrice').value = 225;
+    document.getElementById('targetMargin').value = 50;
+    applyPreset();
   });
   document.getElementById('exportTxt').addEventListener('click', exportAsText);
   document.getElementById('printPage').addEventListener('click', () => window.print());
   document.getElementById('copyResults').addEventListener('click', copyToClipboard);
 
+  // If no saved state, apply chair preset
+  if (!loaded) applyPreset();
   compute();
 }
 
