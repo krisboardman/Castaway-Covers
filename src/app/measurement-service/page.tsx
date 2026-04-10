@@ -151,7 +151,7 @@ export default function MeasurementServicePage() {
               <li className="flex">
                 <span className="flex-shrink-0 w-8 h-8 bg-[#2C8B80] text-white rounded-full flex items-center justify-center font-semibold mr-3">2</span>
                 <div>
-                  <strong>Pay Service Fee</strong> - $75 via our secure checkout (link sent after booking)
+                  <strong>Pay Service Fee</strong> - $75 invoice sent to your email after booking
                 </div>
               </li>
               <li className="flex">
@@ -183,19 +183,9 @@ export default function MeasurementServicePage() {
                   Request Submitted Successfully!
                 </h2>
                 <p className="text-gray-700 mb-6">
-                  Thank you! We'll contact you within 24 hours to confirm your appointment.
-                  <br />
-                  Please complete your payment to secure your booking.
+                  Thank you! We'll contact you within 24 hours to confirm your appointment
+                  and send a $75 invoice to your email. Your booking is secured once payment is received.
                 </p>
-                <a
-                  href="https://uhrtqs-jx.myshopify.com/products/measurement-service"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-block bg-[#2C8B80] text-white px-8 py-3 rounded-full font-semibold hover:bg-[#1F6259] transition-colors mb-4"
-                >
-                  Pay Now ($75)
-                </a>
-                <br />
                 <button
                   onClick={() => setShowSuccess(false)}
                   className="text-gray-600 underline hover:text-gray-800 text-sm"
