@@ -755,7 +755,7 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
               </p>
             ) : noCushionClearance < 3 ? (
               <p className="text-sm text-amber-600 mt-1">
-                Without the cushion, floor clearance is only {noCushionClearance}″ — the cover may touch the ground.
+                Without the cushion, floor clearance is only {noCushionClearance}″ — the cover may touch the ground. We recommend using the bungee cord to keep it off the floor when the cushion is removed.
               </p>
             ) : (
               <p className="text-sm text-green-700 mt-1">
