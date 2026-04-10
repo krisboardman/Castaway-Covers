@@ -43,13 +43,13 @@
         <div class="inputs">
           <label class="lbl">Bolt width (B)<input id="B" type="number" step="1" value="54"></label>
           <label class="lbl">Ottoman length L (long side)<input id="L" type="number" step="1" value="36"></label>
-          <label class="lbl">Ottoman width W (short side)<input id="W" type="number" step="1" value="24"></label>
-          <label class="lbl">Ottoman height H (frame top to floor, <strong>no cushion</strong>)<input id="H" type="number" step="0.5" value="16"></label>
+          <label class="lbl">Ottoman width W (short side)<input id="W" type="number" step="1" value="36"></label>
+          <label class="lbl">Ottoman height H (top of ottoman to floor — <strong>include the cushion if present</strong>)<input id="H" type="number" step="0.5" value="20"></label>
           <label class="lbl">Floor clearance FC<input id="FC" type="number" step="0.5" value="3"></label>
           <label class="lbl">Snaps per corner (auto if blank — 2 per corner, +2 per ~15" of drop)<input id="snapsPerCorner" type="number" step="2" placeholder="auto"></label>
         </div>
         <div class="note" style="margin-top:8px;">
-          Side drop is computed as H − FC, so the cover hangs to within the floor clearance.
+          Side drop is computed as H − FC, so the cover hangs to within the floor clearance. Measure to the top of the cushion if your ottoman has one. <strong>Note:</strong> if your cushion exceeds 2″ in thickness and you use the cover on the ottoman without the cushion, the cover will drag on the ground.
         </div>
       </div>
 
@@ -169,7 +169,7 @@ function compute(){
     stripLength = W + 2 * stripWidth;
     totalBoltLen = ML + stripLength;
   }
-  const fitsBolt = (W <= B);
+  const fitsBolt = (MD <= B);
 
   const r=v=>fin(v,rounded);
 
@@ -183,10 +183,8 @@ function compute(){
     <div class='row'><span>Total snaps</span><strong>${totalSnaps}</strong></div>
     <div class='row'><span>Layout</span><strong>${layout==='single' ? 'Single piece' : 'Main panel + 2 side strips'}</strong></div>
     <div class='row'><span>Fits in bolt width?</span><strong>${fitsBolt
-      ? (layout==='single'
-          ? `Yes — single piece, ${r(B-MD)}" of bolt waste per length`
-          : `Yes — 54" main panel + two ${r(stripWidth)}"-wide side strips (chamfer-trimmed)`)
-      : `No — furniture width ${r(W)}" exceeds ${r(B)}" bolt; needs a different layout`}</strong></div>
+      ? `Yes — single piece, ${r(B-MD)}" of bolt waste per length`
+      : `No — cover width ${r(MD)}" exceeds ${r(B)}" bolt; ${r(B)}" main panel + two ${r(stripWidth)}"-wide side strips (chamfer-trimmed)`}</strong></div>
   `;
 
   // Material to buy
@@ -295,12 +293,24 @@ function drawDiagram(p){
     add('line',{x1:xL, y1:yBotSeam, x2:xR, y2:yBotSeam, stroke:'#9333ea', 'stroke-width':2.5, 'stroke-dasharray':'8,3'});
     add('text',{x:xL + 6, y:yTopSeam - 4, 'font-size':10, fill:'#7e22ce', 'font-weight':'bold'})
       .textContent = `side seam (1.5" overlap)`;
-    add('text',{x:xL + 6, y:yBotSeam + 14, 'font-size':10, fill:'#7e22ce', 'font-weight':'bold'})
+    add('text',{x:xR - 6, y:yBotSeam + 14, 'text-anchor':'end', 'font-size':10, fill:'#7e22ce', 'font-weight':'bold'})
       .textContent = `side seam (1.5" overlap)`;
-    add('text',{x:(xL+xR)/2, y:(yT+yTopSeam)/2 + 4, 'text-anchor':'middle','font-size':11, fill:'#7e22ce', 'font-weight':'bold'})
-      .textContent = `Side strip: ${r(stripWidth)}" × ${r(stripLength)}" (trapezoidal)`;
-    add('text',{x:(xL+xR)/2, y:(yBotSeam+yB)/2 + 4, 'text-anchor':'middle','font-size':11, fill:'#7e22ce', 'font-weight':'bold'})
-      .textContent = `Side strip: ${r(stripWidth)}" × ${r(stripLength)}" (trapezoidal)`;
+    // Side strip labels — callout to the left, outside the diagram, to avoid overlap with grommets
+    const stripCalloutX = xL - 12;
+    add('line',{x1:stripCalloutX + 2, y1:(yT+yTopSeam)/2, x2:xL + 2, y2:(yT+yTopSeam)/2,
+      stroke:'#7e22ce', 'stroke-width':0.8, 'stroke-dasharray':'3,2'});
+    add('text',{x:stripCalloutX, y:(yT+yTopSeam)/2 - 2, 'text-anchor':'end','font-size':10, fill:'#7e22ce', 'font-weight':'bold'})
+      .textContent = `Side strip: ${r(stripWidth)}" × ${r(stripLength)}"`;
+    add('text',{x:stripCalloutX, y:(yT+yTopSeam)/2 + 10, 'text-anchor':'end','font-size':9, fill:'#7e22ce'})
+      .textContent = `(trapezoidal)`;
+    // Bottom strip label — callout to the RIGHT to avoid snap placement text on the left
+    const stripCalloutXR = xR + 12;
+    add('line',{x1:xR - 2, y1:(yBotSeam+yB)/2, x2:stripCalloutXR - 2, y2:(yBotSeam+yB)/2,
+      stroke:'#7e22ce', 'stroke-width':0.8, 'stroke-dasharray':'3,2'});
+    add('text',{x:stripCalloutXR, y:(yBotSeam+yB)/2 - 2, 'text-anchor':'start','font-size':10, fill:'#7e22ce', 'font-weight':'bold'})
+      .textContent = `Side strip: ${r(stripWidth)}" × ${r(stripLength)}"`;
+    add('text',{x:stripCalloutXR, y:(yBotSeam+yB)/2 + 10, 'text-anchor':'start','font-size':9, fill:'#7e22ce'})
+      .textContent = `(trapezoidal)`;
     add('text',{x:(xL+xR)/2, y:(yTopSeam+yBotSeam)/2 - 30, 'text-anchor':'middle','font-size':11, fill:'#7e22ce', 'font-weight':'bold'})
       .textContent = `Main panel: ${r(B)}" × ${r(ML)}"`;
   }
@@ -372,15 +382,19 @@ function drawDiagram(p){
   // top-left grommet: perpendicular (from outer long edge) and along-edge
   // (from the end of the diagonal chamfer).
   {
-    const g = grommetPts[0];
+    // Use top-RIGHT grommet for the callout so labels sit outside on the right
+    const g = grommetPts[1];
     const gromLabelColor = '#b45309';
     // Perpendicular dimension (from outer cover edge DOWN to grommet)
     add('line',{x1:g[0] + 14, y1:yT,   x2:g[0] + 14, y2:g[1], stroke:gromLabelColor, 'stroke-width':1});
     add('line',{x1:g[0] + 11, y1:yT,   x2:g[0] + 17, y2:yT,   stroke:gromLabelColor, 'stroke-width':1});
     add('line',{x1:g[0] + 11, y1:g[1], x2:g[0] + 17, y2:g[1], stroke:gromLabelColor, 'stroke-width':1});
-    add('text',{x:g[0] + 20, y:(yT + g[1])/2 + 4, 'text-anchor':'start', 'font-size':10,
+    const gromCalloutX = xR + 30;
+    add('line',{x1:g[0] + 18, y1:(yT + g[1])/2, x2:gromCalloutX - 2, y2:(yT + g[1])/2,
+      stroke:gromLabelColor, 'stroke-width':0.8, 'stroke-dasharray':'3,2'});
+    add('text',{x:gromCalloutX, y:(yT + g[1])/2 - 2, 'text-anchor':'start', 'font-size':10,
       fill:gromLabelColor, 'font-weight':'bold'}).textContent = `${(Math.round(gromDownIn*10)/10)}" (drop ÷ 3)`;
-    add('text',{x:g[0] + 20, y:(yT + g[1])/2 + 16, 'text-anchor':'start', 'font-size':9,
+    add('text',{x:gromCalloutX, y:(yT + g[1])/2 + 10, 'text-anchor':'start', 'font-size':9,
       fill:gromLabelColor}).textContent = `grommet hangs ~2/3 down the drop`;
     // Along-edge dimension: from the end of the chamfer (xL + dPx) inward
     // along the top edge to the grommet x position, shown BELOW the edge so

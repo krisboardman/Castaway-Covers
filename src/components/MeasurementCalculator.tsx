@@ -105,7 +105,7 @@ const fieldHints: Record<string, Record<string, string>> = {
     cushionThickness: 'If you use a cushion, enter its thickness here. The cover will be sized to fit over the cushion with 4″ floor clearance. Leave 0 if no cushion.',
   },
   'ottomans': {
-    height: 'Measure from the floor to the top of the ottoman frame — remove or ignore the cushion. Including the cushion will produce a cover that drags on the ground.',
+    height: 'Measure from the floor to the top of the ottoman — include the cushion if present. Note: if your cushion exceeds 2″ in thickness and you use the cover without the cushion, the cover will drag on the ground.',
   },
 };
 
@@ -154,7 +154,7 @@ const productConfigs = {
     labels: {
       width: 'Width',
       length: 'Length',
-      height: 'Height (frame top to floor — do not include cushion)'
+      height: 'Height (top of ottoman to floor — include cushion if present)'
     },
     hasAngle: false,
     measurementImage: '/images/Measurements/ottoman measurements.jpg'
