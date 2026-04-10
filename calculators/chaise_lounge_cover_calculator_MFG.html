@@ -3318,8 +3318,9 @@ function wire(){
 
   document.getElementById('recalc').addEventListener('click', compute);
   document.getElementById('resetBtn').addEventListener('click', ()=>{
-    const defaults = {B:56, W:36, WB:25, H:39, D:30, F2A:26, F2BS:18, BR:4, FC:4, hem:1, seam:1.5, sideEase:0};
+    const defaults = {B:56, W:36, D:80, H:13, FC:4, CT:3};
     Object.entries(defaults).forEach(([id,val])=>{ const el=document.getElementById(id); if(el) el.value=val; });
+    const ccEl = document.getElementById('CC'); if(ccEl) ccEl.value = '';
     document.getElementById('roundMode').value = 'whole';
     compute();
     saveInputs();
