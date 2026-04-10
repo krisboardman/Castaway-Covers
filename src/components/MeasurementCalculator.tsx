@@ -43,11 +43,12 @@ const validationRanges: Record<string, Record<string, { min: number; max: number
     armrestHeight:  { min: 14, max: 34,  label: 'Ground-to-armrest height' },
   },
   'chaise-lounge': {
-    width:          { min: 20, max: 50,  label: 'Chaise width' },
-    length:         { min: 40, max: 100, label: 'Chaise length' },
-    height:         { min: 6,  max: 28,  label: 'Floor-to-seat height' },
-    armrestHeight:  { min: 14, max: 40,  label: 'Floor-to-armrest height' },
-    armLength:      { min: 8,  max: 70,  label: 'Arm length' },
+    width:              { min: 20, max: 50,  label: 'Chaise width' },
+    length:             { min: 40, max: 100, label: 'Chaise length' },
+    height:             { min: 6,  max: 28,  label: 'Floor-to-seat height' },
+    cushionThickness:   { min: 0,  max: 8,   label: 'Cushion thickness' },
+    armrestHeight:      { min: 14, max: 40,  label: 'Floor-to-armrest height' },
+    armLength:          { min: 8,  max: 70,  label: 'Arm length' },
   },
   'ottomans': {
     width:  { min: 10, max: 72, label: 'Ottoman width' },
@@ -100,7 +101,8 @@ const fieldHints: Record<string, Record<string, string>> = {
     width: 'Note: if the width exceeds 34″, the cover will have a seam down the middle.',
   },
   'chaise-lounge': {
-    height: 'Measure from the floor to the top of the chaise frame — remove or ignore the cushion. Including the cushion will produce a cover that drags on the ground.',
+    height: 'Measure from the floor to the top of the chaise frame — remove or ignore the cushion.',
+    cushionThickness: 'If you use a cushion, enter its thickness here. The cover will be sized to fit over the cushion with 4″ floor clearance. Leave 0 if no cushion.',
   },
   'ottomans': {
     height: 'Measure from the floor to the top of the ottoman frame — remove or ignore the cushion. Including the cushion will produce a cover that drags on the ground.',
@@ -137,11 +139,12 @@ const productConfigs = {
     curvedBackImage: '/images/Measurements/curved-back-measuring.svg'
   },
   'chaise-lounge': {
-    fields: ['width', 'length', 'height'],
+    fields: ['width', 'length', 'height', 'cushionThickness'],
     labels: {
       width: 'Width',
       length: 'Length (head to foot)',
-      height: 'Height (frame top to floor — do not include cushion)'
+      height: 'Height (frame top to floor — do not include cushion)',
+      cushionThickness: 'Cushion Thickness (optional — enter 0 if no cushion)'
     },
     hasAngle: false,
     measurementImage: '/images/Measurements/chaise measurements.jpg'
@@ -186,7 +189,8 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
     backrestDepth: 0,
     armrestHeight: 0,
     backWidth: 0,
-    armLength: 0
+    armLength: 0,
+    cushionThickness: 0
   });
   const [showGuide, setShowGuide] = useState(false);
   const [hasCalculated, setHasCalculated] = useState(false);
@@ -253,18 +257,33 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
     // Chaise lounge — clean rectangle + chamfered corners, mirrors chaise_lounge_cover_calculator_MFG.html
     if (productType === 'chaise-lounge') {
       if (!width || !length || !height) return 0;
-      const BOLT_WIDTH = 54;
-      const FC = 3;
-      const sideDrop = Math.max(0, height - FC);
+      const BOLT_WIDTH = 56;   // chaise uses 56" bolt (full bolt width)
+      const CT = measurements.cushionThickness || 0;
+      const FC_CUSHION = 4;    // floor clearance when cushion is on
+      const FC_NO_CUSHION = 3; // floor clearance when no cushion
+      const centerSeam = 1;    // seam allowance for split-and-sew joins
+
+      // Cushion-aware side drop: size cover for frame+cushion with 4" clearance,
+      // or frame-only with 3" clearance when no cushion.
+      const effectiveHeight = CT > 0 ? height + CT : height;
+      const effectiveFC = CT > 0 ? FC_CUSHION : FC_NO_CUSHION;
+      const sideDrop = Math.max(0, effectiveHeight - effectiveFC);
+
       const ML = length + 2 * sideDrop;  // along bolt (head-to-foot)
       const MD = width + 2 * sideDrop;   // across bolt
+
       let totalBoltLength: number;
       if (MD <= BOLT_WIDTH) {
+        // Width fits in bolt — single panel, no extensions needed
         totalBoltLength = ML;
       } else {
-        const stripWidth = (MD - BOLT_WIDTH) / 2;
-        const stripLength = width + 2 * stripWidth; // chamfer trims strip
-        totalBoltLength = ML + stripLength;
+        // Width exceeds bolt — split-and-sew side extensions.
+        // Each extension = 2 half-strips cut ACROSS the bolt width, sewn at center.
+        // extCutW = raw overshoot per side + center seam allowance.
+        // 4 half-strips total, all from the same bolt right after the main panel.
+        const extCutW = (MD - BOLT_WIDTH) / 2 + centerSeam;
+        const extBoltPull = 4 * extCutW;
+        totalBoltLength = ML + extBoltPull;
       }
       return Math.ceil(totalBoltLength / 36);
     }
@@ -303,8 +322,8 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
       // Front-to-back coverage required (across the bolt)
       const totalFB = hem + BR + AT2F + frontExtDrop;
 
-      // Back piece (trapezoid): top = ML+seam, bottom = WB+2*hem, height = H-FC
-      const backPieceTopWidth = ML + seam;
+      // Back piece (trapezoid): top = ML (matches main piece), bottom = WB+2*hem, height = H-FC
+      const backPieceTopWidth = ML;
       const backPieceBottomWidth = WB + 2 * hem;
       const backPieceHeight = H - FC;
       const backPieceLength = backPieceTopWidth;   // along bolt
@@ -479,8 +498,8 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
 
 
   const handleCalculate = async () => {
-    // backWidth and armLength are optional, exclude them from required fields validation
-    const requiredFields = config.fields.filter(field => field !== 'armLength');
+    // backWidth, armLength, and cushionThickness are optional — exclude from required fields validation
+    const requiredFields = config.fields.filter(field => field !== 'armLength' && field !== 'cushionThickness');
     const hasAllMeasurements = requiredFields.every(field => measurements[field] > 0);
     
     if (hasAllMeasurements) {
@@ -702,18 +721,50 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
       <button
         onClick={handleCalculate}
         className={`w-full py-3 px-4 rounded-md font-medium transition-all ${
-          config.fields.filter(field => field !== 'armLength').every(field => measurements[field] > 0) && !hasCalculated
+          config.fields.filter(field => field !== 'armLength' && field !== 'cushionThickness').every(field => measurements[field] > 0) && !hasCalculated
             ? 'bg-orange-600 hover:bg-orange-700 text-white animate-pulse'
             : 'bg-brand-teal hover:bg-brand-teal-dark text-white'
         }`}
-        disabled={!config.fields.filter(field => field !== 'armLength').every(field => measurements[field] > 0) || Object.keys(capExceeded).length > 0}
+        disabled={!config.fields.filter(field => field !== 'armLength' && field !== 'cushionThickness').every(field => measurements[field] > 0) || Object.keys(capExceeded).length > 0}
       >
         {Object.keys(capExceeded).length > 0
           ? '🚫 Cannot order — measurement exceeds maximum'
-          : (config.fields.filter(field => field !== 'armLength').every(field => measurements[field] > 0) && !hasCalculated
+          : (config.fields.filter(field => field !== 'armLength' && field !== 'cushionThickness').every(field => measurements[field] > 0) && !hasCalculated
             ? '⚠️ Click to Update Price & Size'
             : 'Calculate Cover Size & Price')}
       </button>
+
+      {/* Cushion warning for chaise lounge — show after calculation */}
+      {productType === 'chaise-lounge' && hasCalculated && (measurements.cushionThickness || 0) > 0 && (() => {
+        const CT = measurements.cushionThickness;
+        const H = measurements.height;
+        const FC_CUSHION = 4;
+        const sideDrop = Math.max(0, (H + CT) - FC_CUSHION);
+        const noCushionClearance = H - sideDrop;
+        return (
+          <div className={`mt-3 p-3 rounded-md border ${noCushionClearance < 0 ? 'bg-amber-50 border-amber-300' : 'bg-green-50 border-green-200'}`}>
+            <p className="text-sm font-semibold mb-1">
+              {noCushionClearance < 0 ? '⚠️' : '✅'} Cushion Info
+            </p>
+            <p className="text-sm text-gray-700">
+              Side drop: {sideDrop}″ (sized for frame + {CT}″ cushion, {FC_CUSHION}″ floor clearance with cushion on).
+            </p>
+            {noCushionClearance < 0 ? (
+              <p className="text-sm text-amber-700 mt-1 font-medium">
+                Without the cushion, the cover will drag on the floor by {Math.abs(noCushionClearance)}″. Use the bungee cord to cinch it up when the cushion is removed.
+              </p>
+            ) : noCushionClearance < 3 ? (
+              <p className="text-sm text-amber-600 mt-1">
+                Without the cushion, floor clearance is only {noCushionClearance}″ — the cover may touch the ground.
+              </p>
+            ) : (
+              <p className="text-sm text-green-700 mt-1">
+                Without the cushion, floor clearance is {noCushionClearance}″ — still good.
+              </p>
+            )}
+          </div>
+        );
+      })()}
     </div>
   );
 };

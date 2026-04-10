@@ -103,7 +103,7 @@
           <div class="note" style="margin-top:8px;">
             <strong>Design:</strong> Main piece goes side-to-side: from floor on one side, up over one armrest, across the seat and backrest, over the other armrest, down to floor on the other side.
             The bolt width (B) runs front-to-back. A separate trapezoidal back piece hangs down the back of the chair with side extensions that provide continuous coverage at the corners (replacing gussets).<br/>
-            <strong>Back piece:</strong> Trapezoid — wider at the top (ML + seam) where it attaches to main piece, narrower at the bottom (WB + 2×hem). Height: H − FC. Side extensions wrap around corners; excess material folds inward and snaps in place.<br/>
+            <strong>Back piece:</strong> Trapezoid — top edge matches main piece width (ML), narrower at the bottom (WB + 2×hem). Height: H − FC. Side extensions wrap around corners; excess material folds inward and snaps in place.<br/>
             <strong>Front flap:</strong> Added if bolt width &lt; front-to-back coverage needed. Sewn to main piece at front edge with lap seam.<br/>
             <strong>Snaps:</strong> 2 snaps per back corner, placed along the diagonal edge where back piece extensions meet the main piece's side drops.
           </div>
@@ -183,7 +183,7 @@
         <div class="title">Assembly Instructions</div>
         <ol style="margin:0; padding-left:20px; line-height:1.8; font-size:13px;">
           <li><strong style="color:#1e40af;">Cut</strong> main piece (ML × B) from bolt — runs side-to-side</li>
-          <li><strong style="color:#1e40af;">Cut</strong> back piece (trapezoid: ML+seam top, WB+2×hem bottom, H−FC tall) from bolt</li>
+          <li><strong style="color:#1e40af;">Cut</strong> back piece (trapezoid: ML top, WB+2×hem bottom, H−FC tall) from bolt</li>
           <li><strong style="color:#1e40af;">Cut</strong> front flap (if needed) from bolt</li>
           <li>Draw inset diagonal cuts on each side — <em style="color:#64748b;">see "Side Angle Cut" card &amp; flat layout diagram for exact inch values and points A → B</em>:
             <ul style="margin-top:4px; padding-left:20px;">
@@ -203,7 +203,7 @@
           </li>
           <li><strong style="color:#059669;">Sew</strong> — attach back piece to main piece:
             <ul style="margin-top:4px; padding-left:20px;">
-              <li>Align the trapezoidal back piece along the top (backrest) edge of the main piece — the wider top edge (ML + seam) attaches here</li>
+              <li>Align the trapezoidal back piece along the top (backrest) edge of the main piece — the top edge matches the main piece width (ML)</li>
               <li>Overlap the main piece's 1" hem at the back edge — main piece on top, back piece underneath</li>
               <li>Use material tape to hold in position, then sew the lap seam. The back piece tapers narrower toward the floor.</li>
             </ul>
@@ -590,7 +590,7 @@ function updateCutList(params){
     rows.push(['Back piece (split trapezoid)', `2 halves: top ${fmtInch(splitBackHalfTop, rm)}" / bottom ${fmtInch(splitBackHalfBot, rm)}" / height ${fmtInch(backPieceHeight, rm)}"`,
       `Qty 2 — cut trapezoid in half at center (+${fmtExact(splitBackCenterSeam)}" seam each). Nest on bolt with ${fmtInch(splitBackMinOffset, rm)}" offset (${fmtInch(splitBackBoltLength, rm)}" bolt length). Sew halves at center seam before attaching.`]);
   } else {
-    rows.push(['Back piece (trapezoid)', `Top: ${fmtInch(backPieceTopWidth, rm)}" / Bottom: ${fmtInch(backPieceBottomWidth, rm)}" / Height: ${fmtInch(backPieceHeight, rm)}"`, `Qty 1 — Trapezoid with wide top (ML+seam) tapering to narrow bottom (WB+2×hem). Side extensions wrap around corners and snap to main piece's side drops.`]);
+    rows.push(['Back piece (trapezoid)', `Top: ${fmtInch(backPieceTopWidth, rm)}" / Bottom: ${fmtInch(backPieceBottomWidth, rm)}" / Height: ${fmtInch(backPieceHeight, rm)}"`, `Qty 1 — Trapezoid with top edge matching main piece (ML), tapering to narrow bottom (WB+2×hem). Side extensions wrap around corners and snap to main piece's side drops.`]);
   }
 
   if (frontFlapNeeded && useWasteNesting && wasteNestIsSplit) {
@@ -823,7 +823,7 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
   // NOT backPieceLength (which is the bolt cutting dimension = ML+seam)
   const extraBack = backPieceHeight; // physical back piece drop (H-FC)
   const extraFront = frontFlapNeeded ? frontFlapWidth : 0;
-  const topLabelSpace = 36;  // extra room above back piece for labels
+  const topLabelSpace = 60;  // extra room above back piece for labels
   const totalDiagH = B + extraBack + extraFront + 20 + topLabelSpace;
   const totalDiagW = ML + 40;
 
@@ -1075,32 +1075,33 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
     }).textContent = label;
   }
 
-  // --- LEFT SIDE: Three zone dimensions (close to piece) ---
-  const dimX1 = topLeftX - 22;   // inner dimension column
-  const dimX2 = topLeftX - 52;   // outer dimension column (overall back-to-B)
+  // --- LEFT SIDE: Zone dimensions in three columns so they don't overlap ---
+  const dimX1 = topLeftX - 22;   // closest to piece: DIAGONAL + STRAIGHT
+  const dimX2 = topLeftX - 50;   // middle column: NO CUT
+  const dimX3 = topLeftX - 78;   // far left: "from back to B"
 
-  // Back zone: back edge → back inset
+  // Back zone: back edge → back inset (middle column)
   if (bkInPx > 8) {
-    vDim(dimX1, mainTopY, backInsetY, `${rIn(backInset)}" NO CUT`, dimColor);
+    vDim(dimX2, mainTopY, backInsetY, `${rIn(backInset)}" NO CUT`, dimColor);
   }
 
-  // Taper zone: back inset → front inset (the diagonal)
+  // Taper zone: back inset → front inset (inner column, closest to piece)
   const taperLen = taperZoneLength || (B - (backInset||0) - (frontInset||0));
   const taperPx = frontInsetY - backInsetY;
   if (taperPx > 15) {
     vDim(dimX1, backInsetY, frontInsetY, `${rIn(taperLen)}" DIAGONAL`, dimRed, 14);
   }
 
-  // Front zone + flap: front inset → bottom
+  // Front zone + flap: front inset → bottom (inner column — no overlap, below diagonal)
   if (frInPx > 8) {
     const frontZoneLen = frontInset + (frontFlapNeeded ? frontFlapWidth : 0);
     vDim(dimX1, frontInsetY, frontBottomY, `${rIn(frontZoneLen)}" STRAIGHT`, dimColor);
   }
 
-  // --- LEFT SIDE: Overall "back edge to Point B" dimension (the key missing measurement) ---
+  // --- LEFT SIDE: Overall "back edge to Point B" dimension (far left column) ---
   const backToB = backInset + taperLen;
   if (taperPx > 15) {
-    vDim(dimX2, mainTopY, frontInsetY, `${rIn(backToB)}" from back to B`, '#7c3aed', 14);
+    vDim(dimX3, mainTopY, frontInsetY, `${rIn(backToB)}" from back to B`, '#7c3aed', 14);
   }
 
   // --- TRIM DIMENSIONS at bottom ---
@@ -1112,10 +1113,11 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
 
   // === POINT A and POINT B CALLOUTS ===
   // Point A: where diagonal STARTS — at back inset, at the side edge (full width)
+  // "A" to the left of the dot, description below the dot (avoids overlap with snaps inside)
   add('circle', {cx:topLeftX, cy:backInsetY, r:5, fill:'#dc2626', stroke:'#fff', 'stroke-width':2});
-  add('text', {x:topLeftX + 12, y:backInsetY - 12, 'text-anchor':'start', 'font-size':13,
+  add('text', {x:topLeftX - 10, y:backInsetY + 4, 'text-anchor':'end', 'font-size':13,
     fill:'#dc2626', 'font-weight':'bold'}).textContent=`A`;
-  add('text', {x:topLeftX + 12, y:backInsetY + 2, 'text-anchor':'start', 'font-size':10,
+  add('text', {x:topLeftX + 4, y:backInsetY + 16, 'text-anchor':'start', 'font-size':10,
     fill:'#dc2626'}).textContent=`${rIn(backInset)}" from back edge`;
 
   // Point B: where diagonal ENDS — at front inset, trimmed in from side edge
@@ -1127,7 +1129,7 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
 
   // Right side: A and B markers (simpler)
   add('circle', {cx:topRightX, cy:backInsetY, r:5, fill:'#dc2626', stroke:'#fff', 'stroke-width':2});
-  add('text', {x:topRightX - 12, y:backInsetY - 4, 'text-anchor':'end', 'font-size':13,
+  add('text', {x:topRightX + 10, y:backInsetY + 4, 'text-anchor':'start', 'font-size':13,
     fill:'#dc2626', 'font-weight':'bold'}).textContent=`A`;
   add('circle', {cx:frontRightX, cy:frontInsetY, r:5, fill:'#dc2626', stroke:'#fff', 'stroke-width':2});
   add('text', {x:frontRightX - 12, y:frontInsetY - 4, 'text-anchor':'end', 'font-size':13,
@@ -1173,12 +1175,12 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
   add('text', {x:cx, y:mainTopY + 14, 'text-anchor':'middle', 'font-size':9,
     fill:'#0369a1'}).textContent=`← WB: ${rIn(WB)}" →`;
 
-  // Front width markers (frontWidthAfterCut at front zone)
-  add('line', {x1:frontLeftX, y1:frontBottomY - 14, x2:frontLeftX, y2:frontBottomY + 5,
+  // Front width markers (frontWidthAfterCut at front zone) — label below the bottom edge
+  add('line', {x1:frontLeftX, y1:frontBottomY - 8, x2:frontLeftX, y2:frontBottomY + 12,
     stroke:'#0369a1', 'stroke-width':1.5});
-  add('line', {x1:frontRightX, y1:frontBottomY - 14, x2:frontRightX, y2:frontBottomY + 5,
+  add('line', {x1:frontRightX, y1:frontBottomY - 8, x2:frontRightX, y2:frontBottomY + 12,
     stroke:'#0369a1', 'stroke-width':1.5});
-  add('text', {x:cx, y:frontBottomY - 4, 'text-anchor':'middle', 'font-size':9,
+  add('text', {x:cx, y:frontBottomY + 12, 'text-anchor':'middle', 'font-size':9,
     fill:'#334155', 'font-weight':'bold'}).textContent=`← ${rIn(frontWidthAfterCut || W)}" (front width) →`;
 
   // ML dimension at top
@@ -1267,7 +1269,7 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
 
     // --- HORIZONTAL DIMENSION CALLOUTS (from center line to grommet) ---
     // Front grommets: horizontal arrow from center to left grommet, with dimension
-    const fHorizArrowY = gromFrontY + 14;
+    const fHorizArrowY = gromFrontY + 22;
     add('line',{x1:cx, y1:fHorizArrowY, x2:gromFrontLeftX, y2:fHorizArrowY,
       stroke:gromColor, 'stroke-width':1, 'marker-start':`url(#${mkrId})`, 'marker-end':`url(#${mkrId})`});
     add('text',{x:(cx + gromFrontLeftX)/2, y:fHorizArrowY + 11, 'text-anchor':'middle',
@@ -1290,10 +1292,11 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
     add('line',{x1:cx, y1:bHorizArrowY - 4, x2:cx, y2:bHorizArrowY + 4,
       stroke:gromColor, 'stroke-width':0.5}); // center tick
 
-    // --- GROMMET INFO CARD (bottom-right of diagram) ---
-    const gcW = 220, gcH = 80;
-    const gcX = VBW - pad - gcW - 10;
-    const gcY = VBH - 30 - gcH - 10;
+    // --- GROMMET INFO CARD (below bungee tab box, top-right) ---
+    // Bungee tab box ends at: pad + 220 (snap) + 12 (gap) + 70 (bungee) = pad + 302
+    const gcW = 265, gcH = 80;
+    const gcX = VBW - pad - gcW;
+    const gcY = pad + 302 + 12;  // 12px gap below bungee tab box
     add('rect',{x:gcX, y:gcY, width:gcW, height:gcH, rx:6, fill:'#fffbeb', stroke:gromColor, 'stroke-width':1.5});
     add('text',{x:gcX + 10, y:gcY + 14, 'font-size':10, fill:gromColor, 'font-weight':'bold'}).textContent='GROMMETS (4 total — brass)';
     add('text',{x:gcX + 10, y:gcY + 28, 'font-size':9, fill:'#334155'}).textContent=`${rIn(gromInset)}" up from bottom of material (drop ÷ 3)`;
@@ -1304,10 +1307,9 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
     add('circle',{cx:gcX + gcW - 16, cy:gcY + 14, r:1.5, fill:gromColor});
 
     // === BUNGEE TAB HOLDERS (back panel) ===
-    // Two small fabric tabs sewn onto the back piece, directly above the back grommets,
-    // 2" below the backrest crease (mainTopY). Bungees hook into these tabs.
-    const bungeeTabBelowBackrest = 2;
-    const bungeeTabY = mainTopY - bungeeTabBelowBackrest * sc;
+    // Two small fabric tabs sewn into the lap seam at mainTopY, aligned horizontally
+    // with the back grommets (same distance from center). Bungees hook into these tabs.
+    const bungeeTabY = mainTopY;  // sewn into the seam
     const bungeeTabLeftX  = cx - gromBackHorizFromCenter * sc;
     const bungeeTabRightX = cx + gromBackHorizFromCenter * sc;
     const tabColor = '#0891b2';
@@ -1318,15 +1320,26 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
     }
     dBungeeTab(bungeeTabLeftX,  bungeeTabY);
     dBungeeTab(bungeeTabRightX, bungeeTabY);
-    add('text',{x:cx, y:bungeeTabY + 18, 'text-anchor':'middle', 'font-size':9,
-      fill:tabColor, 'font-weight':'bold'}).textContent=
-      `bungee tabs (${rIn(sideDrop - bungeeTabBelowBackrest)}" up from back floor, ±${rIn(gromBackHorizFromCenter)}" from center)`;
+
+    // --- BUNGEE TAB INFO BOX (below snap placement box, top-right) ---
+    // Snap box: x = VBW - pad - 265, y = pad, w = 265, h = 220
+    const btW = 265, btH = 70;
+    const btX = VBW - pad - btW;
+    const btY = pad + 220 + 12;  // 12px gap below snap box
+    add('rect',{x:btX, y:btY, width:btW, height:btH, rx:6, fill:'#ecfeff', stroke:tabColor, 'stroke-width':1.5});
+    add('text',{x:btX + btW/2, y:btY + 16, 'text-anchor':'middle', 'font-size':11, fill:tabColor, 'font-weight':'bold'}).textContent='BUNGEE TABS (2 total)';
+    add('text',{x:btX + 10, y:btY + 32, 'font-size':9, fill:'#334155'}).textContent=`Sewn into the lap seam (at backrest crease)`;
+    add('text',{x:btX + 10, y:btY + 44, 'font-size':9, fill:'#334155'}).textContent=`Aligned with back grommets: ±${rIn(gromBackHorizFromCenter)}" from center`;
+    add('text',{x:btX + 10, y:btY + 56, 'font-size':9, fill:'#334155'}).textContent=`Bungee hooks through tab, runs to grommet on each side`;
+    // Tab icon in box
+    add('rect',{x:btX + btW - 26, y:btY + 10, width:14, height:10, rx:2, fill:'#cffafe', stroke:tabColor, 'stroke-width':1.5});
+    add('circle',{cx:btX + btW - 19, cy:btY + 15, r:2, fill:tabColor});
   }
 
   // === DIMENSION ARROWS ===
   // ML (horizontal, above diagram)
-  arrow(mainX, backPieceTopY - 10, mainX + mainW, backPieceTopY - 10, '#334155');
-  add('text',{x:cx, y:backPieceTopY - 16, 'text-anchor':'middle', 'font-size':11, fill:'#334155', 'font-weight':'bold'}).textContent=`ML: ${rIn(ML)}" (side-to-side)`;
+  arrow(mainX, backPieceTopY - 46, mainX + mainW, backPieceTopY - 46, '#334155');
+  add('text',{x:cx, y:backPieceTopY - 52, 'text-anchor':'middle', 'font-size':11, fill:'#334155', 'font-weight':'bold'}).textContent=`ML: ${rIn(ML)}" (side-to-side)`;
 
   // Bolt width B (vertical, right side)
   const bDimX = mainX + mainW + 20;
@@ -1346,7 +1359,7 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
   add('text',{x:(mainX + frontLeftX)/2, y:mainBotY + 16, 'text-anchor':'middle', 'font-size':9, fill:'#475569'}).textContent='← Left floor edge';
   add('text',{x:(mainX + mainW + frontRightX)/2, y:mainBotY + 16, 'text-anchor':'middle', 'font-size':9, fill:'#475569'}).textContent='Right floor edge →';
   add('text',{x:cx, y:mainTopY - hemOverlapH - 16, 'text-anchor':'middle', 'font-size':10, fill:'#475569', 'font-weight':'bold'}).textContent='↑ BACK (behind chair) ↑';
-  add('text',{x:cx, y:mainBotY + (frontFlapNeeded ? (frontFlapWidth * sc) + 16 : 16), 'text-anchor':'middle', 'font-size':10, fill:'#475569', 'font-weight':'bold'}).textContent='↓ FRONT (in front of chair) ↓';
+  add('text',{x:cx, y:mainBotY + (frontFlapNeeded ? (frontFlapWidth * sc) + 28 : 16), 'text-anchor':'middle', 'font-size':10, fill:'#475569', 'font-weight':'bold'}).textContent='↓ FRONT (in front of chair) ↓';
 }
 
 // === WAVY PATH HELPER ===
@@ -1734,12 +1747,12 @@ function compute(){
 
     // === BACK PIECE (always required) — TRAPEZOID in snap-back design ===
     // The back piece is a trapezoid with side extensions that wrap around corners and snap:
-    // - Top edge (at backrest seam): ML + seam (wider, matches main piece for continuous coverage)
+    // - Top edge (at backrest seam): ML (same width as main piece)
     // - Bottom edge (at floor): WB + 2*hem (narrower, just covers back width)
     // - Height: H - FC (back drop)
     // Side extensions provide continuous material coverage at the corners (replacing gussets).
     // Excess material at corners folds inward and is held by snaps.
-    const backPieceTopWidth = ML + seam;    // Top edge at seam (e.g., 92.5")
+    const backPieceTopWidth = ML;            // Top edge at seam — same width as main piece
     const backPieceBottomWidth = WB + 2 * hem;  // Bottom edge (e.g., 27")
     const backPieceHeight = H - FC;              // Height: back drop (e.g., 33")
     // For nesting and display, use the top width (the longer dimension along bolt)
@@ -2009,7 +2022,7 @@ function compute(){
           ? `totalFB (${fmtExact(totalFB)}) ≤ B (${B})`
           : `totalFB (${fmtExact(totalFB)}) > B (${B}), shortage = ${fmtExact(frontFlapShortage)}<br/><span style="font-size:10px;color:var(--sub);">Front flap: ${fmtExact(frontFlapWidth)}" wide (shortage + ${fmtExact(hem)}" hem/seam) × ${fmtExact(frontFlapLength)}" long</span>`],
       ['Back piece (trapezoid)', `Top: ${fmtInch(backPieceTopWidth, rounded)}" / Bottom: ${fmtInch(backPieceBottomWidth, rounded)}" / Height: ${fmtInch(backPieceHeight, rounded)}"`,
-        `Trapezoid: top edge ML+seam = ${fmtExact(ML)} + ${seam} = ${fmtExact(backPieceTopWidth)}", bottom edge WB+2×hem = ${WB} + 2×${hem} = ${fmtExact(backPieceBottomWidth)}", height H−FC = ${H} − ${FC} = ${fmtExact(backPieceHeight)}"<br/>Side extensions wrap around corners, providing continuous coverage. Excess material folds inward and snaps to main piece's side drops.`],
+        `Trapezoid: top edge ML = ${fmtExact(backPieceTopWidth)}" (matches main piece), bottom edge WB+2×hem = ${WB} + 2×${hem} = ${fmtExact(backPieceBottomWidth)}", height H−FC = ${H} − ${FC} = ${fmtExact(backPieceHeight)}"<br/>Side extensions wrap around corners, providing continuous coverage. Excess material folds inward and snaps to main piece's side drops.`],
       ['Split-back nesting', useSplitBack
           ? `<span style="color:#059669;">Active — saves ${fmtInch(splitBackSavings, rounded)}"</span>`
           : `<span style="color:#94a3b8;">Not used${!splitBackFits ? ' (won\'t fit)' : ' (full trapezoid + flap nesting is more efficient)'}</span>`,
@@ -2220,7 +2233,7 @@ function compute(){
           <span>Diagonal edge length (reference)</span><strong>${fmtExact(backDiagonalLength)}"</strong>
         </div>
         <div style="font-size:11px;color:var(--sub);margin-top:4px;">
-          √((H−FC)² + ((ML+seam − (WB+2×hem)) ÷ 2)²) = √(${fmtExact(backPieceHeight)}² + ${fmtExact(fullExtensionPerSide)}²) = ${fmtExact(backDiagonalLength)}"
+          √((H−FC)² + ((ML − (WB+2×hem)) ÷ 2)²) = √(${fmtExact(backPieceHeight)}² + ${fmtExact(fullExtensionPerSide)}²) = ${fmtExact(backDiagonalLength)}"
         </div>
       </div>
 
@@ -2373,7 +2386,7 @@ function compute(){
         </div>
         <div style="font-size:11px;color:var(--sub);margin-top:4px;">
           <strong>Trapezoid shape:</strong><br/>
-          Top edge (at backrest seam): ML + seam = ${fmtExact(ML)} + ${seam} = ${fmtExact(backPieceTopWidth)}"<br/>
+          Top edge (at backrest seam): ML = ${fmtExact(backPieceTopWidth)}" (matches main piece width)<br/>
           Bottom edge (at floor): WB + 2×hem = ${WB} + 2×${hem} = ${fmtExact(backPieceBottomWidth)}"<br/>
           Height: H − FC = ${H} − ${FC} = ${fmtExact(backPieceHeight)}"<br/>
           <strong>Installation:</strong> Sewn to main piece at backrest top (wider edge). Side extensions wrap around corners, providing continuous water-tight coverage. Excess material folds inward and snaps to main piece's side drops.

@@ -98,7 +98,7 @@
       <li><strong>Mark and cut</strong> the diagonal at each corner: from a point one side-drop in along the long edge to a point one side-drop in along the short edge. Remove the outer triangle. A triangular flap (the inner half of the corner square) remains.</li>
       <li>Add the wavy edge pattern around the perimeter (skip the diagonal cut edges, since they will be joined to each other).</li>
       <li>At each corner, fold the two adjacent side drops together so the diagonal cut edges meet. <strong>Install 2 snaps per corner</strong> (add another pair for every ~15" of drop).</li>
-      <li><strong>Install corner grommets</strong> at the four corners where the long sides meet the short sides. On the flat cover, position each grommet <strong>drop ÷ 3</strong> in from the outer long edge (and ~2" past the diagonal chamfer). When the cover is installed, that puts the grommet about <strong>two-thirds of the way down the drop</strong>, so the bungee has enough fabric below it to cinch tight underneath without lifting the grommet back over the top edge.</li>
+      <li><strong>Install corner grommets</strong> at the four corners where the long sides meet the short sides. On the flat cover, position each grommet <strong>drop ÷ 3</strong> in from the outer long edge (and 5" past the diagonal chamfer). When the cover is installed, that puts the grommet about <strong>two-thirds of the way down the drop</strong>, so the bungee has enough fabric below it to cinch tight underneath without lifting the grommet back over the top edge.</li>
       <li>Install the cover by laying it over the table top, snapping the four corners closed, then running a bungee through the two grommets on each short end and wrapping it under the short side of the table to cinch the cover tight.</li>
     </ol>
   </div>
@@ -139,7 +139,7 @@ function compute(){
   //     grommet 2/3 of the way DOWN the drop from the table edge (the fold) —
   //     so when the cover is installed, the grommets hang ~2/3 of the way
   //     down the side of the ottoman and the bungee can cinch underneath.
-  const gromAlongIn = 2;            // inches along the long edge past the chamfer
+  const gromAlongIn = 5;            // inches along the long edge past the chamfer
   const gromDownIn  = drop / 3;     // inches from the outer cover edge (= 2/3 down the drop)
   const gromInset   = gromDownIn;   // legacy alias used in the results card
   // Bungee runs through the two grommets at one short end, wraps the short side of the table.
@@ -354,7 +354,7 @@ function drawDiagram(p){
   add('text',{x:x0 + w/2, y:y0 + h - dPx/2 + 4, 'text-anchor':'middle','font-size':10, fill:'#334155'}).textContent = `${r(drop)}" drop`;
 
   // Corner grommets (one at each corner — on the long sides, just inside the diagonal cut)
-  // Along-edge offset: small (2") past the chamfer so the grommet is near the corner.
+  // Along-edge offset: 5" past the chamfer so the grommet is near the corner.
   // Perpendicular offset: drop/3 from outer cover edge → grommet hangs ~2/3 down the drop.
   const gAlong = gromAlongIn * scale;
   const gDown  = gromDownIn  * scale;
@@ -458,34 +458,33 @@ function drawDiagram(p){
       add('circle',{cx:lx, cy:ly, r:4, fill:snapColor, stroke:'#166534', 'stroke-width':1});
     }
   }
-  // Annotate the top-left corner with snap dimensions so the manufacturer
-  // can read the placement off the diagram.
+  // Annotate the bottom-left corner with snap dimensions so the manufacturer
+  // can read the placement off the diagram (moved to bottom-left to keep top clean).
   {
-    const tl = corners[0];
+    const bl = corners[3];  // bottom-left corner
     const fmt = (v)=> (Math.round(v*10)/10).toString();
     const alongIn = fmt(0.95 * drop);
     const perpIn  = fmt(0.50 * drop);
-    // Long-side flap snap (top edge)
-    const sx1 = tl.ox + 0.95 * dPx;
-    const sy1 = tl.oy + 0.50 * dPx;
-    // Along dimension above the cover
-    add('line',{x1:tl.ox, y1:tl.oy-10, x2:sx1, y2:tl.oy-10, stroke:'#16a34a','stroke-width':1});
-    add('line',{x1:tl.ox, y1:tl.oy-13, x2:tl.ox, y2:tl.oy-7, stroke:'#16a34a','stroke-width':1});
-    add('line',{x1:sx1,    y1:tl.oy-13, x2:sx1,    y2:tl.oy-7, stroke:'#16a34a','stroke-width':1});
-    add('text',{x:(tl.ox+sx1)/2, y:tl.oy-28,'text-anchor':'middle','font-size':10, fill:'#15803d','font-weight':'bold'})
+    // Long-side flap snap (bottom edge)
+    const sx1 = bl.ox + 0.95 * dPx;
+    const sy1 = bl.oy - 0.50 * dPx;
+    // Along dimension below the cover
+    add('line',{x1:bl.ox, y1:bl.oy+10, x2:sx1, y2:bl.oy+10, stroke:'#16a34a','stroke-width':1});
+    add('line',{x1:bl.ox, y1:bl.oy+7, x2:bl.ox, y2:bl.oy+13, stroke:'#16a34a','stroke-width':1});
+    add('line',{x1:sx1,    y1:bl.oy+7, x2:sx1,    y2:bl.oy+13, stroke:'#16a34a','stroke-width':1});
+    add('text',{x:(bl.ox+sx1)/2, y:bl.oy+24,'text-anchor':'middle','font-size':10, fill:'#15803d','font-weight':'bold'})
       .textContent = `snap placement`;
-    add('text',{x:(tl.ox+sx1)/2, y:tl.oy-16,'text-anchor':'middle','font-size':10, fill:'#15803d'})
+    add('text',{x:(bl.ox+sx1)/2, y:bl.oy+36,'text-anchor':'middle','font-size':10, fill:'#15803d'})
       .textContent = `${alongIn}" along edge`;
-    // Perpendicular dimension to the LEFT of the cover (outside) so it's not
-    // hidden under the corner grommet.
-    add('line',{x1:tl.ox-12, y1:tl.oy, x2:tl.ox-12, y2:sy1, stroke:'#16a34a','stroke-width':1});
-    add('line',{x1:tl.ox-15, y1:tl.oy, x2:tl.ox-9,  y2:tl.oy, stroke:'#16a34a','stroke-width':1});
-    add('line',{x1:tl.ox-15, y1:sy1,    x2:tl.ox-9,  y2:sy1,    stroke:'#16a34a','stroke-width':1});
-    add('text',{x:tl.ox-16, y:(tl.oy+sy1)/2+4,'text-anchor':'end','font-size':10, fill:'#15803d'})
+    // Perpendicular dimension to the LEFT of the cover (outside)
+    add('line',{x1:bl.ox-12, y1:bl.oy, x2:bl.ox-12, y2:sy1, stroke:'#16a34a','stroke-width':1});
+    add('line',{x1:bl.ox-15, y1:bl.oy, x2:bl.ox-9,  y2:bl.oy, stroke:'#16a34a','stroke-width':1});
+    add('line',{x1:bl.ox-15, y1:sy1,    x2:bl.ox-9,  y2:sy1,    stroke:'#16a34a','stroke-width':1});
+    add('text',{x:bl.ox-16, y:(bl.oy+sy1)/2+4,'text-anchor':'end','font-size':10, fill:'#15803d'})
       .textContent = `${perpIn}" in from edge`;
     // Light leader lines from the dimensions to the actual snap point
-    add('line',{x1:sx1, y1:tl.oy-7, x2:sx1, y2:sy1, stroke:'#16a34a','stroke-width':0.5,'stroke-dasharray':'2 2'});
-    add('line',{x1:tl.ox-9, y1:sy1, x2:sx1, y2:sy1, stroke:'#16a34a','stroke-width':0.5,'stroke-dasharray':'2 2'});
+    add('line',{x1:sx1, y1:bl.oy+7, x2:sx1, y2:sy1, stroke:'#16a34a','stroke-width':0.5,'stroke-dasharray':'2 2'});
+    add('line',{x1:bl.ox-9, y1:sy1, x2:sx1, y2:sy1, stroke:'#16a34a','stroke-width':0.5,'stroke-dasharray':'2 2'});
   }
 
   // Outer dimension arrows
@@ -494,10 +493,10 @@ function drawDiagram(p){
   arrow(xL, y0 - 48, xR, y0 - 48);
   add('text',{x:(xL+xR)/2, y:y0 - 54, 'text-anchor':'middle','font-size':12, fill:'#334155', 'font-weight':'bold'})
     .textContent = `Cover length (ML): ${r(ML)}"`;
-  // Right: MD
+  // Right: MD — label offset further right so it's below/beside the line, not on it
   arrow(xR + 30, yT, xR + 30, yB);
-  add('text',{x:xR + 36, y:(yT+yB)/2, 'text-anchor':'middle','font-size':12, fill:'#334155', 'font-weight':'bold',
-    transform:`rotate(-90 ${xR + 36} ${(yT+yB)/2})`})
+  add('text',{x:xR + 44, y:(yT+yB)/2, 'text-anchor':'middle','font-size':12, fill:'#334155', 'font-weight':'bold',
+    transform:`rotate(-90 ${xR + 44} ${(yT+yB)/2})`})
     .textContent = `Cover width (MD): ${r(MD)}"`;
 
   // Direction labels

@@ -88,12 +88,13 @@
         <div class="card" id="inputsCard">
           <div class="title">Inputs</div>
           <div class="inputs">
-            <label class="lbl">B (Bolt width - Fabric size)<input id="B" type="number" value="54" step="0.1" /></label>
+            <label class="lbl">B (Bolt width - Fabric size)<input id="B" type="number" value="56" step="0.1" /></label>
             <label class="lbl">W (Chaise width)<input id="W" type="number" value="24" step="1" /></label>
             <label class="lbl">D (Chaise length, head-to-foot)<input id="D" type="number" value="72" step="1" /></label>
             <label class="lbl">H (Height — frame top to floor, <strong>no cushion</strong>)<input id="H" type="number" value="18" step="1" /></label>
             <label class="lbl">FC + Wave Allowance<input id="FC" type="number" value="3" step="1" /></label>
             <label class="lbl">CC (Corner cut inset — blank = auto)<input id="CC" type="number" value="" step="0.5" placeholder="auto (H − FC)" /></label>
+            <label class="lbl">Cushion Thickness (optional — 0 if no cushion)<input id="CT" type="number" value="" step="0.5" placeholder="0" /></label>
             <!-- Legacy inputs (unused in chaise calc — hidden but kept so legacy code refs don't break) -->
             <input id="WB" type="hidden" value="24" />
             <input id="F2A" type="hidden" value="0" />
@@ -186,7 +187,7 @@
           <li><strong style="color:#b45309;">Install grommets</strong> at the four corner positions:
             <ul style="margin-top:4px; padding-left:20px;">
               <li>5" in from the back/front edge of the chaise (toward the chaise center)</li>
-              <li>3" outside the chaise's side edges (in the side overhang)</li>
+              <li>5" outside the chaise's side edges (in the side overhang)</li>
             </ul>
           </li>
           <li><strong>Install</strong> the cover with the chaise lying flat. Run a bungee through each corner grommet, pull it underneath the chaise, and cinch so the excess fabric wraps tight against the underside.</li>
@@ -256,7 +257,8 @@ function drawDiagram(params){
   const {B, W, WB, hem, roundMode, seam, sideDrop, frontExtDrop,
          couch_panelLen, couch_panelW, couch_assembledW, couch_joinedUsableW,
          couch_backInset, couch_taperLen, couch_frontStraight,
-         couch_extNeeded, couch_extEachCut, couch_extSeam, couch_extBoltsNeeded, couch_totalBolts} = params;
+         couch_extNeeded, couch_extEachCut, couch_extSeam, couch_extBoltsNeeded, couch_totalBolts,
+         couch_splitExt, couch_extStripW, couch_extBoltPull, centerSeam, usableBoltW} = params;
   // === Compute actual extension length (the y-span where the polygon's
   // half-width exceeds (B − seam)). The extension only needs to span this
   // region — not the full panel length. ===
@@ -326,92 +328,130 @@ function drawDiagram(params){
   const extW = couch_extEachCut || 0;
   const bothExtFitOneBolt = extNeeded && (2 * extW + (couch_extSeam || 1)) <= B;
 
-  // Build bolt list — chaise lounge uses a single panel
+  // Build bolt list — everything from one bolt for chaise
   const bolts = [];
-  bolts.push({label:'BOLT 1', pieces:[
-    {name:'CHAISE LOUNGE COVER', len:couch_panelLen, wid:couch_panelW, fill:'#bfdbfe55', stroke:'#2563eb'}
-  ]});
-  if (extNeeded) {
-    if (bothExtFitOneBolt) {
-      bolts.push({label:'BOLT 3', pieces:[
-        {name:'LEFT EXTENSION',  len:extActualLen, wid:extW, fill:'#d8b4fe55', stroke:'#7c3aed', yOffset:0},
-        {name:'RIGHT EXTENSION', len:extActualLen, wid:extW, fill:'#d8b4fe55', stroke:'#7c3aed', yOffset:extW}
-      ]});
-    } else {
-      bolts.push({label:'BOLT 3', pieces:[
-        {name:'LEFT EXTENSION', len:extActualLen, wid:extW, fill:'#d8b4fe55', stroke:'#7c3aed'}
-      ]});
-      bolts.push({label:'BOLT 4', pieces:[
-        {name:'RIGHT EXTENSION', len:extActualLen, wid:extW, fill:'#d8b4fe55', stroke:'#7c3aed'}
-      ]});
-    }
+  const mainPieces = [
+    {name:'CHAISE LOUNGE COVER', len:couch_panelLen, wid: Math.min(couch_panelW, B), fill:'#bfdbfe55', stroke:'#2563eb'}
+  ];
+  // Extension strips go on the same bolt, right after the main panel
+  if (extNeeded && couch_splitExt) {
+    const stripW = couch_extStripW;
+    const halfLen = couch_panelLen / 2 + (centerSeam || 1);  // each half = extension length / 2 + seam
+    // The half-strips are cut ACROSS the bolt width: halfLen runs vertically (across bolt),
+    // stripW runs horizontally (along bolt length). 4 strips stacked side-by-side after main panel.
+    mainPieces.push(
+      {name:'L1', len:stripW, wid:halfLen, fill:'#d8b4fe55', stroke:'#7c3aed', xOffset:couch_panelLen, yOffset:0},
+      {name:'L2', len:stripW, wid:halfLen, fill:'#d8b4fe55', stroke:'#7c3aed', xOffset:couch_panelLen + stripW, yOffset:0},
+      {name:'R1', len:stripW, wid:halfLen, fill:'#fde68a88', stroke:'#b45309', xOffset:couch_panelLen + 2*stripW, yOffset:0},
+      {name:'R2', len:stripW, wid:halfLen, fill:'#fde68a88', stroke:'#b45309', xOffset:couch_panelLen + 3*stripW, yOffset:0}
+    );
   }
+  const totalBoltPull = extNeeded ? couch_panelLen + (couch_extBoltPull || 0) : couch_panelLen;
+  bolts.push({label:'BOLT 1', pieces:mainPieces, boltLen:totalBoltPull});
 
-  // Compute scale: width = couch_panelLen, height = B × number of bolts (stacked vertically)
+  // Compute scale: width = max bolt length, height = B × number of bolts (stacked vertically)
   const nBolts = bolts.length;
   const boltGap = 22;  // px between bolts
+  const maxBoltLen = Math.max(...bolts.map(b => b.boltLen || Math.max(...b.pieces.map(p => p.len))));
   const totalH_in = B * nBolts;
-  const scaleX = (VBW - pad*2) / (couch_panelLen + 40);
+  const scaleX = (VBW - pad*2) / (maxBoltLen + 40);
   const scaleY = (VBH - pad*2 - 60 - boltGap*(nBolts-1)) / totalH_in;
   const sc = Math.min(scaleX, scaleY);
 
   const sx = pad + 30;
   let sy = pad + 20;
-  const boltLenPx = couch_panelLen * sc;
   const boltWPx = B * sc;
 
   for (let bi = 0; bi < bolts.length; bi++) {
     const bolt = bolts[bi];
-    // Bolt outline (full B-width strip)
-    add('rect',{x:sx, y:sy, width:boltLenPx, height:boltWPx,
+    const thisBoltLen = bolt.boltLen || Math.max(...bolt.pieces.map(p => p.len));
+    const thisBoltLenPx = thisBoltLen * sc;
+    // Bolt outline (full B-width strip, scaled to this bolt's length)
+    add('rect',{x:sx, y:sy, width:thisBoltLenPx, height:boltWPx,
       fill:'#f8fafc', stroke:'#94a3b8', 'stroke-width':1, 'stroke-dasharray':'4,3'});
     // Bolt label
     add('text',{x:sx - 8, y:sy + boltWPx/2, 'text-anchor':'end', 'dominant-baseline':'middle',
       'font-size':11, fill:'#475569', 'font-weight':'bold'}).textContent=bolt.label;
     // Bolt width arrow (right side)
-    arrow(sx + boltLenPx + 8, sy, sx + boltLenPx + 8, sy + boltWPx);
-    add('text',{x:sx + boltLenPx + 14, y:sy + boltWPx/2, 'dominant-baseline':'middle', 'font-size':10,
+    arrow(sx + thisBoltLenPx + 8, sy, sx + thisBoltLenPx + 8, sy + boltWPx);
+    add('text',{x:sx + thisBoltLenPx + 14, y:sy + boltWPx/2, 'dominant-baseline':'middle', 'font-size':10,
       fill:'#475569'}).textContent=`${rIn(B)}"`;
 
     // Pieces
+    let extGroupX1 = null, extGroupX2 = null, extGroupH = 0;
     for (const pc of bolt.pieces) {
       const pw = pc.len * sc;
       const ph = pc.wid * sc;
+      const px = sx + (pc.xOffset || 0) * sc;
       const py = sy + (pc.yOffset || 0) * sc;
-      add('rect',{x:sx, y:py, width:pw, height:ph, fill:pc.fill, stroke:pc.stroke, 'stroke-width':1.5});
-      add('text',{x:sx + pw/2, y:py + ph/2 - 4, 'text-anchor':'middle', 'font-size':12,
-        fill:pc.stroke, 'font-weight':'bold'}).textContent=pc.name;
-      add('text',{x:sx + pw/2, y:py + ph/2 + 12, 'text-anchor':'middle', 'font-size':10,
-        fill:pc.stroke}).textContent=`${rIn(pc.len)}" × ${rIn(pc.wid)}"`;
+      add('rect',{x:px, y:py, width:pw, height:ph, fill:pc.fill, stroke:pc.stroke, 'stroke-width':1.5});
+
+      // Track extension strip group bounds (narrow pieces with xOffset)
+      if (pc.xOffset && pw < 30) {
+        if (extGroupX1 === null) extGroupX1 = px;
+        extGroupX2 = px + pw;
+        extGroupH = Math.max(extGroupH, ph);
+        continue;  // skip individual labels for narrow strips
+      }
+
+      // Labels for normal-sized pieces
+      const fontSize = ph < 16 ? 8 : ph < 24 ? 10 : 12;
+      const dimFontSize = ph < 16 ? 7 : ph < 24 ? 9 : 10;
+      if (ph >= 12) {
+        add('text',{x:px + pw/2, y:py + ph/2 - (ph < 24 ? 2 : 4), 'text-anchor':'middle', 'font-size':fontSize,
+          fill:pc.stroke, 'font-weight':'bold'}).textContent=pc.name;
+      }
+      if (ph >= 20) {
+        add('text',{x:px + pw/2, y:py + ph/2 + (ph < 24 ? 8 : 12), 'text-anchor':'middle', 'font-size':dimFontSize,
+          fill:pc.stroke}).textContent=`${rIn(pc.len)}" × ${rIn(pc.wid)}"`;
+      }
     }
 
-    // Length arrow above each bolt (only first one to avoid clutter)
+    // Group label for extension strips (if any)
+    if (extGroupX1 !== null) {
+      const stripW = couch_extStripW;
+      const halfLen = couch_panelLen / 2 + (centerSeam || 1);
+      const groupCx = (extGroupX1 + extGroupX2) / 2;
+      const groupW = extGroupX2 - extGroupX1;
+      // Brace + label to the right of the strips
+      add('text',{x:extGroupX2 + 8, y:sy + extGroupH * 0.3, 'font-size':10,
+        fill:'#475569', 'font-weight':'bold'}).textContent=`4 half-strips`;
+      add('text',{x:extGroupX2 + 8, y:sy + extGroupH * 0.3 + 14, 'font-size':9,
+        fill:'#475569'}).textContent=`${rIn(stripW)}" × ${rIn(halfLen)}" ea.`;
+      add('text',{x:extGroupX2 + 8, y:sy + extGroupH * 0.3 + 26, 'font-size':9,
+        fill:'#475569'}).textContent=`L + R extensions`;
+      // Width dimension arrow across the group
+      arrow(extGroupX1, sy + extGroupH + 10, extGroupX2, sy + extGroupH + 10);
+      add('text',{x:groupCx, y:sy + extGroupH + 24, 'text-anchor':'middle', 'font-size':9,
+        fill:'#475569'}).textContent=`${rIn(4 * stripW)}"`;
+    }
+
+    // Length arrow above first bolt
     if (bi === 0) {
-      arrow(sx, sy - 12, sx + boltLenPx, sy - 12);
-      add('text',{x:sx + boltLenPx/2, y:sy - 16, 'text-anchor':'middle', 'font-size':11,
+      arrow(sx, sy - 12, sx + thisBoltLenPx, sy - 12);
+      add('text',{x:sx + thisBoltLenPx/2, y:sy - 16, 'text-anchor':'middle', 'font-size':11,
         fill:'#334155', 'font-weight':'bold'}).textContent=`Panel length: ${rIn(couch_panelLen)}"`;
+    }
+    // Length label for extension bolt if different
+    if (bi > 0 && bolt.boltLen) {
+      arrow(sx, sy - 12, sx + thisBoltLenPx, sy - 12);
+      add('text',{x:sx + thisBoltLenPx/2, y:sy - 16, 'text-anchor':'middle', 'font-size':10,
+        fill:'#7c3aed', 'font-weight':'bold'}).textContent=`Extension bolt: ${rIn(thisBoltLen)}"`;
     }
 
     sy += boltWPx + boltGap;
   }
 
   // Footer summary
-  const mainBoltsLen = couch_panelLen * 1;  // chaise: single panel
-  const extBoltsLen = extNeeded ? (bothExtFitOneBolt ? extActualLen : extActualLen * 2) : 0;
-  const totalYards = (mainBoltsLen + extBoltsLen) / 36;
-  const totalLineParts = [`1 × ${rIn(couch_panelLen)}" panel`];
-  if (extNeeded) totalLineParts.push(bothExtFitOneBolt
-    ? `1 × ${rIn(extActualLen)}" extension bolt`
-    : `2 × ${rIn(extActualLen)}" extension bolts`);
+  const totalYards = totalBoltPull / 36;
   add('text',{x:VBW/2, y:sy + 18, 'text-anchor':'middle', 'font-size':12, fill:'#0f172a',
     'font-weight':'bold'}).textContent=
-    `Total fabric: ${totalLineParts.join(' + ')} = ${rIn((mainBoltsLen + extBoltsLen))}" (${Math.ceil(totalYards*10)/10} yd)`;
-  if (extNeeded && bothExtFitOneBolt) {
+    `Total bolt: ${rIn(totalBoltPull)}" (${Math.ceil(totalYards*10)/10} yd)`;
+  if (extNeeded && couch_splitExt) {
+    const stripW = couch_extStripW;
+    const extPull = couch_extBoltPull || 4 * stripW;
     add('text',{x:VBW/2, y:sy + 34, 'text-anchor':'middle', 'font-size':10, fill:'#475569'}).textContent=
-      `Both side extensions nest on Bolt 3 (2 × ${rIn(extW)}" + seam = ${rIn(2*extW + seam)}" ≤ ${rIn(B)}")`;
-  } else if (extNeeded) {
-    add('text',{x:VBW/2, y:sy + 34, 'text-anchor':'middle', 'font-size':10, fill:'#475569'}).textContent=
-      `Each extension is too wide to share a bolt — uses its own bolt.`;
+      `${rIn(couch_panelLen)}" panel + ${rIn(extPull)}" for 4 extension half-strips (${rIn(stripW)}" wide × ~${rIn(couch_panelLen/2 + 1)}" long, cut across bolt, sewn at center)`;
   } else {
     add('text',{x:VBW/2, y:sy + 34, 'text-anchor':'middle', 'font-size':10, fill:'#475569'}).textContent=
       `Single panel — assembled width (${rIn(couch_assembledW)}") fits within bolt width (${rIn(B)}").`;
@@ -682,18 +722,36 @@ function updateCutList(params){
   const {B, roundMode, seam,
          couch_panelLen, couch_panelW, couch_assembledW, couch_joinedUsableW,
          couch_backInset, couch_taperLen, couch_frontStraight, couch_frontInset, couch_frontFlapWidth, couch_frontFlapNeeded,
-         couch_extNeeded, couch_extEachCut, couch_extBoltsNeeded, couch_totalBolts} = params;
+         couch_extNeeded, couch_extEachCut, couch_extBoltsNeeded, couch_totalBolts,
+         couch_splitExt, couch_extStripW, couch_extBoltPull} = params;
   const rm = roundMode;
   const cutlist = document.getElementById('cutlist');
   const rows = [];
 
   rows.push(['Chaise cover panel',
-    `${fmtInch(couch_panelLen, rm)}" × ${fmtInch(couch_panelW, rm)}" (cut from ${B}" bolt)`,
+    `${fmtInch(couch_panelLen, rm)}" × ${fmtInch(Math.min(couch_panelW, B), rm)}" (cut from ${B}" bolt)`,
     `Qty 1 — single panel cut from one bolt. Runs head-to-foot across the chaise lounge while it lies flat.`]);
 
-  rows.push(['Total bolts',
-    `1 bolt × ${fmtInch(couch_panelLen, rm)}"`,
-    `Single panel — assembled width ${fmtExact(couch_assembledW)}" fits within the ${B}" bolt width.`]);
+  if (couch_extNeeded) {
+    const stripW = couch_extStripW;
+    const halfLen = couch_panelLen / 2 + 1;  // each half ~53" (half extension + seam)
+    const extPull = 4 * stripW;
+    rows.push(['Side extensions (split-and-sew)',
+      `4 half-strips @ ${fmtInch(halfLen, rm)}" × ${fmtInch(stripW, rm)}"`,
+      `Each extension cut as 2 halves (${fmtInch(halfLen, rm)}" each) across the ${B}" bolt width, sewn at center seam. All 4 half-strips cut from ${fmtInch(extPull, rm)}" of the same bolt, right after the main panel.`]);
+  }
+
+  if (couch_extNeeded) {
+    const extPull = 4 * couch_extStripW;
+    const totalPull = couch_panelLen + extPull;
+    rows.push(['Total bolt',
+      `${fmtInch(totalPull, rm)}" from 1 bolt`,
+      `${fmtInch(couch_panelLen, rm)}" panel + ${fmtInch(extPull, rm)}" extension strips = ${fmtInch(totalPull, rm)}" total.`]);
+  } else {
+    rows.push(['Total bolt',
+      `${fmtInch(couch_panelLen, rm)}" from 1 bolt`,
+      `Single panel — assembled width ${fmtExact(couch_assembledW)}" fits within the ${B}" bolt width.`]);
+  }
 
   rows.push(['Hardware', '4 corner grommets',
     `One grommet at each corner of the cover. Bungees pulled through each grommet, run underneath the chaise, and cinched to wrap excess material tight against the underside.`]);
@@ -999,7 +1057,7 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
   // It's only physically inside the polygon where the polygon's half-width ≥ (B − seam).
   // We compute the entry/exit y-coordinates by walking the polygon's right edge segments.
   if (couch_extNeeded) {
-    const sideOff = (B - (couch_extSeam || 1));  // inches from center to side seam (1" ext seam)
+    const sideOff = B / 2;  // inches from center to side seam (where main panel edge meets extension)
     const sideOffPx = sideOff * sc;
     // Right edge polyline of the silhouette (in inches from center, vs y in px):
     // Segments where the polygon's right edge half-width changes:
@@ -1048,14 +1106,15 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
         width:Math.max(0, (couch_assembledW/2 - sideOff))*sc,
         height:exitY - entryY, fill:'#d8b4fe33', stroke:'none'});
       // Labels
-      add('text',{x:cx - sideOffPx - 4, y:(entryY + exitY)/2 + 4, 'text-anchor':'end',
-        'font-size':9, fill:'#6b21a8', 'font-weight':'bold'}).textContent=`ext seam (1")`;
-      add('text',{x:cx + sideOffPx + 4, y:(entryY + exitY)/2 + 4,
-        'font-size':9, fill:'#6b21a8', 'font-weight':'bold'}).textContent=`ext seam (1")`;
-      add('text',{x:cx - sideOffPx - 4, y:(entryY + exitY)/2 + 16, 'text-anchor':'end',
-        'font-size':9, fill:'#6b21a8'}).textContent=`(${rIn(couch_extEachCut)}" wide)`;
-      add('text',{x:cx + sideOffPx + 4, y:(entryY + exitY)/2 + 16,
-        'font-size':9, fill:'#6b21a8'}).textContent=`(${rIn(couch_extEachCut)}" wide)`;
+      const extRawW = couch_assembledW / 2 - sideOff;  // raw extension width per side
+      add('text',{x:cx - sideOffPx - 4, y:(entryY + exitY)/2 - 2, 'text-anchor':'end',
+        'font-size':9, fill:'#6b21a8', 'font-weight':'bold'}).textContent=`extension seam`;
+      add('text',{x:cx + sideOffPx + 4, y:(entryY + exitY)/2 - 2,
+        'font-size':9, fill:'#6b21a8', 'font-weight':'bold'}).textContent=`extension seam`;
+      add('text',{x:cx - sideOffPx - 4, y:(entryY + exitY)/2 + 11, 'text-anchor':'end',
+        'font-size':9, fill:'#6b21a8'}).textContent=`${rIn(extRawW)}" strip sewn here`;
+      add('text',{x:cx + sideOffPx + 4, y:(entryY + exitY)/2 + 11,
+        'font-size':9, fill:'#6b21a8'}).textContent=`${rIn(extRawW)}" strip sewn here`;
     }
   }
 
@@ -1141,10 +1200,10 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
   }
   // (Chaise is a single flat panel — no segment/diagonal/back-to-B labels needed)
 
-  // Assembled width arrow at backrest line (widest)
-  const wDimY = yBackrest - 16;
+  // Assembled width arrow at backrest line (widest) — raised higher to avoid overlap
+  const wDimY = yBackrest - 40;
   arrow(cx - halfMid, wDimY, cx + halfMid, wDimY, '#0f172a');
-  add('text',{x:cx, y:wDimY - 4, 'text-anchor':'middle', 'font-size':11,
+  add('text',{x:cx, y:wDimY - 6, 'text-anchor':'middle', 'font-size':11,
     fill:'#0f172a', 'font-weight':'bold'}).textContent=`Assembled width: ${rIn(couch_assembledW)}"`;
 
   // Total cut width arrow (below the diagram)
@@ -1206,17 +1265,23 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
     // label blocks so it doesn't crowd the "Assembled width" arrow at the top.
     const snapLabelX = cx + halfMid + 18;
     const snapLabelY = (yBackFloor + drawBotY) / 2;
-    add('text',{x:snapLabelX, y:snapLabelY - 6, 'text-anchor':'start', 'font-size':10,
+    // Snap positions measured from the CORNER of the flat cut fabric:
+    // Snap A: dIn along one edge (e.g. along the top edge from the corner)
+    // Snap B: dIn along the adjacent edge (e.g. down the side edge from the corner)
+    // Both snaps are right at the edge (0" inset from the edge itself).
+    add('text',{x:snapLabelX, y:snapLabelY - 16, 'text-anchor':'start', 'font-size':10,
       fill:snapColor, 'font-weight':'bold'}).textContent=`Corner snap pairs`;
-    add('text',{x:snapLabelX, y:snapLabelY + 7, 'text-anchor':'start', 'font-size':9,
-      fill:snapColor}).textContent=`~${rIn(dIn)}" in from cover edge`;
+    add('text',{x:snapLabelX, y:snapLabelY - 3, 'text-anchor':'start', 'font-size':9,
+      fill:snapColor}).textContent=`2 snaps per corner, 1 on each edge`;
+    add('text',{x:snapLabelX, y:snapLabelY + 10, 'text-anchor':'start', 'font-size':9,
+      fill:snapColor}).textContent=`${rIn(dIn)}" from diagonal cut, along each edge`;
   }
 
   // === CHAISE CORNER GROMMETS (4 total — one per corner) ===
   // Positioned relative to the dotted chaise outline (the chair top), not the cover edge:
   //   • 5" in from the back/front dotted edge (toward the chair center)
   //   • 3" out from the side dotted edges (into the side overhang)
-  const gromSideOut = 3;   // outside the chaise width
+  const gromSideOut = 5;   // outside the chaise width
   const gromEndIn   = 5;   // inside the chaise length
   const gromGromX = (W/2 + gromSideOut);                          // inches from cover center
   const gromYBack  = chaiseY + gromEndIn * sc;                    // 5" down from back chaise edge
@@ -1271,9 +1336,13 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
 
   // Left column: panel + installation note
   let row = keyY + 36;
-  add('text',{x:keyX + 12, y:row, 'font-size':11, fill:'#059669', 'font-weight':'bold'}).textContent='Single panel — no seams';
+  add('text',{x:keyX + 12, y:row, 'font-size':11, fill:'#059669', 'font-weight':'bold'}).textContent=
+    couch_extNeeded ? 'Panel + side extensions' : 'Single panel — no seams';
   row += 14;
-  add('text',{x:keyX + 12, y:row, 'font-size':10, fill:'#334155'}).textContent=`One ${rIn(couch_panelLen)}" × ${rIn(B)}" panel cut from a single bolt. No center snap seam, no extensions.`;
+  add('text',{x:keyX + 12, y:row, 'font-size':10, fill:'#334155'}).textContent=
+    couch_extNeeded
+      ? `One ${rIn(couch_panelLen)}" × ${rIn(B)}" panel + two ${rIn(couch_assembledW/2 - B/2)}" extension strips sewn to each side.`
+      : `One ${rIn(couch_panelLen)}" × ${rIn(B)}" panel cut from a single bolt. No center snap seam, no extensions.`;
   row += 18;
   add('text',{x:keyX + 12, y:row, 'font-size':11, fill:'#059669', 'font-weight':'bold'}).textContent='Installation';
   row += 14;
@@ -2206,15 +2275,23 @@ function compute(){
     const hem  = parseNum('hem');
     const seam = parseNum('seam');
     const sideEase = parseNum('sideEase');
+    const CT = parseNum('CT');  // Cushion thickness (optional, default 0)
 
     // === MAIN PIECE CALCULATIONS (Side-to-Side Design) ===
     // AT2F: diagonal drape from front edge of backrest top to front of seat
     // Uses (D - BR) because the fabric has already traversed BR across the backrest top
     const AT2F = Math.sqrt(Math.max(0, H - F2A)**2 + Math.max(0, D - BR)**2);
 
-    // Side drop: from floor (minus clearance/wave) up to top of backrest
-    // The fabric must go up and over the FULL HEIGHT of the chair on each side
-    const sideDrop = H - FC;
+    // Side drop: how much fabric hangs past the top on each side.
+    // When a cushion is present, size the cover to the TOTAL height (frame + cushion)
+    // with 4" floor clearance. Without cushion, use the normal FC clearance.
+    const FC_CUSHION = 4;  // floor clearance when cushion is on
+    const effectiveHeight = CT > 0 ? H + CT : H;
+    const effectiveFC = CT > 0 ? FC_CUSHION : FC;
+    const sideDrop = effectiveHeight - effectiveFC;
+    // Without cushion: how far off the floor is the fabric bottom?
+    // = H - sideDrop (fabric hangs sideDrop from frame top, frame is H tall)
+    const noCushionClearance = H - sideDrop;
     // Corner cut inset: user-adjustable. Blank/0 falls back to sideDrop (matches
     // the overhang), which is the historical behavior. Entering a larger value
     // moves the chamfer further inward from the corner of the chaise.
@@ -2234,8 +2311,8 @@ function compute(){
     // hem + BR + AT2F + front drop (F2A - FC)
     const totalFB = hem + BR + AT2F + frontExtDrop;
 
-    // Back drop: from backrest top to floor (for back piece)
-    const backDrop = H - FC;
+    // Back drop: from backrest top to floor (for back piece) — matches sideDrop
+    const backDrop = sideDrop;
 
     // MW: for compatibility with shared diagram functions
     const MW = WB + 2 * (H - FC);  // same as ML
@@ -2546,15 +2623,30 @@ function compute(){
     //     of the full ML, which saves bolt length compared to a 2-piece center seam.
     const chaise_ML = D + 2 * sideDrop;
     const chaise_MD = W + 2 * sideDrop;
-    let chaise_totalBoltLen, chaise_layoutNote;
+    const boltEdgeWaste = 2;   // unusable edges of bolt
+    const centerSeam = 1;      // seam allowance per piece at center join
+    const usableBoltW = B - boltEdgeWaste;  // usable width per bolt-width cut
+
+    let chaise_totalBoltLen, chaise_layoutNote, chaise_splitSew = false;
+
     if (chaise_MD <= B) {
+      // Width fits in bolt — single panel, no extensions needed
       chaise_totalBoltLen = chaise_ML;
       chaise_layoutNote = `Single panel ${fmtExact(chaise_ML)}" × ${fmtExact(chaise_MD)}" — fits within bolt width ${B}".`;
     } else {
-      const chaise_stripW = (chaise_MD - B) / 2;
-      const chaise_stripLen = W + 2 * chaise_stripW;  // chamfer trims strip to W + 2*stripW
-      chaise_totalBoltLen = chaise_ML + chaise_stripLen;
-      chaise_layoutNote = `Cover width (${fmtExact(chaise_MD)}") exceeds bolt (${B}"). Main panel ${fmtExact(chaise_ML)}" × ${B}" + 2 side strips ${fmtExact(chaise_stripLen)}" × ${fmtExact(chaise_stripW)}" each (chamfer-trimmed). Total bolt: ${fmtExact(chaise_totalBoltLen)}".`;
+      // Width exceeds bolt — side extension strips needed.
+      // Each extension = (chaise_MD - B)/2 raw + 1" seam = couch_extEachCut wide.
+      // Cut strips ACROSS the bolt width (56"), so each strip piece is ~B/2 long.
+      // Two half-strips sewn at center seam = one full extension.
+      // 2 extensions × 2 halves = 4 half-strips, each extCutW wide.
+      // All 4 cut from the SAME bolt run, right after the main panel.
+      const chaise_extRawW = (chaise_MD - B) / 2;           // raw overshoot per side
+      const chaise_extCutW = chaise_extRawW + centerSeam;    // cut width including seam
+      const chaise_extBoltPull = 4 * chaise_extCutW;         // 4 half-strips total
+      const chaise_extHalfUsable = usableBoltW / 2;          // each half covers ~this many inches
+      chaise_totalBoltLen = chaise_ML + chaise_extBoltPull;
+      chaise_splitSew = true;
+      chaise_layoutNote = `Cover width (${fmtExact(chaise_MD)}") exceeds bolt (${B}") by ${fmtExact(chaise_MD - B)}". Extensions: 4 half-strips @ ${fmtExact(chaise_extCutW)}" wide, cut across bolt, sewn at center. Bolt pull: ${fmtExact(chaise_ML)}" panel + ${fmtExact(chaise_extBoltPull)}" strips = ${fmtExact(chaise_totalBoltLen)}" total.`;
     }
 
     // Override totalLength used by Material to Buy
@@ -2566,15 +2658,19 @@ function compute(){
     const couch_panelW     = chaise_MD;
     const couch_joinedUsableW = 2 * B - 2 * seam;
     const couch_extNeeded  = chaise_MD > B;
-    const couch_extEachCut = chaise_MD > B ? (chaise_MD - B) / 2 + 1 : 0;
-    const couch_extBoltsNeeded = chaise_MD > B ? 1 : 0;
-    const couch_totalBolts = chaise_MD > B ? 2 : 1;
+    const couch_extCutW    = couch_extNeeded ? (chaise_MD - B) / 2 + centerSeam : 0;  // strip cut width incl seam
+    const couch_extEachCut = couch_extCutW;  // alias
+    const couch_extBoltPull = couch_extNeeded ? 4 * couch_extCutW : 0;  // 4 half-strips
+    const couch_extBoltsNeeded = 0;  // extensions come from same bolt
+    const couch_totalBolts = 1;      // always one bolt
     const couch_total_inches = chaise_totalBoltLen;
     const couch_total_yards = chaise_totalBoltLen / 36;
     const couch_bolts_yards_each = chaise_ML / 36;
     const couch_extDeficit = Math.max(0, chaise_MD - (2 * B - 2 * seam));
     const couch_extEachUsable = couch_extDeficit / 2;
-    const couch_extSeam = 1;
+    const couch_extSeam = centerSeam;
+    const couch_splitExt = couch_extNeeded;  // always split-and-sew for chaise extensions
+    const couch_extStripW = couch_extCutW;   // cut width per strip (includes seam)
     const couch_backInset = 0;
     const couch_frontInset = 0;
     const couch_totalFB = 0;
@@ -2585,27 +2681,70 @@ function compute(){
     const couch_frontStraight = 0;
 
     // === DISPLAY RESULTS (chaise lounge — single flat rectangle) ===
-    const rows = [
-      ['Side drop (H − FC)', `${fmtInch(sideDrop, rounded)} in`,
-        `H − FC = ${H} − ${FC} = ${fmtExact(sideDrop)}"<br/>Amount of fabric that hangs past each side, front, and back of the chaise.`],
+    const rows = [];
+
+    if (CT > 0) {
+      // Cushion-aware sizing
+      rows.push(
+        ['Side drop (with cushion)', `${fmtInch(sideDrop, rounded)} in`,
+          `(H + cushion) − ${FC_CUSHION}" clearance = (${H} + ${fmtExact(CT)}) − ${FC_CUSHION} = ${fmtExact(sideDrop)}"<br/>Cover sized so fabric reaches ${FC_CUSHION}" from the floor with the cushion on.`],
+        ['Floor clearance (with cushion)', `${FC_CUSHION}" from floor`,
+          `With the ${fmtExact(CT)}" cushion in place, the cover bottom sits ${FC_CUSHION}" off the ground.`],
+        ['Floor clearance (without cushion)', `${fmtExact(noCushionClearance)}" from floor`,
+          `Without the cushion, the fabric hangs ${fmtExact(sideDrop)}" from the ${H}" frame top. Bottom of fabric = ${H} − ${fmtExact(sideDrop)} = ${fmtExact(noCushionClearance)}" from floor.`]
+      );
+      if (noCushionClearance <= 0) {
+        rows.push(
+          ['⚠️ Drags without cushion', `${fmtExact(Math.abs(noCushionClearance))}" on the floor`,
+            `Without the cushion, the cover will drag ${fmtExact(Math.abs(noCushionClearance))}" on the floor. The bungee cord must be cinched tight to keep the cover off the ground when the cushion is removed.`]
+        );
+      } else if (noCushionClearance < 2) {
+        rows.push(
+          ['⚠️ Low without cushion', `Only ${fmtExact(noCushionClearance)}" off floor`,
+            `Without the cushion, the cover bottom is only ${fmtExact(noCushionClearance)}" from the floor. The bungee should be snugged to prevent dragging.`]
+        );
+      }
+      if (CT > 4) {
+        rows.push(
+          ['⚠️ Thick cushion', `Cushion is ${fmtExact(CT)}" — contact us`,
+            `Cushion thickness exceeds 4". We recommend a custom quote to ensure proper fit and coverage. Please contact Castaway Covers for assistance.`]
+        );
+      }
+    } else {
+      // No cushion — original behavior
+      rows.push(
+        ['Side drop (H − FC)', `${fmtInch(sideDrop, rounded)} in`,
+          `H − FC = ${H} − ${FC} = ${fmtExact(sideDrop)}"<br/>Amount of fabric that hangs past each side, front, and back of the chaise.`]
+      );
+    }
+
+    rows.push(
       ['Corner cut inset (CC)', `${fmtInch(cornerCut, rounded)} in${(CC_raw > 0 && Math.abs(CC_raw - sideDrop) > 0.01) ? ' (override)' : ' (auto = side drop)'}`,
         `Distance from each corner (along the cover edge) where the 45° chamfer starts. Measured in from the corner of the chaise footprint. Leave CC blank to auto-match the side drop, or enter a value to start the cut further in (useful when the footrest end sits lower than the head).`],
       ['Cover width', `${fmtInch(couch_assembledW, rounded)} in`,
-        `W + 2×(H − FC) = ${W} + 2×${fmtExact(sideDrop)} = ${fmtExact(couch_assembledW)}"<br/>Chaise width plus side drop on each side.`],
+        `W + 2×sideDrop = ${W} + 2×${fmtExact(sideDrop)} = ${fmtExact(couch_assembledW)}"<br/>Chaise width plus side drop on each side.`],
       ['Cover length', `${fmtInch(couch_panelLen, rounded)} in`,
-        `D + 2×(H − FC) = ${D} + 2×${fmtExact(sideDrop)} = ${fmtExact(couch_panelLen)}"<br/>Chaise depth plus side drop at the head and foot.`],
+        `D + 2×sideDrop = ${D} + 2×${fmtExact(sideDrop)} = ${fmtExact(couch_panelLen)}"<br/>Chaise depth plus side drop at the head and foot.`],
       ['Fits in bolt width', couch_assembledW <= B ? `Yes — ${fmtInch(B - couch_assembledW, rounded)}" of bolt waste per length` : `No — exceeds ${B}" bolt`,
         `Cover width ${fmtExact(couch_assembledW)}" vs bolt ${B}" — single panel cut from one bolt.`],
-    ];
+    );
 
     const results = document.getElementById('results');
     results.innerHTML = '';
     rows.forEach(([label, value, calc], i)=>{
+      const isWarning = label.startsWith('⚠️');
       const div = document.createElement('div');
       div.className = 'row';
       div.style.display = 'block';
       div.style.padding = '8px 0';
-      if (i>0) div.style.borderTop = '1px dashed var(--muted)';
+      if (isWarning) {
+        div.style.background = '#fef3c7';
+        div.style.border = '1px solid #f59e0b';
+        div.style.borderRadius = '6px';
+        div.style.padding = '8px 10px';
+        div.style.margin = '4px 0';
+      }
+      if (i>0 && !isWarning) div.style.borderTop = '1px dashed var(--muted)';
       div.innerHTML = `
         <div style="display:flex;justify-content:space-between;align-items:center;">
           <span>${label}</span><strong>${value}</strong>
@@ -2891,17 +3030,21 @@ function compute(){
           <span>Side drop (each side)</span><strong>${fmtInch(sideDrop, rounded)}"</strong>
         </div>
         <div style="font-size:11px;color:var(--sub);margin-top:4px;">
-          H − FC = ${H} − ${FC} = ${fmtExact(sideDrop)}" — the total drop from backrest top to floor (minus clearance/wave) on each side.
+          ${CT > 0
+            ? `(H + cushion) − ${FC_CUSHION}" = (${H} + ${fmtExact(CT)}) − ${FC_CUSHION} = ${fmtExact(sideDrop)}" — sized for ${FC_CUSHION}" floor clearance with cushion.`
+            : `H − FC = ${H} − ${FC} = ${fmtExact(sideDrop)}" — the total drop from frame top to floor (minus clearance/wave) on each side.`}
         </div>
       </div>
       <div class="row" style="display:block; padding:8px 0; border-top:1px solid #22c55e; background:#ecfdf5;">
         <div style="display:flex;justify-content:space-between;align-items:center;">
-          <span><strong style="color:#059669;">Floor clearance check</strong></span><strong style="color:#059669;">${fmtInch(FC, rounded)}" uniform</strong>
+          <span><strong style="color:#059669;">Floor clearance check</strong></span><strong style="color:#059669;">${CT > 0 ? `${FC_CUSHION}" with cushion` : `${fmtInch(FC, rounded)}" uniform`}</strong>
         </div>
         <div style="font-size:11px;color:var(--sub);margin-top:4px;">
-          At front (armrest): drop = ${fmtExact(frontExtDrop)}", armrest height = ${F2A}" → reaches ${F2A} − ${fmtExact(frontExtDrop)} = ${fmtExact(FC)}" from floor ✓<br/>
-          At back (backrest): drop = ${fmtExact(sideDrop)}", back height = ${H}" → reaches ${H} − ${fmtExact(sideDrop)} = ${fmtExact(FC)}" from floor ✓<br/>
-          The diagonal traces the chair profile so clearance is ${fmtInch(FC, rounded)}" everywhere along the side.
+          ${CT > 0
+            ? `With cushion: fabric bottom is ${FC_CUSHION}" from floor ✓<br/>
+               Without cushion: fabric bottom is ${fmtExact(noCushionClearance)}" from floor${noCushionClearance <= 0 ? ' ⚠️ — will drag, bungee must be cinched tight' : noCushionClearance < 2 ? ' ⚠️ — very low, snug bungee recommended' : ' ✓'}`
+            : `At back (backrest): drop = ${fmtExact(sideDrop)}", back height = ${H}" → reaches ${H} − ${fmtExact(sideDrop)} = ${fmtExact(H - sideDrop)}" from floor ✓<br/>
+               The cover maintains ${fmtInch(FC, rounded)}" clearance on all sides.`}
         </div>
       </div>
     `;
@@ -3034,6 +3177,7 @@ function compute(){
       couch_panelLen, couch_panelW, couch_assembledW, couch_joinedUsableW,
          couch_backInset, couch_taperLen, couch_frontStraight, couch_frontInset, couch_frontFlapWidth, couch_frontFlapNeeded,
       couch_extNeeded, couch_extEachCut, couch_extSeam, couch_extBoltsNeeded, couch_totalBolts,
+      couch_splitExt, couch_extStripW, couch_extBoltPull, centerSeam, usableBoltW,
       couch_total_inches, couch_total_yards};
     // Call each diagram in its own try/catch so one failure doesn't block the others
     const diagramErrors = [];
@@ -3174,7 +3318,7 @@ function wire(){
 
   document.getElementById('recalc').addEventListener('click', compute);
   document.getElementById('resetBtn').addEventListener('click', ()=>{
-    const defaults = {B:54, W:36, WB:25, H:39, D:30, F2A:26, F2BS:18, BR:4, FC:6, hem:1, seam:1.5, sideEase:0};
+    const defaults = {B:56, W:36, WB:25, H:39, D:30, F2A:26, F2BS:18, BR:4, FC:6, hem:1, seam:1.5, sideEase:0};
     Object.entries(defaults).forEach(([id,val])=>{ const el=document.getElementById(id); if(el) el.value=val; });
     document.getElementById('roundMode').value = 'whole';
     compute();
