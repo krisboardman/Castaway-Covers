@@ -928,7 +928,7 @@ function drawAssemblyDiagramSide(params){
 
 function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
   svgId = svgId || 'assemblyDiagramFlatFull';
-  vbw = vbw || 1200;
+  vbw = vbw || 1400;
   vbh = vbh || 900;
   const {H, W, WB, D, F2A, F2BS, BR, FC, B, AT2F, sideDrop, frontExtDrop,
          hem, seam, rounded, roundMode,
@@ -1100,15 +1100,16 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
       add('rect',{x:cx - sideOffPx - Math.max(0, (couch_assembledW/2 - sideOff))*sc, y:entryY,
         width:Math.max(0, (couch_assembledW/2 - sideOff))*sc,
         height:exitY - entryY, fill:'#d8b4fe33', stroke:'none'});
-      // Labels
-      add('text',{x:cx - sideOffPx - 4, y:(entryY + exitY)/2 + 4, 'text-anchor':'end',
+      // Labels — show extension strip dimensions on the assembly diagram
+      const extStripLen = couch_panelLen;  // extension runs full panel length
+      add('text',{x:cx - sideOffPx - 4, y:(entryY + exitY)/2 - 6, 'text-anchor':'end',
         'font-size':9, fill:'#6b21a8', 'font-weight':'bold'}).textContent=`ext seam (1")`;
-      add('text',{x:cx + sideOffPx + 4, y:(entryY + exitY)/2 + 4,
+      add('text',{x:cx + sideOffPx + 4, y:(entryY + exitY)/2 - 6,
         'font-size':9, fill:'#6b21a8', 'font-weight':'bold'}).textContent=`ext seam (1")`;
-      add('text',{x:cx - sideOffPx - 4, y:(entryY + exitY)/2 + 16, 'text-anchor':'end',
-        'font-size':9, fill:'#6b21a8'}).textContent=`(${rIn(couch_extEachCut)}" wide)`;
-      add('text',{x:cx + sideOffPx + 4, y:(entryY + exitY)/2 + 16,
-        'font-size':9, fill:'#6b21a8'}).textContent=`(${rIn(couch_extEachCut)}" wide)`;
+      add('text',{x:cx - sideOffPx - 4, y:(entryY + exitY)/2 + 6, 'text-anchor':'end',
+        'font-size':9, fill:'#6b21a8'}).textContent=`${rIn(couch_extEachCut)}" wide × ${rIn(extStripLen)}" long`;
+      add('text',{x:cx + sideOffPx + 4, y:(entryY + exitY)/2 + 6,
+        'font-size':9, fill:'#6b21a8'}).textContent=`${rIn(couch_extEachCut)}" wide × ${rIn(extStripLen)}" long`;
     }
   }
 
@@ -1186,7 +1187,7 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
 
   // === DIMENSIONS ===
   // Panel length (far left of diagram)
-  const lenDimX = (cx - halfMid) - 96;
+  const lenDimX = (cx - halfMid) - 110;
   arrow(lenDimX, drawTopY, lenDimX, drawBotY, '#334155');
   add('text',{x:lenDimX - 6, y:(drawTopY+drawBotY)/2,
     'text-anchor':'middle', 'font-size':12, fill:'#334155', 'font-weight':'bold',
@@ -1195,22 +1196,30 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
 
   // === SEGMENT LABELS ON LEFT SIDE (matching chair calculator) ===
   // Column 1 (closest to polygon): segment labels with mini brackets
-  const segX = (cx - halfMid) - 18;
-  function segLabel(y1, y2, color, text) {
+  const segX = (cx - halfMid) - 28;
+  function segLabel(y1, y2, color, text, forceHoriz) {
     add('line',{x1:segX, y1:y1, x2:segX, y2:y2, stroke:color, 'stroke-width':1.5});
     add('line',{x1:segX-4, y1:y1, x2:segX+4, y2:y1, stroke:color, 'stroke-width':1.5});
     add('line',{x1:segX-4, y1:y2, x2:segX+4, y2:y2, stroke:color, 'stroke-width':1.5});
-    add('text',{x:segX-6, y:(y1+y2)/2+4, 'text-anchor':'middle', 'font-size':10,
-      fill:color, 'font-weight':'bold',
-      transform:`rotate(-90 ${segX-6} ${(y1+y2)/2+4})`}).textContent=text;
+    const midY = (y1 + y2) / 2;
+    const segHeight = Math.abs(y2 - y1);
+    // If segment is too short for rotated text, render horizontally to the left
+    if (forceHoriz || segHeight < 30) {
+      add('text',{x:segX - 8, y:midY + 4, 'text-anchor':'end', 'font-size':10,
+        fill:color, 'font-weight':'bold'}).textContent=text;
+    } else {
+      add('text',{x:segX-8, y:midY+4, 'text-anchor':'middle', 'font-size':10,
+        fill:color, 'font-weight':'bold',
+        transform:`rotate(-90 ${segX-8} ${midY+4})`}).textContent=text;
+    }
   }
   segLabel(yBackFloor,   yBackrestTop, '#334155', `${rIn(sideDrop)}" (H−FC)`);
-  segLabel(yBackrestTop, yBackrestEnd, '#0f172a', `${rIn(couch_backInset)}" NO CUT`);
+  segLabel(yBackrestTop, yBackrestEnd, '#0f172a', `${rIn(couch_backInset)}" NO CUT`, true);
   segLabel(yBackrestEnd, yPointB,      '#dc2626', `${rIn(couch_taperLen)}" DIAGONAL A→B`);
   segLabel(yPointB,      drawBotY,     '#334155', `${rIn(couch_frontStraight)}" STRAIGHT`);
 
   // Column 2 (further left): "back to B" purple bracket
-  const brkX = segX - 28;
+  const brkX = segX - 36;
   add('line',{x1:brkX, y1:yBackrestTop, x2:brkX, y2:yPointB, stroke:'#7c3aed', 'stroke-width':1.5});
   add('line',{x1:brkX-4, y1:yBackrestTop, x2:brkX+4, y2:yBackrestTop, stroke:'#7c3aed', 'stroke-width':1.5});
   add('line',{x1:brkX-4, y1:yPointB, x2:brkX+4, y2:yPointB, stroke:'#7c3aed', 'stroke-width':1.5});
@@ -1292,9 +1301,16 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
   }
   dBungeeTab(cx - bungeeTabX * sc, bungeeTabY);
   dBungeeTab(cx + bungeeTabX * sc, bungeeTabY);
-  add('text',{x:cx, y:bungeeTabY + 18, 'text-anchor':'middle', 'font-size':9,
+  // Bungee tab callout — positioned outside the diagram to the right
+  const bungeeCalloutX = cx + halfMid + 16;
+  add('line',{x1:cx + bungeeTabX * sc + 8, y1:bungeeTabY, x2:bungeeCalloutX - 2, y2:bungeeTabY,
+    stroke:tabColor, 'stroke-width':0.8, 'stroke-dasharray':'3,2'});
+  add('text',{x:bungeeCalloutX, y:bungeeTabY - 2, 'font-size':9,
     fill:tabColor, 'font-weight':'bold'}).textContent=
-    `bungee tabs (${rIn(sideDrop - bungeeTabBelowBackrest)}" up from back floor, ±${rIn(bungeeTabX)}" from center)`;
+    `bungee tabs (${rIn(sideDrop - bungeeTabBelowBackrest)}" up from`;
+  add('text',{x:bungeeCalloutX, y:bungeeTabY + 10, 'font-size':9,
+    fill:tabColor, 'font-weight':'bold'}).textContent=
+    `back floor, ±${rIn(bungeeTabX)}" from center)`;
 
   // === BOTTOM LEGEND BOX (couch-specific snap/grommet info) ===
   const keyTotalW = VBW - pad * 2;
@@ -1324,7 +1340,11 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
   row += 16;
   add('text',{x:xR, y:row, 'font-size':11, fill:'#7c3aed', 'font-weight':'bold'}).textContent='Side extension seams';
   row += 14;
-  add('text',{x:xR, y:row, 'font-size':10, fill:'#334155'}).textContent=`1" seam allowance joining each extension to its main panel.`;
+  if (couch_extNeeded) {
+    add('text',{x:xR, y:row, 'font-size':10, fill:'#334155'}).textContent=`Each strip: ${rIn(couch_extEachCut)}" wide × ${rIn(couch_panelLen)}" long, 1" seam allowance.`;
+  } else {
+    add('text',{x:xR, y:row, 'font-size':10, fill:'#334155'}).textContent=`Not needed — cover fits within 2 bolts.`;
+  }
 
   // Third column: snap placement info
   const xS = keyX + 2*colW + 12;
@@ -3012,7 +3032,7 @@ function compute(){
     const diagramErrors = [];
     try { drawDiagram(payload); } catch(e) { diagramErrors.push('Cut diagram: ' + e.message); console.error('drawDiagram error:', e); }
     try { updateCutList(payload); } catch(e) { diagramErrors.push('Cut list: ' + e.message); console.error('updateCutList error:', e); }
-    try { drawAssemblyDiagramFlat(payload, 'assemblyDiagramFlatFull', 1200, 900); } catch(e) { diagramErrors.push('Flat diagram: ' + e.message); console.error('drawAssemblyDiagramFlat error:', e); }
+    try { drawAssemblyDiagramFlat(payload, 'assemblyDiagramFlatFull', 1400, 900); } catch(e) { diagramErrors.push('Flat diagram: ' + e.message); console.error('drawAssemblyDiagramFlat error:', e); }
     try { drawWavyEdgeDiagram(payload); } catch(e) { diagramErrors.push('Wavy edge diagram: ' + e.message); console.error('drawWavyEdgeDiagram error:', e); }
 
     const exp = document.getElementById('exportPng');
@@ -3147,7 +3167,7 @@ function wire(){
 
   document.getElementById('recalc').addEventListener('click', compute);
   document.getElementById('resetBtn').addEventListener('click', ()=>{
-    const defaults = {B:54, W:36, WB:25, H:39, D:30, F2A:26, F2BS:18, BR:4, FC:6, hem:1, seam:1.5, sideEase:0};
+    const defaults = {B:54, W:84, WB:84, H:25, D:33, F2A:22, F2BS:13, BR:4, FC:3, hem:1, seam:1.5, sideEase:0};
     Object.entries(defaults).forEach(([id,val])=>{ const el=document.getElementById(id); if(el) el.value=val; });
     document.getElementById('roundMode').value = 'whole';
     compute();
