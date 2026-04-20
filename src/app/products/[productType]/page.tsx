@@ -577,7 +577,6 @@ const getGalleryImages = (productType: string, selectedColor?: string) => {
       { src: '/images/Chairs-Recliners/chair2.jpg', alt: 'Chair Cover - Back View' },
       { src: '/images/Chairs-Recliners/chair3.jpg', alt: 'Chair Cover - Side View' },
       { src: '/images/Chairs-Recliners/chair4.jpg', alt: 'Patio Chair with Snap Cover' },
-      { src: '/images/Chairs-Recliners/chair6.jpg', alt: 'Blue Recliner Cover on Patio' },
       { src: '/images/Chairs-Recliners/chair7.jpg', alt: 'Chair Cover - Outdoor View' }
     ],
     'sofas-loveseats': [
