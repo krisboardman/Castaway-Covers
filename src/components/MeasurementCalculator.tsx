@@ -92,10 +92,12 @@ const hardMaximums: Record<string, Record<string, number>> = {
 const fieldHints: Record<string, Record<string, string>> = {
   'chairs-recliners': {
     length: 'Measure along the ground from below the back of the chair to the front edge',
+    backWidth: 'Measure the back panel only — this is often shorter than the overall width, which spans arm-to-arm.',
   },
   'sofas-loveseats': {
     width: 'Maximum width 84″. Contact us for a quote on additional or larger pieces. Note: the cover will have a seam down the center, or snaps along the center if the split cover with straps option is chosen.',
     length: 'Measure along the ground from below the back of the sofa to the front edge',
+    backWidth: 'Measure the back panel only — this is often shorter than the overall width, which spans arm-to-arm.',
   },
   'tables': {
     width: 'Note: if the width exceeds 34″, the cover will have a seam down the middle.',
