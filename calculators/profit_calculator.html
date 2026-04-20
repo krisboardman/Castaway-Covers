@@ -108,47 +108,39 @@
             <input id="bungeeQty" type="number" value="2" step="1" min="0" />
           </label>
           <label class="lbl">Bungee cost each $
-            <input id="bungeeCost" type="number" value="3.00" step="0.25" min="0" />
+            <input id="bungeeCost" type="number" value="1.00" step="0.05" min="0" />
           </label>
         </div>
+        <div class="note">Bungee cord is $0.20/ft. Average cord is 60 in (5 ft) → $1.00 each.</div>
       </div>
 
       <div class="card" style="margin-top:16px;" id="mfgCard">
-        <div class="title">Manufacturer Costs (auto-filled by type)</div>
-        <div class="section-label">Design & Cutting</div>
+        <div class="title">Manufacturer Cost</div>
+        <div class="section-label">Labor</div>
         <div class="inputs">
-          <label class="lbl">Dimension update (Rhino) $
-            <input id="mfgDimUpdate" type="number" value="5" step="1" min="0" />
+          <label class="lbl">Time required
+            <select id="mfgTime">
+              <option value="0.5">30 minutes</option>
+              <option value="0.75">45 minutes</option>
+              <option value="1">1 hour</option>
+              <option value="1.5">1.5 hours</option>
+            </select>
           </label>
-          <label class="lbl">Machine cutting $
-            <input id="mfgCutting" type="number" value="8" step="1" min="0" />
+          <label class="lbl">Hourly rate $
+            <input id="mfgHourly" type="number" value="60" step="5" min="0" />
           </label>
         </div>
-        <div class="section-label">Sewing</div>
+        <div class="note">Covers dimension updates, machine cutting, base sewing, additional seams, hardware install, and wavy cuts.</div>
+        <div class="section-label">Hardware Parts</div>
         <div class="inputs">
-          <label class="lbl">Base sewing $
-            <input id="mfgBaseSewing" type="number" value="15" step="1" min="0" />
-          </label>
-          <label class="lbl">Additional seams (qty)
-            <input id="addlSeams" type="number" value="0" step="1" min="0" />
-          </label>
-          <label class="lbl">Cost per additional seam $
-            <input id="mfgSeamCost" type="number" value="5" step="1" min="0" />
-          </label>
-        </div>
-        <div class="section-label">Hardware (parts + install)</div>
-        <div class="inputs">
-          <label class="lbl">Grommets (parts) $
+          <label class="lbl">Grommets $
             <input id="mfgGrommets" type="number" value="2" step="0.50" min="0" />
           </label>
-          <label class="lbl">Snaps (parts) $
+          <label class="lbl">Snaps $
             <input id="mfgSnaps" type="number" value="2" step="0.50" min="0" />
           </label>
-          <label class="lbl">Center snaps (parts) $
+          <label class="lbl">Center snaps $
             <input id="mfgCenterSnaps" type="number" value="0" step="1" min="0" />
-          </label>
-          <label class="lbl">Hardware install labor $
-            <input id="mfgHWLabor" type="number" value="5" step="1" min="0" />
           </label>
         </div>
         <div class="section-label">Add-ons</div>
@@ -166,27 +158,24 @@
             <input id="strapCost" type="number" value="4" step="0.50" min="0" />
           </label>
         </div>
-        <div class="note">These values auto-fill when you change furniture type. Adjust as needed for specific orders.</div>
+        <div class="note">Time and parts auto-fill by furniture type. Adjust as needed.</div>
       </div>
 
       <div class="card" style="margin-top:16px;" id="myLaborCard">
         <div class="title">Your Labor (Castaway)</div>
-        <div class="inputs">
-          <label class="lbl">Wavy edge cutting $
-            <input id="wavyCutting" type="number" value="20.00" step="1" min="0" />
-          </label>
-          <label class="lbl">Bungee install $
-            <input id="bungeeLabor" type="number" value="0" step="1" min="0" />
+        <div class="inputs single">
+          <label class="lbl">Your labor fee $
+            <input id="myLaborFee" type="number" value="30" step="5" min="0" />
           </label>
         </div>
-        <div class="note">Your time: cutting wavy edges on covers, installing bungees, QC, etc.</div>
+        <div class="note">Flat fee for your time on this cover. Adjust per order.</div>
       </div>
 
       <div class="card" style="margin-top:16px;" id="overheadCard">
         <div class="title">Overhead & Fees (per cover)</div>
         <div class="inputs">
           <label class="lbl">Shipping / packaging $
-            <input id="shippingCost" type="number" value="8.00" step="0.50" min="0" />
+            <input id="shippingCost" type="number" value="0.00" step="0.50" min="0" />
           </label>
           <label class="lbl">Platform / listing fee $
             <input id="platformFee" type="number" value="3.00" step="0.50" min="0" />
@@ -198,6 +187,7 @@
             <input id="otherOverhead" type="number" value="0.00" step="0.50" min="0" />
           </label>
         </div>
+        <div class="note">Customer pays shipping by default ($0). Override if you absorb it.</div>
       </div>
 
       <div class="card" style="margin-top:16px;" id="pricingCard">
@@ -273,48 +263,42 @@
 </div>
 
 <script>
-// Manufacturer pricing presets (from Manufacturer_Pricing.xlsx suggested column)
+// Manufacturer pricing presets (time in hours, parts in dollars)
 const PRESETS = {
   chair: {
     label: 'Chair',
-    mfgDimUpdate: 5, mfgCutting: 8,
-    mfgBaseSewing: 15, mfgSeamCost: 5, seamLabel: 'front flap',
-    mfgGrommets: 2, mfgSnaps: 2, mfgCenterSnaps: 0, mfgHWLabor: 5,
+    mfgTime: 0.75,
+    mfgGrommets: 2, mfgSnaps: 2, mfgCenterSnaps: 0,
     bungeeQty: 2
   },
   sofa1: {
     label: 'Sofa — Center Seam',
-    mfgDimUpdate: 8, mfgCutting: 12,
-    mfgBaseSewing: 25, mfgSeamCost: 5, seamLabel: 'side extension',
-    mfgGrommets: 2, mfgSnaps: 2, mfgCenterSnaps: 0, mfgHWLabor: 6,
+    mfgTime: 1,
+    mfgGrommets: 2, mfgSnaps: 2, mfgCenterSnaps: 0,
     bungeeQty: 2
   },
   sofa2: {
     label: 'Sofa — Center Snaps',
-    mfgDimUpdate: 8, mfgCutting: 12,
-    mfgBaseSewing: 25, mfgSeamCost: 5, seamLabel: 'side extension',
-    mfgGrommets: 2, mfgSnaps: 2, mfgCenterSnaps: 8, mfgHWLabor: 10,
+    mfgTime: 1.5,
+    mfgGrommets: 2, mfgSnaps: 2, mfgCenterSnaps: 8,
     bungeeQty: 2
   },
   chaise: {
     label: 'Chaise Lounge',
-    mfgDimUpdate: 5, mfgCutting: 6,
-    mfgBaseSewing: 0, mfgSeamCost: 0, seamLabel: 'n/a',
-    mfgGrommets: 2, mfgSnaps: 3, mfgCenterSnaps: 0, mfgHWLabor: 5,
+    mfgTime: 0.5,
+    mfgGrommets: 2, mfgSnaps: 3, mfgCenterSnaps: 0,
     bungeeQty: 2
   },
   table: {
     label: 'Table',
-    mfgDimUpdate: 5, mfgCutting: 6,
-    mfgBaseSewing: 5, mfgSeamCost: 5, seamLabel: 'center seam',
-    mfgGrommets: 2, mfgSnaps: 3, mfgCenterSnaps: 0, mfgHWLabor: 5,
+    mfgTime: 0.5,
+    mfgGrommets: 2, mfgSnaps: 3, mfgCenterSnaps: 0,
     bungeeQty: 2
   },
   ottoman: {
     label: 'Ottoman',
-    mfgDimUpdate: 5, mfgCutting: 6,
-    mfgBaseSewing: 5, mfgSeamCost: 5, seamLabel: 'side strip',
-    mfgGrommets: 2, mfgSnaps: 3, mfgCenterSnaps: 0, mfgHWLabor: 5,
+    mfgTime: 0.5,
+    mfgGrommets: 2, mfgSnaps: 3, mfgCenterSnaps: 0,
     bungeeQty: 2
   }
 };
@@ -333,18 +317,11 @@ function applyPreset() {
   const p = PRESETS[type];
   if (!p) return;
 
-  document.getElementById('mfgDimUpdate').value = p.mfgDimUpdate;
-  document.getElementById('mfgCutting').value = p.mfgCutting;
-  document.getElementById('mfgBaseSewing').value = p.mfgBaseSewing;
-  document.getElementById('mfgSeamCost').value = p.mfgSeamCost;
+  document.getElementById('mfgTime').value = p.mfgTime;
   document.getElementById('mfgGrommets').value = p.mfgGrommets;
   document.getElementById('mfgSnaps').value = p.mfgSnaps;
   document.getElementById('mfgCenterSnaps').value = p.mfgCenterSnaps;
-  document.getElementById('mfgHWLabor').value = p.mfgHWLabor;
   document.getElementById('bungeeQty').value = p.bungeeQty;
-
-  // Reset add-on qtys and additional seams
-  document.getElementById('addlSeams').value = 0;
 
   compute();
 }
@@ -362,17 +339,13 @@ function compute() {
   const bungeeTotal = bungeeQty * bungeeCost;
   const totalMaterial = fabricTotal + bungeeTotal;
 
-  // Manufacturer costs
-  const mfgDimUpdate = parseNum('mfgDimUpdate');
-  const mfgCutting = parseNum('mfgCutting');
-  const mfgBaseSewing = parseNum('mfgBaseSewing');
-  const addlSeams = parseNum('addlSeams');
-  const mfgSeamCost = parseNum('mfgSeamCost');
-  const addlSeamTotal = addlSeams * mfgSeamCost;
+  // Manufacturer
+  const mfgTime = parseNum('mfgTime');
+  const mfgHourly = parseNum('mfgHourly');
+  const mfgLabor = mfgTime * mfgHourly;
   const mfgGrommets = parseNum('mfgGrommets');
   const mfgSnaps = parseNum('mfgSnaps');
   const mfgCenterSnaps = parseNum('mfgCenterSnaps');
-  const mfgHWLabor = parseNum('mfgHWLabor');
   const handleQty = parseNum('handleQty');
   const handleCost = parseNum('handleCost');
   const handleTotal = handleQty * handleCost;
@@ -380,14 +353,11 @@ function compute() {
   const strapCost = parseNum('strapCost');
   const strapTotal = strapQty * strapCost;
 
-  const totalMfg = mfgDimUpdate + mfgCutting + mfgBaseSewing + addlSeamTotal
-    + mfgGrommets + mfgSnaps + mfgCenterSnaps + mfgHWLabor
-    + handleTotal + strapTotal;
+  const totalMfg = mfgLabor + mfgGrommets + mfgSnaps + mfgCenterSnaps + handleTotal + strapTotal;
 
   // Your labor
-  const wavyCutting = parseNum('wavyCutting');
-  const bungeeLabor = parseNum('bungeeLabor');
-  const totalMyLabor = wavyCutting + bungeeLabor;
+  const myLaborFee = parseNum('myLaborFee');
+  const totalMyLabor = myLaborFee;
 
   // Overhead
   const shippingCost = parseNum('shippingCost');
@@ -407,7 +377,6 @@ function compute() {
   const breakEvenPrice = totalCost;
 
   // Cost Breakdown
-  const seamLabel = preset ? preset.seamLabel : 'additional seam';
   const rows = [];
 
   // Material section
@@ -418,35 +387,25 @@ function compute() {
 
   // Manufacturer section
   rows.push(['— MANUFACTURER —', '', 'header']);
-  rows.push(['Dimension update (Rhino)', fmt(mfgDimUpdate)]);
-  rows.push(['Machine cutting', fmt(mfgCutting)]);
-  if (mfgBaseSewing > 0) {
-    rows.push(['Base sewing', fmt(mfgBaseSewing)]);
-  } else {
-    rows.push(['Sewing (none — single piece)', fmt(0)]);
-  }
-  if (addlSeams > 0) {
-    rows.push([`Additional seams: ${addlSeams} ${seamLabel}(s) x ${fmt(mfgSeamCost)}`, fmt(addlSeamTotal)]);
-  }
+  const minutes = (mfgTime * 60).toFixed(0);
+  rows.push([`Labor (${minutes} min × $${mfgHourly}/hr)`, fmt(mfgLabor)]);
   rows.push(['Grommets (parts)', fmt(mfgGrommets)]);
   rows.push(['Snaps (parts)', fmt(mfgSnaps)]);
   if (mfgCenterSnaps > 0) {
     rows.push(['Center snaps (parts)', fmt(mfgCenterSnaps)]);
   }
-  rows.push(['Hardware install labor', fmt(mfgHWLabor)]);
   if (handleQty > 0) rows.push([`Handles (${handleQty} x ${fmt(handleCost)})`, fmt(handleTotal)]);
   if (strapQty > 0) rows.push([`Snap straps (${strapQty} x ${fmt(strapCost)})`, fmt(strapTotal)]);
   rows.push(['Manufacturer subtotal', fmt(totalMfg), 'subtotal']);
 
   // Your labor section
   rows.push(['— YOUR LABOR —', '', 'header']);
-  rows.push(['Wavy edge cutting', fmt(wavyCutting)]);
-  if (bungeeLabor > 0) rows.push(['Bungee install', fmt(bungeeLabor)]);
+  rows.push(['Your labor fee', fmt(myLaborFee)]);
   rows.push(['Your labor subtotal', fmt(totalMyLabor), 'subtotal']);
 
   // Overhead section
   rows.push(['— OVERHEAD —', '', 'header']);
-  rows.push(['Shipping / packaging', fmt(shippingCost)]);
+  if (shippingCost > 0) rows.push(['Shipping / packaging', fmt(shippingCost)]);
   rows.push(['Platform / listing fee', fmt(platformFee)]);
   rows.push(['Marketing / ads', fmt(marketingCost)]);
   if (otherOverhead > 0) rows.push(['Other overhead', fmt(otherOverhead)]);
@@ -553,20 +512,19 @@ function compute() {
 
 function saveInputs() {
   const fields = ['furnitureType','fabricYards','fabricPrice','bungeeQty','bungeeCost',
-    'mfgDimUpdate','mfgCutting','mfgBaseSewing','addlSeams','mfgSeamCost',
-    'mfgGrommets','mfgSnaps','mfgCenterSnaps','mfgHWLabor',
+    'mfgTime','mfgHourly','mfgGrommets','mfgSnaps','mfgCenterSnaps',
     'handleQty','handleCost','strapQty','strapCost',
-    'wavyCutting','bungeeLabor',
+    'myLaborFee',
     'shippingCost','platformFee','marketingCost','otherOverhead',
     'sellingPrice','targetMargin'];
   const values = {};
   fields.forEach(f => { const el = document.getElementById(f); if (el) values[f] = el.value; });
-  localStorage.setItem('castawayProfitCalcV2', JSON.stringify(values));
+  localStorage.setItem('castawayProfitCalcV3', JSON.stringify(values));
 }
 
 function loadSavedInputs() {
   try {
-    const saved = localStorage.getItem('castawayProfitCalcV2');
+    const saved = localStorage.getItem('castawayProfitCalcV3');
     if (saved) {
       const values = JSON.parse(saved);
       Object.entries(values).forEach(([field, value]) => {
@@ -589,19 +547,15 @@ function exportAsText() {
   const bungeeTotal = parseNum('bungeeQty') * parseNum('bungeeCost');
   const totalMaterial = fabricTotal + bungeeTotal;
 
-  const mfgDimUpdate = parseNum('mfgDimUpdate');
-  const mfgCutting = parseNum('mfgCutting');
-  const mfgBaseSewing = parseNum('mfgBaseSewing');
-  const addlSeamTotal = parseNum('addlSeams') * parseNum('mfgSeamCost');
+  const mfgLabor = parseNum('mfgTime') * parseNum('mfgHourly');
   const mfgGrommets = parseNum('mfgGrommets');
   const mfgSnaps = parseNum('mfgSnaps');
   const mfgCenterSnaps = parseNum('mfgCenterSnaps');
-  const mfgHWLabor = parseNum('mfgHWLabor');
   const handleTotal = parseNum('handleQty') * parseNum('handleCost');
   const strapTotal = parseNum('strapQty') * parseNum('strapCost');
-  const totalMfg = mfgDimUpdate + mfgCutting + mfgBaseSewing + addlSeamTotal + mfgGrommets + mfgSnaps + mfgCenterSnaps + mfgHWLabor + handleTotal + strapTotal;
+  const totalMfg = mfgLabor + mfgGrommets + mfgSnaps + mfgCenterSnaps + handleTotal + strapTotal;
 
-  const totalMyLabor = parseNum('wavyCutting') + parseNum('bungeeLabor');
+  const totalMyLabor = parseNum('myLaborFee');
   const totalOverhead = parseNum('shippingCost') + parseNum('platformFee') + parseNum('marketingCost') + parseNum('otherOverhead');
   const totalCost = totalMaterial + totalMfg + totalMyLabor + totalOverhead;
   const sellingPrice = parseNum('sellingPrice');
@@ -637,11 +591,10 @@ function copyToClipboard() {
   const fabricTotal = parseNum('fabricYards') * parseNum('fabricPrice');
   const bungeeTotal = parseNum('bungeeQty') * parseNum('bungeeCost');
   const totalMaterial = fabricTotal + bungeeTotal;
-  const totalMfg = parseNum('mfgDimUpdate') + parseNum('mfgCutting') + parseNum('mfgBaseSewing')
-    + parseNum('addlSeams') * parseNum('mfgSeamCost')
-    + parseNum('mfgGrommets') + parseNum('mfgSnaps') + parseNum('mfgCenterSnaps') + parseNum('mfgHWLabor')
+  const totalMfg = parseNum('mfgTime') * parseNum('mfgHourly')
+    + parseNum('mfgGrommets') + parseNum('mfgSnaps') + parseNum('mfgCenterSnaps')
     + parseNum('handleQty') * parseNum('handleCost') + parseNum('strapQty') * parseNum('strapCost');
-  const totalMyLabor = parseNum('wavyCutting') + parseNum('bungeeLabor');
+  const totalMyLabor = parseNum('myLaborFee');
   const totalOverhead = parseNum('shippingCost') + parseNum('platformFee') + parseNum('marketingCost') + parseNum('otherOverhead');
   const totalCost = totalMaterial + totalMfg + totalMyLabor + totalOverhead;
   const sellingPrice = parseNum('sellingPrice');
@@ -672,15 +625,14 @@ function wire() {
     document.getElementById('fabricYards').value = 5;
     document.getElementById('fabricPrice').value = 15;
     document.getElementById('bungeeQty').value = 2;
-    document.getElementById('bungeeCost').value = 3;
-    document.getElementById('addlSeams').value = 0;
+    document.getElementById('bungeeCost').value = 1;
+    document.getElementById('mfgHourly').value = 60;
     document.getElementById('handleQty').value = 0;
     document.getElementById('handleCost').value = 3;
     document.getElementById('strapQty').value = 0;
     document.getElementById('strapCost').value = 4;
-    document.getElementById('wavyCutting').value = 20;
-    document.getElementById('bungeeLabor').value = 0;
-    document.getElementById('shippingCost').value = 8;
+    document.getElementById('myLaborFee').value = 30;
+    document.getElementById('shippingCost').value = 0;
     document.getElementById('platformFee').value = 3;
     document.getElementById('marketingCost').value = 2;
     document.getElementById('otherOverhead').value = 0;

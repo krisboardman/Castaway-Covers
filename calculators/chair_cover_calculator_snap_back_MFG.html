@@ -258,7 +258,7 @@
           <span class="chip" style="background:#93c5fd;"></span> Back piece (trapezoid)
           <span style="color:#059669; font-weight:600;">Green wavy line = cut with wavy pattern</span>
           <span style="color:#7c3aed; font-weight:600;">Purple straight line = seam (no wave)</span>
-          <span style="font-size:11px;">Wave: 1.5" tall × 13" per cycle</span>
+          <span style="font-size:11px;">Wave: 2" tall (peak→trough) × 13" crest-to-crest</span>
         </div>
       </div>
     </div>
@@ -1406,8 +1406,11 @@ function wavyEdgePoints(x1, y1, x2, y2, depthPx, wavePx, dir, taperPx) {
     const bx = x1 + dx * t, by = y1 + dy * t;
     let amp = depthPx;
     if (taperPx > 0) {
-      if (dist < taperPx) amp *= dist / taperPx;
-      if (len - dist < taperPx) amp *= (len - dist) / taperPx;
+      // Cosine ease-in/ease-out: amp ramps from 0 with zero slope at endpoints,
+      // so wavy edges meet straight seams / corners with no sharp kink.
+      const ease = d => 0.5 - 0.5 * Math.cos(Math.PI * Math.min(1, Math.max(0, d)));
+      if (dist < taperPx) amp *= ease(dist / taperPx);
+      if (len - dist < taperPx) amp *= ease((len - dist) / taperPx);
     }
     const wave = (Math.cos(2 * Math.PI * dist / wavePx) - 1) / 2 * amp;
     pts.push({x: bx + nx * wave, y: by + ny * wave});
@@ -1463,8 +1466,8 @@ function drawWavyEdgeDiagram(params) {
   const add = (t,a,p=svg)=>{const e=document.createElementNS('http://www.w3.org/2000/svg',t); for(const k in a) e.setAttribute(k,a[k]); p.appendChild(e); return e;};
 
   const pad = 60;
-  const waveAmp = 1.5;   // inches
-  const waveLen = 13;     // inches per full cycle
+  const waveAmp = 2;      // inches (height of wave: peak to trough)
+  const waveLen = 13;     // inches per full cycle (crest-to-crest)
 
   // --- Layout (same as main flat diagram) ---
   const extraBack = backPieceHeight;
@@ -1542,57 +1545,107 @@ function drawWavyEdgeDiagram(params) {
   const wStroke = 2.5;
   const depthPx = waveAmp * sc;
   const wavePx = waveLen * sc;
-  const taperPx = 4 * sc; // taper amplitude over 4" near corners
+  const taperPx = 8 * sc; // taper amplitude over 8" near corners / seams
+                          // (longer taper = smoother blend, no sharp points)
   const cornerTrans = 13; // inches — front corner transition zone
   const cornerPx = cornerTrans * sc;
+  const filletIn = 3;                   // inches — fillet radius at inter-edge corners
+  const filletPx = filletIn * sc;
+
+  // Shorten a line segment at its ends by the given inset distances (in px).
+  // Returns [x1', y1', x2', y2']. Prevents degenerate fillets at corners.
+  const insetLine = (x1, y1, x2, y2, sIns, eIns) => {
+    const dx = x2 - x1, dy = y2 - y1;
+    const len = Math.sqrt(dx*dx + dy*dy) || 1;
+    const ux = dx/len, uy = dy/len;
+    return [x1 + ux*sIns, y1 + uy*sIns, x2 - ux*eIns, y2 - uy*eIns];
+  };
 
   // == MAIN PIECE — single continuous path ==
   // Clockwise from top-left: seam(straight) → right back → right diag → right front →
   // right corner curve → bottom → left corner curve → left front → left diag → left back
   {
     const cornerStopY = frontBottomY - cornerPx;
-    // Edge point arrays (with tapering at corners)
-    const rightBack = wavyEdgePoints(topRightX, mainTopY, topRightX, backInsetY, depthPx, wavePx, -1, taperPx);
-    const rightDiag = wavyEdgePoints(topRightX, backInsetY, frontRightX, frontInsetY, depthPx, wavePx, -1, taperPx);
-    const rightFront = wavyEdgePoints(frontRightX, frontInsetY, frontRightX, cornerStopY, depthPx, wavePx, -1, taperPx);
-    const bottom = wavyEdgePoints(frontLeftX + cornerPx, frontBottomY, frontRightX - cornerPx, frontBottomY, depthPx, wavePx, 1, taperPx);
-    const leftFront = wavyEdgePoints(frontLeftX, cornerStopY, frontLeftX, frontInsetY, depthPx, wavePx, -1, taperPx);
-    const leftDiag = wavyEdgePoints(frontLeftX, frontInsetY, topLeftX, backInsetY, depthPx, wavePx, -1, taperPx);
-    const leftBack = wavyEdgePoints(topLeftX, backInsetY, topLeftX, mainTopY, depthPx, wavePx, -1, taperPx);
+
+    // Wavy-edge endpoints are insets from inter-edge corners so the Q-bezier
+    // through the actual corner forms a real rounded fillet (instead of being
+    // degenerate). Seam and bottom-corner-arc junctions are NOT inset — the
+    // bottom S-curve and seam already tangent-match with zero-amp edge ends.
+    const e_rB = insetLine(topRightX, mainTopY, topRightX, backInsetY, 0, filletPx);
+    const e_rD = insetLine(topRightX, backInsetY, frontRightX, frontInsetY, filletPx, filletPx);
+    const e_rF = insetLine(frontRightX, frontInsetY, frontRightX, cornerStopY, filletPx, 0);
+    const e_bt = [frontLeftX + cornerPx, frontBottomY, frontRightX - cornerPx, frontBottomY];
+    const e_lF = insetLine(frontLeftX, cornerStopY, frontLeftX, frontInsetY, 0, filletPx);
+    const e_lD = insetLine(frontLeftX, frontInsetY, topLeftX, backInsetY, filletPx, filletPx);
+    const e_lB = insetLine(topLeftX, backInsetY, topLeftX, mainTopY, filletPx, 0);
+
+    const rightBack  = wavyEdgePoints(e_rB[0], e_rB[1], e_rB[2], e_rB[3], depthPx, wavePx, -1, taperPx);
+    const rightDiag  = wavyEdgePoints(e_rD[0], e_rD[1], e_rD[2], e_rD[3], depthPx, wavePx, -1, taperPx);
+    const rightFront = wavyEdgePoints(e_rF[0], e_rF[1], e_rF[2], e_rF[3], depthPx, wavePx, -1, taperPx);
+    const bottom    = wavyEdgePoints(e_bt[0], e_bt[1], e_bt[2], e_bt[3], depthPx, wavePx,  1, taperPx);
+    const leftFront  = wavyEdgePoints(e_lF[0], e_lF[1], e_lF[2], e_lF[3], depthPx, wavePx, -1, taperPx);
+    const leftDiag   = wavyEdgePoints(e_lD[0], e_lD[1], e_lD[2], e_lD[3], depthPx, wavePx, -1, taperPx);
+    const leftBack   = wavyEdgePoints(e_lB[0], e_lB[1], e_lB[2], e_lB[3], depthPx, wavePx, -1, taperPx);
 
     // Build path: straight seam along top, then wavy edges with rounded corners
     let d = `M${topLeftX.toFixed(1)},${mainTopY.toFixed(1)}`;
     d += `L${topRightX.toFixed(1)},${mainTopY.toFixed(1)}`; // straight seam
 
-    // Right back zone
+    // Right back zone → filleted corner at (topRightX, backInsetY) → right diagonal
     for (const p of rightBack) d += `L${p.x.toFixed(1)},${p.y.toFixed(1)}`;
-    // Round corner → right diagonal (corner at topRightX, backInsetY)
     d += `Q${topRightX.toFixed(1)},${backInsetY.toFixed(1)} ${rightDiag[0].x.toFixed(1)},${rightDiag[0].y.toFixed(1)}`;
     for (let i = 1; i < rightDiag.length; i++) d += `L${rightDiag[i].x.toFixed(1)},${rightDiag[i].y.toFixed(1)}`;
-    // Round corner → right front zone (corner at frontRightX, frontInsetY)
+    // Filleted corner at (frontRightX, frontInsetY) → right front zone
     d += `Q${frontRightX.toFixed(1)},${frontInsetY.toFixed(1)} ${rightFront[0].x.toFixed(1)},${rightFront[0].y.toFixed(1)}`;
     for (let i = 1; i < rightFront.length; i++) d += `L${rightFront[i].x.toFixed(1)},${rightFront[i].y.toFixed(1)}`;
 
-    // Right front corner curve (sweeps inward, cutting off corner)
-    const rfl = rightFront[rightFront.length - 1];
-    d += `C${(frontRightX - cornerPx * 0.15).toFixed(1)},${(cornerStopY + cornerPx * 0.55).toFixed(1)} ` +
-         `${(frontRightX - cornerPx * 0.55).toFixed(1)},${(frontBottomY - cornerPx * 0.15).toFixed(1)} ` +
-         `${(frontRightX - cornerPx).toFixed(1)},${frontBottomY.toFixed(1)}`;
+    // === RIGHT FRONT BOTTOM CORNER — tangent-matched S-curve ===
+    // Starts at (frontRightX, cornerStopY) with tangent DOWN (matching vertical
+    // wavy edge above), sweeps inward through the diagonal midpoint, and ends
+    // at (frontRightX - cornerPx, frontBottomY) with tangent LEFT (matching
+    // horizontal wavy bottom below). Cuts a deep concave chunk without kinks.
+    {
+      const pS = {x: frontRightX,                 y: cornerStopY};
+      const pM = {x: frontRightX - cornerPx/2,    y: frontBottomY - cornerPx/2};
+      const pE = {x: frontRightX - cornerPx,      y: frontBottomY};
+      const k  = cornerPx * 0.40;    // handle length — larger = deeper scoop
+      const kd = k / Math.SQRT2;
+      // First cubic: pS (tan DOWN) → pM (tan down-left)
+      d += `C${pS.x.toFixed(1)},${(pS.y + k).toFixed(1)} ` +
+           `${(pM.x + kd).toFixed(1)},${(pM.y - kd).toFixed(1)} ` +
+           `${pM.x.toFixed(1)},${pM.y.toFixed(1)}`;
+      // Second cubic: pM (tan down-left) → pE (tan LEFT)
+      d += `C${(pM.x - kd).toFixed(1)},${(pM.y + kd).toFixed(1)} ` +
+           `${(pE.x + k).toFixed(1)},${pE.y.toFixed(1)} ` +
+           `${pE.x.toFixed(1)},${pE.y.toFixed(1)}`;
+    }
 
     // Bottom edge (right to left, reversed so we go clockwise; points were generated L→R)
     for (let i = bottom.length - 1; i >= 0; i--) d += `L${bottom[i].x.toFixed(1)},${bottom[i].y.toFixed(1)}`;
 
-    // Left front corner curve
-    d += `C${(frontLeftX + cornerPx * 0.55).toFixed(1)},${(frontBottomY - cornerPx * 0.15).toFixed(1)} ` +
-         `${(frontLeftX + cornerPx * 0.15).toFixed(1)},${(cornerStopY + cornerPx * 0.55).toFixed(1)} ` +
-         `${frontLeftX.toFixed(1)},${cornerStopY.toFixed(1)}`;
+    // === LEFT FRONT BOTTOM CORNER — mirror S-curve ===
+    {
+      const pS = {x: frontLeftX + cornerPx,       y: frontBottomY};
+      const pM = {x: frontLeftX + cornerPx/2,     y: frontBottomY - cornerPx/2};
+      const pE = {x: frontLeftX,                  y: cornerStopY};
+      const k  = cornerPx * 0.40;
+      const kd = k / Math.SQRT2;
+      // First cubic: pS (tan LEFT) → pM (tan up-left)
+      d += `C${(pS.x - k).toFixed(1)},${pS.y.toFixed(1)} ` +
+           `${(pM.x + kd).toFixed(1)},${(pM.y + kd).toFixed(1)} ` +
+           `${pM.x.toFixed(1)},${pM.y.toFixed(1)}`;
+      // Second cubic: pM (tan up-left) → pE (tan UP)
+      d += `C${(pM.x - kd).toFixed(1)},${(pM.y - kd).toFixed(1)} ` +
+           `${pE.x.toFixed(1)},${(pE.y + k).toFixed(1)} ` +
+           `${pE.x.toFixed(1)},${pE.y.toFixed(1)}`;
+    }
 
     // Left front zone (going upward: cornerStopY → frontInsetY)
     for (const p of leftFront) d += `L${p.x.toFixed(1)},${p.y.toFixed(1)}`;
-    // Round corner → left diagonal (corner at frontLeftX, frontInsetY)
+    // Filleted corner at (frontLeftX, frontInsetY) → left diagonal
     d += `Q${frontLeftX.toFixed(1)},${frontInsetY.toFixed(1)} ${leftDiag[0].x.toFixed(1)},${leftDiag[0].y.toFixed(1)}`;
     for (let i = 1; i < leftDiag.length; i++) d += `L${leftDiag[i].x.toFixed(1)},${leftDiag[i].y.toFixed(1)}`;
-    // Round corner → left back zone (corner at topLeftX, backInsetY)
+    // Filleted corner at (topLeftX, backInsetY) → left back zone
     d += `Q${topLeftX.toFixed(1)},${backInsetY.toFixed(1)} ${leftBack[0].x.toFixed(1)},${leftBack[0].y.toFixed(1)}`;
     for (let i = 1; i < leftBack.length; i++) d += `L${leftBack[i].x.toFixed(1)},${leftBack[i].y.toFixed(1)}`;
 
@@ -1607,21 +1660,27 @@ function drawWavyEdgeDiagram(params) {
   }
 
   // == BACK PIECE — single continuous path ==
-  // Clockwise from bottom-left: seam(straight) → right diag → top edge → left diag
+  // Clockwise from bottom-left: seam(straight) → right diag → top edge → left diag.
+  // Inter-edge corners are inset so the Q-beziers through each actual corner
+  // form real rounded fillets instead of degenerate zero-length curves.
   {
-    const rightDiag = wavyEdgePoints(cx + bpTopW/2, mainTopY, cx + bpBotW/2, bpTopY, depthPx, wavePx, -1, taperPx);
-    const topEdge = wavyEdgePoints(cx + bpBotW/2, bpTopY, cx - bpBotW/2, bpTopY, depthPx, wavePx, 1, taperPx);
-    const leftDiag = wavyEdgePoints(cx - bpBotW/2, bpTopY, cx - bpTopW/2, mainTopY, depthPx, wavePx, 1, taperPx);
+    const e_rD = insetLine(cx + bpTopW/2, mainTopY, cx + bpBotW/2, bpTopY, 0, filletPx);
+    const e_tE = insetLine(cx + bpBotW/2, bpTopY, cx - bpBotW/2, bpTopY, filletPx, filletPx);
+    const e_lD = insetLine(cx - bpBotW/2, bpTopY, cx - bpTopW/2, mainTopY, filletPx, 0);
+
+    const rightDiag = wavyEdgePoints(e_rD[0], e_rD[1], e_rD[2], e_rD[3], depthPx, wavePx, 1, taperPx);
+    const topEdge   = wavyEdgePoints(e_tE[0], e_tE[1], e_tE[2], e_tE[3], depthPx, wavePx, 1, taperPx);
+    const leftDiag  = wavyEdgePoints(e_lD[0], e_lD[1], e_lD[2], e_lD[3], depthPx, wavePx, 1, taperPx);
 
     let d = `M${(cx - bpTopW/2).toFixed(1)},${mainTopY.toFixed(1)}`;
     d += `L${(cx + bpTopW/2).toFixed(1)},${mainTopY.toFixed(1)}`; // straight seam
 
     // Right diagonal (going up from seam to narrow top)
     for (const p of rightDiag) d += `L${p.x.toFixed(1)},${p.y.toFixed(1)}`;
-    // Round corner at top-right
+    // Filleted corner at top-right
     d += `Q${(cx + bpBotW/2).toFixed(1)},${bpTopY.toFixed(1)} ${topEdge[0].x.toFixed(1)},${topEdge[0].y.toFixed(1)}`;
     for (let i = 1; i < topEdge.length; i++) d += `L${topEdge[i].x.toFixed(1)},${topEdge[i].y.toFixed(1)}`;
-    // Round corner at top-left
+    // Filleted corner at top-left
     d += `Q${(cx - bpBotW/2).toFixed(1)},${bpTopY.toFixed(1)} ${leftDiag[0].x.toFixed(1)},${leftDiag[0].y.toFixed(1)}`;
     for (let i = 1; i < leftDiag.length; i++) d += `L${leftDiag[i].x.toFixed(1)},${leftDiag[i].y.toFixed(1)}`;
 
@@ -1648,28 +1707,66 @@ function drawWavyEdgeDiagram(params) {
   }
 
   // --- WAVE SPEC KEY (top-right corner) ---
-  const keyX = VBW - pad - 220, keyY = pad;
-  add('rect', {x: keyX, y: keyY, width: 220, height: 130, rx: 6, fill: '#f0fdf4', stroke: '#059669', 'stroke-width': 1.5});
-  add('text', {x: keyX + 110, y: keyY + 18, 'text-anchor': 'middle', 'font-size': 12, fill: '#059669', 'font-weight': 'bold'}).textContent = 'WAVY EDGE SPEC';
-  add('text', {x: keyX + 10, y: keyY + 38, 'font-size': 10, fill: '#334155'}).textContent = `Wave depth: ${waveAmp}" (scoops inward from edge)`;
-  add('text', {x: keyX + 10, y: keyY + 54, 'font-size': 10, fill: '#334155'}).textContent = `Full wave cycle: ${waveLen}"`;
-  // Mini wave preview (inward-only: peaks at top line, troughs scoop down)
-  const previewBaseY = keyY + 72;
-  add('line', {x1: keyX + 10, y1: previewBaseY, x2: keyX + 210, y2: previewBaseY,
+  const keyX = VBW - pad - 260, keyY = pad;
+  const keyW = 260, keyH = 180;
+  add('rect', {x: keyX, y: keyY, width: keyW, height: keyH, rx: 6, fill: '#f0fdf4', stroke: '#059669', 'stroke-width': 1.5});
+  add('text', {x: keyX + keyW/2, y: keyY + 18, 'text-anchor': 'middle', 'font-size': 12, fill: '#059669', 'font-weight': 'bold'}).textContent = 'WAVY EDGE SPEC';
+  add('text', {x: keyX + 10, y: keyY + 36, 'font-size': 10, fill: '#334155'}).textContent = `Wave height: ${waveAmp}" (peak to trough)`;
+  add('text', {x: keyX + 10, y: keyY + 50, 'font-size': 10, fill: '#334155'}).textContent = `Wavelength: ${waveLen}" (crest to crest)`;
+
+  // Mini wave preview — to scale. Shows one full 13" cycle + a bit, with
+  // dimension markers for height and crest-to-crest wavelength.
+  // Use a dedicated preview scale so the sample is readable in the key.
+  const pvX0 = keyX + 20;
+  const pvY0 = keyY + 105;         // baseline (edge)
+  const pvW  = keyW - 40;          // drawable width
+  // Fit ~1.6 wavelengths across the preview so users see a crest→crest span
+  const pvCycles = 1.6;
+  const pvPxPerIn = pvW / (waveLen * pvCycles);
+  const pvAmpPx = waveAmp * pvPxPerIn;
+  const pvWavePx = waveLen * pvPxPerIn;
+  // Draw the dashed "edge" baseline (peaks touch this line)
+  add('line', {x1: pvX0, y1: pvY0, x2: pvX0 + pvW, y2: pvY0,
     stroke: '#cbd5e1', 'stroke-width': 1, 'stroke-dasharray': '4,3'});
-  add('text', {x: keyX + 212, y: previewBaseY + 3, 'font-size': 7, fill: '#94a3b8'}).textContent = 'edge';
-  let previewD = `M${keyX + 10},${previewBaseY}`;
-  for (let i = 1; i <= 60; i++) {
-    const px = keyX + 10 + (i / 60) * 200;
-    const py = previewBaseY - (Math.cos(2 * Math.PI * (i / 60) * 2.5) - 1) / 2 * 10;
+  add('text', {x: pvX0 + pvW + 3, y: pvY0 + 3, 'font-size': 8, fill: '#94a3b8'}).textContent = 'edge';
+  // Build the wave path (peaks on edge, troughs scoop down = inward)
+  let previewD = `M${pvX0},${pvY0}`;
+  const pvSteps = 120;
+  for (let i = 1; i <= pvSteps; i++) {
+    const t = i / pvSteps;
+    const px = pvX0 + t * pvW;
+    const py = pvY0 - (Math.cos(2 * Math.PI * (t * pvW) / pvWavePx) - 1) / 2 * pvAmpPx;
     previewD += `L${px.toFixed(1)},${py.toFixed(1)}`;
   }
   add('path', {d: previewD, fill: 'none', stroke: wClr, 'stroke-width': 2});
+
+  // Crest-to-crest dimension marker (13")
+  const crestY = pvY0 + 18;
+  add('line', {x1: pvX0, y1: crestY, x2: pvX0 + pvWavePx, y2: crestY,
+    stroke: '#334155', 'stroke-width': 1});
+  // Tick marks
+  add('line', {x1: pvX0, y1: crestY - 3, x2: pvX0, y2: crestY + 3, stroke: '#334155', 'stroke-width': 1});
+  add('line', {x1: pvX0 + pvWavePx, y1: crestY - 3, x2: pvX0 + pvWavePx, y2: crestY + 3, stroke: '#334155', 'stroke-width': 1});
+  // Dashed drop-lines from crests down to the dimension line
+  add('line', {x1: pvX0, y1: pvY0, x2: pvX0, y2: crestY, stroke: '#334155', 'stroke-width': 0.5, 'stroke-dasharray': '2,2'});
+  add('line', {x1: pvX0 + pvWavePx, y1: pvY0, x2: pvX0 + pvWavePx, y2: crestY, stroke: '#334155', 'stroke-width': 0.5, 'stroke-dasharray': '2,2'});
+  add('text', {x: pvX0 + pvWavePx/2, y: crestY + 11, 'text-anchor': 'middle', 'font-size': 9, fill: '#334155'}).textContent = `${waveLen}" crest→crest`;
+
+  // Height dimension marker (2")
+  const trough1X = pvX0 + pvWavePx / 2;
+  const htX = pvX0 - 8;
+  add('line', {x1: htX, y1: pvY0, x2: htX, y2: pvY0 + pvAmpPx, stroke: '#334155', 'stroke-width': 1});
+  add('line', {x1: htX - 3, y1: pvY0, x2: htX + 3, y2: pvY0, stroke: '#334155', 'stroke-width': 1});
+  add('line', {x1: htX - 3, y1: pvY0 + pvAmpPx, x2: htX + 3, y2: pvY0 + pvAmpPx, stroke: '#334155', 'stroke-width': 1});
+  // Dashed lead from trough across to the height bar
+  add('line', {x1: htX, y1: pvY0 + pvAmpPx, x2: trough1X, y2: pvY0 + pvAmpPx, stroke: '#334155', 'stroke-width': 0.5, 'stroke-dasharray': '2,2'});
+  add('text', {x: htX - 4, y: pvY0 + pvAmpPx/2 + 3, 'text-anchor': 'end', 'font-size': 9, fill: '#334155'}).textContent = `${waveAmp}"`;
+
   // Corner scoop info
-  add('line', {x1: keyX + 10, y1: keyY + 90, x2: keyX + 210, y2: keyY + 90,
+  add('line', {x1: keyX + 10, y1: keyY + keyH - 36, x2: keyX + keyW - 10, y2: keyY + keyH - 36,
     stroke: '#e2e8f0', 'stroke-width': 1});
-  add('text', {x: keyX + 10, y: keyY + 106, 'font-size': 10, fill: '#dc2626', 'font-weight': 'bold'}).textContent = `Front corner transition: ${cornerTrans}"`;
-  add('text', {x: keyX + 10, y: keyY + 120, 'font-size': 9, fill: '#334155'}).textContent = 'Wave curves inward, cutting off corner';
+  add('text', {x: keyX + 10, y: keyY + keyH - 20, 'font-size': 10, fill: '#dc2626', 'font-weight': 'bold'}).textContent = `Front corner transition: ${cornerTrans}"`;
+  add('text', {x: keyX + 10, y: keyY + keyH - 6, 'font-size': 9, fill: '#334155'}).textContent = 'Wave curves inward, cutting off corner';
 
   // --- DIRECTION LABELS ---
   add('text', {x: cx, y: mainTopY - bpPhysH - 16, 'text-anchor': 'middle', 'font-size': 10,
