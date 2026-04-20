@@ -95,9 +95,8 @@ export default function FeaturesPage() {
           <FeatureSection
             imagePath="/images/features/interior-liner.jpg"
             title="Marine-Grade Interior Protection"
-            description="Our covers use the same mildew-resistant polyester on the interior that's trusted for boat cushions and marine upholstery. Inner edges are sealed with protective treatment for extra weather defense. The interior has a practical, unfinished appearance - but that's intentional. This marine-grade material delivers superior protection without adding unnecessary bulk or cost."
+            description="Our covers use the same mildew-resistant polyester on the interior that's trusted for boat cushions and marine upholstery. The interior has a practical, unfinished appearance - but that's intentional. This marine-grade material delivers superior protection without adding unnecessary bulk or cost."
             benefits={[
-              "Inner edges sealed with protective weather treatment",
               "Marine-grade mildew-resistant and antifungal polyester",
               "Practical interior designed for function and durability",
               "Lightweight and safe for furniture surfaces"
