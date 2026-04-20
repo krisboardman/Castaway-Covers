@@ -49,3 +49,6 @@ gh_*
 dev.log
 find-addon-variants.js
 find-color-upcharge-variant.js
+
+# local-only source photos (originals kept on disk, not deployed)
+/source-images/
