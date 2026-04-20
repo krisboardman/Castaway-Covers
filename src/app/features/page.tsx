@@ -38,9 +38,9 @@ export default function FeaturesPage() {
           <FeatureSection
             imagePath="/images/features/bungee-system.jpg"
             title="Adjustable Bungee Cord System"
-            description="Our premium bungee cord system with brass grommets provides a customizable, secure fit for any furniture shape. The elasticity allows for easy installation while maintaining constant tension to keep your cover snug and protected."
+            description="Our premium bungee cord system with weather-rated grommets provides a customizable, secure fit for any furniture shape. The elasticity allows for easy installation while maintaining constant tension to keep your cover snug and protected."
             benefits={[
-              "Brass grommets won't rust or corrode",
+              "Weather-rated grommets won't rust or corrode",
               "Adjustable cord length for perfect fit",
               "High-grade elastic maintains tension over time",
               "Quick and easy installation process"
@@ -77,13 +77,13 @@ export default function FeaturesPage() {
             imagePosition="left"
           />
 
-          {/* Feature 6: Double-Reinforced Brass Grommets */}
+          {/* Feature 6: Double-Reinforced Weather-Rated Grommets */}
           <FeatureSection
             imagePath="/images/features/brass-grommet.jpg"
-            title="Double-Reinforced Brass Grommets"
-            description="Strong tie-down points start with smart construction. Each brass grommet is installed through a double layer of vinyl, providing reinforced strength at these critical stress points. This thoughtful design prevents pull-through and tearing, keeping your cover secure in all weather conditions."
+            title="Double-Reinforced Weather-Rated Grommets"
+            description="Strong tie-down points start with smart construction. Each grommet is installed through a double layer of vinyl, providing reinforced strength at these critical stress points. This thoughtful design prevents pull-through and tearing, keeping your cover secure in all weather conditions."
             benefits={[
-              "Brass grommets resist corrosion and weathering",
+              "Weather-rated grommets resist corrosion and UV damage",
               "Extra vinyl layer at each grommet adds reinforcement",
               "Double-layer construction prevents tearing at stress points",
               "Secure tie-down points that last season after season"

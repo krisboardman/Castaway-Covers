@@ -69,7 +69,7 @@ export const pageMetadata = {
   },
   features: {
     title: 'Craftsmanship Details | Castaway Covers',
-    description: 'Discover what makes Castaway Covers different: marine-grade snaps, reinforced brass grommets, storm-secure bungee systems, waterproof UV-resistant vinyl, and custom-fit design.',
+    description: 'Discover what makes Castaway Covers different: marine-grade snaps, weather-rated grommets, storm-secure bungee systems, waterproof UV-resistant vinyl, and custom-fit design.',
     keywords: 'furniture cover craftsmanship, marine grade vinyl, waterproof covers, UV resistant, bungee system, custom fit covers',
   },
 };

@@ -274,7 +274,7 @@ export default function ProductPage() {
                   Why Choose Castaway Covers?
                 </h2>
                 <p className="text-white/90 text-sm sm:text-base">
-                  Discover our premium features: marine-grade snaps, reinforced brass grommets, durable bungee systems, and more.
+                  Discover our premium features: marine-grade snaps, weather-rated grommets, durable bungee systems, and more.
                 </p>
               </div>
               <a
