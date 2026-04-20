@@ -233,8 +233,8 @@ function compute(){
       <div style='font-size:12px;color:var(--sub);margin-top:4px;'>
         Minimum 2 snaps per corner — they form a mating pair across the diagonal cut so when snapped together they gather the corner bulk inward, letting the fabric fall straight from the table edge. Add 1 more pair for every additional 15" of drop. At ${r(drop)}" of drop, that's ${autoSnaps} snaps per corner.
         <br/><br/>
-        <strong>Snap placement (per corner):</strong> One snap on the long-side flap and one on the short-side flap, mirrored across the diagonal. From the outer fabric corner, measure <strong>${r(0.95*drop)}"</strong> along each adjacent edge toward the table corner, then in <strong>${r(0.50*drop)}"</strong> perpendicular toward the table edge (= halfway between the fabric edge and the table edge). Both snaps in a pair should be at the same distances so they line up when the corner is folded.
-        ${autoSnaps>2 ? `<br/><br/>For deeper drops, add the second pair at <strong>${r(0.65*drop)}"</strong> along × <strong>${r(0.50*drop)}"</strong> in.` : ''}
+        <strong>Snap placement (per corner):</strong> One snap on the long-side flap and one on the short-side flap, mirrored across the diagonal. From the outer fabric corner, measure <strong>${r(0.75*drop)}"</strong> along each adjacent edge toward the table corner, then in <strong>${r(0.50*drop)}"</strong> perpendicular toward the table edge (= halfway between the fabric edge and the table edge). Pulling the snap back from the table corner (to ${r(0.25*drop)}" from the corner instead of right at it) leaves the fabric near the corner free to tuck inside, so the cover doesn't cinch uncomfortably tight.
+        ${autoSnaps>2 ? `<br/><br/>For deeper drops, add the second pair at <strong>${r(0.50*drop)}"</strong> along × <strong>${r(0.65*drop)}"</strong> in (farther down the drop and closer to the diagonal cut, so the two pairs distribute the hold over a longer span).` : ''}
       </div>
     </div>
   `;
@@ -414,19 +414,27 @@ function drawDiagram(p){
   // corner (0) toward the table corner (1); the "perpStrip" axis runs from
   // the outer fabric edge (0) toward the table edge (1). Each candidate
   // describes one of the two adjacent strips.
-  //   slot 0: snap on the long-side strip, centered in the strip, ¾ of the
-  //           way toward the table corner
+  //   slot 0: snap on the long-side strip, pulled back from the table corner
+  //           so the fabric near the corner can tuck inside cleanly rather
+  //           than being pinned tight right at the crease
   //   slot 1: snap on the short-side strip, mirrored
   //   slot 2: extra snap pushed deeper into the corner if drop is large
   // Two snaps per corner form a mating pair across the diagonal: one on the
-  // long-side flap, one on the short-side flap. They sit at the same distance
-  // from the table corner so they snap to each other, gathering the corner
-  // bulk inward so the fabric falls roughly straight from the table edge.
+  // long-side flap, one on the short-side flap. They must be mirror images
+  // (same along & perp, opposite axis) so they meet at a single 3D point when
+  // the corner is folded. Sitting at along=0.75 (instead of 0.95) leaves
+  // ~25% of the drop as slack fabric between the snap and the table corner,
+  // which gives a cleaner corner without making the cover uncomfortably tight.
+  // For the two snaps in a mating pair to meet at a single 3D point when the
+  // corner is folded, both slots in the pair must share identical along/perp
+  // values and use opposite axis. The axis handler below swaps along/perp
+  // when computing position, producing the required mirror image across the
+  // diagonal cut.
   const slots = [
-    {along:0.95, perp:0.50, axis:'long'},  // long-side flap snap
-    {along:0.95, perp:0.50, axis:'short'}, // short-side flap snap (mirror)
-    {along:0.65, perp:0.50, axis:'long'},  // extra pair for deeper drops
-    {along:0.65, perp:0.50, axis:'short'},
+    {along:0.75, perp:0.50, axis:'long'},  // long-side flap snap
+    {along:0.75, perp:0.50, axis:'short'}, // short-side flap snap (mirror)
+    {along:0.50, perp:0.65, axis:'long'},  // extra pair for deeper drops
+    {along:0.50, perp:0.65, axis:'short'}, // (mirror of slot 2)
   ];
   // Corner descriptors: outer-corner pixel coords + sign of strip directions.
   const corners = [
@@ -455,10 +463,10 @@ function drawDiagram(p){
   {
     const bl = corners[3];  // bottom-left corner
     const fmt = (v)=> (Math.round(v*10)/10).toString();
-    const alongIn = fmt(0.95 * drop);
+    const alongIn = fmt(0.75 * drop);
     const perpIn  = fmt(0.50 * drop);
-    // Long-side flap snap (bottom edge)
-    const sx1 = bl.ox + 0.95 * dPx;
+    // Long-side flap snap (bottom edge) — matches slots[0] position
+    const sx1 = bl.ox + 0.75 * dPx;
     const sy1 = bl.oy - 0.50 * dPx;
     // Along dimension below the cover
     add('line',{x1:bl.ox, y1:bl.oy+10, x2:sx1, y2:bl.oy+10, stroke:'#16a34a','stroke-width':1});
