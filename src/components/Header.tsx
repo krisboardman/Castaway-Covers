@@ -98,27 +98,27 @@ export default function Header() {
         {mobileMenuOpen && (
           <nav
             id="mobile-nav"
-            className="md:hidden border-t border-gray-200 py-2"
+            className="md:hidden border-t border-gray-200 py-3 flex items-center justify-between gap-2 flex-wrap"
             aria-label="Mobile navigation"
           >
             <Link
               href="/"
               onClick={closeMenu}
-              className="block px-2 py-3 text-gray-700 hover:text-brand-teal font-medium transition-colors"
+              className="text-sm font-medium text-gray-700 hover:text-brand-teal transition-colors whitespace-nowrap"
             >
               Home
             </Link>
             <Link
               href="/features"
               onClick={closeMenu}
-              className="block px-2 py-3 text-gray-700 hover:text-brand-teal font-medium transition-colors"
+              className="text-sm font-medium text-gray-700 hover:text-brand-teal transition-colors whitespace-nowrap"
             >
               Craftsmanship
             </Link>
             <Link
               href="/design"
               onClick={closeMenu}
-              className="block mt-2 mx-2 mb-2 bg-brand-teal text-white text-center px-6 py-3 rounded-full hover:bg-brand-teal-dark transition-colors font-semibold"
+              className="text-sm font-semibold bg-brand-teal text-white px-4 py-2 rounded-full hover:bg-brand-teal-dark transition-colors whitespace-nowrap"
             >
               Design My Cover
             </Link>
