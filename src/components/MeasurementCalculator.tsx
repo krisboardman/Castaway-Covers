@@ -1,5 +1,24 @@
 'use client';
 
+/**
+ * ⚠️ READ BEFORE EDITING MEASUREMENT LOGIC
+ *
+ * For sofas, the internal field `width` holds the sofa's LENGTH, and the
+ * internal field `length` holds the sofa's front-to-back depth. The customer
+ * label `Length` is mapped from `width` and `Front-to-Back Depth` is mapped
+ * from `length`. Every place that reads sofa measurements must account for
+ * this inversion — the cart store, email templates, and Shopify metadata
+ * all depend on it being correct.
+ *
+ * See docs/framework/principles.md §6 ("It treats the sofa like every other
+ * product type") — the project's own documentation calls this the single
+ * most dangerous trap in the codebase. Do not "fix" the inversion without
+ * tracing every consumer first.
+ *
+ * Customer-facing labels live in src/lib/measurement-labels.ts and the
+ * `productConfigs` map below. Keep them in sync.
+ */
+
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { getShopifyClient, findVariantBySKU, clearProductCache } from '@/lib/shopify-client';
@@ -91,12 +110,12 @@ const hardMaximums: Record<string, Record<string, number>> = {
 // Helper hints shown below specific field labels to clarify measurement technique
 const fieldHints: Record<string, Record<string, string>> = {
   'chairs-recliners': {
-    length: 'Measure along the ground from below the back of the chair to the front edge',
+    length: 'Measure along the ground from directly below the back of the chair to the front edge — don\'t measure along the seat surface or include how far the backrest leans back.',
     backWidth: 'Measure the back panel only — this is often shorter than the overall width, which spans arm-to-arm.',
   },
   'sofas-loveseats': {
     width: 'Maximum width 84″. Contact us for a quote on additional or larger pieces. Note: the cover will have a seam down the center, or snaps along the center if the split cover with straps option is chosen.',
-    length: 'Measure along the ground from below the back of the sofa to the front edge',
+    length: 'Measure along the ground from directly below the back of the sofa to the front edge — don\'t measure along the seat surface or include how far the backrest leans back.',
     backWidth: 'Measure the back panel only — this is often shorter than the overall width, which spans arm-to-arm.',
   },
   'tables': {
