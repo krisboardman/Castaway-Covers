@@ -376,6 +376,11 @@ export default function CartPage() {
                   <div className="space-y-4 mb-4">
                     <h3 className="font-semibold text-gray-900">Contact Information</h3>
 
+                    <div className="p-3 bg-brand-teal/10 border-l-4 border-brand-teal rounded-md text-sm text-gray-700">
+                      <p className="font-semibold text-brand-teal-dark mb-1">✓ We review every order before charging you</p>
+                      <p>After you submit, we&apos;ll personally review your order and send a detailed invoice within 24 hours. You&apos;ll only be charged once you approve it.</p>
+                    </div>
+
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         Name <span className="text-red-500">*</span>
@@ -462,11 +467,6 @@ export default function CartPage() {
                           {photos.length} photo{photos.length > 1 ? 's' : ''} selected: {photos.map(p => p.name).join(', ')}
                         </div>
                       )}
-                    </div>
-
-                    <div className="mb-3 p-3 bg-brand-teal/10 border-l-4 border-brand-teal rounded-md text-sm text-gray-700">
-                      <p className="font-semibold text-brand-teal-dark mb-1">✓ We review every order before charging you</p>
-                      <p>After you submit, we'll personally review your order and send a detailed invoice within 24 hours. You'll only be charged once you approve it.</p>
                     </div>
 
                     <button

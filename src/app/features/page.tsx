@@ -79,7 +79,7 @@ export default function FeaturesPage() {
 
           {/* Feature 6: Double-Reinforced Weather-Rated Grommets */}
           <FeatureSection
-            imagePath="/images/features/brass-grommet.jpg"
+            imagePath="/images/features/grommet-detail.jpg"
             title="Double-Reinforced Weather-Rated Grommets"
             description="Strong tie-down points start with smart construction. Each grommet is installed through a double layer of vinyl, providing reinforced strength at these critical stress points. This thoughtful design prevents pull-through and tearing, keeping your cover secure in all weather conditions."
             benefits={[
