@@ -13,17 +13,22 @@ interface ColorModalProps {
   onClose: () => void;
 }
 
+// `hidden: true` keeps a color in the data (so historical orders, cart
+// entries, and image lookups still resolve) but removes it from the
+// customer-facing picker. Flip `hidden` back to `false` (or remove the
+// flag) when the color becomes available again.
 const standardColors = [
-  { name: 'Classic Blue', image: 'classic-blue.webp', premium: false },
-  { name: 'Cream', image: 'cream.webp', premium: false },
-  { name: 'Green', image: 'green.webp', premium: false },
-  { name: 'Grey', image: 'grey.webp', premium: false },
-  { name: 'Lemon', image: 'lemon.webp', premium: false },
-  { name: 'Light Brown', image: 'light-brown.webp', premium: false },
-  { name: 'Mist Grey', image: 'mist-grey.webp', premium: false },
-  { name: 'Navy', image: 'navy.webp', premium: false },
-  { name: 'Sand Dune', image: 'sand-dune.webp', premium: false },
-  { name: 'Wine', image: 'wine.webp', premium: false }
+  { name: 'Classic Blue', image: 'classic-blue.webp', premium: false, hidden: true },
+  { name: 'Cream', image: 'cream.webp', premium: false, hidden: false },
+  { name: 'Green', image: 'green.webp', premium: false, hidden: false },
+  { name: 'Grey', image: 'grey.webp', premium: false, hidden: false },
+  { name: 'Lemon', image: 'lemon.webp', premium: false, hidden: false },
+  { name: 'Light Brown', image: 'light-brown.webp', premium: false, hidden: false },
+  { name: 'Mist Grey', image: 'mist-grey.webp', premium: false, hidden: false },
+  { name: 'Navy', image: 'navy.webp', premium: false, hidden: false },
+  { name: 'Pacific Blue', image: 'pacific-blue.webp', premium: false, hidden: false },
+  { name: 'Sand Dune', image: 'sand-dune.webp', premium: false, hidden: false },
+  { name: 'Wine', image: 'wine.webp', premium: false, hidden: false }
 ];
 
 const premiumColors = [
@@ -88,7 +93,7 @@ const ColorSelector: React.FC<ColorSelectorProps> = ({ onColorSelect }) => {
           <span className="text-xs text-gray-500 ml-2 md:hidden">(Hold to see detail)</span>
         </h4>
         <div className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-5 gap-3">
-          {standardColors.map((color) => (
+          {standardColors.filter((color) => !color.hidden).map((color) => (
             <div key={color.name} className="relative">
               <button
                 onClick={() => handleColorSelect(color)}

@@ -565,6 +565,7 @@ const colorToFileName: { [key: string]: string } = {
   'Light Brown': 'light brown',
   'Mist Grey': 'mist grey',
   'Navy': 'navy',
+  'Pacific Blue': 'pacific blue',
   'Sand Dune': 'sand dune',
   'Wine': 'wine'
 };

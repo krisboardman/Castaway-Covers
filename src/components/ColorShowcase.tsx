@@ -9,17 +9,21 @@ interface ColorModalProps {
   onClose: () => void;
 }
 
+// `hidden: true` keeps a color in the data (so historical references
+// still resolve) but removes it from the showcase. Flip it back when
+// the color becomes available again.
 const standardColors = [
-  { name: 'Classic Blue', image: 'classic-blue.webp' },
-  { name: 'Cream', image: 'cream.webp' },
-  { name: 'Green', image: 'green.webp' },
-  { name: 'Grey', image: 'grey.webp' },
-  { name: 'Lemon', image: 'lemon.webp' },
-  { name: 'Light Brown', image: 'light-brown.webp' },
-  { name: 'Mist Grey', image: 'mist-grey.webp' },
-  { name: 'Navy', image: 'navy.webp' },
-  { name: 'Sand Dune', image: 'sand-dune.webp' },
-  { name: 'Wine', image: 'wine.webp' }
+  { name: 'Classic Blue', image: 'classic-blue.webp', hidden: true },
+  { name: 'Cream', image: 'cream.webp', hidden: false },
+  { name: 'Green', image: 'green.webp', hidden: false },
+  { name: 'Grey', image: 'grey.webp', hidden: false },
+  { name: 'Lemon', image: 'lemon.webp', hidden: false },
+  { name: 'Light Brown', image: 'light-brown.webp', hidden: false },
+  { name: 'Mist Grey', image: 'mist-grey.webp', hidden: false },
+  { name: 'Navy', image: 'navy.webp', hidden: false },
+  { name: 'Pacific Blue', image: 'pacific-blue.webp', hidden: false },
+  { name: 'Sand Dune', image: 'sand-dune.webp', hidden: false },
+  { name: 'Wine', image: 'wine.webp', hidden: false }
 ];
 
 // Modal component for showing enlarged color texture
@@ -66,7 +70,7 @@ const ColorShowcase: React.FC = () => {
   return (
     <>
       <div className="grid grid-cols-5 gap-3">
-        {standardColors.map((color) => (
+        {standardColors.filter((color) => !color.hidden).map((color) => (
           <div
             key={color.name}
             className="relative rounded-xl overflow-hidden shadow-md bg-white border-2 border-gray-200"
