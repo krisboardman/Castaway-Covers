@@ -41,12 +41,8 @@
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
-  <url>
-    <loc>https://castawaycovers.com/products/table-sets</loc>
-    <lastmod>2026-04-20</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
+  <!-- /products/table-sets is intentionally omitted while not actively selling -->
+  <!-- (page still renders but is noindex; add back here when relaunching) -->
   <url>
     <loc>https://castawaycovers.com/products/ottomans</loc>
     <lastmod>2026-04-20</lastmod>
