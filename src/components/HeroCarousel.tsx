@@ -50,6 +50,7 @@ export default function HeroCarousel() {
             fill
             className="object-contain md:object-cover"
             priority={index === 0}
+            sizes="(max-width: 1280px) 100vw, 1280px"
           />
           
           {/* Text content (only if slide has text) */}

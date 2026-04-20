@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { Poppins, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/Header";
@@ -68,20 +69,6 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <head>
-        {/* Google tag (gtag.js) */}
-        <script async src="https://www.googletagmanager.com/gtag/js?id=G-WYV0497EK9"></script>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              window.dataLayer = window.dataLayer || [];
-              function gtag(){dataLayer.push(arguments);}
-              gtag('js', new Date());
-              gtag('config', 'G-WYV0497EK9');
-            `,
-          }}
-        />
-      </head>
       <body className={`${poppins.className} antialiased`}>
         <CartProvider>
           <Header />
@@ -90,6 +77,20 @@ export default function RootLayout({
           </main>
           <Footer />
         </CartProvider>
+        {/* Google Analytics — deferred with next/script lazyOnload so it
+            doesn't compete for main-thread time during LCP. */}
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-WYV0497EK9"
+          strategy="lazyOnload"
+        />
+        <Script id="ga-init" strategy="lazyOnload">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-WYV0497EK9');
+          `}
+        </Script>
       </body>
     </html>
   );
