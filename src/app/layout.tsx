@@ -3,7 +3,6 @@ import { Poppins, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-// import ComingSoonRedirect from "@/components/ComingSoonRedirect"; // DISABLED TO FIX REDIRECTS
 import { CartProvider } from "@/providers/cart-provider";
 
 const poppins = Poppins({
@@ -84,7 +83,6 @@ export default function RootLayout({
         />
       </head>
       <body className={`${poppins.className} antialiased`}>
-        {/* <ComingSoonRedirect /> DISABLED TO FIX REDIRECTS */}
         <CartProvider>
           <Header />
           <main className="bg-gradient-to-b from-white via-[#FAF5ED] to-[#F5E6D3]/40">

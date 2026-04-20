@@ -3,7 +3,7 @@
   <!-- Homepage -->
   <url>
     <loc>https://castawaycovers.com/</loc>
-    <lastmod>2026-02-12</lastmod>
+    <lastmod>2026-04-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
@@ -11,7 +11,7 @@
   <!-- Design My Cover (main product entry point) -->
   <url>
     <loc>https://castawaycovers.com/design</loc>
-    <lastmod>2026-02-12</lastmod>
+    <lastmod>2026-04-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
@@ -19,37 +19,37 @@
   <!-- Product Pages -->
   <url>
     <loc>https://castawaycovers.com/products/chairs-recliners</loc>
-    <lastmod>2026-02-12</lastmod>
+    <lastmod>2026-04-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://castawaycovers.com/products/sofas-loveseats</loc>
-    <lastmod>2026-02-12</lastmod>
+    <lastmod>2026-04-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://castawaycovers.com/products/chaise-lounges</loc>
-    <lastmod>2026-02-12</lastmod>
+    <lastmod>2026-04-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://castawaycovers.com/products/tables</loc>
-    <lastmod>2026-02-12</lastmod>
+    <lastmod>2026-04-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://castawaycovers.com/products/table-sets</loc>
-    <lastmod>2026-02-12</lastmod>
+    <lastmod>2026-04-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://castawaycovers.com/products/ottomans</loc>
-    <lastmod>2026-02-12</lastmod>
+    <lastmod>2026-04-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -57,37 +57,37 @@
   <!-- Features & Info Pages -->
   <url>
     <loc>https://castawaycovers.com/features</loc>
-    <lastmod>2026-02-12</lastmod>
+    <lastmod>2026-04-20</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://castawaycovers.com/measurement-service</loc>
-    <lastmod>2026-02-12</lastmod>
+    <lastmod>2026-04-20</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://castawaycovers.com/about</loc>
-    <lastmod>2026-02-12</lastmod>
+    <lastmod>2026-04-20</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://castawaycovers.com/contact</loc>
-    <lastmod>2026-02-12</lastmod>
+    <lastmod>2026-04-20</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://castawaycovers.com/faqs</loc>
-    <lastmod>2026-02-12</lastmod>
+    <lastmod>2026-04-20</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://castawaycovers.com/instructions</loc>
-    <lastmod>2026-02-12</lastmod>
+    <lastmod>2026-04-20</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
@@ -95,31 +95,31 @@
   <!-- Policy Pages -->
   <url>
     <loc>https://castawaycovers.com/warranty</loc>
-    <lastmod>2026-02-12</lastmod>
+    <lastmod>2026-04-20</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
     <loc>https://castawaycovers.com/shipping</loc>
-    <lastmod>2026-02-12</lastmod>
+    <lastmod>2026-04-20</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
     <loc>https://castawaycovers.com/returns</loc>
-    <lastmod>2026-02-12</lastmod>
+    <lastmod>2026-04-20</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
     <loc>https://castawaycovers.com/privacy</loc>
-    <lastmod>2026-02-12</lastmod>
+    <lastmod>2026-04-20</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
     <loc>https://castawaycovers.com/terms</loc>
-    <lastmod>2026-02-12</lastmod>
+    <lastmod>2026-04-20</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.3</priority>
   </url>

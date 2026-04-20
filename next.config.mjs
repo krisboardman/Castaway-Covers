@@ -7,6 +7,52 @@ const nextConfig = {
     deviceSizes: [640, 750, 828, 1080, 1200, 1920],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
   },
+  async redirects() {
+    return [
+      // Legacy WordPress / old-site URLs flagged by Google Search Console.
+      // All 301 so link equity is preserved and Google drops the 404s from its index.
+      {
+        source: '/design-my-cover',
+        destination: '/design',
+        permanent: true,
+      },
+      {
+        source: '/design-my-cover/:path*',
+        destination: '/design',
+        permanent: true,
+      },
+      {
+        source: '/table-chooser2',
+        destination: '/',
+        permanent: true,
+      },
+      {
+        source: '/table-chooser2/:path*',
+        destination: '/',
+        permanent: true,
+      },
+      {
+        source: '/category/uncategorized',
+        destination: '/',
+        permanent: true,
+      },
+      {
+        source: '/category/uncategorized/:path*',
+        destination: '/',
+        permanent: true,
+      },
+      {
+        source: '/reviews',
+        destination: '/',
+        permanent: true,
+      },
+      {
+        source: '/reviews/:path*',
+        destination: '/',
+        permanent: true,
+      },
+    ];
+  },
   async headers() {
     return [
       {

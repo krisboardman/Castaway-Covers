@@ -4,10 +4,11 @@
 User-agent: *
 Allow: /
 
-# Block API and system directories
-Disallow: /api/
-Disallow: /_next/
+# Block cart, checkout, API, and Next.js internals
 Disallow: /cart
+Disallow: /checkout
+Disallow: /api/
+Disallow: /_next/static/
 
 # Block WordPress leftover URLs
 Disallow: /feed/
@@ -17,10 +18,6 @@ Disallow: /comments/
 Disallow: /wp-*
 Disallow: /sample-page/
 Disallow: /hello-world/
-
-# Block non-existent test pages
-Disallow: /chair-chooser/
-Disallow: /table-chooser/
 Disallow: /elementor-hf/
 
 # Sitemap location
