@@ -583,7 +583,8 @@ const getGalleryImages = (productType: string, selectedColor?: string) => {
       { src: '/images/Chairs-Recliners/chair2.jpg', alt: 'Chair Cover - Back View' },
       { src: '/images/Chairs-Recliners/chair3.jpg', alt: 'Chair Cover - Side View' },
       { src: '/images/Chairs-Recliners/chair4.jpg', alt: 'Patio Chair with Snap Cover' },
-      { src: '/images/Chairs-Recliners/chair6.jpg', alt: 'Blue Recliner Cover on Patio' }
+      { src: '/images/Chairs-Recliners/chair6.jpg', alt: 'Blue Recliner Cover on Patio' },
+      { src: '/images/Chairs-Recliners/chair7.jpg', alt: 'Chair Cover - Outdoor View' }
     ],
     'sofas-loveseats': [
       { src: '/images/Sofas-Loveseats/sofa1.jpg', alt: 'Sofa with Castaway Cover' },
@@ -602,11 +603,13 @@ const getGalleryImages = (productType: string, selectedColor?: string) => {
       { src: '/images/ChaiseLounges/chaise2.jpg', alt: 'Chaise Lounge Cover in Cream - Flat Position' }
     ],
     'ottomans': [
-      { src: '/images/Ottomans/ottoman1.jpg', alt: 'Ottoman Cover' }
+      { src: '/images/Ottomans/ottoman1.jpg', alt: 'Ottoman Cover' },
+      { src: '/images/Ottomans/ottoman4.jpg', alt: 'Ottoman Cover - Gray Outdoor View' }
     ],
     'tables': [
       { src: '/images/Tables/table1.jpg', alt: 'Wine Table with Castaway Cover' },
-      { src: '/images/Tables/table3.jpg', alt: 'Table with Castaway Cover' }
+      { src: '/images/Tables/table3.jpg', alt: 'Table with Castaway Cover' },
+      { src: '/images/Tables/table4.jpg', alt: 'Table Cover - Scalloped Edge on Patio' }
     ],
     'table-sets': [
       { src: '/images/Tablesets/tableset6.jpg', alt: 'Table Set Cover - Winter Snow Protection' },
