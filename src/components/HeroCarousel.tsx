@@ -10,6 +10,11 @@ const slides = [
     subtitle: ''
   },
   {
+    image: '/images/hero/hero5.webp',
+    title: 'Protection Meets the View',
+    subtitle: 'Covers that blend into the scene so you never have to choose between protection and beauty.'
+  },
+  {
     image: '/images/hero/hero2.webp',
     title: 'Marine-Grade Luxury',
     subtitle: 'Heavy-duty vinyl that stays put and looks beautiful year after year'
