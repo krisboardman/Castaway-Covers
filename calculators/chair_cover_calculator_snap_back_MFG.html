@@ -966,11 +966,15 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
       // Actual extension width at this height (for annotations only)
       const extensionAtHeight = outerEdgeAtHeight - WB/2;
 
-      // BACK-SIDE snap: 2" outward from the WB/2 fold
+      // BACK-SIDE snap: 2" outward from the WB/2 fold (on the side-drop
+      // portion of the back piece — the extension)
       const backFromCenter = WB / 2 + STATIC_OFFSET;
 
-      // FRONT-SIDE snap: 2" inward from the outer diagonal edge
-      const frontFromCenter = outerEdgeAtHeight - STATIC_OFFSET;
+      // FRONT-SIDE snap: 2" INWARD from the WB/2 fold (on the central
+      // back-panel zone). Mirror of back-side across the WB/2 fold line.
+      // When the extension flap folds over the central zone at the WB/2
+      // fold, back-side snap lands on top of front-side snap — they mate.
+      const frontFromCenter = Math.max(0, WB / 2 - STATIC_OFFSET);
 
       // Implicit pleat-fold location (midpoint between the two halves);
       // when the outer portion of the extension folds back at this line,
@@ -2284,8 +2288,8 @@ function compute(){
     const extensionAtHeight = outerEdgeAtHeight - WB/2;
 
     const backFromCenter  = WB / 2 + STATIC_OFFSET;
-    const frontFromCenter = outerEdgeAtHeight - STATIC_OFFSET;
-    const pleatFoldFromCenter = (backFromCenter + frontFromCenter) / 2;
+    const frontFromCenter = Math.max(0, WB / 2 - STATIC_OFFSET);  // mirror across WB/2 fold
+    const pleatFoldFromCenter = WB / 2;  // fold at the WB/2 line
 
     const snapStrapsSection = document.getElementById('snapstraps');
     snapStrapsSection.innerHTML = `
