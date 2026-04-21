@@ -46,7 +46,6 @@
           <label class="lbl">Ottoman width W (short side)<input id="W" type="number" step="1" value="36"></label>
           <label class="lbl">Ottoman height H (top of ottoman to floor — <strong>include the cushion if present</strong>)<input id="H" type="number" step="0.5" value="20"></label>
           <label class="lbl">Floor clearance FC<input id="FC" type="number" step="0.5" value="3"></label>
-          <label class="lbl">Snaps per corner (auto if blank — 2 per corner, +2 per ~15" of drop)<input id="snapsPerCorner" type="number" step="2" placeholder="auto"></label>
         </div>
         <div class="note" style="margin-top:8px;">
           Side drop is computed as H − FC, so the cover hangs to within the floor clearance. Measure to the top of the cushion if your ottoman has one. <strong>Note:</strong> if your cushion exceeds 2″ in thickness and you use the cover on the ottoman without the cushion, the cover may drag on the ground.
@@ -114,7 +113,6 @@ function compute(){
   const rounded=document.getElementById('round').checked;
   const B=n('B'), L=n('L'), W=n('W'), H=n('H'), FC=n('FC');
   const drop=Math.max(0, H - FC);
-  const snapOverride = nOpt('snapsPerCorner');
 
   // Long side L, short side W. Cover panel:
   //   ML (along the bolt) = L + 2*drop  — runs along the long side
@@ -122,14 +120,10 @@ function compute(){
   const ML = Math.max(0, L + 2*drop);
   const MD = Math.max(0, W + 2*drop);
 
-  // Snaps per corner: minimum 2 (to keep the tucked-in corner bulk enclosed),
-  // plus 1 more per additional 10" of drop beyond the first 10".
-  // Snaps always come in mating pairs (one on the long-side flap, one on the
-  // short-side flap), so the count per corner must be even. Default is 2;
-  // add another pair for every ~15" of drop beyond the first.
-  const autoSnaps = 2 * Math.max(1, Math.ceil(drop / 15));
-  // Force even count so snaps always come in mating pairs.
-  const snapsPerCorner = (snapOverride && snapOverride > 0) ? (2 * Math.max(1, Math.round(snapOverride / 2))) : autoSnaps;
+  // One mating pair of snaps per corner (2 snaps per corner, 8 total on the
+  // cover). The snaps are aesthetic — they give a clean corner — so a single
+  // pair is enough regardless of drop depth.
+  const snapsPerCorner = 2;
   const totalSnaps = snapsPerCorner * 4;
 
   // Grommets: 4 total, at the four cover corners on the long sides.
@@ -179,7 +173,7 @@ function compute(){
     <div class='row'><span>Cover width (MD)</span><strong>${r(MD)} in</strong></div>
     <div class='row'><span>Side drop</span><strong>${r(drop)} in</strong></div>
     <div class='row'><span>Diagonal corner cut (each)</span><strong>${r(drop)}" × ${r(drop)}" — outer triangle removed</strong></div>
-    <div class='row'><span>Snaps per corner</span><strong>${snapsPerCorner}${snapOverride ? '' : ' (auto)'}</strong></div>
+    <div class='row'><span>Snaps per corner</span><strong>${snapsPerCorner}</strong></div>
     <div class='row'><span>Total snaps</span><strong>${totalSnaps}</strong></div>
     <div class='row'><span>Layout</span><strong>${layout==='single' ? 'Single piece' : 'Main panel + 2 side strips'}</strong></div>
     <div class='row'><span>Fits in bolt width?</span><strong>${fitsBolt
@@ -225,10 +219,9 @@ function compute(){
     <div class='row'><span>Total snaps</span><strong>${totalSnaps}</strong></div>
     <div class='row' style='display:block;'>
       <div style='font-size:12px;color:var(--sub);margin-top:4px;'>
-        Minimum 2 snaps per corner — they form a mating pair across the diagonal cut so when snapped together they gather the corner bulk inward, letting the fabric fall straight from the table edge. Add 1 more pair for every additional 15" of drop. At ${r(drop)}" of drop, that's ${autoSnaps} snaps per corner.
+        One mating pair per corner (2 snaps): one on the long-side flap, one on the short-side flap, mirrored across the diagonal cut. When snapped together they gather the corner bulk inward for a clean finish — aesthetic, not structural, so a single pair is enough regardless of drop depth.
         <br/><br/>
-        <strong>Snap placement (per corner):</strong> One snap on the long-side flap and one on the short-side flap, mirrored across the diagonal. From the outer fabric corner, measure <strong>${r(0.95*drop)}"</strong> along each adjacent edge toward the table corner, then in <strong>${r(0.50*drop)}"</strong> perpendicular toward the table edge (= halfway between the fabric edge and the table edge). Both snaps in a pair should be at the same distances so they line up when the corner is folded.
-        ${autoSnaps>2 ? `<br/><br/>For deeper drops, add the second pair at <strong>${r(0.65*drop)}"</strong> along × <strong>${r(0.50*drop)}"</strong> in.` : ''}
+        <strong>Snap placement (per corner):</strong> From the outer fabric corner, measure <strong>${r(drop - 2)}"</strong> along each adjacent edge toward the table corner (= drop − 2", so the snap sits 2" in from the ottoman-edge fold line), then <strong>${r(drop / 2)}"</strong> perpendicular from the outer fabric edge (= halfway to the ottoman edge). Placing the snap 2" inside the corner fold keeps the cover gathered cleanly at the corner — pulling enough excess material in to eliminate the loose drape, without pinning the fabric right at the crease.
       </div>
     </div>
   `;
@@ -435,19 +428,27 @@ function drawDiagram(p){
   // corner (0) toward the table corner (1); the "perpStrip" axis runs from
   // the outer fabric edge (0) toward the table edge (1). Each candidate
   // describes one of the two adjacent strips.
-  //   slot 0: snap on the long-side strip, centered in the strip, ¾ of the
-  //           way toward the table corner
-  //   slot 1: snap on the short-side strip, mirrored
-  //   slot 2: extra snap pushed deeper into the corner if drop is large
   // Two snaps per corner form a mating pair across the diagonal: one on the
-  // long-side flap, one on the short-side flap. They sit at the same distance
-  // from the table corner so they snap to each other, gathering the corner
-  // bulk inward so the fabric falls roughly straight from the table edge.
+  // long-side flap, one on the short-side flap. Both slots in the pair must
+  // share identical along/perp values and use opposite axis; the handler
+  // below swaps along/perp when computing position, producing the required
+  // mirror image across the diagonal cut so the two snaps meet at a single
+  // 3D point when the corner is folded.
+  //
+  // Placement (dialed in from physical prototype testing on the table cover
+  // and carried over here — same geometry applies to the ottoman since the
+  // corner construction is identical):
+  //   along = drop − 2"   (fixed 2" offset from the ottoman-edge fold line)
+  //   perp  = drop / 2    (halfway between the outer fabric edge and the
+  //                         ottoman edge)
+  // Floor on alongFrac so the snap stays inside the flap for small drops
+  // (inside-flap requirement: along + perp > 1 in drop-units).
+  const SNAP_ALONG_INSET_IN = 2;
+  const alongFrac = drop > 0 ? Math.max(0.60, (drop - SNAP_ALONG_INSET_IN) / drop) : 0.88;
+  const perpFrac = 0.5;
   const slots = [
-    {along:0.95, perp:0.50, axis:'long'},  // long-side flap snap
-    {along:0.95, perp:0.50, axis:'short'}, // short-side flap snap (mirror)
-    {along:0.65, perp:0.50, axis:'long'},  // extra pair for deeper drops
-    {along:0.65, perp:0.50, axis:'short'},
+    {along: alongFrac, perp: perpFrac, axis:'long'},  // long-side flap snap
+    {along: alongFrac, perp: perpFrac, axis:'short'}, // short-side flap snap (mirror)
   ];
   // Corner descriptors: outer-corner pixel coords + sign of strip directions.
   const corners = [
@@ -477,11 +478,14 @@ function drawDiagram(p){
   {
     const bl = corners[3];  // bottom-left corner
     const fmt = (v)=> (Math.round(v*10)/10).toString();
-    const alongIn = fmt(0.95 * drop);
-    const perpIn  = fmt(0.50 * drop);
-    // Long-side flap snap (bottom edge)
-    const sx1 = bl.ox + 0.95 * dPx;
-    const sy1 = bl.oy - 0.50 * dPx;
+    // Match the fractions computed in compute() — drop−2" along, drop/2 perp.
+    const alongFracCallout = drop > 0 ? Math.max(0.60, (drop - 2) / drop) : 0.88;
+    const perpFracCallout  = 0.5;
+    const alongIn = fmt(alongFracCallout * drop);
+    const perpIn  = fmt(perpFracCallout  * drop);
+    // Long-side flap snap (bottom edge) — matches slots[0] position
+    const sx1 = bl.ox + alongFracCallout * dPx;
+    const sy1 = bl.oy - perpFracCallout  * dPx;
     // Along dimension below the cover
     add('line',{x1:bl.ox, y1:bl.oy+10, x2:sx1, y2:bl.oy+10, stroke:'#16a34a','stroke-width':1});
     add('line',{x1:bl.ox, y1:bl.oy+7, x2:bl.ox, y2:bl.oy+13, stroke:'#16a34a','stroke-width':1});
@@ -521,7 +525,7 @@ function drawDiagram(p){
 // Load values from URL parameters
 function loadFromURL(){
   const params = new URLSearchParams(window.location.search);
-  const fields = ['B', 'L', 'W', 'H', 'FC', 'snapsPerCorner'];
+  const fields = ['B', 'L', 'W', 'H', 'FC'];
   let loaded = false;
   fields.forEach(field => {
     const value = params.get(field);
@@ -539,7 +543,6 @@ function wire(){
   document.getElementById('reset').addEventListener('click',()=>{
     const d={B:54,L:36,W:24,H:16,FC:3};
     for(const k in d) document.getElementById(k).value=d[k];
-    document.getElementById('snapsPerCorner').value='';
     document.getElementById('round').checked=true; compute();
   });
   loadFromURL();
