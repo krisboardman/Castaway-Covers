@@ -105,7 +105,7 @@
             The bolt width (B) runs front-to-back. A separate trapezoidal back piece hangs down the back of the chair with side extensions that provide continuous coverage at the corners (replacing gussets).<br/>
             <strong>Back piece:</strong> Trapezoid — top edge matches main piece width (ML), narrower at the bottom (WB + 2×hem). Height: H − FC. Side extensions wrap around corners; excess material folds inward and snaps in place.<br/>
             <strong>Front flap:</strong> Added if bolt width &lt; front-to-back coverage needed. Sewn to main piece at front edge with lap seam.<br/>
-            <strong>Snaps:</strong> 2 snaps per back corner, placed along the diagonal edge where back piece extensions meet the main piece's side drops.
+            <strong>Snaps:</strong> One snap pair per back corner (aesthetic — keeps the back corner gathered cleanly against the side drop). Placed halfway down the back piece, 2 inches past the fold line on the back piece and 2 inches forward from the top seam on the main piece.
           </div>
           <div id="err" class="note danger" style="display:none;"></div>
         </div>
@@ -218,8 +218,8 @@
           <li><strong style="color:#22c55e;">Install snaps</strong> at back corners:
             <ul style="margin-top:4px; padding-left:20px;">
               <li>The back piece's side extensions wrap around the back corners and snap to the interior of the main piece's side drops</li>
-              <li>Install 2 snaps per corner along the diagonal edge where extensions meet the side drops</li>
-              <li>Space snaps evenly for even support and smooth draping</li>
+              <li>Install 1 snap pair per corner (2 pairs total): halfway down the back piece, 2" past the fold line on each side</li>
+              <li>See the Snap Placement card for exact dimensions</li>
             </ul>
           </li>
           <li><strong style="color:#b45309;">Add grommets</strong> — 4 total (2 front, 2 back). Each grommet sits <strong>⅓ of the side drop</strong> from the nearest floor edge. See Grommet Placement card and assembly diagram for exact dimensions.</li>
@@ -608,7 +608,7 @@ function updateCutList(params){
   }
 
   // Snap placement (replaces gussets)
-  rows.push(['Snap hardware', 'Install 2 snaps per corner (4 total)', `Back piece side extensions snap to interior of main piece's side drops. One snap near top (close to seam), one partway down.`]);
+  rows.push(['Snap hardware', 'Install 1 snap pair per corner (2 pairs total)', `Back piece side extensions snap to interior of main piece's side drops. One pair per back corner, halfway down the back piece.`]);
 
   cutlist.innerHTML = rows.map((r,i)=>`<div class="row" style="${i? 'border-top:1px dashed var(--muted);':''}"><span>${r[0]}</span><strong>${r[1]}</strong><span style="color:var(--sub)">${r[2]}</span></div>`).join('');
 }
@@ -748,21 +748,15 @@ function drawAssemblyDiagramSide(params){
   add('text',{x:tx(-BR)+8, y:ty(FC)+4, 'font-size':9, fill:'#dc2626'}).textContent=`FC: ${FC}"`;
   add('circle',{cx:tx(seatFront), cy:ty(FC), r:4, fill:'#dc2626', stroke:'#fff', 'stroke-width':1.5});
 
-  // === SNAP POSITION MARKERS on back piece ===
-  // Snaps at ⅓ and ⅔ down from backrest top (seam line) to FC
+  // === SNAP POSITION MARKER on back piece ===
+  // One snap pair per back corner — ½ down from the seam line (backrest top).
   {
     const bpH = params.backPieceHeight || (H - FC);
-    const snap1Y = backrestTop - bpH / 3;   // ⅓ down from top
-    const snap2Y = backrestTop - bpH * 2 / 3;  // ⅔ down from top
+    const snapY = backrestTop - bpH / 2;   // halfway down from top seam
     const snapX = tx(-BR);
-    // Snap 1
-    add('circle',{cx:snapX, cy:ty(snap1Y), r:5, fill:'#059669', stroke:'#fff', 'stroke-width':2});
-    add('text',{x:snapX - 10, y:ty(snap1Y) + 4, 'text-anchor':'end', 'font-size':9, fill:'#059669', 'font-weight':'bold'}).textContent=`Snap 1`;
-    add('text',{x:snapX - 10, y:ty(snap1Y) + 14, 'text-anchor':'end', 'font-size':8, fill:'#059669'}).textContent=`⅓ down (${rIn(bpH/3)}")`;
-    // Snap 2
-    add('circle',{cx:snapX, cy:ty(snap2Y), r:5, fill:'#059669', stroke:'#fff', 'stroke-width':2});
-    add('text',{x:snapX - 10, y:ty(snap2Y) + 4, 'text-anchor':'end', 'font-size':9, fill:'#059669', 'font-weight':'bold'}).textContent=`Snap 2`;
-    add('text',{x:snapX - 10, y:ty(snap2Y) + 14, 'text-anchor':'end', 'font-size':8, fill:'#059669'}).textContent=`⅔ down (${rIn(bpH*2/3)}")`;
+    add('circle',{cx:snapX, cy:ty(snapY), r:5, fill:'#059669', stroke:'#fff', 'stroke-width':2});
+    add('text',{x:snapX - 10, y:ty(snapY) + 4, 'text-anchor':'end', 'font-size':9, fill:'#059669', 'font-weight':'bold'}).textContent=`Snap`;
+    add('text',{x:snapX - 10, y:ty(snapY) + 14, 'text-anchor':'end', 'font-size':8, fill:'#059669'}).textContent=`½ down (${rIn(bpH/2)}")`;
   }
 
   add('line',{x1:tx(-BR)-60, y1:ty(0), x2:tx(-BR)-60, y2:ty(H), stroke:'#475569', 'stroke-width':1, 'marker-start':'url(#arrS)', 'marker-end':'url(#arrS)'});
@@ -934,14 +928,25 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
   }
 
   // === SNAP POSITION MARKERS ===
-  // Back piece snaps: 4" past the WB/2 fold line from center (within extension zone)
-  // Main piece snaps: 4" inward from the diagonal cut edge, at ⅓ and ⅔ down the side drop
-  // When assembled, the extension folds around the corner and these snap pairs meet.
+  // One snap pair per back corner, aesthetic only:
+  //   - Back piece snap sits on the side extension, 2" past the WB/2 fold
+  //     line (= 2" out from center-of-back toward the corner), halfway down
+  //     the back piece height.
+  //   - Main piece mating snap sits on the inside of the side drop, 2" down
+  //     from the top seam (forward from the back of the chair), and at
+  //     WB/2 + sideDrop/2 from center (= halfway down the side drop in 3D).
+  //
+  // When the back piece extension folds 90° around the back corner of the
+  // chair, both snaps land at the same 3D point: 2" forward from the back
+  // of the chair, halfway down the side. NOTE — the main piece X formula
+  // uses WB/2 (backrest width), not W/2 (armrest width), because the snap
+  // lives in the back zone where the side of the cover starts at the
+  // backrest edge.
   {
-    const mainSnapInset = 4;  // 4" from the fold/corner on main piece
-    const backSnapFromFold = 4;  // 4" past WB/2 fold line on back piece
+    const mainSnapInset = 2;     // 2" from top seam on main piece
+    const backSnapFromFold = 2;  // 2" past WB/2 fold line on back piece
     const fullExt = (backPieceTopWidth - backPieceBottomWidth) / 2;
-    const snapFracs = [{frac: 1/3, label: '1', fracLabel:'⅓'}, {frac: 2/3, label: '2', fracLabel:'⅔'}];
+    const snapFracs = [{frac: 0.5, label: '1', fracLabel:'½'}];
 
     // Collect snap positions for the key
     const snapInfo = [];
@@ -963,7 +968,10 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
       add('text',{x:bpRightSnapX, y:bpSnapY + 4, 'text-anchor':'middle', 'font-size':9, fill:'#fff', 'font-weight':'bold'}).textContent=snap.label;
 
       // --- MAIN PIECE snaps (green with red border) ---
-      const mainSnapDistFromCenter = W / 2 + sideDrop * snap.frac;
+      // X = WB/2 + (distance down the side drop). Using WB/2 (backrest edge)
+      // because the snap lives in the back zone where the side of the cover
+      // starts at the backrest edge, not at the armrest (W/2).
+      const mainSnapDistFromCenter = WB / 2 + sideDrop * snap.frac;
       const mainSnapY = mainTopY + mainSnapInset * sc;
       const mainLeftSnapX = cx - mainSnapDistFromCenter * sc;
       const mainRightSnapX = cx + mainSnapDistFromCenter * sc;
@@ -993,7 +1001,7 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
     }
 
     // --- SNAP KEY: placed in top-right corner of the SVG (near the snaps) ---
-    const keyW = 265, keyH = 220;
+    const keyW = 265, keyH = 130;
     const keyX = VBW - pad - keyW;
     const keyY = pad;
     // Background box
@@ -1005,31 +1013,18 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
     add('circle',{cx:keyX + 130, cy:keyY + 32, r:6, fill:'#059669', stroke:'#dc2626', 'stroke-width':2});
     add('text',{x:keyX + 140, y:keyY + 36, 'font-size':9, fill:'#334155'}).textContent='= on main piece';
 
-    // Snap 1 info
+    // Single snap pair info (halfway down)
     const s1 = snapInfo[0];
     let row = keyY + 52;
-    add('text',{x:keyX + 10, y:row, 'font-size':10, fill:'#059669', 'font-weight':'bold'}).textContent=`Snap 1 (${s1.fracLabel} down from seam)`;
+    add('text',{x:keyX + 10, y:row, 'font-size':10, fill:'#059669', 'font-weight':'bold'}).textContent=`One snap pair per back corner (${s1.fracLabel} down from seam)`;
     row += 13;
-    add('text',{x:keyX + 10, y:row, 'font-size':9, fill:'#334155'}).textContent=`Back: ${rIn(s1.downFromSeam)}" down, ${rIn(s1.fromCenter)}" from center`;
+    add('text',{x:keyX + 10, y:row, 'font-size':9, fill:'#334155'}).textContent=`Back piece: ${rIn(s1.downFromSeam)}" down, ${rIn(s1.fromCenter)}" from center`;
     row += 11;
     add('text',{x:keyX + 10, y:row, 'font-size':9, fill:'#475569'}).textContent=`(${rIn(s1.fromEdge)}" from edge — width at this height: ${rIn(s1.bpWidthAtHeight)}")`;
     row += 13;
-    add('text',{x:keyX + 10, y:row, 'font-size':9, fill:'#334155'}).textContent=`Main: ${s1.mainSnapInset}" from seam, ${rIn(s1.mainFromCenter)}" from center`;
+    add('text',{x:keyX + 10, y:row, 'font-size':9, fill:'#334155'}).textContent=`Main piece: ${s1.mainSnapInset}" from seam, ${rIn(s1.mainFromCenter)}" from center`;
     row += 11;
     add('text',{x:keyX + 10, y:row, 'font-size':9, fill:'#475569'}).textContent=`(${rIn(s1.mainFromEdge)}" from edge)`;
-
-    // Snap 2 info
-    const s2 = snapInfo[1];
-    row += 18;
-    add('text',{x:keyX + 10, y:row, 'font-size':10, fill:'#059669', 'font-weight':'bold'}).textContent=`Snap 2 (${s2.fracLabel} down from seam)`;
-    row += 13;
-    add('text',{x:keyX + 10, y:row, 'font-size':9, fill:'#334155'}).textContent=`Back: ${rIn(s2.downFromSeam)}" down, ${rIn(s2.fromCenter)}" from center`;
-    row += 11;
-    add('text',{x:keyX + 10, y:row, 'font-size':9, fill:'#475569'}).textContent=`(${rIn(s2.fromEdge)}" from edge — width at this height: ${rIn(s2.bpWidthAtHeight)}")`;
-    row += 13;
-    add('text',{x:keyX + 10, y:row, 'font-size':9, fill:'#334155'}).textContent=`Main: ${s2.mainSnapInset}" from seam, ${rIn(s2.mainFromCenter)}" from center`;
-    row += 11;
-    add('text',{x:keyX + 10, y:row, 'font-size':9, fill:'#475569'}).textContent=`(${rIn(s2.mainFromEdge)}" from edge)`;
   }
 
   // === ZONE BOUNDARY LINES (bold, visible) ===
@@ -2258,70 +2253,51 @@ function compute(){
     const frontDrapingLength = AT2F + (F2A - FC);
     const frontSnapFromSeam = (frontDrapingLength / 3) * 2;
 
-    // Snap placement for back corners (snap-back design)
-    // The back piece tapers from backPieceTopWidth at top to backPieceBottomWidth at bottom
-    // When assembled, the extensions fold inward at each corner and snap to the main piece interior
-    // Snaps at ⅓ and ⅔ down from seam
+    // Snap placement for back corners (snap-back design).
+    // One snap pair per back corner (2 pairs total on the cover). Halfway
+    // down the back piece, 2" past the fold on the back piece and 2" from
+    // the top seam on the main piece. Aesthetic only — keeps the corner
+    // gathered cleanly. In 3D the pair meets at a single point: 2" forward
+    // from the back of the chair, halfway down the side.
     const backDiagonalLength = Math.sqrt(backPieceHeight ** 2 + ((backPieceTopWidth - backPieceBottomWidth) / 2) ** 2);
-    const snapsPerCorner = 2;
+    const snapsPerCorner = 1;  // one pair per corner
     const fullExtensionPerSide = (backPieceTopWidth - backPieceBottomWidth) / 2;  // max extension at top
-    const snapMainInset = 4;  // 4" from seam/fold on the main piece
-    const snapBackFromFold = 4;  // 4" past the WB/2 fold line on back piece
+    const snapMainInset = 2;     // 2" from top seam on the main piece
+    const snapBackFromFold = 2;  // 2" past the WB/2 fold line on back piece
 
-    // Snap 1: ⅓ down from seam
-    const snap1Down = backPieceHeight / 3;
-    const snap1ExtensionWidth = fullExtensionPerSide * (1 - snap1Down / backPieceHeight);  // ⅔ of full extension
-    const snap1BackFromFold = Math.min(snapBackFromFold, snap1ExtensionWidth - 1);  // cap at ext - 1"
-    const snap1BackFromCenter = WB / 2 + snap1BackFromFold;  // from centerline of back piece
+    // Halfway-down snap: ½ of the back piece height
+    const snapDown = backPieceHeight / 2;
+    const snapExtensionWidth = fullExtensionPerSide * (1 - snapDown / backPieceHeight);  // ½ of full extension
+    const actualBackFromFold = Math.min(snapBackFromFold, snapExtensionWidth - 1);       // safety cap
+    const snapBackFromCenter = WB / 2 + actualBackFromFold;                              // from centerline
 
-    // Snap 2: ⅔ down from seam
-    const snap2Down = backPieceHeight * 2 / 3;
-    const snap2ExtensionWidth = fullExtensionPerSide * (1 - snap2Down / backPieceHeight);  // ⅓ of full extension
-    const snap2BackFromFold = Math.min(snapBackFromFold, snap2ExtensionWidth - 1);  // cap if extension is narrow
-    const snap2BackFromCenter = WB / 2 + snap2BackFromFold;  // from centerline of back piece
-
-    // On the main piece: snaps at ⅓ and ⅔ down the side drop, 4" from the seam/fold toward the front
-    // Side drop runs from W/2 out to ML/2. ⅓ down = W/2 + sideDrop/3 from center.
-    const mainSnap1DownSideDrop = sideDrop / 3;
-    const mainSnap2DownSideDrop = sideDrop * 2 / 3;
+    // On the main piece: halfway down the side drop (in 3D), WB/2 + sideDrop/2 from center.
+    const mainSnapDownSideDrop = sideDrop / 2;
+    const mainSnapFromCenter = WB / 2 + mainSnapDownSideDrop;
 
     const snapStrapsSection = document.getElementById('snapstraps');
     snapStrapsSection.innerHTML = `
       <div class="row" style="display:block; padding:8px 0; background:#ecfdf5;">
         <div style="display:flex;justify-content:space-between;align-items:center;">
-          <span><strong>Snap placement for back corners</strong></span><strong style="color:#059669;">2 snaps per corner (4 total)</strong>
+          <span><strong>Snap placement for back corners</strong></span><strong style="color:#059669;">1 pair per corner (2 pairs total)</strong>
         </div>
         <div style="font-size:11px;color:var(--sub);margin-top:4px;">
-          When assembled, the back piece's side extensions fold inward at each corner and snap to the interior of the main piece's side drops.
-          This tucks the excess material inside for a clean look and keeps wind from lifting the cover.
+          When assembled, the back piece's side extensions fold inward at each back corner and snap to the interior of the main piece's side drops. A single pair per corner is enough for a clean finish — the snap is aesthetic, keeping the corner gathered, not load-bearing.
         </div>
       </div>
 
       <div class="row" style="display:block; padding:8px 0; border-top:2px solid #059669; background:#f0fdf4;">
         <div style="display:flex;justify-content:space-between;align-items:center;">
-          <span><strong>Snap 1 — ⅓ down from seam</strong></span><strong style="color:#059669;">${fmtExact(snap1Down)}" down</strong>
+          <span><strong>Snap — ½ down from seam</strong></span><strong style="color:#059669;">${fmtExact(snapDown)}" down</strong>
         </div>
         <div style="font-size:11px;color:var(--sub);margin-top:4px;">
-          <strong>On the back piece:</strong> Measure ${fmtExact(snap1Down)}" down from the top (seam) edge.
-          Extension is ${fmtExact(snap1ExtensionWidth)}" wide at this height.
-          Place snap ${fmtExact(snap1BackFromFold)}" past the fold line
-          (${fmtExact(snap1BackFromCenter)}" from centerline, WB÷2 + ${fmtExact(snap1BackFromFold)}).<br/>
-          <strong>On the main piece (interior):</strong> ${fmtExact(mainSnap1DownSideDrop)}" down the side drop (⅓),
-          ${snapMainInset}" from the seam toward the front.
-        </div>
-      </div>
-
-      <div class="row" style="display:block; padding:8px 0; border-top:2px solid #059669; background:#f0fdf4;">
-        <div style="display:flex;justify-content:space-between;align-items:center;">
-          <span><strong>Snap 2 — ⅔ down from seam</strong></span><strong style="color:#059669;">${fmtExact(snap2Down)}" down</strong>
-        </div>
-        <div style="font-size:11px;color:var(--sub);margin-top:4px;">
-          <strong>On the back piece:</strong> Measure ${fmtExact(snap2Down)}" down from the top (seam) edge.
-          Extension is ${fmtExact(snap2ExtensionWidth)}" wide at this height.
-          Place snap ${fmtExact(snap2BackFromFold)}" past the fold line
-          (${fmtExact(snap2BackFromCenter)}" from centerline, WB÷2 + ${fmtExact(snap2BackFromFold)}).<br/>
-          <strong>On the main piece (interior):</strong> ${fmtExact(mainSnap2DownSideDrop)}" down the side drop (⅔),
-          ${snapMainInset}" from the seam toward the front.
+          <strong>On the back piece:</strong> Measure ${fmtExact(snapDown)}" down from the top (seam) edge.
+          Extension is ${fmtExact(snapExtensionWidth)}" wide at this height.
+          Place snap ${fmtExact(actualBackFromFold)}" past the fold line
+          (${fmtExact(snapBackFromCenter)}" from centerline, WB÷2 + ${fmtExact(actualBackFromFold)}).<br/>
+          <strong>On the main piece (interior):</strong> ${fmtExact(mainSnapDownSideDrop)}" down the side drop (½),
+          ${snapMainInset}" from the top seam toward the front
+          (${fmtExact(mainSnapFromCenter)}" from centerline, WB÷2 + ${fmtExact(mainSnapDownSideDrop)}).
         </div>
       </div>
 
