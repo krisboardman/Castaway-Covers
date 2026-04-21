@@ -105,7 +105,7 @@
             The bolt width (B) runs front-to-back. A separate trapezoidal back piece hangs down the back of the chair with side extensions that provide continuous coverage at the corners (replacing gussets).<br/>
             <strong>Back piece:</strong> Trapezoid — top edge matches main piece width (ML), narrower at the bottom (WB + 2×hem). Height: H − FC. At each back corner, the extension flap folds over the WB/2 fold line onto the central WB portion to take up excess material; a snap pair closes the fold (both halves on the back piece).<br/>
             <strong>Front flap:</strong> Added if bolt width &lt; front-to-back coverage needed. Sewn to main piece at front edge with lap seam.<br/>
-            <strong>Snaps:</strong> One snap pair per back corner — <strong>both halves on the back piece</strong>. The outer portion of the extension pleats back onto the inner portion to take up excess material behind the chair corner; the snap closes the pleat. Halfway down the back piece, one half 2" past the WB/2 fold, the other half 2" inside the outer diagonal edge. Main piece has no snap attachment.
+            <strong>Snaps:</strong> One snap pair per back corner — <strong>both halves on the back piece</strong>. The outer portion of the extension pleats back onto the inner portion to take up excess material behind the chair corner; the snap closes the pleat. Placed 2" above the seam line, one half 2" past the WB/2 fold, the other half 2" inside the outer diagonal edge. Main piece has no snap attachment.
           </div>
           <div id="err" class="note danger" style="display:none;"></div>
         </div>
@@ -218,7 +218,7 @@
           <li><strong style="color:#22c55e;">Install snaps</strong> at back corners (on the back piece only):
             <ul style="margin-top:4px; padding-left:20px;">
               <li>At each back corner, the outer portion of the extension pleats back onto the inner portion (takes up excess material behind the chair corner)</li>
-              <li>Install 1 snap pair per corner (2 pairs total), halfway down the back piece:
+              <li>Install 1 snap pair per corner (2 pairs total), 2" above the seam line:
                 <ul><li>Back-side half: 2" past the WB/2 fold line</li>
                 <li>Front-side half: 2" inside the outer diagonal edge of the back piece</li></ul></li>
               <li>When the extension pleats at the midpoint between the two halves, they meet — snap closed</li>
@@ -752,14 +752,17 @@ function drawAssemblyDiagramSide(params){
   add('circle',{cx:tx(seatFront), cy:ty(FC), r:4, fill:'#dc2626', stroke:'#fff', 'stroke-width':1.5});
 
   // === SNAP POSITION MARKER on back piece ===
-  // One snap pair per back corner — ½ down from the seam line (backrest top).
+  // One snap pair per back corner — 2" below the backrest top (the seam
+  // with the main piece in the flat layout corresponds to the backrest
+  // top in 3D; "2 up from seam" in flat = 2" down the back of the chair
+  // from the backrest top).
   {
     const bpH = params.backPieceHeight || (H - FC);
-    const snapY = backrestTop - bpH / 2;   // halfway down from top seam
+    const snapY = backrestTop - 2;   // 2" below the backrest top
     const snapX = tx(-BR);
     add('circle',{cx:snapX, cy:ty(snapY), r:5, fill:'#059669', stroke:'#fff', 'stroke-width':2});
     add('text',{x:snapX - 10, y:ty(snapY) + 4, 'text-anchor':'end', 'font-size':9, fill:'#059669', 'font-weight':'bold'}).textContent=`Snap`;
-    add('text',{x:snapX - 10, y:ty(snapY) + 14, 'text-anchor':'end', 'font-size':8, fill:'#059669'}).textContent=`½ down (${rIn(bpH/2)}")`;
+    add('text',{x:snapX - 10, y:ty(snapY) + 14, 'text-anchor':'end', 'font-size':8, fill:'#059669'}).textContent=`2" below top`;
   }
 
   add('line',{x1:tx(-BR)-60, y1:ty(0), x2:tx(-BR)-60, y2:ty(H), stroke:'#475569', 'stroke-width':1, 'marker-start':'url(#arrS)', 'marker-end':'url(#arrS)'});
@@ -932,8 +935,8 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
 
   // === SNAP POSITION MARKERS ===
   // One snap pair per back corner — BOTH HALVES ON THE BACK PIECE.
-  // Each snap half sits 2" in from one of the extension's edges, halfway
-  // down the back piece:
+  // Each snap half sits 2" in from one of the extension's edges, placed
+  // just above the seam with the main piece (2" up from the seam line):
   //   - BACK-SIDE half: 2" past the WB/2 fold line (= 2" outward into the
   //     extension from the back corner of the chair)
   //   - FRONT-SIDE half: 2" inward from the outer diagonal edge of the
@@ -942,17 +945,18 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
   // The two halves mate via an implicit pleat fold at the midpoint of the
   // extension: when the outer half of the extension folds back onto the
   // inner half, snap #2 lands on top of snap #1 and they snap closed.
-  // The 2" offset is static (not proportional) so the breathing room at
-  // the corners stays consistent across chair heights.
+  // Static 2" from the seam and 2" from each extension edge — breathing
+  // room at the corners stays consistent across chair heights.
   {
-    const STATIC_OFFSET = 2;  // inches — fixed breathing room from each edge
-    const snapFracs = [{frac: 0.5, label: '1', fracLabel:'½'}];
+    const STATIC_OFFSET = 2;    // inches — fixed 2" in from each edge
+    const SNAP_Y_FROM_SEAM = 2; // inches — 2" above the seam line
+    const snapFracs = [{frac: SNAP_Y_FROM_SEAM / Math.max(backPieceHeight, 1), label: '1', fracLabel:'2" up'}];
 
     // Collect snap positions for the key
     const snapInfo = [];
 
     for (const snap of snapFracs) {
-      const downFromSeam = backPieceHeight * snap.frac;
+      const downFromSeam = SNAP_Y_FROM_SEAM;
       const bpSnapY = mainTopY - downFromSeam * sc;
 
       // Outer diagonal edge of the back piece at this height. The trapezoid's
@@ -1020,7 +1024,7 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
     // Single snap pair info (halfway down, both halves on back piece)
     const s1 = snapInfo[0];
     let row = keyY + 70;
-    add('text',{x:keyX + 10, y:row, 'font-size':10, fill:'#059669', 'font-weight':'bold'}).textContent=`One pair per corner — both on back piece (${s1.fracLabel} down)`;
+    add('text',{x:keyX + 10, y:row, 'font-size':10, fill:'#059669', 'font-weight':'bold'}).textContent=`One pair per corner — both on back piece (2" above seam)`;
     row += 13;
     add('text',{x:keyX + 10, y:row, 'font-size':9, fill:'#334155'}).textContent=`Back-side: ${rIn(s1.downFromSeam)}" down, ${rIn(s1.backFromCenter)}" from center`;
     row += 11;
@@ -2261,24 +2265,24 @@ function compute(){
 
     // Snap placement for back corners (snap-back design).
     // One snap pair per back corner — BOTH HALVES on the back piece.
-    // Each half sits 2" in from one of the extension's edges at halfway
-    // down the back piece:
+    // Placed 2" above the seam line (very close to where the back piece
+    // meets the main piece). Each half sits 2" in from one of the
+    // extension's edges:
     //   - Back-side half: 2" past the WB/2 fold line (near the back corner)
     //   - Front-side half: 2" inward from the outer diagonal edge
     // When the outer half of the extension folds back onto the inner half
     // (pleat at the midpoint), the two snap halves land on top of each
-    // other and close. Static 2" offset on each side keeps the corner
-    // breathing room consistent across chair heights.
+    // other and close.
     const backDiagonalLength = Math.sqrt(backPieceHeight ** 2 + ((backPieceTopWidth - backPieceBottomWidth) / 2) ** 2);
     const snapsPerCorner = 1;  // one pair per corner
     const fullExtensionPerSide = (backPieceTopWidth - backPieceBottomWidth) / 2;  // max extension (top minus bottom, per side)
-    const STATIC_OFFSET = 2;   // static 2" breathing room from each edge
+    const STATIC_OFFSET = 2;      // static 2" breathing room from each edge
+    const SNAP_Y_FROM_SEAM = 2;   // 2" above the seam line
 
-    // Halfway-down snap: ½ of the back piece height
-    const snapDown = backPieceHeight / 2;
+    const snapDown = SNAP_Y_FROM_SEAM;
 
     // Outer diagonal edge of the trapezoid at this height (linear interp
-    // from ML/2 at the top to (WB+2*hem)/2 at the bottom).
+    // from ML/2 at the seam to (WB+2*hem)/2 at the floor).
     const outerEdgeAtHeight = backPieceTopWidth/2
       - (backPieceTopWidth/2 - backPieceBottomWidth/2) * (snapDown / backPieceHeight);
     const extensionAtHeight = outerEdgeAtHeight - WB/2;
@@ -2300,7 +2304,7 @@ function compute(){
 
       <div class="row" style="display:block; padding:8px 0; border-top:2px solid #059669; background:#f0fdf4;">
         <div style="display:flex;justify-content:space-between;align-items:center;">
-          <span><strong>Snap — ½ down from seam</strong></span><strong style="color:#059669;">${fmtExact(snapDown)}" down</strong>
+          <span><strong>Snap — 2" above seam</strong></span><strong style="color:#059669;">${fmtExact(snapDown)}" from seam</strong>
         </div>
         <div style="font-size:11px;color:var(--sub);margin-top:4px;">
           Both halves sit at ${fmtExact(snapDown)}" down from the top (seam) edge. Extension at this height is ${fmtExact(extensionAtHeight)}" wide (per side), from WB/2 = ${fmtExact(WB/2)}" out to the outer diagonal edge at ${fmtExact(outerEdgeAtHeight)}" from centerline.<br/>
