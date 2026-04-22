@@ -1051,12 +1051,14 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
     add('circle',{cx:keyX + 14, cy:keyY + 32, r:6, fill:'#059669', stroke:'#fff', 'stroke-width':2});
     add('text',{x:keyX + 24, y:keyY + 36, 'font-size':9, fill:'#334155'}).textContent='= back-side (2" past WB/2 fold)';
     add('circle',{cx:keyX + 14, cy:keyY + 48, r:6, fill:'#059669', stroke:'#dc2626', 'stroke-width':2});
-    add('text',{x:keyX + 24, y:keyY + 52, 'font-size':9, fill:'#334155'}).textContent='= front-side (2" inside outer edge)';
+    add('text',{x:keyX + 24, y:keyY + 52, 'font-size':9, fill:'#334155'}).textContent='= front-side (near seam, out toward corner)';
 
-    // Snap pair info — both halves on back piece, same X, different Y
+    // Snap pair info — both halves on back piece, different X and Y.
+    // When assembled, the fabric pleats along a diagonal fold that brings
+    // the two halves together at a single 3D point.
     const s1 = snapInfo[0];
     let row = keyY + 70;
-    add('text',{x:keyX + 10, y:row, 'font-size':10, fill:'#059669', 'font-weight':'bold'}).textContent=`One pair per corner — both on back piece, same X`;
+    add('text',{x:keyX + 10, y:row, 'font-size':10, fill:'#059669', 'font-weight':'bold'}).textContent=`One pair per corner — both on back piece`;
     row += 13;
     add('text',{x:keyX + 10, y:row, 'font-size':9, fill:'#334155'}).textContent=`Back-side: ${rIn(s1.backDownFromSeam)}" from seam, ${rIn(s1.backFromCenter)}" from center`;
     row += 11;
@@ -1064,7 +1066,7 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
     row += 13;
     add('text',{x:keyX + 10, y:row, 'font-size':9, fill:'#334155'}).textContent=`Front-side: ${rIn(s1.frontDownFromSeam)}" from seam, ${rIn(s1.frontFromCenter)}" from center`;
     row += 11;
-    add('text',{x:keyX + 10, y:row, 'font-size':9, fill:'#475569'}).textContent=`((H−FC) − 2 = 2" from the floor end; same X as back-side)`;
+    add('text',{x:keyX + 10, y:row, 'font-size':9, fill:'#475569'}).textContent=`(2" above seam; (H−FC)/2 = ${fmtExact(backPieceHeight/2)}" in from outer corner)`;
   }
 
   // === ZONE BOUNDARY LINES (bold, visible) ===
