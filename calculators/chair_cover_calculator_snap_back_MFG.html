@@ -954,60 +954,51 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
     const snapInfo = [];
 
     for (const snap of snapFracs) {
-      const downFromSeam = backPieceHeight * snap.frac;
-      const bpSnapY = mainTopY - downFromSeam * sc;
+      // BACK-SIDE snap: halfway down the back piece height, 2" past the
+      // WB/2 fold on the extension.
+      const backDownFromSeam  = backPieceHeight / 2;
+      const backSnapY         = mainTopY - backDownFromSeam * sc;
+      const backFromCenter    = WB / 2 + STATIC_OFFSET;
 
-      // Outer diagonal edge of the back piece at this height. The trapezoid's
-      // outer corner at top is at ML/2, at bottom is at (WB+2*hem)/2; linear
-      // interpolate between them.
-      const outerEdgeAtHeight =
-        backPieceTopWidth/2 - (backPieceTopWidth/2 - backPieceBottomWidth/2) * (downFromSeam / backPieceHeight);
+      // FRONT-SIDE snap: near the narrow floor end of the back piece,
+      // 2" from that end (so Y = backPieceHeight - 2), same X as back-side.
+      const frontDownFromSeam = backPieceHeight - STATIC_OFFSET;
+      const frontSnapY        = mainTopY - frontDownFromSeam * sc;
+      const frontFromCenter   = WB / 2 + STATIC_OFFSET;
 
-      // Actual extension width at this height (for annotations only)
-      const extensionAtHeight = outerEdgeAtHeight - WB/2;
-
-      // BACK-SIDE snap: 2" outward from the WB/2 fold (on the side-drop
-      // portion of the back piece — the extension)
-      const backFromCenter = WB / 2 + STATIC_OFFSET;
-
-      // FRONT-SIDE snap: 2" INWARD from the WB/2 fold (on the central
-      // back-panel zone). Mirror of back-side across the WB/2 fold line.
-      // When the extension flap folds over the central zone at the WB/2
-      // fold, back-side snap lands on top of front-side snap — they mate.
-      const frontFromCenter = Math.max(0, WB / 2 - STATIC_OFFSET);
-
-      // Implicit pleat-fold location (midpoint between the two halves);
-      // when the outer portion of the extension folds back at this line,
-      // the two halves land on top of each other and the pair mates.
-      const foldFromCenter = (backFromCenter + frontFromCenter) / 2;
+      // Outer diagonal edge of the back piece at the back-side Y (used for
+      // key/annotations).
+      const outerEdgeAtBack =
+        backPieceTopWidth/2 - (backPieceTopWidth/2 - backPieceBottomWidth/2) * (backDownFromSeam / backPieceHeight);
+      const extensionAtBack = outerEdgeAtBack - WB/2;
 
       // --- BACK-SIDE snap (solid green, white border) ---
       const backLeftSnapX = cx - backFromCenter * sc;
       const backRightSnapX = cx + backFromCenter * sc;
-      add('circle',{cx:backLeftSnapX, cy:bpSnapY, r:8, fill:'#059669', stroke:'#fff', 'stroke-width':2.5});
-      add('text',{x:backLeftSnapX, y:bpSnapY + 4, 'text-anchor':'middle', 'font-size':9, fill:'#fff', 'font-weight':'bold'}).textContent=snap.label;
-      add('circle',{cx:backRightSnapX, cy:bpSnapY, r:8, fill:'#059669', stroke:'#fff', 'stroke-width':2.5});
-      add('text',{x:backRightSnapX, y:bpSnapY + 4, 'text-anchor':'middle', 'font-size':9, fill:'#fff', 'font-weight':'bold'}).textContent=snap.label;
+      add('circle',{cx:backLeftSnapX, cy:backSnapY, r:8, fill:'#059669', stroke:'#fff', 'stroke-width':2.5});
+      add('text',{x:backLeftSnapX, y:backSnapY + 4, 'text-anchor':'middle', 'font-size':9, fill:'#fff', 'font-weight':'bold'}).textContent=snap.label;
+      add('circle',{cx:backRightSnapX, cy:backSnapY, r:8, fill:'#059669', stroke:'#fff', 'stroke-width':2.5});
+      add('text',{x:backRightSnapX, y:backSnapY + 4, 'text-anchor':'middle', 'font-size':9, fill:'#fff', 'font-weight':'bold'}).textContent=snap.label;
 
       // --- FRONT-SIDE snap (solid green, red border) ---
       const frontLeftSnapX = cx - frontFromCenter * sc;
       const frontRightSnapX = cx + frontFromCenter * sc;
-      add('circle',{cx:frontLeftSnapX, cy:bpSnapY, r:8, fill:'#059669', stroke:'#dc2626', 'stroke-width':2.5});
-      add('text',{x:frontLeftSnapX, y:bpSnapY + 4, 'text-anchor':'middle', 'font-size':9, fill:'#fff', 'font-weight':'bold'}).textContent=snap.label;
-      add('circle',{cx:frontRightSnapX, cy:bpSnapY, r:8, fill:'#059669', stroke:'#dc2626', 'stroke-width':2.5});
-      add('text',{x:frontRightSnapX, y:bpSnapY + 4, 'text-anchor':'middle', 'font-size':9, fill:'#fff', 'font-weight':'bold'}).textContent=snap.label;
+      add('circle',{cx:frontLeftSnapX, cy:frontSnapY, r:8, fill:'#059669', stroke:'#dc2626', 'stroke-width':2.5});
+      add('text',{x:frontLeftSnapX, y:frontSnapY + 4, 'text-anchor':'middle', 'font-size':9, fill:'#fff', 'font-weight':'bold'}).textContent=snap.label;
+      add('circle',{cx:frontRightSnapX, cy:frontSnapY, r:8, fill:'#059669', stroke:'#dc2626', 'stroke-width':2.5});
+      add('text',{x:frontRightSnapX, y:frontSnapY + 4, 'text-anchor':'middle', 'font-size':9, fill:'#fff', 'font-weight':'bold'}).textContent=snap.label;
 
-      // --- Dashed lines connecting the two halves of each pair (horizontal) ---
-      add('line',{x1:backLeftSnapX, y1:bpSnapY, x2:frontLeftSnapX, y2:bpSnapY,
+      // --- Dashed lines connecting the two halves of each pair (vertical) ---
+      add('line',{x1:backLeftSnapX, y1:backSnapY, x2:frontLeftSnapX, y2:frontSnapY,
         stroke:'#059669', 'stroke-width':1.5, 'stroke-dasharray':'5,4', opacity:0.6});
-      add('line',{x1:backRightSnapX, y1:bpSnapY, x2:frontRightSnapX, y2:bpSnapY,
+      add('line',{x1:backRightSnapX, y1:backSnapY, x2:frontRightSnapX, y2:frontSnapY,
         stroke:'#059669', 'stroke-width':1.5, 'stroke-dasharray':'5,4', opacity:0.6});
 
       // Info for the key
-      snapInfo.push({label: snap.label, fracLabel: snap.fracLabel, downFromSeam,
-        backFromCenter, backFromFold: STATIC_OFFSET,
-        frontFromCenter, frontFromEdge: STATIC_OFFSET,
-        foldFromCenter, extensionAtHeight, outerEdgeAtHeight});
+      snapInfo.push({label: snap.label, fracLabel: snap.fracLabel,
+        backDownFromSeam, backFromCenter, backFromFold: STATIC_OFFSET,
+        frontDownFromSeam, frontFromCenter,
+        extensionAtBack, outerEdgeAtBack});
     }
 
     // --- SNAP KEY: placed in top-right corner of the SVG (near the snaps) ---
@@ -1023,20 +1014,18 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
     add('circle',{cx:keyX + 14, cy:keyY + 48, r:6, fill:'#059669', stroke:'#dc2626', 'stroke-width':2});
     add('text',{x:keyX + 24, y:keyY + 52, 'font-size':9, fill:'#334155'}).textContent='= front-side (2" inside outer edge)';
 
-    // Single snap pair info (halfway down, both halves on back piece)
+    // Snap pair info — both halves on back piece, same X, different Y
     const s1 = snapInfo[0];
     let row = keyY + 70;
-    add('text',{x:keyX + 10, y:row, 'font-size':10, fill:'#059669', 'font-weight':'bold'}).textContent=`One pair per corner — both on back piece (½ down from seam)`;
+    add('text',{x:keyX + 10, y:row, 'font-size':10, fill:'#059669', 'font-weight':'bold'}).textContent=`One pair per corner — both on back piece, same X`;
     row += 13;
-    add('text',{x:keyX + 10, y:row, 'font-size':9, fill:'#334155'}).textContent=`Back-side: ${rIn(s1.downFromSeam)}" down, ${rIn(s1.backFromCenter)}" from center`;
+    add('text',{x:keyX + 10, y:row, 'font-size':9, fill:'#334155'}).textContent=`Back-side: ${rIn(s1.backDownFromSeam)}" from seam, ${rIn(s1.backFromCenter)}" from center`;
     row += 11;
-    add('text',{x:keyX + 10, y:row, 'font-size':9, fill:'#475569'}).textContent=`(2" past WB/2 = ${fmtExact(WB/2)}")`;
+    add('text',{x:keyX + 10, y:row, 'font-size':9, fill:'#475569'}).textContent=`(halfway down = (H−FC)/2; 2" past WB/2 = ${fmtExact(WB/2)}")`;
     row += 13;
-    add('text',{x:keyX + 10, y:row, 'font-size':9, fill:'#334155'}).textContent=`Front-side: ${rIn(s1.downFromSeam)}" down, ${rIn(s1.frontFromCenter)}" from center`;
+    add('text',{x:keyX + 10, y:row, 'font-size':9, fill:'#334155'}).textContent=`Front-side: ${rIn(s1.frontDownFromSeam)}" from seam, ${rIn(s1.frontFromCenter)}" from center`;
     row += 11;
-    add('text',{x:keyX + 10, y:row, 'font-size':9, fill:'#475569'}).textContent=`(2" inside outer edge at this height: ${rIn(s1.outerEdgeAtHeight)}")`;
-    row += 11;
-    add('text',{x:keyX + 10, y:row, 'font-size':9, fill:'#475569', 'font-style':'italic'}).textContent=`Pleat fold at ${rIn(s1.foldFromCenter)}" from center`;
+    add('text',{x:keyX + 10, y:row, 'font-size':9, fill:'#475569'}).textContent=`((H−FC) − 2 = 2" from the floor end; same X as back-side)`;
   }
 
   // === ZONE BOUNDARY LINES (bold, visible) ===
@@ -2279,17 +2268,14 @@ function compute(){
     const fullExtensionPerSide = (backPieceTopWidth - backPieceBottomWidth) / 2;  // max extension (top minus bottom, per side)
     const STATIC_OFFSET = 2;      // static 2" breathing room from each edge
 
-    const snapDown = backPieceHeight / 2;
+    // Back-side half: halfway down the back piece, 2" past the WB/2 fold.
+    const backSnapDown = backPieceHeight / 2;                 // = (H-FC)/2
+    const backFromCenter = WB / 2 + STATIC_OFFSET;
 
-    // Outer diagonal edge of the trapezoid at this height (linear interp
-    // from ML/2 at the seam to (WB+2*hem)/2 at the floor).
-    const outerEdgeAtHeight = backPieceTopWidth/2
-      - (backPieceTopWidth/2 - backPieceBottomWidth/2) * (snapDown / backPieceHeight);
-    const extensionAtHeight = outerEdgeAtHeight - WB/2;
-
-    const backFromCenter  = WB / 2 + STATIC_OFFSET;
-    const frontFromCenter = Math.max(0, WB / 2 - STATIC_OFFSET);  // mirror across WB/2 fold
-    const pleatFoldFromCenter = WB / 2;  // fold at the WB/2 line
+    // Front-side half: 2" from the floor end (narrow end of the back piece),
+    // same X as the back-side half.
+    const frontSnapDown = backPieceHeight - STATIC_OFFSET;    // = (H-FC) - 2
+    const frontFromCenter = WB / 2 + STATIC_OFFSET;
 
     const snapStrapsSection = document.getElementById('snapstraps');
     snapStrapsSection.innerHTML = `
@@ -2298,19 +2284,27 @@ function compute(){
           <span><strong>Snap placement for back corners</strong></span><strong style="color:#059669;">1 pair per corner (2 pairs total)</strong>
         </div>
         <div style="font-size:11px;color:var(--sub);margin-top:4px;">
-          At each back corner, the outer portion of the back piece's side extension folds back onto the inner portion (a pleat that takes up the excess material behind the chair corner). Both halves of the snap pair sit on the back piece — the main piece has no snap attachment. Aesthetic only; keeps the corner gathered cleanly. Static 2" inset from each edge preserves breathing room across chair heights.
+          One snap pair per back corner. Both halves sit on the back piece extension at the SAME X from centerline (2" past the WB/2 fold) but at TWO DIFFERENT heights — one halfway down the back piece, the other near the floor end. When the fabric between them pleats/gathers at the back corner in installation, the two halves close together. Main piece has no snap attachment.
         </div>
       </div>
 
       <div class="row" style="display:block; padding:8px 0; border-top:2px solid #059669; background:#f0fdf4;">
         <div style="display:flex;justify-content:space-between;align-items:center;">
-          <span><strong>Snap — ½ down from seam</strong></span><strong style="color:#059669;">${fmtExact(snapDown)}" from seam</strong>
+          <span><strong>Back-side half — halfway down the back piece</strong></span><strong style="color:#059669;">${fmtExact(backSnapDown)}" from seam</strong>
         </div>
         <div style="font-size:11px;color:var(--sub);margin-top:4px;">
-          Both halves sit at ${fmtExact(snapDown)}" down from the top (seam) edge. Extension at this height is ${fmtExact(extensionAtHeight)}" wide (per side), from WB/2 = ${fmtExact(WB/2)}" out to the outer diagonal edge at ${fmtExact(outerEdgeAtHeight)}" from centerline.<br/>
-          <strong>Back-side half:</strong> 2" past the WB/2 fold (${fmtExact(backFromCenter)}" from centerline — WB÷2 + 2).<br/>
-          <strong>Front-side half:</strong> 2" inside the outer diagonal edge (${fmtExact(frontFromCenter)}" from centerline — outer edge − 2).<br/>
-          Implicit pleat fold at the midpoint: ${fmtExact(pleatFoldFromCenter)}" from centerline. When the outer portion folds back on itself at that line, the two halves meet and the pair mates.
+          (H − FC) / 2 = (${H} − ${FC}) / 2 = ${fmtExact(backSnapDown)}" from seam.<br/>
+          <strong>X from centerline:</strong> WB/2 + 2 = ${fmtExact(WB/2)} + 2 = ${fmtExact(backFromCenter)}" (2" past the WB/2 fold line).
+        </div>
+      </div>
+
+      <div class="row" style="display:block; padding:8px 0; border-top:2px solid #059669; background:#f0fdf4;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span><strong>Front-side half — 2" from the floor end</strong></span><strong style="color:#059669;">${fmtExact(frontSnapDown)}" from seam</strong>
+        </div>
+        <div style="font-size:11px;color:var(--sub);margin-top:4px;">
+          (H − FC) − 2 = (${H} − ${FC}) − 2 = ${fmtExact(frontSnapDown)}" from seam (= 2" from the narrow floor end of the back piece).<br/>
+          <strong>X from centerline:</strong> ${fmtExact(frontFromCenter)}" (same X as the back-side half).
         </div>
       </div>
 
