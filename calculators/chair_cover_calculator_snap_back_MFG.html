@@ -1238,8 +1238,9 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
     add('text', {x:seamLeftX + 6, y:mainBotY + 3, 'text-anchor':'start', 'font-size':8,
       fill:'#7c3aed', 'font-weight':'bold'}).textContent=`${rIn(hem)}" hem/seam`;
 
-    // Front flap label. For a thin flap (< ~14" scaled) the label + dimensions
-    // won't both fit inside, so split them: label inside, dimensions below.
+    // Front flap label. For a thin flap (< ~28px tall) the label and dimensions
+    // need to share a single line so they don't stack and overlap the front-
+    // width dimension arrow drawn below the flap.
     const flapCenterY = (mainBotY + frontBottomY) / 2;
     const flapPxH = frontBottomY - mainBotY;
     if (flapPxH >= 28) {
@@ -1249,11 +1250,10 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
       add('text', {x:cx, y:flapCenterY + 10, 'text-anchor':'middle', 'font-size':10,
         fill:'#92400e'}).textContent=`${rIn(frontFlapLength)}" × ${rIn(frontFlapWidth)}"`;
     } else {
-      // Thin flap — single "FRONT FLAP" inside, dimensions moved below the flap
+      // Thin flap — combine name + dimensions on ONE line inside the flap.
       add('text', {x:cx, y:flapCenterY + 3, 'text-anchor':'middle', 'font-size':10,
-        fill:'#92400e', 'font-weight':'bold'}).textContent='FRONT FLAP';
-      add('text', {x:cx, y:frontBottomY + 14, 'text-anchor':'middle', 'font-size':10,
-        fill:'#92400e', 'font-weight':'bold'}).textContent=`${rIn(frontFlapLength)}" × ${rIn(frontFlapWidth)}"`;
+        fill:'#92400e', 'font-weight':'bold'})
+        .textContent=`FRONT FLAP  ${rIn(frontFlapLength)}" × ${rIn(frontFlapWidth)}"`;
     }
   }
 
