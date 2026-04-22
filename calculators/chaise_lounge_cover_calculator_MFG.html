@@ -109,7 +109,7 @@
             The bolt width (B) runs front-to-back. A separate trapezoidal back piece hangs down the back of the chair with side extensions that provide continuous coverage at the corners (replacing gussets).<br/>
             <strong>Back piece:</strong> Trapezoid — wider at the top (ML + seam) where it attaches to main piece, narrower at the bottom (WB + 2×hem). Height: H − FC. Side extensions wrap around corners; excess material folds inward and snaps in place.<br/>
             <strong>Front flap:</strong> Added if bolt width &lt; front-to-back coverage needed. Sewn to main piece at front edge with lap seam.<br/>
-            <strong>Snaps:</strong> 2 snaps per back corner, placed along the diagonal edge where back piece extensions meet the main piece's side drops.
+            <strong>Snaps:</strong> One snap pair per corner (4 pairs total). Each corner has a diagonal cut; the two adjacent side drops fold together and a mating pair of snaps closes the corner. Each snap sits 2" inside the chaise fold line and halfway between the outer fabric edge and the chaise edge.
           </div>
           <div id="err" class="note danger" style="display:none;"></div>
         </div>
@@ -162,7 +162,7 @@
       <div class="card">
         <div class="title">Snap Placement (Back Corners)</div>
         <div id="snapstraps"></div>
-        <div class="note">2 snaps per back corner. Snaps attach the back piece's side extensions to the interior of the main piece's side drops.</div>
+        <div class="note">One snap pair per corner (4 pairs total, one at each chaise corner). Each corner has a diagonal cut; when the two adjacent side drops fold together, a mating pair of snaps closes the fold.</div>
       </div>
     </div>
 
@@ -190,7 +190,13 @@
               <li>5" outside the chaise's side edges (in the side overhang)</li>
             </ul>
           </li>
-          <li><strong>Install</strong> the cover with the chaise lying flat. Run a bungee through each corner grommet, pull it underneath the chaise, and cinch so the excess fabric wraps tight against the underside.</li>
+          <li><strong style="color:#059669;">Install corner snaps</strong> (one pair per corner, 4 pairs total):
+            <ul style="margin-top:4px; padding-left:20px;">
+              <li>At each of the four corners, a mating snap pair closes the diagonal fold. Each snap half sits 2" inside the chaise fold line and halfway between the outer fabric edge and the chaise edge.</li>
+              <li>See the Snap Placement card for exact measurements based on your chaise dimensions.</li>
+            </ul>
+          </li>
+          <li><strong>Install</strong> the cover with the chaise lying flat. Run a bungee through each corner grommet, pull it underneath the chaise, and cinch so the excess fabric wraps tight against the underside. Press-close the corner snaps.</li>
           <li>Add fabric glue to any thread ends and Scotch Guard the perimeter.</li>
         </ol>
       </div>
@@ -1233,48 +1239,58 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
   add('text',{x:cx, y:chaiseY + chaiseD_px/2 + 18, 'text-anchor':'middle',
     'font-size':9, fill:'#0891b2'}).textContent='(top-down — fabric hangs around all 4 sides)';
 
-  // === CORNER SNAPS — pair at each chamfer, halfway between chaise edge and cover edge ===
-  // When the two adjacent drops fold up the snaps pull the bulk of material INWARD.
+  // === CORNER SNAPS — one mating pair at each corner ===
+  // Each corner has a diagonal cut; when the two adjacent drops fold
+  // together the mating pair of snaps closes the corner. Matches the
+  // table calculator's geometry:
+  //   along = drop − 2 (fixed 2" inside the chaise fold line)
+  //   perp  = drop / 2 (halfway between outer fabric edge and chaise edge)
+  // so each snap sits 2" in from the chaise fold line and halfway along
+  // the perpendicular direction.
   {
-    const dIn = sideDrop / 2;
-    const dPx = dIn * sc;
+    const STATIC_INSET = 2;        // inches — fixed offset inside each chaise edge
+    const perpPx = (sideDrop / 2) * sc;
+    const insetPx = STATIC_INSET * sc;
     const chaiseLeftX  = cx - (W / 2) * sc;
     const chaiseRightX = cx + (W / 2) * sc;
     const chaiseTopY   = chaiseY;
     const chaiseBotY   = chaiseY + chaiseD_px;
     const snapColor = '#059669';
     const dSnap = (x, y) => add('circle',{cx:x, cy:y, r:6, fill:snapColor, stroke:'#fff', 'stroke-width':2});
-    // Each corner gets two snaps — one on the BACK/FRONT drop (top/bottom of
-    // the diagram) and one on the SIDE drop (left/right). Both are pulled
-    // halfway in from the material edge toward the furniture edge, and they
-    // sit right over the chaise corner line so that when snapped together the
-    // corner excess folds INSIDE the cover.
-    // TL corner
-    dSnap(chaiseLeftX,          yBackFloor + dPx);  // back drop
-    dSnap(cx - halfBack + dPx,  chaiseTopY);        // side drop
+
+    // For each corner, TWO snaps forming the mating pair:
+    //   - "top/bot" snap: on the back/front drop, 2" inside the chaise LEFT/RIGHT
+    //     fold line, halfway from the back/front outer fabric edge to the chaise
+    //   - "side" snap: on the left/right drop, halfway along from back/front outer
+    //     fabric edge, 2" inside the chaise TOP/BOT fold line
+    // The two halves fold together (across the diagonal cut at the corner) and
+    // mate at a single 3D point when the cover is installed.
+
+    // TL corner — outer fabric at (cx - halfMid, yBackFloor), chaise at (chaiseLeftX, chaiseTopY)
+    dSnap(chaiseLeftX - insetPx, yBackFloor + perpPx);  // back-drop half: 2" inside LEFT fold
+    dSnap(cx - halfBack + perpPx, chaiseTopY - insetPx); // side-drop half: 2" inside TOP fold
     // TR corner
-    dSnap(chaiseRightX,         yBackFloor + dPx);
-    dSnap(cx + halfBack - dPx,  chaiseTopY);
+    dSnap(chaiseRightX + insetPx, yBackFloor + perpPx);
+    dSnap(cx + halfBack - perpPx, chaiseTopY - insetPx);
     // BR corner
-    dSnap(chaiseRightX,         drawBotY - dPx);
-    dSnap(cx + halfBack - dPx,  chaiseBotY);
+    dSnap(chaiseRightX + insetPx, drawBotY - perpPx);
+    dSnap(cx + halfBack - perpPx, chaiseBotY + insetPx);
     // BL corner
-    dSnap(chaiseLeftX,          drawBotY - dPx);
-    dSnap(cx - halfBack + dPx,  chaiseBotY);
+    dSnap(chaiseLeftX - insetPx, drawBotY - perpPx);
+    dSnap(cx - halfBack + perpPx, chaiseBotY + insetPx);
+
     // Snap-pair callout — placed on the right between the back and front grommet
     // label blocks so it doesn't crowd the "Assembled width" arrow at the top.
     const snapLabelX = cx + halfMid + 18;
     const snapLabelY = (yBackFloor + drawBotY) / 2;
-    // Snap positions measured from the CORNER of the flat cut fabric:
-    // Snap A: dIn along one edge (e.g. along the top edge from the corner)
-    // Snap B: dIn along the adjacent edge (e.g. down the side edge from the corner)
-    // Both snaps are right at the edge (0" inset from the edge itself).
-    add('text',{x:snapLabelX, y:snapLabelY - 16, 'text-anchor':'start', 'font-size':10,
+    add('text',{x:snapLabelX, y:snapLabelY - 26, 'text-anchor':'start', 'font-size':10,
       fill:snapColor, 'font-weight':'bold'}).textContent=`Corner snap pairs`;
-    add('text',{x:snapLabelX, y:snapLabelY - 3, 'text-anchor':'start', 'font-size':9,
-      fill:snapColor}).textContent=`2 snaps per corner, 1 on each edge`;
-    add('text',{x:snapLabelX, y:snapLabelY + 10, 'text-anchor':'start', 'font-size':9,
-      fill:snapColor}).textContent=`${rIn(dIn)}" from diagonal cut, along each edge`;
+    add('text',{x:snapLabelX, y:snapLabelY - 13, 'text-anchor':'start', 'font-size':9,
+      fill:snapColor}).textContent=`1 pair per corner (4 pairs total)`;
+    add('text',{x:snapLabelX, y:snapLabelY, 'text-anchor':'start', 'font-size':9,
+      fill:snapColor}).textContent=`2" inside chaise fold line,`;
+    add('text',{x:snapLabelX, y:snapLabelY + 12, 'text-anchor':'start', 'font-size':9,
+      fill:snapColor}).textContent=`halfway between outer edge & chaise`;
   }
 
   // === CHAISE CORNER GROMMETS (4 total — one per corner) ===
@@ -2842,88 +2858,44 @@ function compute(){
     const frontDrapingLength = AT2F + (F2A - FC);
     const frontSnapFromSeam = (frontDrapingLength / 3) * 2;
 
-    // Snap placement for back corners (snap-back design)
-    // The back piece tapers from backPieceTopWidth at top to backPieceBottomWidth at bottom
-    // When assembled, the extensions fold inward at each corner and snap to the main piece interior
-    // Snaps at ⅓ and ⅔ down from seam
-    const backDiagonalLength = Math.sqrt(backPieceHeight ** 2 + ((backPieceTopWidth - backPieceBottomWidth) / 2) ** 2);
-    const snapsPerCorner = 2;
-    const fullExtensionPerSide = (backPieceTopWidth - backPieceBottomWidth) / 2;  // max extension at top
-    const snapMainInset = 4;  // 4" from seam/fold on the main piece
-    const snapBackFromFold = 4;  // 4" past the WB/2 fold line on back piece
-
-    // Snap 1: ⅓ down from seam
-    const snap1Down = backPieceHeight / 3;
-    const snap1ExtensionWidth = fullExtensionPerSide * (1 - snap1Down / backPieceHeight);  // ⅔ of full extension
-    const snap1BackFromFold = Math.min(snapBackFromFold, snap1ExtensionWidth - 1);  // cap at ext - 1"
-    const snap1BackFromCenter = WB / 2 + snap1BackFromFold;  // from centerline of back piece
-
-    // Snap 2: ⅔ down from seam
-    const snap2Down = backPieceHeight * 2 / 3;
-    const snap2ExtensionWidth = fullExtensionPerSide * (1 - snap2Down / backPieceHeight);  // ⅓ of full extension
-    const snap2BackFromFold = Math.min(snapBackFromFold, snap2ExtensionWidth - 1);  // cap if extension is narrow
-    const snap2BackFromCenter = WB / 2 + snap2BackFromFold;  // from centerline of back piece
-
-    // On the main piece: snaps at ⅓ and ⅔ down the side drop, 4" from the seam/fold toward the front
-    // Side drop runs from W/2 out to ML/2. ⅓ down = W/2 + sideDrop/3 from center.
-    const mainSnap1DownSideDrop = sideDrop / 3;
-    const mainSnap2DownSideDrop = sideDrop * 2 / 3;
+    // Snap placement for the 4 corners of the chaise cover (table/ottoman-
+    // style design: each corner has a diagonal cut, and the two adjacent
+    // side drops fold together with a mating pair of snaps).
+    //   along = drop − 2  (fixed 2" inside the chaise fold line)
+    //   perp  = drop / 2  (halfway between outer fabric edge and chaise edge)
+    const STATIC_INSET = 2;
+    const snapPerpInches = sideDrop / 2;
+    const snapAlongInches = Math.max(0, sideDrop - STATIC_INSET);
 
     const snapStrapsSection = document.getElementById('snapstraps');
     snapStrapsSection.innerHTML = `
       <div class="row" style="display:block; padding:8px 0; background:#ecfdf5;">
         <div style="display:flex;justify-content:space-between;align-items:center;">
-          <span><strong>Snap placement for back corners</strong></span><strong style="color:#059669;">2 snaps per corner (4 total)</strong>
+          <span><strong>Corner snaps</strong></span><strong style="color:#059669;">1 pair per corner (4 pairs total)</strong>
         </div>
         <div style="font-size:11px;color:var(--sub);margin-top:4px;">
-          When assembled, the back piece's side extensions fold inward at each corner and snap to the interior of the main piece's side drops.
-          This tucks the excess material inside for a clean look and keeps wind from lifting the cover.
+          Each corner of the chaise cover has a diagonal cut that removes the outer triangle of the corner square. When the two adjacent side drops fold together at 45°, a mating pair of snaps closes the corner cleanly — aesthetic, keeps the excess material tucked inside.
         </div>
       </div>
 
       <div class="row" style="display:block; padding:8px 0; border-top:2px solid #059669; background:#f0fdf4;">
         <div style="display:flex;justify-content:space-between;align-items:center;">
-          <span><strong>Snap 1 — ⅓ down from seam</strong></span><strong style="color:#059669;">${fmtExact(snap1Down)}" down</strong>
+          <span><strong>Snap position (per snap half)</strong></span><strong style="color:#059669;">${fmtExact(snapAlongInches)}" × ${fmtExact(snapPerpInches)}"</strong>
         </div>
         <div style="font-size:11px;color:var(--sub);margin-top:4px;">
-          <strong>On the back piece:</strong> Measure ${fmtExact(snap1Down)}" down from the top (seam) edge.
-          Extension is ${fmtExact(snap1ExtensionWidth)}" wide at this height.
-          Place snap ${fmtExact(snap1BackFromFold)}" past the fold line
-          (${fmtExact(snap1BackFromCenter)}" from centerline, WB÷2 + ${fmtExact(snap1BackFromFold)}).<br/>
-          <strong>On the main piece (interior):</strong> ${fmtExact(mainSnap1DownSideDrop)}" down the side drop (⅓),
-          ${snapMainInset}" from the seam toward the front.
-        </div>
-      </div>
-
-      <div class="row" style="display:block; padding:8px 0; border-top:2px solid #059669; background:#f0fdf4;">
-        <div style="display:flex;justify-content:space-between;align-items:center;">
-          <span><strong>Snap 2 — ⅔ down from seam</strong></span><strong style="color:#059669;">${fmtExact(snap2Down)}" down</strong>
-        </div>
-        <div style="font-size:11px;color:var(--sub);margin-top:4px;">
-          <strong>On the back piece:</strong> Measure ${fmtExact(snap2Down)}" down from the top (seam) edge.
-          Extension is ${fmtExact(snap2ExtensionWidth)}" wide at this height.
-          Place snap ${fmtExact(snap2BackFromFold)}" past the fold line
-          (${fmtExact(snap2BackFromCenter)}" from centerline, WB÷2 + ${fmtExact(snap2BackFromFold)}).<br/>
-          <strong>On the main piece (interior):</strong> ${fmtExact(mainSnap2DownSideDrop)}" down the side drop (⅔),
-          ${snapMainInset}" from the seam toward the front.
+          Measured from the outer fabric corner of each corner square:
+          <br/><strong>Along the chaise edge (fold-line direction):</strong> ${fmtExact(snapAlongInches)}" = side drop − 2 = (H − FC) − 2 = ${fmtExact(sideDrop)} − 2 = ${fmtExact(snapAlongInches)}" (= 2" inside the chaise fold line).
+          <br/><strong>Perpendicular (outer edge toward chaise):</strong> ${fmtExact(snapPerpInches)}" = side drop / 2 = ${fmtExact(sideDrop)} / 2 = ${fmtExact(snapPerpInches)}" (= halfway between outer fabric edge and chaise edge).
+          <br/>Each corner has two such halves — one on each adjacent flap — that mirror across the diagonal cut and mate when folded.
         </div>
       </div>
 
       <div class="row" style="display:block; padding:8px 0; border-top:1px dashed var(--muted);">
         <div style="display:flex;justify-content:space-between;align-items:center;">
-          <span>Diagonal edge length (reference)</span><strong>${fmtExact(backDiagonalLength)}"</strong>
+          <span>Installation note</span><strong>Male on one half, female on the mirror half</strong>
         </div>
         <div style="font-size:11px;color:var(--sub);margin-top:4px;">
-          √((H−FC)² + ((ML+seam − (WB+2×hem)) ÷ 2)²) = √(${fmtExact(backPieceHeight)}² + ${fmtExact(fullExtensionPerSide)}²) = ${fmtExact(backDiagonalLength)}"
-        </div>
-      </div>
-
-      <div class="row" style="display:block; padding:8px 0; border-top:1px dashed var(--muted);">
-        <div style="display:flex;justify-content:space-between;align-items:center;">
-          <span>Installation note</span><strong>Male snaps on back piece, female on main piece interior</strong>
-        </div>
-        <div style="font-size:11px;color:var(--sub);margin-top:4px;">
-          Or reverse — whichever is easier to press/install. The key is that the back piece extensions fold inward and snap against the inside of the main piece's side drops.
+          When the two flaps fold together at 45° (after the diagonal cut is sewn), the two halves meet at a single 3D point. Press-close to finish the corner.
         </div>
       </div>
     `;
@@ -3075,7 +3047,7 @@ function compute(){
           Top edge (at backrest seam): ML + seam = ${fmtExact(ML)} + ${seam} = ${fmtExact(backPieceTopWidth)}"<br/>
           Bottom edge (at floor): WB + 2×hem = ${WB} + 2×${hem} = ${fmtExact(backPieceBottomWidth)}"<br/>
           Height: H − FC = ${H} − ${FC} = ${fmtExact(backPieceHeight)}"<br/>
-          <strong>Installation:</strong> Sewn to main piece at backrest top (wider edge). Side extensions wrap around corners, providing continuous water-tight coverage. Excess material folds inward and snaps to main piece's side drops.
+          <strong>Installation:</strong> Sewn to main piece at backrest top (wider edge). Side extensions wrap around corners, providing continuous coverage. Corner snaps follow the same pattern as the table/ottoman — see the Snap Placement card.
         </div>
       </div>
       ${useSplitBack ? `<div class="row" style="display:block; padding:8px 0; border-top:1px dashed var(--muted); background:#ecfdf5;">
