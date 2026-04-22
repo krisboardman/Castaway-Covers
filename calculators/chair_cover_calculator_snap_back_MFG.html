@@ -956,15 +956,20 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
     for (const snap of snapFracs) {
       // BACK-SIDE snap: halfway down the back piece height, 2" past the
       // WB/2 fold on the extension.
+      //   Y = (H-FC) / 2
+      //   X = WB/2 + 2
       const backDownFromSeam  = backPieceHeight / 2;
       const backSnapY         = mainTopY - backDownFromSeam * sc;
       const backFromCenter    = WB / 2 + STATIC_OFFSET;
 
-      // FRONT-SIDE snap: near the narrow floor end of the back piece,
-      // 2" from that end (so Y = backPieceHeight - 2), same X as back-side.
-      const frontDownFromSeam = backPieceHeight - STATIC_OFFSET;
+      // FRONT-SIDE snap: close to the seam with the main piece, at
+      // X = "18 from end" (horizontally in from the outer corner at the
+      // seam) = (H-FC)/2 in from the outer edge, which equals
+      // WB/2 + (H-FC)/2 from the centerline. And Y = "34 from back"
+      // below the narrow top, which equals (H-FC) - 34 = 2 from the seam.
+      const frontDownFromSeam = STATIC_OFFSET;  // 2" from the seam (main-piece side)
       const frontSnapY        = mainTopY - frontDownFromSeam * sc;
-      const frontFromCenter   = WB / 2 + STATIC_OFFSET;
+      const frontFromCenter   = WB / 2 + backPieceHeight / 2;  // = WB/2 + (H-FC)/2
 
       // Outer diagonal edge of the back piece at the back-side Y (used for
       // key/annotations).
@@ -2272,10 +2277,11 @@ function compute(){
     const backSnapDown = backPieceHeight / 2;                 // = (H-FC)/2
     const backFromCenter = WB / 2 + STATIC_OFFSET;
 
-    // Front-side half: 2" from the floor end (narrow end of the back piece),
-    // same X as the back-side half.
-    const frontSnapDown = backPieceHeight - STATIC_OFFSET;    // = (H-FC) - 2
-    const frontFromCenter = WB / 2 + STATIC_OFFSET;
+    // Front-side half: 2" from the seam (close to the main piece), and
+    // X = "18 from end" horizontally along the seam, or equivalently
+    // (H-FC)/2 in from the outer edge — at WB/2 + (H-FC)/2 from centerline.
+    const frontSnapDown = STATIC_OFFSET;                      // 2" from seam
+    const frontFromCenter = WB / 2 + backPieceHeight / 2;     // = WB/2 + (H-FC)/2
 
     const snapStrapsSection = document.getElementById('snapstraps');
     snapStrapsSection.innerHTML = `
@@ -2300,11 +2306,11 @@ function compute(){
 
       <div class="row" style="display:block; padding:8px 0; border-top:2px solid #059669; background:#f0fdf4;">
         <div style="display:flex;justify-content:space-between;align-items:center;">
-          <span><strong>Front-side half — 2" from the floor end</strong></span><strong style="color:#059669;">${fmtExact(frontSnapDown)}" from seam</strong>
+          <span><strong>Front-side half — 2" from the seam</strong></span><strong style="color:#059669;">${fmtExact(frontSnapDown)}" from seam</strong>
         </div>
         <div style="font-size:11px;color:var(--sub);margin-top:4px;">
-          (H − FC) − 2 = (${H} − ${FC}) − 2 = ${fmtExact(frontSnapDown)}" from seam (= 2" from the narrow floor end of the back piece).<br/>
-          <strong>X from centerline:</strong> ${fmtExact(frontFromCenter)}" (same X as the back-side half).
+          <strong>Y (from seam):</strong> 2" above the seam line with the main piece — i.e., (H − FC) − 34 = (${H} − ${FC}) − 34 = ${fmtExact(frontSnapDown)}". Measured as "34 from back" (from the narrow top end down).<br/>
+          <strong>X (from centerline):</strong> WB/2 + (H − FC)/2 = ${fmtExact(WB/2)} + ${fmtExact(backPieceHeight/2)} = ${fmtExact(frontFromCenter)}". Measured as "18 from end" (from the outer bottom corner of the trapezoid horizontally along the seam).
         </div>
       </div>
 
