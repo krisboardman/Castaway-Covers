@@ -993,6 +993,28 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
       add('circle',{cx:frontRightSnapX, cy:frontSnapY, r:8, fill:'#059669', stroke:'#dc2626', 'stroke-width':2.5});
       add('text',{x:frontRightSnapX, y:frontSnapY + 4, 'text-anchor':'middle', 'font-size':9, fill:'#fff', 'font-weight':'bold'}).textContent=snap.label;
 
+      // --- Dimension annotation showing the 2" gap from seam to front snap ---
+      // (Without this, the snap circles visually overlap the seam because
+      // 2" at diagram scale is only ~9px and the circle radius is 8px.)
+      {
+        const dimX = frontLeftSnapX - 30;   // left side — dimension line 30px to the left of the snap
+        const tickOff = 5;
+        // Vertical dimension line between seam (mainTopY) and snap center (frontSnapY)
+        add('line',{x1:dimX, y1:mainTopY, x2:dimX, y2:frontSnapY, stroke:'#dc2626', 'stroke-width':1});
+        // Tick at seam
+        add('line',{x1:dimX - tickOff, y1:mainTopY, x2:dimX + tickOff, y2:mainTopY, stroke:'#dc2626', 'stroke-width':1});
+        // Tick at snap
+        add('line',{x1:dimX - tickOff, y1:frontSnapY, x2:dimX + tickOff, y2:frontSnapY, stroke:'#dc2626', 'stroke-width':1});
+        // Label "2"" floating to the left
+        add('text',{x:dimX - 8, y:(mainTopY + frontSnapY)/2 + 3, 'text-anchor':'end', 'font-size':10, fill:'#dc2626', 'font-weight':'bold'}).textContent='2"';
+        // Same on the right side (mirror)
+        const dimXR = frontRightSnapX + 30;
+        add('line',{x1:dimXR, y1:mainTopY, x2:dimXR, y2:frontSnapY, stroke:'#dc2626', 'stroke-width':1});
+        add('line',{x1:dimXR - tickOff, y1:mainTopY, x2:dimXR + tickOff, y2:mainTopY, stroke:'#dc2626', 'stroke-width':1});
+        add('line',{x1:dimXR - tickOff, y1:frontSnapY, x2:dimXR + tickOff, y2:frontSnapY, stroke:'#dc2626', 'stroke-width':1});
+        add('text',{x:dimXR + 8, y:(mainTopY + frontSnapY)/2 + 3, 'text-anchor':'start', 'font-size':10, fill:'#dc2626', 'font-weight':'bold'}).textContent='2"';
+      }
+
       // --- Dashed lines connecting the two halves of each pair (vertical) ---
       add('line',{x1:backLeftSnapX, y1:backSnapY, x2:frontLeftSnapX, y2:frontSnapY,
         stroke:'#059669', 'stroke-width':1.5, 'stroke-dasharray':'5,4', opacity:0.6});
