@@ -1284,21 +1284,21 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
     // The front-grommet callout sits further down, so the snap callout ends
     // up in the middle of the diagram with clear separation above and below.
     const snapLabelX = cx + halfMid + 18;
-    const snapLabelY = gromYBack + 52;   // 52px below back-grommet top — safely clear of its 3-line block (which ends at gromYBack + 21)
+    // Back-grommet callout starts at (chaiseY + 5 * sc) and runs ~21px tall.
+    // We intentionally redo that math here because gromYBack / gromEndIn are
+    // defined further down in this function — referencing them this early
+    // would throw a ReferenceError and blank out the rest of the diagram.
+    const snapLabelY = chaiseY + 5 * sc + 52;   // 52px below back-grommet top — safely clear of its 3-line block
     const alongDim = Math.max(0, sideDrop - STATIC_INSET);
     const perpDim  = sideDrop / 2;
+    // Compacted to 3 lines so this block fits between the back- and
+    // front-grommet callouts without overlapping the front-grommet text.
     add('text',{x:snapLabelX, y:snapLabelY, 'text-anchor':'start', 'font-size':10,
-      fill:snapColor, 'font-weight':'bold'}).textContent=`Corner snap pairs`;
+      fill:snapColor, 'font-weight':'bold'}).textContent=`Corner snap pairs (4 pairs · 1 per corner)`;
     add('text',{x:snapLabelX, y:snapLabelY + 13, 'text-anchor':'start', 'font-size':9,
-      fill:snapColor}).textContent=`1 pair per corner (4 pairs total)`;
-    add('text',{x:snapLabelX, y:snapLabelY + 26, 'text-anchor':'start', 'font-size':9,
-      fill:snapColor}).textContent=`Along (fold-line direction): ${rIn(alongDim)}"`;
-    add('text',{x:snapLabelX, y:snapLabelY + 37, 'text-anchor':'start', 'font-size':8,
-      fill:snapColor}).textContent=`  (side drop − 2 = ${rIn(sideDrop)} − 2 = 2" inside fold)`;
-    add('text',{x:snapLabelX, y:snapLabelY + 50, 'text-anchor':'start', 'font-size':9,
-      fill:snapColor}).textContent=`Perp (outer edge → chaise): ${rIn(perpDim)}"`;
-    add('text',{x:snapLabelX, y:snapLabelY + 61, 'text-anchor':'start', 'font-size':8,
-      fill:snapColor}).textContent=`  (side drop ÷ 2 = halfway)`;
+      fill:snapColor}).textContent=`Along fold: ${rIn(alongDim)}"  (side drop − 2 = 2" inside fold)`;
+    add('text',{x:snapLabelX, y:snapLabelY + 25, 'text-anchor':'start', 'font-size':9,
+      fill:snapColor}).textContent=`Perp to fold: ${rIn(perpDim)}"  (side drop ÷ 2 = halfway)`;
   }
 
   // === CHAISE CORNER GROMMETS (4 total — one per corner) ===
