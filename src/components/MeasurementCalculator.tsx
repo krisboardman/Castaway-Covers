@@ -110,12 +110,12 @@ const hardMaximums: Record<string, Record<string, number>> = {
 // Helper hints shown below specific field labels to clarify measurement technique
 const fieldHints: Record<string, Record<string, string>> = {
   'chairs-recliners': {
-    length: 'Measure along the ground from directly below the back of the chair to the front edge — don\'t measure along the seat surface or include how far the backrest leans back.',
+    length: 'Drop an imaginary vertical line from the top-back corner of the backrest straight down to the ground. Measure along the ground from that point to the front edge of the chair. Don\'t measure along the seat surface.',
     backWidth: 'Measure the back panel only — this is often shorter than the overall width, which spans arm-to-arm.',
   },
   'sofas-loveseats': {
     width: 'Maximum width 84″. Contact us for a quote on additional or larger pieces. Note: the cover will have a seam down the center, or snaps along the center if the split cover with straps option is chosen.',
-    length: 'Measure along the ground from directly below the back of the sofa to the front edge — don\'t measure along the seat surface or include how far the backrest leans back.',
+    length: 'Drop an imaginary vertical line from the top-back corner of the backrest straight down to the ground. Measure along the ground from that point to the front edge of the sofa. Don\'t measure along the seat surface.',
     backWidth: 'Measure the back panel only — this is often shorter than the overall width, which spans arm-to-arm.',
   },
   'tables': {
