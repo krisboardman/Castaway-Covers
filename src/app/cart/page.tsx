@@ -21,7 +21,66 @@ export default function CartPage() {
     notes: ''
   });
   const [photos, setPhotos] = useState<File[]>([]);
+  const [compressing, setCompressing] = useState(false);
   const [isManualCheckout, setIsManualCheckout] = useState(true); // Default to manual checkout
+
+  // Compress an image in the browser to keep total upload payload under
+  // Vercel's request body limit (~4.5 MB) and Resend's 40 MB attachment cap.
+  // Resizes to a max dimension of 1600px and re-encodes as JPEG ~80% quality.
+  // Falls back to the original file if anything goes wrong.
+  const compressImage = (file: File, maxDim = 1600, quality = 0.8): Promise<File> => {
+    return new Promise((resolve) => {
+      // Skip non-images entirely
+      if (!file.type.startsWith('image/')) {
+        resolve(file);
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new window.Image();
+        img.onload = () => {
+          const { width, height } = img;
+          const scale = Math.min(1, maxDim / Math.max(width, height));
+          const targetW = Math.round(width * scale);
+          const targetH = Math.round(height * scale);
+
+          const canvas = document.createElement('canvas');
+          canvas.width = targetW;
+          canvas.height = targetH;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            resolve(file);
+            return;
+          }
+          ctx.drawImage(img, 0, 0, targetW, targetH);
+          canvas.toBlob(
+            (blob) => {
+              if (!blob) {
+                resolve(file);
+                return;
+              }
+              // Always rewrite to .jpg so the backend gets a predictable type
+              const baseName = file.name.replace(/\.[^.]+$/, '');
+              const compressed = new File([blob], `${baseName}.jpg`, {
+                type: 'image/jpeg',
+                lastModified: Date.now(),
+              });
+              // If compression actually made it bigger (rare for tiny files),
+              // keep the original.
+              resolve(compressed.size < file.size ? compressed : file);
+            },
+            'image/jpeg',
+            quality
+          );
+        };
+        img.onerror = () => resolve(file);
+        img.src = e.target?.result as string;
+      };
+      reader.onerror = () => resolve(file);
+      reader.readAsDataURL(file);
+    });
+  };
 
   // Handle client-side hydration
   useEffect(() => {
@@ -436,46 +495,77 @@ export default function CartPage() {
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         Photos of Your Furniture (optional)
                       </label>
-                      <p className="text-xs text-gray-500 mb-2">Upload 1-3 photos to help us verify measurements (max 10MB per photo)</p>
+                      <p className="text-xs text-gray-500 mb-2">Upload 1-3 photos to help us verify measurements (max 25MB per photo — we&apos;ll automatically compress for upload)</p>
                       <input
                         type="file"
                         accept="image/jpeg,image/png,image/jpg"
                         multiple
-                        onChange={(e) => {
-                          const files = Array.from(e.target.files || []);
+                        disabled={compressing}
+                        onChange={async (e) => {
+                          const inputEl = e.target;
+                          const files = Array.from(inputEl.files || []);
+                          if (files.length === 0) {
+                            setPhotos([]);
+                            return;
+                          }
                           if (files.length > 3) {
                             alert('Please select up to 3 photos only');
-                            e.target.value = '';
+                            inputEl.value = '';
                             return;
                           }
-                          // Check file sizes
-                          const oversized = files.find(f => f.size > 10 * 1024 * 1024);
+                          // Reject genuinely huge originals (>25MB) so the
+                          // browser doesn't lock up trying to decode them.
+                          const oversized = files.find(f => f.size > 25 * 1024 * 1024);
                           if (oversized) {
-                            alert('Each photo must be under 10MB');
-                            e.target.value = '';
+                            alert('Each photo must be under 25MB');
+                            inputEl.value = '';
                             return;
                           }
-                          setPhotos(files);
+
+                          setCompressing(true);
+                          try {
+                            const compressed = await Promise.all(files.map(f => compressImage(f)));
+                            // Safety net: if compressed total is still too big
+                            // for Vercel's body limit, ask the customer to
+                            // pick fewer / smaller photos.
+                            const totalBytes = compressed.reduce((s, f) => s + f.size, 0);
+                            if (totalBytes > 4 * 1024 * 1024) {
+                              alert('Photos are still too large after compression. Please select fewer or smaller photos.');
+                              inputEl.value = '';
+                              setPhotos([]);
+                            } else {
+                              setPhotos(compressed);
+                            }
+                          } catch (err) {
+                            alert('Could not process photos. Please try different images.');
+                            inputEl.value = '';
+                            setPhotos([]);
+                          } finally {
+                            setCompressing(false);
+                          }
                         }}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-brand-teal focus:border-brand-teal text-sm"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-brand-teal focus:border-brand-teal text-sm disabled:opacity-50"
                       />
-                      {photos.length > 0 && (
+                      {compressing && (
+                        <div className="mt-2 text-sm text-gray-600">Compressing photos...</div>
+                      )}
+                      {!compressing && photos.length > 0 && (
                         <div className="mt-2 text-sm text-gray-600">
-                          {photos.length} photo{photos.length > 1 ? 's' : ''} selected: {photos.map(p => p.name).join(', ')}
+                          {photos.length} photo{photos.length > 1 ? 's' : ''} ready ({(photos.reduce((s, f) => s + f.size, 0) / 1024 / 1024).toFixed(2)} MB total)
                         </div>
                       )}
                     </div>
 
                     <button
                       onClick={handleManualOrder}
-                      disabled={loading}
+                      disabled={loading || compressing}
                       className={`w-full py-3 px-6 rounded-md font-semibold transition-colors ${
-                        loading
+                        loading || compressing
                           ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                           : 'bg-brand-teal text-white hover:bg-brand-teal-dark'
                       }`}
                     >
-                      {loading ? 'Submitting...' : 'Submit Order'}
+                      {loading ? 'Submitting...' : compressing ? 'Preparing photos...' : 'Submit Order'}
                     </button>
 
                     <button
