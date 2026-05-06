@@ -423,13 +423,18 @@ export default function CartPage() {
             {isManualCheckout ? (
               <>
                 {!showContactForm ? (
-                  <button
-                    onClick={() => setShowContactForm(true)}
-                    disabled={loading}
-                    className="w-full py-3 px-6 rounded-md font-semibold transition-colors mb-3 bg-brand-teal text-white hover:bg-brand-teal-dark"
-                  >
-                    Place Order
-                  </button>
+                  <>
+                    <p className="text-xs text-gray-600 mb-3">
+                      You&apos;ll be able to upload photos of your furniture in the next step to help us verify your measurements.
+                    </p>
+                    <button
+                      onClick={() => setShowContactForm(true)}
+                      disabled={loading}
+                      className="w-full py-3 px-6 rounded-md font-semibold transition-colors mb-3 bg-brand-teal text-white hover:bg-brand-teal-dark"
+                    >
+                      Place Order
+                    </button>
+                  </>
                 ) : (
                   <div className="space-y-4 mb-4">
                     <h3 className="font-semibold text-gray-900">Contact Information</h3>
