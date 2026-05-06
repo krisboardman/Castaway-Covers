@@ -10,14 +10,16 @@ import ShopifyBuyButton from '@/components/ShopifyBuyButton';
 import { useCartStore } from '@/store/cartStore';
 import { getProductSchemaForType } from '@/lib/structured-data';
 
-const measurementImages: Record<string, { main: string; curvedBack?: string }> = {
+const measurementImages: Record<string, { main: string; curvedBack?: string; backrestThickness?: string }> = {
   'chairs-recliners': {
     main: '/images/Measurements/chair measurements.png',
-    curvedBack: '/images/Measurements/curved-back-measuring.svg'
+    curvedBack: '/images/Measurements/curved-back-measuring.svg',
+    backrestThickness: '/images/Measurements/backrest-thickness-measuring.svg'
   },
   'sofas-loveseats': {
     main: '/images/Measurements/sofa_measurements_text.jpg',
-    curvedBack: '/images/Measurements/curved-back-measuring.svg'
+    curvedBack: '/images/Measurements/curved-back-measuring.svg',
+    backrestThickness: '/images/Measurements/backrest-thickness-measuring.svg'
   },
   'chaise-lounge': { main: '/images/Measurements/chaise measurements.jpg' },
   'chaise-lounges': { main: '/images/Measurements/chaise measurements.jpg' },
@@ -40,6 +42,20 @@ function MeasurementDiagrams({ productType }: { productType: string }) {
         />
       </div>
       <p className="text-sm text-gray-500 mt-3">Measure at the widest points for each dimension</p>
+      {images.backrestThickness && (
+        <details className="mt-3 pt-3 border-t border-gray-200">
+          <summary className="text-sm text-blue-600 hover:text-blue-800 cursor-pointer font-medium">
+            How to measure backrest thickness
+          </summary>
+          <div className="mt-3 flex justify-center">
+            <img
+              src={images.backrestThickness}
+              alt="How to measure backrest thickness — side view showing top edge from front face to back face"
+              className="max-h-56 md:max-h-72 w-auto"
+            />
+          </div>
+        </details>
+      )}
       {images.curvedBack && (
         <details className="mt-3 pt-3 border-t border-gray-200">
           <summary className="text-sm text-blue-600 hover:text-blue-800 cursor-pointer font-medium">
