@@ -50,7 +50,7 @@ const validationRanges: Record<string, Record<string, { min: number; max: number
     width:          { min: 18, max: 50,  label: 'Chair width' },
     length:         { min: 18, max: 45,  label: 'Front-to-back depth' },
     height:         { min: 28, max: 50,  label: 'Chair height' },
-    backrestDepth:  { min: 1,  max: 14,  label: 'Backrest depth' },
+    backrestDepth:  { min: 1,  max: 14,  label: 'Backrest thickness' },
     armrestHeight:  { min: 14, max: 34,  label: 'Ground-to-armrest height' },
     backWidth:      { min: 12, max: 50,  label: 'Back width' },
   },
@@ -58,7 +58,7 @@ const validationRanges: Record<string, Record<string, { min: number; max: number
     width:          { min: 40, max: 84, label: 'Sofa length' },
     length:         { min: 20, max: 50,  label: 'Front-to-back depth' },
     height:         { min: 28, max: 50,  label: 'Sofa height' },
-    backrestDepth:  { min: 1,  max: 14,  label: 'Backrest depth' },
+    backrestDepth:  { min: 1,  max: 14,  label: 'Backrest thickness' },
     armrestHeight:  { min: 14, max: 34,  label: 'Ground-to-armrest height' },
   },
   'chaise-lounge': {
@@ -111,11 +111,13 @@ const hardMaximums: Record<string, Record<string, number>> = {
 const fieldHints: Record<string, Record<string, string>> = {
   'chairs-recliners': {
     length: 'Drop an imaginary vertical line from the top-back corner of the backrest straight down to the ground. Measure along the ground from that point to the front edge of the chair. Don\'t measure along the seat surface.',
+    backrestDepth: 'Just the thickness of the backrest cushion at the top — measure from front to back across the top edge only. Typically 4–8″. This is NOT the front-to-back depth of the seat.',
     backWidth: 'Measure the back panel only — this is often shorter than the overall width, which spans arm-to-arm.',
   },
   'sofas-loveseats': {
     width: 'Maximum width 84″. Contact us for a quote on additional or larger pieces. Note: the cover will have a seam down the center, or snaps along the center if the split cover with straps option is chosen.',
     length: 'Drop an imaginary vertical line from the top-back corner of the backrest straight down to the ground. Measure along the ground from that point to the front edge of the sofa. Don\'t measure along the seat surface.',
+    backrestDepth: 'Just the thickness of the backrest cushion at the top — measure from front to back across the top edge only. Typically 4–8″. This is NOT the front-to-back depth of the seat.',
     backWidth: 'Measure the back panel only — this is often shorter than the overall width, which spans arm-to-arm.',
   },
   'tables': {
@@ -137,7 +139,7 @@ const productConfigs = {
       width: 'Width',
       length: 'Front-to-Back Depth',
       height: 'Height',
-      backrestDepth: 'Backrest Depth',
+      backrestDepth: 'Backrest Thickness',
       armrestHeight: 'Ground to Top of Armrest',
       backWidth: 'Back Width'
     },
@@ -151,7 +153,7 @@ const productConfigs = {
       width: 'Length',
       length: 'Front-to-Back Depth',
       height: 'Height',
-      backrestDepth: 'Backrest Depth',
+      backrestDepth: 'Backrest Thickness',
       armrestHeight: 'Ground to Top of Armrest',
       backWidth: 'Back Width'
     },
