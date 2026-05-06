@@ -497,7 +497,11 @@ export default function CartPage() {
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         Photos of Your Furniture (optional)
                       </label>
-                      <p className="text-xs text-gray-500 mb-2">Upload 1-3 photos to help us verify measurements (max 25MB per photo — we&apos;ll automatically compress for upload)</p>
+                      <p className="text-xs text-gray-500 mb-2">
+                        Upload up to 3 photos to help us verify measurements. We&apos;ll automatically compress them for upload.
+                        {' '}If you&apos;d like to send additional photos, please email them directly to{' '}
+                        <a href="mailto:support@castawaycovers.com" className="text-brand-teal hover:underline">support@castawaycovers.com</a>.
+                      </p>
                       <input
                         type="file"
                         accept="image/jpeg,image/png,image/jpg"
