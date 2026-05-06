@@ -15,6 +15,7 @@ interface CartItem {
     height: number;
     backrestDepth?: number;
     armrestHeight?: number;
+    backWidth?: number;
   };
   snapStraps: boolean;
   handles: boolean;

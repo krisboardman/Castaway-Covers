@@ -51,6 +51,7 @@ export async function POST(request: Request) {
       const hLabel = getMeasurementLabel(item.productType, 'height');
       const brLabel = getMeasurementLabel(item.productType, 'backrestDepth');
       const arLabel = getMeasurementLabel(item.productType, 'armrestHeight');
+      const bwLabel = getMeasurementLabel(item.productType, 'backWidth');
 
       return `
 Item ${index + 1}: ${item.productType}
@@ -66,6 +67,7 @@ Measurements:
   ${hLabel}: ${item.measurements?.height || 0}"
   ${item.measurements?.backrestDepth ? `${brLabel}: ${item.measurements.backrestDepth}"` : ''}
   ${item.measurements?.armrestHeight ? `${arLabel}: ${item.measurements.armrestHeight}"` : ''}
+  ${item.measurements?.backWidth ? `${bwLabel}: ${item.measurements.backWidth}"` : ''}
   ${item.angle ? `Angle: ${item.angle}°` : ''}
 
 Add-ons: ${addOns.length > 0 ? addOns.join(', ') : 'None'}
@@ -109,6 +111,7 @@ NEXT STEPS:
       const hLabel2 = getMeasurementLabel(item.productType, 'height');
       const brLabel2 = getMeasurementLabel(item.productType, 'backrestDepth');
       const arLabel2 = getMeasurementLabel(item.productType, 'armrestHeight');
+      const bwLabel2 = getMeasurementLabel(item.productType, 'backWidth');
 
       return `
 Item ${index + 1}: ${item.productType}
@@ -124,6 +127,7 @@ Measurements:
   ${hLabel2}: ${item.measurements?.height || 0}"
   ${item.measurements?.backrestDepth ? `${brLabel2}: ${item.measurements.backrestDepth}"` : ''}
   ${item.measurements?.armrestHeight ? `${arLabel2}: ${item.measurements.armrestHeight}"` : ''}
+  ${item.measurements?.backWidth ? `${bwLabel2}: ${item.measurements.backWidth}"` : ''}
 
 Add-ons: ${addOns.length > 0 ? addOns.join(', ') : 'None'}
 ${item.premiumColorCharge > 0 ? `Premium Color Charge: $${item.premiumColorCharge}` : ''}
