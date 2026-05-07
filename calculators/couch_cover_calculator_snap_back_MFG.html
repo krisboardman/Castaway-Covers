@@ -99,6 +99,10 @@
             <label class="lbl">Hem allowance (edges)<input id="hem" type="number" value="1" step="0.5" /></label>
             <label class="lbl">Seam overlap (piece junctions)<input id="seam" type="number" value="1.5" step="0.5" /></label>
             <label class="lbl">Side ease (extra per side at front)<input id="sideEase" type="number" value="0" step="0.5" min="0" /></label>
+            <label class="lbl" style="grid-column:1/-1; flex-direction:row; align-items:center; gap:8px;">
+              <input id="snapStrapsOpt" type="checkbox" style="width:auto; margin:0;" />
+              <span style="font-weight:500;">Customer ordered snap straps (optional add-on)</span>
+            </label>
           </div>
           <div class="note" style="margin-top:8px;">
             <strong>Design:</strong> Main piece goes side-to-side: from floor on one side, up over one armrest, across the seat and backrest, over the other armrest, down to floor on the other side.
@@ -226,7 +230,15 @@
           </li>
           <li>Add grommets</li>
           <li>Prepare bungee loops</li>
-          <li>Prepare and install snap straps</li>
+          <li id="step-snap-straps" style="display:none;"><strong style="color:#ea580c;">Install snap-strap snaps</strong> on the cover (only when customer ordered snap straps):
+            <ul style="margin-top:4px; padding-left:20px;">
+              <li><span id="step-snap-straps-count">2</span> straps total — sew <span id="step-snap-straps-totalsnaps">4</span> snap halves to the cover (half on the back panel, half on the front skirt at the same horizontal positions)</li>
+              <li><strong>Horizontal positions from center:</strong> <span id="step-snap-straps-offsets">±15</span>"</li>
+              <li><strong>Back snap:</strong> 2" toward back-floor from the backrest top (= just inside the backrest crease)</li>
+              <li><strong>Front snap:</strong> <span id="step-snap-straps-fronty">22</span>" down the front from the backrest top (⅔ × front draping length)</li>
+              <li>Provide 8" webbing straps with a snap on each end (1 per pair). Customer routes each strap from a back snap, over the backrest top, to the matching front snap so the front skirt folds up against the backrest face.</li>
+            </ul>
+          </li>
           <li>Prepare bungees</li>
           <li>Add fabric glue to thread ends</li>
           <li>Scotch guard ends</li>
@@ -933,7 +945,8 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
          hem, seam, rounded, roundMode,
          couch_panelLen, couch_panelW, couch_assembledW, couch_joinedUsableW,
          couch_backInset, couch_taperLen, couch_frontStraight, couch_frontInset, couch_frontFlapWidth, couch_frontFlapNeeded,
-         couch_extNeeded, couch_extEachCut, couch_extSeam, couch_extBoltsNeeded, couch_totalBolts} = params;
+         couch_extNeeded, couch_extEachCut, couch_extSeam, couch_extBoltsNeeded, couch_totalBolts,
+         snapStrapsOpt} = params;
   const rIn = v => roundMode === 'whole' ? Math.ceil(v) : roundMode === 'half' ? roundHalf(v) : Math.round(v*100)/100;
   const svg = document.getElementById(svgId);
   if (!svg) return;
@@ -1331,6 +1344,50 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
     fill:tabColor, 'font-weight':'bold'}).textContent=
     `back floor, ±${rIn(bungeeTabX)}" from center)`;
 
+  // === SNAP-STRAP SNAP MARKERS (only when customer ordered the option) ===
+  // Couches need more straps than chairs because of the wider span.
+  // Auto-scale rule: max(2, ceil((WB-2)/24) + 1) — typically 3 for loveseats,
+  // 4 for sofas, 5 for extra-wide. Distribute evenly across ±(WB/2 − 2).
+  // Each strap has a snap on each end; back snap is 2" toward back-floor from
+  // backrest-top, front snap is 2/3 of the way down the front draping length.
+  const strapColor = '#ea580c';
+  const strapBorderColor = '#9a3412';
+  const strapHorizMax = WB / 2 - 2;
+  const strapCount = Math.max(2, Math.ceil((WB - 2) / 24) + 1);
+  const strapFrontDrapingLength = AT2F + frontExtDrop;
+  const strapFrontDownFromSeam = (strapFrontDrapingLength / 3) * 2;
+  const strapBackUpFromSeam = 2;
+  const strapBackY  = yBackrestTop - strapBackUpFromSeam * sc;
+  const strapFrontY = yBackrestTop + strapFrontDownFromSeam * sc;
+
+  // Generate horizontal offsets from center, evenly distributed across
+  // the strap horizontal range (negative on the left, positive on the right).
+  const strapOffsets = [];
+  if (strapCount === 1) {
+    strapOffsets.push(0);
+  } else {
+    for (let i = 0; i < strapCount; i++) {
+      strapOffsets.push(-strapHorizMax + (2 * strapHorizMax) * i / (strapCount - 1));
+    }
+  }
+
+  if (snapStrapsOpt) {
+    const drawStrapSnap = (xPx, yPx) => {
+      add('circle',{cx:xPx, cy:yPx, r:7, fill:strapColor, stroke:strapBorderColor, 'stroke-width':2});
+      add('text',{x:xPx, y:yPx + 3, 'text-anchor':'middle', 'font-size':8,
+        fill:'#fff', 'font-weight':'bold'}).textContent='S';
+    };
+    strapOffsets.forEach(off => {
+      const xPx = cx + off * sc;
+      drawStrapSnap(xPx, strapBackY);
+      drawStrapSnap(xPx, strapFrontY);
+      // Dotted vertical pairing line so the eye can match each back snap to
+      // its matching front snap.
+      add('line',{x1:xPx, y1:strapBackY, x2:xPx, y2:strapFrontY,
+        stroke:strapColor, 'stroke-width':1, 'stroke-dasharray':'3,3', opacity:0.5});
+    });
+  }
+
   // === BOTTOM LEGEND BOX (couch-specific snap/grommet info) ===
   const keyTotalW = VBW - pad * 2;
   const keyX = pad;
@@ -1382,6 +1439,27 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
     add('text',{x:xS, y:srow, 'font-size':9, fill:'#334155'}).textContent=`Back-side: ${rIn(s.backDownFromSeam)}" from seam, ${rIn(s.backFromCenter)}" from center (halfway down; WB/2 + 2)`;
     srow += 11;
     add('text',{x:xS, y:srow, 'font-size':9, fill:'#334155'}).textContent=`Front-side: ${rIn(s.frontDownFromSeam)}" from seam, ${rIn(s.frontFromCenter)}" from center (2" above seam; WB/2 + (H−FC)/2)`;
+  }
+
+  // --- Snap-strap addendum (only when the customer ordered straps) ---
+  if (snapStrapsOpt) {
+    srow += 16;
+    add('circle',{cx:xS + 6, cy:srow - 3, r:5, fill:strapColor, stroke:strapBorderColor, 'stroke-width':1.5});
+    add('text',{x:xS + 16, y:srow, 'font-size':11, fill:strapColor, 'font-weight':'bold'})
+      .textContent=`Snap straps (optional add-on) — ${strapCount} straps`;
+    srow += 12;
+    const offsetsList = strapOffsets.map(o => (o >= 0 ? '+' : '') + rIn(o)).join(', ');
+    add('text',{x:xS, y:srow, 'font-size':9, fill:'#334155'})
+      .textContent=`${strapCount * 2} snaps total (${strapCount} back + ${strapCount} front), 8" webbing each`;
+    srow += 11;
+    add('text',{x:xS, y:srow, 'font-size':9, fill:'#334155'})
+      .textContent=`Horizontal offsets from center: ${offsetsList}"`;
+    srow += 11;
+    add('text',{x:xS, y:srow, 'font-size':9, fill:'#334155'})
+      .textContent=`Back snaps: ${rIn(strapBackUpFromSeam)}" toward floor from backrest top`;
+    srow += 11;
+    add('text',{x:xS, y:srow, 'font-size':9, fill:'#334155'})
+      .textContent=`Front snaps: ${rIn(strapFrontDownFromSeam)}" down front (⅔ × ${rIn(strapFrontDrapingLength)}")`;
   }
 }
 
@@ -2211,6 +2289,7 @@ function compute(){
     const hem  = parseNum('hem');
     const seam = parseNum('seam');
     const sideEase = parseNum('sideEase');
+    const snapStrapsOpt = !!document.getElementById('snapStrapsOpt')?.checked;
 
     // === MAIN PIECE CALCULATIONS (Side-to-Side Design) ===
     // AT2F: diagonal drape from front edge of backrest top to front of seat
@@ -3032,13 +3111,42 @@ function compute(){
       couch_panelLen, couch_panelW, couch_assembledW, couch_joinedUsableW,
          couch_backInset, couch_taperLen, couch_frontStraight, couch_frontInset, couch_frontFlapWidth, couch_frontFlapNeeded,
       couch_extNeeded, couch_extEachCut, couch_extSeam, couch_extBoltsNeeded, couch_totalBolts,
-      couch_total_inches, couch_total_yards};
+      couch_total_inches, couch_total_yards,
+      snapStrapsOpt};
     // Call each diagram in its own try/catch so one failure doesn't block the others
     const diagramErrors = [];
     try { drawDiagram(payload); } catch(e) { diagramErrors.push('Cut diagram: ' + e.message); console.error('drawDiagram error:', e); }
     try { updateCutList(payload); } catch(e) { diagramErrors.push('Cut list: ' + e.message); console.error('updateCutList error:', e); }
     try { drawAssemblyDiagramFlat(payload, 'assemblyDiagramFlatFull', 1400, 900); } catch(e) { diagramErrors.push('Flat diagram: ' + e.message); console.error('drawAssemblyDiagramFlat error:', e); }
     try { drawWavyEdgeDiagram(payload); } catch(e) { diagramErrors.push('Wavy edge diagram: ' + e.message); console.error('drawWavyEdgeDiagram error:', e); }
+
+    // Toggle the snap-straps assembly step + fill in live measurements.
+    // Couch uses an auto-scaling strap count that depends on WB.
+    const stepSnaps = document.getElementById('step-snap-straps');
+    if (stepSnaps) {
+      stepSnaps.style.display = snapStrapsOpt ? '' : 'none';
+      if (snapStrapsOpt) {
+        const r2 = v => Math.round(v * 100) / 100;
+        const sCount = Math.max(2, Math.ceil((WB - 2) / 24) + 1);
+        const halfRange = WB / 2 - 2;
+        const offsets = [];
+        for (let i = 0; i < sCount; i++) {
+          offsets.push(-halfRange + (2 * halfRange) * i / (sCount - 1));
+        }
+        const offsetsStr = offsets.map(o => (o >= 0 ? '+' : '') + r2(o)).join(', ');
+        const frontDrape = AT2F + (F2A - FC);
+        const frontDownVal = (frontDrape * 2 / 3);
+
+        const cntEl  = document.getElementById('step-snap-straps-count');
+        const totEl  = document.getElementById('step-snap-straps-totalsnaps');
+        const offEl  = document.getElementById('step-snap-straps-offsets');
+        const fyEl   = document.getElementById('step-snap-straps-fronty');
+        if (cntEl)  cntEl.textContent  = String(sCount);
+        if (totEl)  totEl.textContent  = String(sCount * 2);
+        if (offEl)  offEl.textContent  = offsetsStr;
+        if (fyEl)   fyEl.textContent   = String(r2(frontDownVal));
+      }
+    }
 
     const exp = document.getElementById('exportPng');
     if (exp && !exp._wired){ exp._wired = true; exp.addEventListener('click', exportDiagramPNG); }
