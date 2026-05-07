@@ -1406,13 +1406,12 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
   }
 
   // === EDGE LABELS ===
-  // Floor-edge labels share a row with the FRONT label below the bottom of the
-  // piece (with a flap, that's below the flap; without, below the front-width
-  // label). FRONT sits at the center; floor-edge labels are horizontally
-  // offset into the trim regions so they don't collide.
-  const floorLabelY = mainBotY + (frontFlapNeeded ? (frontFlapWidth * sc) + 28 : 32);
-  add('text',{x:(mainX + frontLeftX)/2, y:floorLabelY, 'text-anchor':'middle', 'font-size':9, fill:'#475569'}).textContent='← Left floor edge';
-  add('text',{x:(mainX + mainW + frontRightX)/2, y:floorLabelY, 'text-anchor':'middle', 'font-size':9, fill:'#475569'}).textContent='Right floor edge →';
+  // Floor-edge labels sit just below the cover's bottom edge, sandwiched
+  // between the edge itself and the trim-dimension bracket line that's drawn
+  // at frontBottomY + 20. Using frontBottomY (not mainBotY) keeps them below
+  // the flap when one exists, and still 16px above the trim brackets.
+  add('text',{x:(mainX + frontLeftX)/2, y:frontBottomY + 16, 'text-anchor':'middle', 'font-size':9, fill:'#475569'}).textContent='← Left floor edge';
+  add('text',{x:(mainX + mainW + frontRightX)/2, y:frontBottomY + 16, 'text-anchor':'middle', 'font-size':9, fill:'#475569'}).textContent='Right floor edge →';
   add('text',{x:cx, y:mainTopY - hemOverlapH - 16, 'text-anchor':'middle', 'font-size':10, fill:'#475569', 'font-weight':'bold'}).textContent='↑ BACK (behind chair) ↑';
   // When there's no front flap, frontBottomY === mainBotY, so the front-width
   // label sits at mainBotY + 12. Push the FRONT label below it (was +16, which
