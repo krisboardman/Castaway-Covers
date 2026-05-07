@@ -787,7 +787,8 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
          totalFB, confirmCoverageWidth, backWidth, frontWidth, rounded, roundMode, hem, seam,
          backPieceTopWidth, backPieceBottomWidth, backPieceHeight,
          backPieceWidth, backPieceLength, frontFlapNeeded, frontFlapWidth, frontFlapLength,
-         backInset, frontInset, markFromSideEdge, frontWidthAfterCut, taperZoneLength} = params;
+         backInset, frontInset, markFromSideEdge, frontWidthAfterCut, taperZoneLength,
+         useSplitBack} = params;
   const rIn = v => roundMode === 'whole' ? Math.ceil(v) : roundMode === 'half' ? roundHalf(v) : Math.round(v*100)/100;
   const svg = document.getElementById(svgId);
   if (!svg) return;
@@ -856,9 +857,24 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
     `${cx - bpBotW/2},${bpTopY}`,                // top-left (narrow, at floor)
   ].join(' ');
   add('polygon',{points:bpTrapPts, fill:'#93c5fd55', stroke:'#2563eb', 'stroke-width':1.5});
+
+  // === BACK PIECE CENTER SEAM (only when cut as two halves) ===
+  // The cut diagram cuts the back piece in half along the bolt and joins the
+  // two trapezoidal halves at center. Show that seam on the assembly diagram
+  // so the sewer knows the halves get joined here before attaching to main.
+  if (useSplitBack) {
+    add('line', {x1:cx, y1:bpTopY, x2:cx, y2:mainTopY,
+      stroke:'#7c3aed', 'stroke-width':1.5, 'stroke-dasharray':'5,3'});
+    // Small label tucked just below the top dimension text and above the trapezoid
+    add('text',{x:cx + 8, y:bpTopY + (mainTopY - bpTopY) * 0.35,
+      'text-anchor':'start', 'font-size':9, fill:'#7c3aed', 'font-weight':'bold',
+      transform:`rotate(-90 ${cx + 8} ${bpTopY + (mainTopY - bpTopY) * 0.35})`})
+      .textContent='center seam — sew halves together first';
+  }
+
   // Back piece label and dimensions — placed ABOVE the diagram to avoid grommet overlap
   add('text',{x:cx, y:bpTopY - 22, 'text-anchor':'middle', 'font-size':12, fill:'#1e40af', 'font-weight':'bold'}).textContent='BACK PIECE (trapezoid)';
-  add('text',{x:cx, y:bpTopY - 10, 'text-anchor':'middle', 'font-size':10, fill:'#1e40af'}).textContent=`Top: ${rIn(backPieceTopWidth)}" / Bottom: ${rIn(backPieceBottomWidth)}" / H: ${rIn(backPieceHeight)}"`;
+  add('text',{x:cx, y:bpTopY - 10, 'text-anchor':'middle', 'font-size':10, fill:'#1e40af'}).textContent=`Top: ${rIn(backPieceTopWidth)}" / Bottom: ${rIn(backPieceBottomWidth)}" / H: ${rIn(backPieceHeight)}"${useSplitBack ? ' (cut as 2 halves, joined at center)' : ''}`;
   const bpY = bpTopY;  // for compatibility with hem overlap code below
 
   // Hem overlap at back piece / main piece junction (main piece's hem serves as lap seam)
