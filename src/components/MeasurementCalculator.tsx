@@ -111,13 +111,13 @@ const hardMaximums: Record<string, Record<string, number>> = {
 const fieldHints: Record<string, Record<string, string>> = {
   'chairs-recliners': {
     length: 'Drop an imaginary vertical line from the top-back corner of the backrest straight down to the ground. Measure along the ground from that point to the front edge of the chair. Don\'t measure along the seat surface.',
-    backrestDepth: 'Just the thickness of the backrest cushion at the top — measure from front to back across the top edge only. Typically 4–8″. This is NOT the front-to-back depth of the seat.',
+    backrestDepth: 'Just the thickness of the backrest itself at the top — measure the chair\'s back panel from front to back across the top edge, with cushions removed. Typically 4–8″. This is NOT the front-to-back depth of the seat.',
     backWidth: 'Measure the back panel only — this is often shorter than the overall width, which spans arm-to-arm.',
   },
   'sofas-loveseats': {
     width: 'Maximum width 84″. Contact us for a quote on additional or larger pieces. Note: the cover will have a seam down the center, or snaps along the center if the split cover with straps option is chosen.',
     length: 'Drop an imaginary vertical line from the top-back corner of the backrest straight down to the ground. Measure along the ground from that point to the front edge of the sofa. Don\'t measure along the seat surface.',
-    backrestDepth: 'Just the thickness of the backrest cushion at the top — measure from front to back across the top edge only. Typically 4–8″. This is NOT the front-to-back depth of the seat.',
+    backrestDepth: 'Just the thickness of the backrest itself at the top — measure the sofa\'s back panel from front to back across the top edge, with cushions removed. Typically 4–8″. This is NOT the front-to-back depth of the seat.',
     backWidth: 'Measure the back panel only — this is often shorter than the overall width, which spans arm-to-arm.',
   },
   'tables': {
