@@ -99,6 +99,10 @@
             <label class="lbl">Hem allowance (edges)<input id="hem" type="number" value="1" step="0.5" /></label>
             <label class="lbl">Seam overlap (piece junctions)<input id="seam" type="number" value="1.5" step="0.5" /></label>
             <label class="lbl">Side ease (extra per side at front)<input id="sideEase" type="number" value="0" step="0.5" min="0" /></label>
+            <label class="lbl" style="grid-column:1/-1; flex-direction:row; align-items:center; gap:8px;">
+              <input id="snapStrapsOpt" type="checkbox" style="width:auto; margin:0;" />
+              <span style="font-weight:500;">Customer ordered snap straps (optional add-on)</span>
+            </label>
           </div>
           <div class="note" style="margin-top:8px;">
             <strong>Design:</strong> Main piece goes side-to-side: from floor on one side, up over one armrest, across the seat and backrest, over the other armrest, down to floor on the other side.
@@ -230,6 +234,14 @@
                 <li>Front-side half: 2" inside the outer diagonal edge of the back piece</li></ul></li>
               <li>When the extension pleats at the midpoint between the two halves, they meet — snap closed</li>
               <li>See the Snap Placement card for exact dimensions (they depend on chair height and width)</li>
+            </ul>
+          </li>
+          <li id="step-snap-straps" style="display:none;"><strong style="color:#ea580c;">Install snap-strap snaps</strong> on the cover (only when customer ordered snap straps):
+            <ul style="margin-top:4px; padding-left:20px;">
+              <li>Sew 4 snap halves total — 2 on the back piece, 2 on the front skirt of the main piece</li>
+              <li><strong>Back pair:</strong> 2" toward back-floor from the seam, ±<span id="step-snap-straps-horiz">15</span>" from center (= WB/2 − 2)</li>
+              <li><strong>Front pair:</strong> <span id="step-snap-straps-fronty">22</span>" down the front from the seam (⅔ × front draping length), same horizontal position</li>
+              <li>Provide 2 strap pieces (8" of webbing each, snap on each end) loose with the cover. Customer routes each strap from a back snap, over the backrest top, to the matching front snap so the front skirt folds up against the backrest face.</li>
             </ul>
           </li>
           <li><strong style="color:#b45309;">Add grommets</strong> — 4 total (2 front, 2 back). Each grommet sits <strong>⅓ of the side drop</strong> from the nearest floor edge. See Grommet Placement card and assembly diagram for exact dimensions.</li>
@@ -805,7 +817,7 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
          backPieceTopWidth, backPieceBottomWidth, backPieceHeight,
          backPieceWidth, backPieceLength, frontFlapNeeded, frontFlapWidth, frontFlapLength,
          backInset, frontInset, markFromSideEdge, frontWidthAfterCut, taperZoneLength,
-         useSplitBack, splitBackCenterSeam} = params;
+         useSplitBack, splitBackCenterSeam, snapStrapsOpt} = params;
   const rIn = v => roundMode === 'whole' ? Math.ceil(v) : roundMode === 'half' ? roundHalf(v) : Math.round(v*100)/100;
   const svg = document.getElementById(svgId);
   if (!svg) return;
@@ -1432,6 +1444,62 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
       add('line',{x1:csX + csW - 26, y1:csY + 10, x2:csX + csW - 14, y2:csY + 22,
         stroke:seamColor, 'stroke-width':1.5, 'stroke-dasharray':'3,2'});
     }
+
+    // === SNAP-STRAP SNAP MARKERS (only when customer ordered snap straps) ===
+    // 4 snap halves are sewn onto the cover: 2 on the back piece (2" toward
+    // back-floor from the seam) and 2 on the front skirt (2/3 of the way down
+    // the front draping length from the seam). Both pairs sit at ±(WB/2 − 2)
+    // from center. The straps themselves are separate, removable pieces with
+    // a snap on each end. The strap goes around the backrest from back to
+    // front, holding the front skirt folded up against the backrest face.
+    if (snapStrapsOpt) {
+      const strapLen = 8;        // 8" strap material
+      const strapColor = '#ea580c';   // orange (distinct from green back-corner snaps)
+      const strapBorderColor = '#9a3412';
+      const strapHorizFromCenter = WB / 2 - 2;
+      const frontDrapingLength = AT2F + (F2A - FC);
+      const frontSnapDownFromSeam = (frontDrapingLength / 3) * 2;
+      const backSnapUpFromSeam = 2;  // 2" toward back-floor (above mainTopY in flat layout)
+
+      const sLeftX  = cx - strapHorizFromCenter * sc;
+      const sRightX = cx + strapHorizFromCenter * sc;
+      const sBackY  = mainTopY - backSnapUpFromSeam * sc;     // on back piece
+      const sFrontY = mainTopY + frontSnapDownFromSeam * sc;  // on main piece, front skirt
+
+      const drawStrapSnap = (xPx, yPx) => {
+        add('circle',{cx:xPx, cy:yPx, r:7, fill:strapColor, stroke:strapBorderColor, 'stroke-width':2});
+        add('text',{x:xPx, y:yPx + 3, 'text-anchor':'middle', 'font-size':8,
+          fill:'#fff', 'font-weight':'bold'}).textContent='S';
+      };
+      drawStrapSnap(sLeftX,  sBackY);
+      drawStrapSnap(sRightX, sBackY);
+      drawStrapSnap(sLeftX,  sFrontY);
+      drawStrapSnap(sRightX, sFrontY);
+
+      // Dotted lines pairing each back snap with its front counterpart so the
+      // sewer can see which two snaps form a strap pair.
+      add('line',{x1:sLeftX,  y1:sBackY, x2:sLeftX,  y2:sFrontY,
+        stroke:strapColor, 'stroke-width':1, 'stroke-dasharray':'3,3', opacity:0.55});
+      add('line',{x1:sRightX, y1:sBackY, x2:sRightX, y2:sFrontY,
+        stroke:strapColor, 'stroke-width':1, 'stroke-dasharray':'3,3', opacity:0.55});
+
+      // --- SNAP STRAPS INFO BOX ---
+      // Stacks below the CENTER SEAM box if present, otherwise below GROMMETS.
+      const ssBoxOffsetTop = useSplitBack ? (394 + 12 + 86 + 12) : (394 + 12);
+      const ssW = 265, ssH = 100;
+      const ssX = VBW - pad - ssW;
+      const ssY = pad + ssBoxOffsetTop;
+      add('rect',{x:ssX, y:ssY, width:ssW, height:ssH, rx:6, fill:'#fff7ed', stroke:strapColor, 'stroke-width':1.5});
+      add('text',{x:ssX + 10, y:ssY + 14, 'font-size':10, fill:strapColor, 'font-weight':'bold'}).textContent='SNAP STRAPS (2 straps, 4 snaps)';
+      add('text',{x:ssX + 10, y:ssY + 28, 'font-size':9, fill:'#334155'}).textContent=`Strap: ${strapLen}" of webbing, snap on each end (removable).`;
+      add('text',{x:ssX + 10, y:ssY + 40, 'font-size':9, fill:'#334155'}).textContent=`Routes from back, over the backrest, to the front.`;
+      add('text',{x:ssX + 10, y:ssY + 56, 'font-size':9, fill:'#334155', 'font-weight':'bold'}).textContent=`Snaps sewn to the cover (4 total):`;
+      add('text',{x:ssX + 10, y:ssY + 68, 'font-size':9, fill:'#334155'}).textContent=`Back: ${rIn(backSnapUpFromSeam)}" toward floor from seam`;
+      add('text',{x:ssX + 10, y:ssY + 80, 'font-size':9, fill:'#334155'}).textContent=`Front: ${rIn(frontSnapDownFromSeam)}" down the front (⅔ × ${rIn(frontDrapingLength)}")`;
+      add('text',{x:ssX + 10, y:ssY + 92, 'font-size':9, fill:'#334155'}).textContent=`Both: ±${rIn(strapHorizFromCenter)}" from center`;
+      // Mini snap icon in box
+      add('circle',{cx:ssX + ssW - 18, cy:ssY + 13, r:5, fill:strapColor, stroke:strapBorderColor, 'stroke-width':1.5});
+    }
   }
 
   // === DIMENSION ARROWS ===
@@ -1897,6 +1965,7 @@ function compute(){
     const hem  = parseNum('hem');
     const seam = parseNum('seam');
     const sideEase = parseNum('sideEase');
+    const snapStrapsOpt = !!document.getElementById('snapStrapsOpt')?.checked;
 
     // === MAIN PIECE CALCULATIONS (Side-to-Side Design) ===
     // AT2F: diagonal drape from front edge of backrest top to front of seat
@@ -2676,7 +2745,8 @@ function compute(){
       wasteRectW, wasteRectH,
       wasteNestDiagonal, wasteNestDiagAngle, wasteNestDiagOffset,
       useSplitBack, splitBackHalfTop, splitBackHalfBot, splitBackBoltLength,
-      splitBackMinOffset, splitBackNestedWidth, splitBackSavings, splitBackCenterSeam};
+      splitBackMinOffset, splitBackNestedWidth, splitBackSavings, splitBackCenterSeam,
+      snapStrapsOpt};
     // Call each diagram in its own try/catch so one failure doesn't block the others
     const diagramErrors = [];
     try { drawDiagram(payload); } catch(e) { diagramErrors.push('Cut diagram: ' + e.message); console.error('drawDiagram error:', e); }
@@ -2691,6 +2761,20 @@ function compute(){
       stepHalves.style.display = useSplitBack ? '' : 'none';
       const allowanceEl = document.getElementById('step-sew-back-halves-allowance');
       if (allowanceEl) allowanceEl.textContent = `${splitBackCenterSeam}"`;
+    }
+
+    // Toggle the snap-straps assembly step + fill in live measurements.
+    const stepSnaps = document.getElementById('step-snap-straps');
+    if (stepSnaps) {
+      stepSnaps.style.display = snapStrapsOpt ? '' : 'none';
+      if (snapStrapsOpt) {
+        const horizEl = document.getElementById('step-snap-straps-horiz');
+        const frontyEl = document.getElementById('step-snap-straps-fronty');
+        const horizVal = (WB / 2) - 2;
+        const frontyVal = (AT2F + (F2A - FC)) * 2 / 3;
+        if (horizEl) horizEl.textContent = `${Math.round(horizVal * 100) / 100}`;
+        if (frontyEl) frontyEl.textContent = `${Math.round(frontyVal * 100) / 100}`;
+      }
     }
 
     const exp = document.getElementById('exportPng');
