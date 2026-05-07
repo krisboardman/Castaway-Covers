@@ -201,6 +201,13 @@
               <li style="color:#92400e; font-size:12px;">Note: corners where wavy edges meet seam edges need a clean transition — taper the wavy pattern to straight near the seam overlap zone</li>
             </ul>
           </li>
+          <li id="step-sew-back-halves" style="display:none;"><strong style="color:#059669;">Sew</strong> — join the two back-piece halves at the center seam <em style="color:#64748b;">(only when back is cut as 2 halves — see Cut Diagram)</em>:
+            <ul style="margin-top:4px; padding-left:20px;">
+              <li>Align the diagonal edges of Half 1 and Half 2 (rotate Half 2 180° from how it sat on the bolt)</li>
+              <li>Stitch with a <span id="step-sew-back-halves-allowance">1.5"</span> seam allowance — that allowance is already built into the cut dimensions, so the finished width matches the main piece (ML)</li>
+              <li>Press the seam open or to one side before attaching to the main piece</li>
+            </ul>
+          </li>
           <li><strong style="color:#059669;">Sew</strong> — attach back piece to main piece:
             <ul style="margin-top:4px; padding-left:20px;">
               <li>Align the trapezoidal back piece along the top (backrest) edge of the main piece — the top edge matches the main piece width (ML)</li>
@@ -390,6 +397,16 @@ function drawDiagram(params){
     add('text',{x:(cutTopX + cutBotX) / 2 + 6, y:bpY + acrossPx / 2 + 24,
       'text-anchor':'start', 'font-size':8, fill:'#dc2626',
       'font-weight':'bold'}).textContent='← cut line';
+
+    // Seam allowance callout — each half includes splitBackCenterSeam (= seam,
+    // default 1.5") of extra fabric on its diagonal edge so the two halves can
+    // be sewn together at center without losing finished width.
+    add('text',{x:(cutTopX + cutBotX) / 2 + 6, y:bpY + acrossPx / 2 + 38,
+      'text-anchor':'start', 'font-size':8, fill:'#7c3aed',
+      'font-weight':'bold'}).textContent=`+ ${rIn(splitBackCenterSeam)}" seam allowance per half`;
+    add('text',{x:(cutTopX + cutBotX) / 2 + 6, y:bpY + acrossPx / 2 + 50,
+      'text-anchor':'start', 'font-size':8, fill:'#7c3aed'})
+      .textContent='(built into the diagonal — sew halves together first)';
 
     // Dimension: bolt length consumed
     arrow(bpX, bpY - 12, bpX + boltLenPx, bpY - 12);
@@ -2651,6 +2668,15 @@ function compute(){
     try { updateCutList(payload); } catch(e) { diagramErrors.push('Cut list: ' + e.message); console.error('updateCutList error:', e); }
     try { drawAssemblyDiagramFlat(payload, 'assemblyDiagramFlatFull', 1200, 900); } catch(e) { diagramErrors.push('Flat diagram: ' + e.message); console.error('drawAssemblyDiagramFlat error:', e); }
     try { drawWavyEdgeDiagram(payload); } catch(e) { diagramErrors.push('Wavy edge diagram: ' + e.message); console.error('drawWavyEdgeDiagram error:', e); }
+
+    // Toggle the conditional assembly step about sewing the back-piece halves
+    // together — only relevant when the back is cut as 2 halves.
+    const stepHalves = document.getElementById('step-sew-back-halves');
+    if (stepHalves) {
+      stepHalves.style.display = useSplitBack ? '' : 'none';
+      const allowanceEl = document.getElementById('step-sew-back-halves-allowance');
+      if (allowanceEl) allowanceEl.textContent = `${splitBackCenterSeam}"`;
+    }
 
     const exp = document.getElementById('exportPng');
     if (exp && !exp._wired){ exp._wired = true; exp.addEventListener('click', exportDiagramPNG); }
