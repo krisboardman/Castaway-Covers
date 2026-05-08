@@ -67,17 +67,32 @@ const AddOnOptions: React.FC<AddOnOptionsProps> = ({
                 </button>
                 <p className="text-sm text-gray-600">Secure your cover with adjustable snap straps</p>
                 <p className="text-sm text-amber-700 mt-1">Note: Works best with seat backs at least 12&quot; above the armrest</p>
+                <p className="text-sm text-amber-700 mt-1">Heads up: when this option is chosen, snaps will be visible on the bottom third of the cover.</p>
               </div>
             </label>
             {showSnapStrapImage && (
-              <div className="mt-4 ml-8 p-4 bg-gray-50 rounded-lg">
-                <div className="relative h-80 md:h-96 rounded-lg overflow-hidden">
-                  <Image
-                    src="/images/Options/snap-strap.jpg"
-                    alt="Snap straps example"
-                    fill
-                    className="object-contain"
-                  />
+              <div className="mt-4 ml-8 p-4 bg-gray-50 rounded-lg space-y-4">
+                <div>
+                  <div className="relative h-80 md:h-96 rounded-lg overflow-hidden">
+                    <Image
+                      src="/images/Options/snap-strap.jpg"
+                      alt="Snap straps example"
+                      fill
+                      className="object-contain"
+                    />
+                  </div>
+                  <p className="text-xs text-gray-500 mt-2 text-center">Snap straps in use — strap routes over the backrest</p>
+                </div>
+                <div>
+                  <div className="relative h-80 md:h-96 rounded-lg overflow-hidden">
+                    <Image
+                      src="/images/Options/snap-strap-installed.jpg"
+                      alt="Snap straps installed on a cover — visible snaps on the front"
+                      fill
+                      className="object-contain"
+                    />
+                  </div>
+                  <p className="text-xs text-gray-500 mt-2 text-center">What the snaps look like on the cover (visible on the bottom third)</p>
                 </div>
               </div>
             )}
