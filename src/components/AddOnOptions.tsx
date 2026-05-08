@@ -67,7 +67,7 @@ const AddOnOptions: React.FC<AddOnOptionsProps> = ({
                 </button>
                 <p className="text-sm text-gray-600">Secure your cover with adjustable snap straps</p>
                 <p className="text-sm text-amber-700 mt-1">Note: Works best with seat backs at least 12&quot; above the armrest</p>
-                <p className="text-sm text-amber-700 mt-1">Heads up: when this option is chosen, snaps will be visible on the bottom third of the cover.</p>
+                <p className="text-sm text-amber-700 mt-1">Heads up: when chosen, the snaps are visible on the front of the cover, about ⅓ of the way up from the bottom to the top of the backrest.</p>
               </div>
             </label>
             {showSnapStrapImage && (
@@ -92,7 +92,7 @@ const AddOnOptions: React.FC<AddOnOptionsProps> = ({
                       className="object-contain"
                     />
                   </div>
-                  <p className="text-xs text-gray-500 mt-2 text-center">What the snaps look like on the cover (visible on the bottom third)</p>
+                  <p className="text-xs text-gray-500 mt-2 text-center">Snap position on the cover — about ⅓ up from the bottom</p>
                 </div>
               </div>
             )}
