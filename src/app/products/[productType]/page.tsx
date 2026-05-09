@@ -610,8 +610,6 @@ const getGalleryImages = (productType: string, selectedColor?: string) => {
     ],
     'sofas-loveseats': [
       { src: '/images/Sofas-Loveseats/sofa1.jpg', alt: 'Sofa with Castaway Cover' },
-      { src: '/images/Sofas-Loveseats/sofa2.jpg', alt: 'Sofa Cover - Side View' },
-      { src: '/images/Sofas-Loveseats/sofa3.jpg', alt: 'Sofa Cover - Detail View' },
       { src: '/images/Sofas-Loveseats/sofa4.jpg', alt: 'Sofa Cover - Bungee & Handle Detail' },
       { src: '/images/Sofas-Loveseats/sofa5.jpg', alt: 'Sofa Cover - Additional View' }
     ],
