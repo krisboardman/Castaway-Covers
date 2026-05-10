@@ -462,16 +462,24 @@ function drawDiagram(params){
   // fits in scrap, both can.
   const extensionsFromScrap = !!extNestPlacement;
 
+  // The two main panels must be cut as MIRROR IMAGES of each other because
+  // the fabric is single-sided — you can't flip a cut piece over to use the
+  // back. Convention here: top bolt is the RIGHT panel (silhouette curves
+  // upward toward bolt top), bottom bolt is the LEFT panel (silhouette
+  // mirrored vertically, curves downward toward bolt bottom). When the two
+  // panels are joined at the center seam they form the symmetric assembly.
   const bolts = [];
   bolts.push({
     label:'BOLT 1',
-    panel:{name:'LEFT PANEL', stroke:'#dc2626', fill:'#fca5a555'},
-    extInScrap: extensionsFromScrap ? {name:'LEFT EXT', placement:extNestPlacement} : null,
+    panel:{name:'RIGHT PANEL', stroke:'#2563eb', fill:'#bfdbfe55'},
+    mirrorY: false,  // silhouette on top (panel anchored on bolt bottom)
+    extInScrap: extensionsFromScrap ? {name:'RIGHT EXT', placement:extNestPlacement} : null,
   });
   bolts.push({
     label:'BOLT 2',
-    panel:{name:'RIGHT PANEL', stroke:'#2563eb', fill:'#bfdbfe55'},
-    extInScrap: extensionsFromScrap ? {name:'RIGHT EXT', placement:extNestPlacement} : null,
+    panel:{name:'LEFT PANEL', stroke:'#dc2626', fill:'#fca5a555'},
+    mirrorY: true,   // silhouette on bottom (panel anchored on bolt top) — mirror image
+    extInScrap: extensionsFromScrap ? {name:'LEFT EXT', placement:extNestPlacement} : null,
   });
   if (extNeeded && !extensionsFromScrap) {
     if (bothExtFitOneBolt) {
@@ -516,9 +524,16 @@ function drawDiagram(params){
       fill:'#475569'}).textContent=`${rIn(B)}"`;
 
     if (bolt.panel) {
+      // For the LEFT panel, vertically mirror the polygon so it's the
+      // mirror image of the RIGHT panel — required because fabric is
+      // single-sided and the two panels need opposite orientations to
+      // assemble into the symmetric cover.
+      const myY = bolt.mirrorY
+        ? (yIn) => sy + (B - yIn) * sc   // flipped: y=0 at bolt bottom, y=B at bolt top
+        : (yIn) => sy + yIn * sc;        // standard: y=0 at bolt top
+
       // ─── Main panel polygon, clipped to bolt rectangle ──────────────
-      const polyPts = polyOutline.map(([xi, yi]) => `${bx(xi).toFixed(1)},${by(yi, sy).toFixed(1)}`).join(' ');
-      // First fill the panel polygon
+      const polyPts = polyOutline.map(([xi, yi]) => `${bx(xi).toFixed(1)},${myY(yi).toFixed(1)}`).join(' ');
       add('polygon', {points: polyPts, fill: bolt.panel.fill, stroke: bolt.panel.stroke, 'stroke-width': 1.5});
       // Panel label, centered roughly inside the wide middle of the polygon
       const labelX = bx(sideDrop + couch_backInset / 2);
@@ -526,33 +541,27 @@ function drawDiagram(params){
       add('text',{x:labelX, y:labelY - 4, 'text-anchor':'middle', 'font-size':12,
         fill:bolt.panel.stroke, 'font-weight':'bold'}).textContent=bolt.panel.name;
       add('text',{x:labelX, y:labelY + 12, 'text-anchor':'middle', 'font-size':10,
-        fill:bolt.panel.stroke}).textContent=`${rIn(couch_panelLen)}" × ${rIn(B)}" (bolt ${bi+1})`;
+        fill:bolt.panel.stroke}).textContent=`${rIn(couch_panelLen)}" × ${rIn(B)}" (bolt ${bi+1})${bolt.mirrorY ? ' — cut as mirror image' : ''}`;
 
       // ─── Scrap area visualization ────────────────────────────────────
-      // The scrap area = bolt rectangle - panel polygon. Build it as a
-      // path with the full bolt rectangle on the outside (CCW) and the
-      // panel polygon as a hole (CW).
       const scrapPath = [
-        `M ${sx},${sy}`,                               // bolt top-left
-        `L ${sx + boltLenPx},${sy}`,                   // top-right
-        `L ${sx + boltLenPx},${sy + boltWPx}`,         // bottom-right
-        `L ${sx},${sy + boltWPx}`,                     // bottom-left
+        `M ${sx},${sy}`,
+        `L ${sx + boltLenPx},${sy}`,
+        `L ${sx + boltLenPx},${sy + boltWPx}`,
+        `L ${sx},${sy + boltWPx}`,
         `Z`,
-        // Hole — panel polygon (reversed for opposite winding)
-        `M ${bx(polyOutline[0][0])},${by(polyOutline[0][1], sy)}`,
-        ...polyOutline.slice(1).map(([xi, yi]) => `L ${bx(xi).toFixed(1)},${by(yi, sy).toFixed(1)}`),
+        `M ${bx(polyOutline[0][0])},${myY(polyOutline[0][1])}`,
+        ...polyOutline.slice(1).map(([xi, yi]) => `L ${bx(xi).toFixed(1)},${myY(yi).toFixed(1)}`),
         `Z`,
       ].join(' ');
       add('path', {d: scrapPath, fill: '#e2e8f0', 'fill-rule': 'evenodd', opacity: 0.65, stroke: 'none'});
-      // Small "scrap" labels
-      // Back-scrap label (only if triangle is large enough)
+      // Small "scrap" labels (positions also mirror)
       if (backScrapH > 4 && x_crossBack > 8) {
-        add('text',{x:bx(x_crossBack/3), y:by(backScrapH/3, sy) + 3,
+        add('text',{x:bx(x_crossBack/3), y:myY(backScrapH/3) + 3,
           'text-anchor':'middle', 'font-size':9, fill:'#64748b', 'font-style':'italic'}).textContent='scrap';
       }
-      // Front-scrap label
       if (frontStripH > 4 && frontStripW > 8) {
-        add('text',{x:bx(yPointB + frontStripW/2), y:by(frontStripH/2, sy) + 3,
+        add('text',{x:bx(yPointB + frontStripW/2), y:myY(frontStripH/2) + 3,
           'text-anchor':'middle', 'font-size':9, fill:'#64748b', 'font-style':'italic'}).textContent='scrap';
       }
 
@@ -560,13 +569,13 @@ function drawDiagram(params){
       if (bolt.extInScrap) {
         const p = bolt.extInScrap.placement;
         const exX = bx(p.x);
-        const exY = by(p.y, sy);
+        // For mirrored bolt, the rectangle's top-y in bolt coords flips
+        const exTopYIn = bolt.mirrorY ? (B - p.y - p.h) : p.y;
+        const exY = sy + exTopYIn * sc;
         const exW_px = p.w * sc;
         const exH_px = p.h * sc;
-        // Dashed purple outline showing where the extension would be cut
         add('rect', {x:exX, y:exY, width:exW_px, height:exH_px,
           fill:'#d8b4fe55', stroke:'#7c3aed', 'stroke-width':1.5, 'stroke-dasharray':'5,3'});
-        // Label inside or just below
         const exLabelY = exH_px > 24 ? exY + exH_px/2 + 3 : exY + exH_px + 11;
         add('text',{x:exX + exW_px/2, y:exLabelY, 'text-anchor':'middle', 'font-size':9,
           fill:'#7c3aed', 'font-weight':'bold'}).textContent=`${bolt.extInScrap.name} (${rIn(p.w)}"×${rIn(p.h)}")`;
