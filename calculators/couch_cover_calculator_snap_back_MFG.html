@@ -400,44 +400,55 @@ function drawDiagram(params){
     if (x <= yPointB) return halfMid - (halfMid - halfFront) * (x - sideDrop - couch_backInset) / taperLen;
     return halfFront;
   }
-  // Outside-edge y in bolt coords (clipped to 0 = bolt top)
-  function outsideY(x) { return Math.max(0, B - panelHalfWidthAt(x)); }
+  function clampedHalf(x) { return Math.min(panelHalfWidthAt(x), B); }
 
-  // Build the polygon outline (clockwise from top-left back-floor corner)
-  const polySamples = [0, sideDrop, sideDrop + couch_backInset, yPointB, couch_panelLen];
+  // Build the panel polygon outline in bolt-local (xLen, yWid) coordinates:
+  //   xLen = position along bolt length (0 at back-floor / top of bolt,
+  //          panelLen at front-floor / bottom of bolt)
+  //   yWid = distance from the inside (center-seam / anchor) edge of the
+  //          panel, in inches across the bolt width. Capped at B because
+  //          where the silhouette would exceed B, the panel is clipped to
+  //          the bolt edge (and the side extension fills the difference).
   const polyOutline = [];
-  for (const x of polySamples) polyOutline.push([x, outsideY(x)]);
-  polyOutline.push([couch_panelLen, B]);
-  polyOutline.push([0, B]);
+  polyOutline.push([0, 0]);                  // top-inside corner
+  polyOutline.push([0, clampedHalf(0)]);     // top-outside corner (back-floor end)
+  // Back-trapezoid taper: from halfBack to clampedHalf(sideDrop). If the
+  // taper crosses yWid = B, add the crossing point so the outline tracks
+  // the bolt edge cleanly through the plateau.
+  if (halfBack < B && halfMid > B) {
+    const x_back_cross = sideDrop * (B - halfBack) / (halfMid - halfBack);
+    polyOutline.push([x_back_cross, B]);
+  } else {
+    polyOutline.push([sideDrop, clampedHalf(sideDrop)]);
+  }
+  polyOutline.push([sideDrop + couch_backInset, clampedHalf(sideDrop + couch_backInset)]);
+  // Diagonal taper: if it crosses yWid = B from above, add the crossing.
+  if (halfMid > B && halfFront < B) {
+    const x_taper_cross = sideDrop + couch_backInset + taperLen * (halfMid - B) / (halfMid - halfFront);
+    polyOutline.push([x_taper_cross, B]);
+  }
+  polyOutline.push([yPointB, clampedHalf(yPointB)]);             // (yPointB, halfFront)
+  polyOutline.push([couch_panelLen, clampedHalf(couch_panelLen)]); // (panelLen, halfFront)
+  polyOutline.push([couch_panelLen, 0]);     // bottom-inside corner
 
-  // BACK SCRAP TRIANGLE — at top-left, where the back-trapezoid taper
-  // narrows the panel from the bolt edge inward. Apex at (x_crossBack, 0)
-  // where halfWidth crosses B.
-  const x_crossBack = (halfMid > halfBack && halfBack < B)
-    ? Math.min(sideDrop, (B - halfBack) * sideDrop / (halfMid - halfBack))
+  // BACK SCRAP TRIANGLE — at the back-floor end of each bolt, bounded by
+  // (0, halfBack) → (0, B) → (x_back_cross, B). The right-angle corner is
+  // at (0, B). Inscribed rectangle anchored at the corner has constraint
+  // w/x_back_cross + h/(B - halfBack) <= 1.
+  const x_back_cross = (halfBack < B && halfMid > halfBack)
+    ? Math.min(sideDrop, sideDrop * (B - halfBack) / (halfMid - halfBack))
     : 0;
   const backScrapH = Math.max(0, B - halfBack);
-  // Largest axis-aligned rectangle inscribed in this triangle anchored at
-  // (0, 0): for a rectangle of size (wRect × hRect), need wRect/x_crossBack
-  // + hRect/backScrapH <= 1. We try both orientations of the extension.
-  function rectFitsBackTriangle(w, h) {
-    if (w <= 0 || h <= 0) return false;
-    if (x_crossBack <= 0 || backScrapH <= 0) return false;
-    return (w / x_crossBack) + (h / backScrapH) <= 1.0;
-  }
 
-  // FRONT SCRAP RECTANGLE — at top-right, in the front-skirt zone (yPointB
-  // to panelLen) where the panel is narrower than the bolt by (B - halfFront).
-  // This is a clean rectangle.
+  // FRONT SCRAP RECTANGLE — in the front-skirt zone, bounded by
+  // (yPointB, halfFront) → (yPointB, B) → (panelLen, B) → (panelLen, halfFront).
+  // Clean rectangle: width = panelLen - yPointB, height = B - halfFront.
   const frontStripH = Math.max(0, B - halfFront);
   const frontStripW = Math.max(0, couch_panelLen - yPointB);
-  function rectFitsFrontStrip(w, h) {
-    return w > 0 && h > 0 && w <= frontStripW && h <= frontStripH;
-  }
 
-  // Try to nest each extension piece in the main-bolt scrap.
-  // Each extension is extActualLen long × extW wide. We try both orientations.
-  // Returns null if it doesn't fit, or {region, w, h, x, y} if it does.
+  // Try to nest the extension piece in the main-bolt scrap. Tests both
+  // orientations and returns the placement if it fits, or null. Placement
+  // is in bolt-local (xLen, yWid) coords.
   function tryNestExtension() {
     if (!extNeeded) return null;
     const candidates = [
@@ -445,12 +456,16 @@ function drawDiagram(params){
       {w: extW, h: extActualLen},  // length across bolt width
     ];
     for (const c of candidates) {
-      if (rectFitsFrontStrip(c.w, c.h)) {
-        return {region:'front', w:c.w, h:c.h, x:yPointB, y:0};
+      // Front strip: rectangle anchored at (yPointB, halfFront) extending
+      // toward (panelLen, B).
+      if (c.w <= frontStripW && c.h <= frontStripH) {
+        return {region:'front', w:c.w, h:c.h, x:yPointB, y:halfFront};
       }
-      if (rectFitsBackTriangle(c.w, c.h)) {
-        // Place extension at top-left of triangle (anchored at bolt top edge)
-        return {region:'back', w:c.w, h:c.h, x:0, y:0};
+      // Back triangle: rectangle anchored at (0, halfBack) extending
+      // toward (x_back_cross, B). Linear-taper fit constraint.
+      if (c.w > 0 && c.h > 0 && x_back_cross > 0 && backScrapH > 0
+          && (c.w / x_back_cross) + (c.h / backScrapH) <= 1.0) {
+        return {region:'back', w:c.w, h:c.h, x:0, y:halfBack};
       }
     }
     return null;
@@ -462,24 +477,24 @@ function drawDiagram(params){
   // fits in scrap, both can.
   const extensionsFromScrap = !!extNestPlacement;
 
-  // The two main panels must be cut as MIRROR IMAGES of each other because
-  // the fabric is single-sided — you can't flip a cut piece over to use the
-  // back. Convention here: top bolt is the RIGHT panel (silhouette curves
-  // upward toward bolt top), bottom bolt is the LEFT panel (silhouette
-  // mirrored vertically, curves downward toward bolt bottom). When the two
-  // panels are joined at the center seam they form the symmetric assembly.
+  // Bolts laid out side-by-side with the SAME orientation as the assembly
+  // diagram: back at top, front at bottom, LEFT panel on the left, RIGHT
+  // panel on the right. Each bolt's "inside" edge (the center-seam edge)
+  // faces the OTHER bolt. The two panels are mirror images so that when
+  // joined at the center seam, the silhouettes form the symmetric cover —
+  // required because the fabric is single-sided.
   const bolts = [];
   bolts.push({
-    label:'BOLT 1',
-    panel:{name:'RIGHT PANEL', stroke:'#2563eb', fill:'#bfdbfe55'},
-    mirrorY: false,  // silhouette on top (panel anchored on bolt bottom)
-    extInScrap: extensionsFromScrap ? {name:'RIGHT EXT', placement:extNestPlacement} : null,
+    label:'BOLT 1 (LEFT)',
+    panel:{name:'LEFT PANEL', stroke:'#dc2626', fill:'#fca5a555'},
+    insideEdge: 'right',  // anchor edge on the right, silhouette on the left
+    extInScrap: extensionsFromScrap ? {name:'LEFT EXT', placement:extNestPlacement} : null,
   });
   bolts.push({
-    label:'BOLT 2',
-    panel:{name:'LEFT PANEL', stroke:'#dc2626', fill:'#fca5a555'},
-    mirrorY: true,   // silhouette on bottom (panel anchored on bolt top) — mirror image
-    extInScrap: extensionsFromScrap ? {name:'LEFT EXT', placement:extNestPlacement} : null,
+    label:'BOLT 2 (RIGHT)',
+    panel:{name:'RIGHT PANEL', stroke:'#2563eb', fill:'#bfdbfe55'},
+    insideEdge: 'left',  // anchor edge on the left, silhouette on the right
+    extInScrap: extensionsFromScrap ? {name:'RIGHT EXT', placement:extNestPlacement} : null,
   });
   if (extNeeded && !extensionsFromScrap) {
     if (bothExtFitOneBolt) {
@@ -493,117 +508,188 @@ function drawDiagram(params){
     }
   }
 
-  // Compute scale: width = couch_panelLen, height = B × number of bolts (stacked vertically)
-  const nBolts = bolts.length;
-  const boltGap = 22;  // px between bolts
-  const totalH_in = B * nBolts;
-  const scaleX = (VBW - pad*2) / (couch_panelLen + 40);
-  const scaleY = (VBH - pad*2 - 60 - boltGap*(nBolts-1)) / totalH_in;
+  // ============================================================
+  // LAYOUT — vertical bolts side-by-side, ordered to match the assembly
+  // diagram (LEFT panel on left, RIGHT panel on right). Extension-only
+  // bolts (when extensions don't fit in scrap) stack BELOW the main bolts
+  // as a separate row.
+  // ============================================================
+  const mainBolts = bolts.filter(b => b.panel);
+  const extBolts  = bolts.filter(b => b.extOnlyBolt);
+  const nMain = mainBolts.length;
+  const nExt  = extBolts.length;
+  const boltGap = 28;  // px between bolts horizontally
+  const rowGap  = 24;  // px between main row and extension row
+
+  // Each main bolt occupies B inches across × panelLen inches down
+  const mainRowW_in = B * nMain;
+  const mainRowH_in = couch_panelLen;
+  // Extension bolts (if present): B × extActualLen each, side-by-side
+  const extRowW_in = nExt > 0 ? B * nExt : 0;
+  const extRowH_in = nExt > 0 ? extActualLen : 0;
+
+  const layoutW_target_px = VBW - pad*2 - 80;          // 80px reserved for labels
+  const layoutH_target_px = VBH - pad*2 - 70;          // 70px for footer summary
+  const scaleX = (layoutW_target_px - boltGap*(Math.max(nMain, nExt) - 1)) / Math.max(mainRowW_in, extRowW_in);
+  const scaleY = (layoutH_target_px - (nExt > 0 ? rowGap : 0)) / (mainRowH_in + extRowH_in);
   const sc = Math.min(scaleX, scaleY);
 
-  const sx = pad + 30;
-  let sy = pad + 20;
-  const boltLenPx = couch_panelLen * sc;
-  const boltWPx = B * sc;
+  const boltWPx_main = B * sc;
+  const boltLenPx_main = couch_panelLen * sc;
+  const boltWPx_ext = B * sc;
+  const boltLenPx_ext = extActualLen * sc;
 
-  // Helper to convert (xIn, yIn) bolt-coords to SVG coords for a bolt at sy
-  const bx = xIn => sx + xIn * sc;
-  const by = (yIn, originY) => originY + yIn * sc;
+  // Center the main row horizontally
+  const mainRowTotalW_px = nMain * boltWPx_main + (nMain - 1) * boltGap;
+  const mainRowStartX = (VBW - mainRowTotalW_px) / 2;
+  const mainRowStartY = pad + 20;
 
-  for (let bi = 0; bi < bolts.length; bi++) {
-    const bolt = bolts[bi];
-    // Bolt outline (full B-width strip — represents the raw fabric rectangle)
-    add('rect',{x:sx, y:sy, width:boltLenPx, height:boltWPx,
-      fill:'#f8fafc', stroke:'#94a3b8', 'stroke-width':1, 'stroke-dasharray':'4,3'});
-    // Bolt label
-    add('text',{x:sx - 8, y:sy + boltWPx/2, 'text-anchor':'end', 'dominant-baseline':'middle',
-      'font-size':11, fill:'#475569', 'font-weight':'bold'}).textContent=bolt.label;
-    // Bolt width arrow (right side)
-    arrow(sx + boltLenPx + 8, sy, sx + boltLenPx + 8, sy + boltWPx);
-    add('text',{x:sx + boltLenPx + 14, y:sy + boltWPx/2, 'dominant-baseline':'middle', 'font-size':10,
-      fill:'#475569'}).textContent=`${rIn(B)}"`;
+  // Center the extension row horizontally
+  const extRowTotalW_px = nExt * boltWPx_ext + Math.max(0, nExt - 1) * boltGap;
+  const extRowStartX = (VBW - extRowTotalW_px) / 2;
+  const extRowStartY = mainRowStartY + boltLenPx_main + rowGap;
 
-    if (bolt.panel) {
-      // For the LEFT panel, vertically mirror the polygon so it's the
-      // mirror image of the RIGHT panel — required because fabric is
-      // single-sided and the two panels need opposite orientations to
-      // assemble into the symmetric cover.
-      const myY = bolt.mirrorY
-        ? (yIn) => sy + (B - yIn) * sc   // flipped: y=0 at bolt bottom, y=B at bolt top
-        : (yIn) => sy + yIn * sc;        // standard: y=0 at bolt top
-
-      // ─── Main panel polygon, clipped to bolt rectangle ──────────────
-      const polyPts = polyOutline.map(([xi, yi]) => `${bx(xi).toFixed(1)},${myY(yi).toFixed(1)}`).join(' ');
-      add('polygon', {points: polyPts, fill: bolt.panel.fill, stroke: bolt.panel.stroke, 'stroke-width': 1.5});
-      // Panel label, centered roughly inside the wide middle of the polygon
-      const labelX = bx(sideDrop + couch_backInset / 2);
-      const labelY = sy + boltWPx / 2;
-      add('text',{x:labelX, y:labelY - 4, 'text-anchor':'middle', 'font-size':12,
-        fill:bolt.panel.stroke, 'font-weight':'bold'}).textContent=bolt.panel.name;
-      add('text',{x:labelX, y:labelY + 12, 'text-anchor':'middle', 'font-size':10,
-        fill:bolt.panel.stroke}).textContent=`${rIn(couch_panelLen)}" × ${rIn(B)}" (bolt ${bi+1})${bolt.mirrorY ? ' — cut as mirror image' : ''}`;
-
-      // ─── Scrap area visualization ────────────────────────────────────
-      const scrapPath = [
-        `M ${sx},${sy}`,
-        `L ${sx + boltLenPx},${sy}`,
-        `L ${sx + boltLenPx},${sy + boltWPx}`,
-        `L ${sx},${sy + boltWPx}`,
-        `Z`,
-        `M ${bx(polyOutline[0][0])},${myY(polyOutline[0][1])}`,
-        ...polyOutline.slice(1).map(([xi, yi]) => `L ${bx(xi).toFixed(1)},${myY(yi).toFixed(1)}`),
-        `Z`,
-      ].join(' ');
-      add('path', {d: scrapPath, fill: '#e2e8f0', 'fill-rule': 'evenodd', opacity: 0.65, stroke: 'none'});
-      // Small "scrap" labels (positions also mirror)
-      if (backScrapH > 4 && x_crossBack > 8) {
-        add('text',{x:bx(x_crossBack/3), y:myY(backScrapH/3) + 3,
-          'text-anchor':'middle', 'font-size':9, fill:'#64748b', 'font-style':'italic'}).textContent='scrap';
-      }
-      if (frontStripH > 4 && frontStripW > 8) {
-        add('text',{x:bx(yPointB + frontStripW/2), y:myY(frontStripH/2) + 3,
-          'text-anchor':'middle', 'font-size':9, fill:'#64748b', 'font-style':'italic'}).textContent='scrap';
-      }
-
-      // ─── Extension placement in scrap (if it fits) ────────────────────
-      if (bolt.extInScrap) {
-        const p = bolt.extInScrap.placement;
-        const exX = bx(p.x);
-        // For mirrored bolt, the rectangle's top-y in bolt coords flips
-        const exTopYIn = bolt.mirrorY ? (B - p.y - p.h) : p.y;
-        const exY = sy + exTopYIn * sc;
-        const exW_px = p.w * sc;
-        const exH_px = p.h * sc;
-        add('rect', {x:exX, y:exY, width:exW_px, height:exH_px,
-          fill:'#d8b4fe55', stroke:'#7c3aed', 'stroke-width':1.5, 'stroke-dasharray':'5,3'});
-        const exLabelY = exH_px > 24 ? exY + exH_px/2 + 3 : exY + exH_px + 11;
-        add('text',{x:exX + exW_px/2, y:exLabelY, 'text-anchor':'middle', 'font-size':9,
-          fill:'#7c3aed', 'font-weight':'bold'}).textContent=`${bolt.extInScrap.name} (${rIn(p.w)}"×${rIn(p.h)}")`;
-      }
-    } else if (bolt.extOnlyBolt) {
-      // ─── Extension-only bolt (no scrap nesting found) ────────────────
-      for (const ex of bolt.exts) {
-        const pw = ex.len * sc;
-        const ph = ex.wid * sc;
-        const py = sy + (ex.yOffset || 0) * sc;
-        add('rect',{x:sx, y:py, width:pw, height:ph,
-          fill:'#d8b4fe55', stroke:'#7c3aed', 'stroke-width':1.5});
-        add('text',{x:sx + pw/2, y:py + ph/2 - 4, 'text-anchor':'middle', 'font-size':12,
-          fill:'#7c3aed', 'font-weight':'bold'}).textContent=ex.name;
-        add('text',{x:sx + pw/2, y:py + ph/2 + 12, 'text-anchor':'middle', 'font-size':10,
-          fill:'#7c3aed'}).textContent=`${rIn(ex.len)}" × ${rIn(ex.wid)}"`;
-      }
-    }
-
-    // Length arrow above each bolt (only first one to avoid clutter)
-    if (bi === 0) {
-      arrow(sx, sy - 12, sx + boltLenPx, sy - 12);
-      add('text',{x:sx + boltLenPx/2, y:sy - 16, 'text-anchor':'middle', 'font-size':11,
-        fill:'#334155', 'font-weight':'bold'}).textContent=`Panel length: ${rIn(couch_panelLen)}"`;
-    }
-
-    sy += boltWPx + boltGap;
+  // Assign origin to each bolt
+  for (let i = 0; i < nMain; i++) {
+    mainBolts[i].originX = mainRowStartX + i * (boltWPx_main + boltGap);
+    mainBolts[i].originY = mainRowStartY;
   }
+  for (let i = 0; i < nExt; i++) {
+    extBolts[i].originX = extRowStartX + i * (boltWPx_ext + boltGap);
+    extBolts[i].originY = extRowStartY;
+  }
+
+  // ─── Render each main bolt (vertical, side-by-side) ───────────────
+  for (let bi = 0; bi < mainBolts.length; bi++) {
+    const bolt = mainBolts[bi];
+    const ox = bolt.originX;
+    const oy = bolt.originY;
+    const boltLeft = ox;
+    const boltRight = ox + boltWPx_main;
+    const boltTop = oy;
+    const boltBot = oy + boltLenPx_main;
+
+    // Bolt-local (xLen, yWid) → SVG (x, y). For LEFT bolt (insideEdge='right'),
+    // yWid grows leftward from the right edge; for RIGHT bolt (insideEdge='left'),
+    // yWid grows rightward from the left edge.
+    const bxy = (xLen, yWid) => {
+      const dxFromInside = (bolt.insideEdge === 'left') ? yWid : (B - yWid);
+      return [ox + dxFromInside * sc, oy + xLen * sc];
+    };
+
+    // Bolt outline (raw fabric rectangle)
+    add('rect',{x:boltLeft, y:boltTop, width:boltWPx_main, height:boltLenPx_main,
+      fill:'#f8fafc', stroke:'#94a3b8', 'stroke-width':1, 'stroke-dasharray':'4,3'});
+    // Bolt label above
+    add('text',{x:ox + boltWPx_main/2, y:boltTop - 8, 'text-anchor':'middle',
+      'font-size':11, fill:'#475569', 'font-weight':'bold'}).textContent=bolt.label;
+    // Width arrow above
+    if (bi === 0) {
+      add('text',{x:ox + boltWPx_main/2, y:boltTop - 22, 'text-anchor':'middle',
+        'font-size':10, fill:'#475569'}).textContent=`${rIn(B)}"`;
+    }
+    // Length arrow on the OUTER side of each bolt (left of left bolt, right of right bolt)
+    const lenArrowX = (bolt.insideEdge === 'left') ? boltRight + 14 : boltLeft - 14;
+    arrow(lenArrowX, boltTop, lenArrowX, boltBot);
+    if (bi === 0) {
+      add('text',{x:lenArrowX + (bolt.insideEdge === 'left' ? 6 : -6),
+        y:oy + boltLenPx_main/2, 'text-anchor': bolt.insideEdge === 'left' ? 'start' : 'end',
+        'dominant-baseline':'middle', 'font-size':10, fill:'#475569',
+        transform:`rotate(-90 ${lenArrowX + (bolt.insideEdge === 'left' ? 6 : -6)} ${oy + boltLenPx_main/2})`})
+        .textContent=`Panel length: ${rIn(couch_panelLen)}"`;
+    }
+    // Back/front orientation labels (outside the bolt edge)
+    add('text',{x:ox + boltWPx_main/2, y:boltTop - 38, 'text-anchor':'middle',
+      'font-size':9, fill:'#64748b', 'font-style':'italic'}).textContent=
+      bi === 0 ? '↑ back of couch ↑' : '↑ back of couch ↑';
+    add('text',{x:ox + boltWPx_main/2, y:boltBot + 14, 'text-anchor':'middle',
+      'font-size':9, fill:'#64748b', 'font-style':'italic'}).textContent='↓ front of couch ↓';
+
+    // ─── Main panel polygon (clipped to bolt rectangle) ────────────────
+    const polyPts = polyOutline.map(([xL, yW]) => bxy(xL, yW)).map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`).join(' ');
+    add('polygon', {points: polyPts, fill: bolt.panel.fill, stroke: bolt.panel.stroke, 'stroke-width': 1.5});
+
+    // Panel label inside the polygon (in the wide middle)
+    const labelMidPos = bxy(sideDrop + couch_backInset / 2, B / 2);
+    add('text',{x:labelMidPos[0], y:labelMidPos[1] - 4, 'text-anchor':'middle',
+      'font-size':12, fill:bolt.panel.stroke, 'font-weight':'bold'}).textContent=bolt.panel.name;
+    add('text',{x:labelMidPos[0], y:labelMidPos[1] + 12, 'text-anchor':'middle',
+      'font-size':10, fill:bolt.panel.stroke}).textContent=`${rIn(couch_panelLen)}" × ${rIn(B)}"`;
+
+    // ─── Scrap shading (bolt rectangle minus polygon) ─────────────────
+    const polySvg = polyOutline.map(([xL, yW]) => bxy(xL, yW));
+    const scrapPath = [
+      `M ${boltLeft},${boltTop}`,
+      `L ${boltRight},${boltTop}`,
+      `L ${boltRight},${boltBot}`,
+      `L ${boltLeft},${boltBot}`,
+      `Z`,
+      `M ${polySvg[0][0].toFixed(1)},${polySvg[0][1].toFixed(1)}`,
+      ...polySvg.slice(1).map(([x, y]) => `L ${x.toFixed(1)},${y.toFixed(1)}`),
+      `Z`,
+    ].join(' ');
+    add('path', {d: scrapPath, fill: '#e2e8f0', 'fill-rule': 'evenodd', opacity: 0.65, stroke: 'none'});
+    // Scrap labels
+    if (backScrapH > 4 && x_back_cross > 8) {
+      const [lx, ly] = bxy(x_back_cross / 3, halfBack + backScrapH * 2 / 3);
+      add('text',{x:lx, y:ly + 3, 'text-anchor':'middle', 'font-size':9, fill:'#64748b', 'font-style':'italic'}).textContent='scrap';
+    }
+    if (frontStripH > 4 && frontStripW > 8) {
+      const [lx, ly] = bxy(yPointB + frontStripW / 2, halfFront + frontStripH / 2);
+      add('text',{x:lx, y:ly + 3, 'text-anchor':'middle', 'font-size':9, fill:'#64748b', 'font-style':'italic'}).textContent='scrap';
+    }
+
+    // ─── Extension placement in scrap (if it fits) ──────────────────────
+    if (bolt.extInScrap) {
+      const p = bolt.extInScrap.placement;
+      // Compute the four corners of the extension rectangle in bolt coords,
+      // then map to SVG and draw as a rect using the rotated extents.
+      const c1 = bxy(p.x, p.y);
+      const c2 = bxy(p.x + p.w, p.y);
+      const c3 = bxy(p.x + p.w, p.y + p.h);
+      const c4 = bxy(p.x, p.y + p.h);
+      const xs = [c1[0], c2[0], c3[0], c4[0]];
+      const ys = [c1[1], c2[1], c3[1], c4[1]];
+      const exLeft = Math.min(...xs);
+      const exRight = Math.max(...xs);
+      const exTop = Math.min(...ys);
+      const exBot = Math.max(...ys);
+      add('rect', {x:exLeft, y:exTop, width:exRight - exLeft, height:exBot - exTop,
+        fill:'#d8b4fe55', stroke:'#7c3aed', 'stroke-width':1.5, 'stroke-dasharray':'5,3'});
+      add('text',{x:(exLeft + exRight)/2, y:(exTop + exBot)/2 + 3,
+        'text-anchor':'middle', 'font-size':9, fill:'#7c3aed', 'font-weight':'bold'})
+        .textContent=`${bolt.extInScrap.name}`;
+      add('text',{x:(exLeft + exRight)/2, y:(exTop + exBot)/2 + 14,
+        'text-anchor':'middle', 'font-size':8, fill:'#7c3aed'})
+        .textContent=`${rIn(p.w)}"×${rIn(p.h)}"`;
+    }
+  }
+
+  // ─── Render extension-only bolts (when extensions don't fit in scrap) ─
+  for (let ei = 0; ei < extBolts.length; ei++) {
+    const bolt = extBolts[ei];
+    const ox = bolt.originX;
+    const oy = bolt.originY;
+    add('rect',{x:ox, y:oy, width:boltWPx_ext, height:boltLenPx_ext,
+      fill:'#f8fafc', stroke:'#94a3b8', 'stroke-width':1, 'stroke-dasharray':'4,3'});
+    add('text',{x:ox + boltWPx_ext/2, y:oy - 8, 'text-anchor':'middle',
+      'font-size':11, fill:'#475569', 'font-weight':'bold'}).textContent=bolt.label;
+    for (const ex of bolt.exts) {
+      const exH = ex.len * sc;
+      const exW_px = ex.wid * sc;
+      const exX = ox + (ex.yOffset || 0) * sc;
+      add('rect',{x:exX, y:oy, width:exW_px, height:exH,
+        fill:'#d8b4fe55', stroke:'#7c3aed', 'stroke-width':1.5});
+      add('text',{x:exX + exW_px/2, y:oy + exH/2 - 4, 'text-anchor':'middle',
+        'font-size':12, fill:'#7c3aed', 'font-weight':'bold'}).textContent=ex.name;
+      add('text',{x:exX + exW_px/2, y:oy + exH/2 + 12, 'text-anchor':'middle',
+        'font-size':10, fill:'#7c3aed'}).textContent=`${rIn(ex.len)}"×${rIn(ex.wid)}"`;
+    }
+  }
+
+  // Footer summary y-position needs updating for the new layout
+  const footerY = (extBolts.length > 0 ? extRowStartY + boltLenPx_ext : mainRowStartY + boltLenPx_main) + 30;
+  let sy = footerY - 18;  // for the existing footer code below to use sy + 18, sy + 34
 
   // Footer summary
   const mainBoltsLen = couch_panelLen * 2;
