@@ -307,7 +307,7 @@ function drawDiagram(params){
   const {B, W, WB, hem, roundMode, seam, sideDrop, frontExtDrop,
          couch_panelLen, couch_panelW, couch_assembledW, couch_joinedUsableW,
          couch_backInset, couch_taperLen, couch_frontStraight,
-         couch_extNeeded, couch_extEachCut, couch_extSeam, couch_extBoltsNeeded, couch_totalBolts} = params;
+         couch_extNeeded, couch_extEachCut, couch_extSeam, couch_extBoltsNeeded, couch_totalBolts, couch_extActualLen} = params;
   // === Compute actual extension length (the y-span where the polygon's
   // half-width exceeds (B − seam)). The extension only needs to span this
   // region — not the full panel length. ===
@@ -736,7 +736,7 @@ function updateCutList(params){
   const {B, roundMode, seam,
          couch_panelLen, couch_panelW, couch_assembledW, couch_joinedUsableW,
          couch_backInset, couch_taperLen, couch_frontStraight, couch_frontInset, couch_frontFlapWidth, couch_frontFlapNeeded,
-         couch_extNeeded, couch_extEachCut, couch_extBoltsNeeded, couch_totalBolts} = params;
+         couch_extNeeded, couch_extEachCut, couch_extBoltsNeeded, couch_totalBolts, couch_extActualLen} = params;
   const rm = roundMode;
   const cutlist = document.getElementById('cutlist');
   const rows = [];
@@ -749,12 +749,13 @@ function updateCutList(params){
     `Qty 1 — mirrors left panel. Joined to left panel along the center snap seam (${fmtExact(seam)}" overlap each side).`]);
 
   if (couch_extNeeded) {
+    const _extLen = couch_extActualLen || couch_panelLen;
     rows.push(['Left side extension',
-      `${fmtInch(couch_extEachCut, rm)}" wide × ${fmtInch(couch_panelLen, rm)}" long`,
-      `Qty 1 — sewn to outer edge of left panel (incl. ${fmtExact(seam)}" seam allowance). Can be cut from a scrap of equivalent dimensions if available.`]);
+      `${fmtInch(couch_extEachCut, rm)}" wide × ${fmtInch(_extLen, rm)}" long`,
+      `Qty 1 — sewn to outer edge of left panel only where the silhouette is wider than 2 joined bolts (incl. 1" ext-seam allowance). Can be cut from a scrap of equivalent dimensions if available.`]);
     rows.push(['Right side extension',
-      `${fmtInch(couch_extEachCut, rm)}" wide × ${fmtInch(couch_panelLen, rm)}" long`,
-      `Qty 1 — sewn to outer edge of right panel (incl. ${fmtExact(seam)}" seam allowance). Can be cut from a scrap of equivalent dimensions if available.`]);
+      `${fmtInch(couch_extEachCut, rm)}" wide × ${fmtInch(_extLen, rm)}" long`,
+      `Qty 1 — sewn to outer edge of right panel only where the silhouette is wider than 2 joined bolts (incl. 1" ext-seam allowance). Can be cut from a scrap of equivalent dimensions if available.`]);
   } else {
     rows.push(['Side extensions', 'Not required',
       `Two joined bolts (${B}" + ${B}" − 2×${fmtExact(seam)}" snap-seam = ${fmtExact(couch_joinedUsableW)}") cover the assembled width (${fmtExact(couch_assembledW)}").`]);
@@ -945,7 +946,7 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
          hem, seam, rounded, roundMode,
          couch_panelLen, couch_panelW, couch_assembledW, couch_joinedUsableW,
          couch_backInset, couch_taperLen, couch_frontStraight, couch_frontInset, couch_frontFlapWidth, couch_frontFlapNeeded,
-         couch_extNeeded, couch_extEachCut, couch_extSeam, couch_extBoltsNeeded, couch_totalBolts,
+         couch_extNeeded, couch_extEachCut, couch_extSeam, couch_extBoltsNeeded, couch_totalBolts, couch_extActualLen,
          snapStrapsOpt} = params;
   const rIn = v => roundMode === 'whole' ? Math.ceil(v) : roundMode === 'half' ? roundHalf(v) : Math.round(v*100)/100;
   const svg = document.getElementById(svgId);
@@ -1113,7 +1114,10 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
         width:Math.max(0, (couch_assembledW/2 - sideOff))*sc,
         height:exitY - entryY, fill:'#d8b4fe33', stroke:'none'});
       // Labels — show extension strip dimensions on the assembly diagram
-      const extStripLen = couch_panelLen;  // extension runs full panel length
+      // Extension only needs to span the y-range where the silhouette half-
+      // width exceeds (B − seam). Use the hoisted couch_extActualLen if it's
+      // available (smaller than panelLen), otherwise fall back to panelLen.
+      const extStripLen = couch_extActualLen || couch_panelLen;
       add('text',{x:cx - sideOffPx - 4, y:(entryY + exitY)/2 - 6, 'text-anchor':'end',
         'font-size':9, fill:'#6b21a8', 'font-weight':'bold'}).textContent=`ext seam (1")`;
       add('text',{x:cx + sideOffPx + 4, y:(entryY + exitY)/2 - 6,
@@ -2642,6 +2646,51 @@ function compute(){
     const couch_total_inches = couch_totalBolts * couch_panelLen;
     const couch_total_yards = couch_total_inches / 36;
 
+    // Actual length of each side-extension PIECE — only the y-span where
+    // the assembled silhouette's half-width exceeds (B − seam). The strip
+    // doesn't need to span the full panel length: above and below the
+    // widened middle, the main panel's own edge already reaches the
+    // silhouette boundary. (See drawDiagram's local calculation; this
+    // hoists the same logic into compute() so the cut list, scrap-source
+    // alternative, and assembly diagram can all reference it.)
+    let couch_extActualLen = couch_panelLen;  // fallback if no extension or unsolvable
+    if (couch_extNeeded) {
+      const _sideOff   = B - (couch_extSeam || 1);
+      const _halfBack  = WB / 2 + hem;
+      const _halfMid   = couch_assembledW / 2;
+      const _halfFront = (W + 2 * frontExtDrop) / 2;
+      const _edge = [
+        [0,                                                                 _halfBack],
+        [sideDrop,                                                          _halfMid],
+        [sideDrop + couch_backInset,                                        _halfMid],
+        [sideDrop + couch_backInset + couch_taperLen,                       _halfFront],
+        [couch_panelLen,                                                    _halfFront],
+      ];
+      let _entry = null, _exit = null;
+      for (let i = 0; i < _edge.length - 1; i++) {
+        const [y1, h1] = _edge[i], [y2, h2] = _edge[i+1];
+        const in1 = h1 >= _sideOff, in2 = h2 >= _sideOff;
+        if (_entry === null) {
+          if (in1) _entry = y1;
+          else if (in2) {
+            const t = (_sideOff - h1) / (h2 - h1);
+            _entry = y1 + t * (y2 - y1);
+          }
+        }
+        if (_entry !== null) {
+          if (in2) _exit = y2;
+          else if (in1) {
+            const t = (_sideOff - h1) / (h2 - h1);
+            _exit = y1 + t * (y2 - y1);
+            break;
+          }
+        }
+      }
+      if (_entry !== null && _exit !== null && _exit > _entry) {
+        couch_extActualLen = _exit - _entry;
+      }
+    }
+
     // Override totalLength used by Material to Buy
     totalLength = couch_total_inches;
     nestingNote = couch_extNeeded
@@ -2717,7 +2766,7 @@ function compute(){
       const savedIn             = totalLength - scrapSourcedTotalIn;
       const savedYards          = savedIn / 36;
       const scrapPieceW         = couch_extEachCut;
-      const scrapPieceL         = couch_panelLen;
+      const scrapPieceL         = couch_extActualLen || couch_panelLen;
       const bothExtsFitOneBolt  = (2 * couch_extEachCut) <= B;
       const scrapNote = bothExtsFitOneBolt
         ? `Both extensions would normally fit across one extra bolt — using scrap saves you that whole bolt.`
@@ -2725,7 +2774,7 @@ function compute(){
       bRows.push([`<span style="color:#7c3aed; font-weight:600; text-transform:uppercase; font-size:11px; letter-spacing:0.5px;">Alternative: source side extensions from scrap</span>`, '', `<span style="color:var(--sub);">If you have leftover material that fits the dimensions below, you can skip the extra bolt(s) for the extensions.</span>`]);
       bRows.push(['Scrap pieces needed',
         `2 × (${fmtInch(scrapPieceW, rounded)}" × ${fmtInch(scrapPieceL, rounded)}")`,
-        `One per side. Width includes the ${fmtExact(seam)}" seam allowance.`]);
+        `One per side. Width includes 1" extension seam allowance. The piece only needs to span the y-range where the silhouette is wider than 2 joined bolts (${fmtExact(scrapPieceL)}") — not the full panel length (${fmtExact(couch_panelLen)}").`]);
       bRows.push(['New fabric to buy (if scrap used)',
         `${fmtInch(scrapSourcedTotalIn, rounded)} in (${fmtYardsFromInches(scrapSourcedTotalIn, rounded)} yd)`,
         `Just the 2 main panels: 2 × ${fmtExact(couch_panelLen)}" = ${fmtExact(scrapSourcedTotalIn)}". ${scrapNote}`]);
@@ -3138,7 +3187,7 @@ function compute(){
       // Couch material model
       couch_panelLen, couch_panelW, couch_assembledW, couch_joinedUsableW,
          couch_backInset, couch_taperLen, couch_frontStraight, couch_frontInset, couch_frontFlapWidth, couch_frontFlapNeeded,
-      couch_extNeeded, couch_extEachCut, couch_extSeam, couch_extBoltsNeeded, couch_totalBolts,
+      couch_extNeeded, couch_extEachCut, couch_extSeam, couch_extBoltsNeeded, couch_totalBolts, couch_extActualLen,
       couch_total_inches, couch_total_yards,
       snapStrapsOpt};
     // Call each diagram in its own try/catch so one failure doesn't block the others
