@@ -394,7 +394,51 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
         }
       }
 
-      const totalLength = Math.min(totalA, totalB);
+      // --- Strategy C: waste-nesting (cut front flap from main-piece diagonal trim waste) ---
+      // The chair's main piece has a diagonal A→B trim cut on each side, producing
+      // waste in two regions per side:
+      //   1. Triangle in the taper zone — base = markFromSideEdge, height = taperZoneLength
+      //   2. Rectangle in the front zone — markFromSideEdge × frontInset (the larger area)
+      // If the front flap (full or split halves) fits in the combined waste, we
+      // don't need an extra bolt for the flap — totalLength stays at ML + backPieceLength.
+      // Mirrors the waste-nesting logic in chair_cover_calculator_snap_back_MFG.html.
+      let totalC = Infinity;
+      if (frontFlapNeeded) {
+        const backInset = hem + BR;
+        const frontInset = frontExtDrop;
+        const taperZoneLength = Math.max(0, B - frontInset - backInset);
+        const frontWidthAfterCut = W + 2 * frontExtDrop + 2 * sideEase;
+        const markFromSideEdge = Math.max(0, (ML - frontWidthAfterCut) / 2);
+        const wasteRectW = markFromSideEdge;
+        const wasteRectH = frontInset;
+        const wasteTriBase = markFromSideEdge;
+        const wasteTriHeight = taperZoneLength;
+
+        const fitsInCombinedWaste = (w: number, h: number): boolean => {
+          if (w > wasteRectW) return false;
+          if (h <= wasteRectH) return true;
+          const triPortion = h - wasteRectH;
+          if (triPortion > wasteTriHeight) return false;
+          const availAtTop = wasteTriHeight > 0
+            ? wasteTriBase * (wasteTriHeight - triPortion) / wasteTriHeight
+            : 0;
+          return availAtTop >= w;
+        };
+
+        // Try the full flap in either orientation, then split halves.
+        const splitHalfLength = Math.ceil(frontFlapLength / 2) + 0.5;
+        const fullFitsA = fitsInCombinedWaste(frontFlapLength, frontFlapWidth);
+        const fullFitsB = fitsInCombinedWaste(frontFlapWidth, frontFlapLength);
+        const halfFitsA = fitsInCombinedWaste(splitHalfLength, frontFlapWidth);
+        const halfFitsB = fitsInCombinedWaste(frontFlapWidth, splitHalfLength);
+
+        if (fullFitsA || fullFitsB || halfFitsA || halfFitsB) {
+          // Flap (or its halves) fit in waste → no extra bolt length for the flap.
+          totalC = ML + backPieceLength;
+        }
+      }
+
+      const totalLength = Math.min(totalA, totalB, totalC);
       return Math.ceil(totalLength / 36);
     }
 
