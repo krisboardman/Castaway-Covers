@@ -35,25 +35,6 @@ const ShopifyBuyButton: React.FC<ShopifyBuyButtonProps> = ({
     initClient();
   }, []);
 
-  const handleBuyNow = async () => {
-    if (!variantId || disabled) return;
-
-    setLoading(true);
-    try {
-      // Add to local cart
-      onAddToCart();
-
-      // Wait a moment for cart to update
-      setTimeout(() => {
-        // Redirect to the Vercel app cart page
-        window.location.href = '/cart';
-      }, 100);
-    } catch (error) {
-      alert('Error adding to cart. Please try again.');
-      setLoading(false);
-    }
-  };
-
   const handleAddToCart = async () => {
     if (!client || !variantId || disabled) return;
 
@@ -100,24 +81,12 @@ const ShopifyBuyButton: React.FC<ShopifyBuyButtonProps> = ({
   return (
     <div className="space-y-3">
       <button
-        onClick={handleBuyNow}
-        disabled={disabled || loading}
-        className={`w-full py-3 px-6 rounded-md font-semibold transition-colors ${
-          disabled || loading
-            ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-            : 'bg-brand-teal text-white hover:bg-brand-teal-dark'
-        }`}
-      >
-        {loading ? 'Processing...' : 'Buy Now'}
-      </button>
-
-      <button
         onClick={handleAddToCart}
         disabled={disabled || loading}
         className={`w-full py-3 px-6 rounded-md font-semibold transition-colors ${
           disabled || loading
             ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-            : 'bg-gray-600 text-white hover:bg-gray-700'
+            : 'bg-brand-teal text-white hover:bg-brand-teal-dark'
         }`}
       >
         {loading ? 'Processing...' : 'Add to Cart'}
