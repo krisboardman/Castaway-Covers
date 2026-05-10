@@ -87,14 +87,14 @@ Name: ${customerInfo.name}
 Email: ${customerInfo.email}
 Phone: ${customerInfo.phone || 'Not provided'}
 
-${customerInfo.notes ? `CUSTOMER NOTES:\n${customerInfo.notes}\n\n` : ''}${photos.length > 0 ? `PHOTOS ATTACHED: ${photos.length} photo${photos.length > 1 ? 's' : ''} of customer's furniture\n\n` : ''}ORDER DETAILS:
+${customerInfo.notes ? `CUSTOMER NOTES:\n${customerInfo.notes}\n\n` : ''}${customerInfo.promoCode ? `PROMO CODE: ${customerInfo.promoCode}\n\n` : ''}${photos.length > 0 ? `PHOTOS ATTACHED: ${photos.length} photo${photos.length > 1 ? 's' : ''} of customer's furniture\n\n` : ''}ORDER DETAILS:
 ${orderDetails}
 
-TOTAL ORDER VALUE: $${totalPrice.toFixed(2)}
+TOTAL ORDER VALUE: $${totalPrice.toFixed(2)}${customerInfo.promoCode ? `  (apply promo code "${customerInfo.promoCode}" before sending invoice)` : ''}
 
 ==================
 NEXT STEPS:
-1. Send Stripe invoice to ${customerInfo.email} for $${totalPrice.toFixed(2)}
+1. ${customerInfo.promoCode ? `Apply promo code "${customerInfo.promoCode}", then send` : 'Send'} Stripe invoice to ${customerInfo.email} for $${totalPrice.toFixed(2)}
 2. Begin production after payment received
 3. Contact customer at ${customerInfo.phone || customerInfo.email} to confirm details
 `;
@@ -151,7 +151,7 @@ ORDER SUMMARY:
 ${customerOrderDetails}
 
 SUBTOTAL: $${totalPrice.toFixed(2)}
-
+${customerInfo.promoCode ? `\nPROMO CODE: ${customerInfo.promoCode} — we'll apply this discount to your invoice.\n` : ''}
 SHIPPING: Shipping costs will be calculated based on your location and order size, and included in your invoice.
 
 You will receive a Stripe invoice via email at ${customerInfo.email}. Once payment is received, we'll begin production on your custom covers.

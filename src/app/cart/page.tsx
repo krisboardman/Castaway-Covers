@@ -18,7 +18,8 @@ export default function CartPage() {
     name: '',
     email: '',
     phone: '',
-    notes: ''
+    notes: '',
+    promoCode: ''
   });
   const [photos, setPhotos] = useState<File[]>([]);
   const [compressing, setCompressing] = useState(false);
@@ -496,6 +497,20 @@ export default function CartPage() {
                         rows={3}
                         placeholder="Any special requests or questions?"
                       />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Promo Code (optional)
+                      </label>
+                      <input
+                        type="text"
+                        value={customerInfo.promoCode}
+                        onChange={(e) => setCustomerInfo({...customerInfo, promoCode: e.target.value})}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-brand-teal focus:border-brand-teal"
+                        placeholder="Enter promo code"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">If you have a promo code, enter it here. We&apos;ll apply it before sending your invoice.</p>
                     </div>
 
                     <div>

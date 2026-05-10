@@ -110,6 +110,7 @@ export default function ProductPage() {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [measurementConfirmed, setMeasurementConfirmed] = useState(false);
   const [isCustomOrder, setIsCustomOrder] = useState(false);
+  const [showAddedToast, setShowAddedToast] = useState(false);
   
   const addToCart = useCartStore((state) => state.addToCart);
   const updateItem = useCartStore((state) => state.updateItem);
@@ -208,16 +209,13 @@ export default function ProductPage() {
       // Go back to cart after updating
       window.location.href = '/cart';
     } else {
-      // Add new item
+      // Add new item — show inline toast instead of a blocking confirm dialog.
       addToCart(cartItem);
-
-      // Show success message with options
-      const goToCart = window.confirm('Item added to cart! Click OK to view cart or Cancel to continue shopping.');
-      if (goToCart) {
-        window.location.href = '/cart';
-      }
+      setShowAddedToast(true);
+      // Auto-dismiss after 8 seconds in case the customer ignores it.
+      window.setTimeout(() => setShowAddedToast(false), 8000);
     }
-    
+
     // Reset editing state
     setEditingItemId(null);
   };
@@ -260,6 +258,46 @@ export default function ProductPage() {
 
   return (
     <div className="min-h-screen py-12">
+      {/* Inline "Added to cart" toast — replaces the old window.confirm dialog.
+          Floats top-right, stays until the user acts or auto-dismisses after 8s. */}
+      {showAddedToast && (
+        <div className="fixed top-4 right-4 z-50 bg-white border border-gray-200 rounded-lg shadow-xl p-4 max-w-sm w-[calc(100%-2rem)] sm:w-auto">
+          <div className="flex items-start gap-3">
+            <div className="flex-shrink-0 w-9 h-9 bg-green-100 rounded-full flex items-center justify-center">
+              <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="font-semibold text-gray-900">Added to cart</p>
+              <p className="text-sm text-gray-600 mt-0.5">Your custom cover is in your cart.</p>
+              <div className="flex flex-wrap gap-2 mt-3">
+                <button
+                  onClick={() => { window.location.href = '/cart'; }}
+                  className="px-4 py-2 bg-brand-teal text-white text-sm rounded-md font-semibold hover:bg-brand-teal-dark"
+                >
+                  View Cart
+                </button>
+                <button
+                  onClick={() => setShowAddedToast(false)}
+                  className="px-4 py-2 text-gray-700 text-sm rounded-md font-medium hover:bg-gray-100"
+                >
+                  Keep Shopping
+                </button>
+              </div>
+            </div>
+            <button
+              onClick={() => setShowAddedToast(false)}
+              aria-label="Dismiss"
+              className="flex-shrink-0 text-gray-400 hover:text-gray-600 -mt-1 -mr-1 p-1"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Back Button */}
         <button
