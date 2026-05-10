@@ -2889,11 +2889,10 @@ function compute(){
     //   Main panels: always 2 bolts, each couch_panelLen long.
     //   Side extensions (if needed): if both fit across one bolt width, 1 extra bolt of couch_panelLen.
     //   Otherwise 2 extra bolts.
-    const couch_extBoltsNeeded = couch_extNeeded ? (2 * couch_extEachCut <= B ? 1 : 2) : 0;
-    const couch_totalBolts = 2 + couch_extBoltsNeeded;
+    // (Scrap-nesting feasibility check is below — couch_extBoltsNeeded
+    // accounts for it, so when extensions fit in main-bolt scrap, no extra
+    // bolt is counted.)
     const couch_bolts_yards_each = couch_panelLen / 36;
-    const couch_total_inches = couch_totalBolts * couch_panelLen;
-    const couch_total_yards = couch_total_inches / 36;
 
     // Actual length of each side-extension PIECE — only the y-span where
     // the assembled silhouette's half-width exceeds (B − seam). The strip
@@ -2940,11 +2939,58 @@ function compute(){
       }
     }
 
+    // ── SCRAP-NESTING FEASIBILITY ────────────────────────────────────
+    // If each side extension piece (extEachCut wide × extActualLen long)
+    // fits in the leftover scrap of one main bolt, we don't need to buy
+    // a third bolt for the extensions — they can be cut from material
+    // that would otherwise be thrown away.
+    //
+    // Two scrap regions per main bolt:
+    //   1. Front-skirt strip — clean rectangle, (panelLen − yPointB) ×
+    //      (B − halfFront)
+    //   2. Back-floor triangle — bounded by (0, halfBack), (0, B), and
+    //      (x_back_cross, B). Inscribed-rectangle constraint:
+    //      w/x_back_cross + h/(B − halfBack) ≤ 1
+    let couch_extensionsFitInScrap = false;
+    if (couch_extNeeded) {
+      const _hb = WB / 2 + hem;
+      const _hm = couch_assembledW / 2;
+      const _hf = (W + 2 * frontExtDrop) / 2;
+      const _yPB = sideDrop + couch_backInset + couch_taperLen;
+      const _xCross = (_hb < B && _hm > _hb)
+        ? Math.min(sideDrop, sideDrop * (B - _hb) / (_hm - _hb))
+        : 0;
+      const _backScrapH = Math.max(0, B - _hb);
+      const _frontStripH = Math.max(0, B - _hf);
+      const _frontStripW = Math.max(0, couch_panelLen - _yPB);
+      const _candidates = [
+        {w: couch_extActualLen, h: couch_extEachCut},
+        {w: couch_extEachCut,   h: couch_extActualLen},
+      ];
+      for (const c of _candidates) {
+        if (c.w <= _frontStripW && c.h <= _frontStripH) { couch_extensionsFitInScrap = true; break; }
+        if (c.w > 0 && c.h > 0 && _xCross > 0 && _backScrapH > 0
+            && (c.w / _xCross) + (c.h / _backScrapH) <= 1.0) { couch_extensionsFitInScrap = true; break; }
+      }
+    }
+
+    // Now compute the actual bolts and totals, factoring in scrap nesting.
+    const couch_extBoltsNeeded = (couch_extNeeded && !couch_extensionsFitInScrap)
+      ? (2 * couch_extEachCut <= B ? 1 : 2)
+      : 0;
+    const couch_totalBolts = 2 + couch_extBoltsNeeded;
+    const couch_total_inches = couch_totalBolts * couch_panelLen;
+    const couch_total_yards = couch_total_inches / 36;
+
     // Override totalLength used by Material to Buy
     totalLength = couch_total_inches;
-    nestingNote = couch_extNeeded
-      ? `${couch_totalBolts} bolts × ${fmtExact(couch_panelLen)}" = ${fmtExact(couch_total_inches)}". 2 main panels + ${couch_extBoltsNeeded} bolt(s) for side extensions (each ext ${fmtExact(couch_extEachCut)}" wide).`
-      : `2 bolts × ${fmtExact(couch_panelLen)}" = ${fmtExact(couch_total_inches)}". Joined width 2×${B} − 2×${seam} = ${fmtExact(couch_joinedUsableW)}" covers assembled ${fmtExact(couch_assembledW)}" — no side extensions needed.`;
+    if (couch_extensionsFitInScrap) {
+      nestingNote = `2 bolts × ${fmtExact(couch_panelLen)}" = ${fmtExact(couch_total_inches)}". Side extensions (${fmtExact(couch_extActualLen)}" × ${fmtExact(couch_extEachCut)}") cut from main-bolt scrap — no third bolt needed.`;
+    } else if (couch_extNeeded) {
+      nestingNote = `${couch_totalBolts} bolts × ${fmtExact(couch_panelLen)}" = ${fmtExact(couch_total_inches)}". 2 main panels + ${couch_extBoltsNeeded} bolt(s) for side extensions (each ext ${fmtExact(couch_extEachCut)}" wide). Extensions don't fit in main-bolt scrap.`;
+    } else {
+      nestingNote = `2 bolts × ${fmtExact(couch_panelLen)}" = ${fmtExact(couch_total_inches)}". Joined width 2×${B} − 2×${seam} = ${fmtExact(couch_joinedUsableW)}" covers assembled ${fmtExact(couch_assembledW)}" — no side extensions needed.`;
+    }
 
     // === DISPLAY RESULTS ===
     const rows = [
@@ -3005,11 +3051,13 @@ function compute(){
     ];
 
     // ── ALTERNATIVE: source side extensions from scrap ─────────────
-    // If the side extensions are small, you may already have a piece
-    // of scrap material that can serve as the extension instead of
-    // having to buy an additional bolt. Show the savings explicitly
-    // so the cutter can decide based on what's on hand.
-    if (couch_extNeeded) {
+    // Only relevant when extensions DON'T auto-fit in main-bolt scrap
+    // (i.e., they require a third bolt to be cut new). In that case,
+    // user can still optionally use scrap from a previous project to
+    // skip the extra bolt. When extensions DO auto-nest in main-bolt
+    // scrap, this section is redundant — the totals above already
+    // reflect the savings.
+    if (couch_extNeeded && !couch_extensionsFitInScrap) {
       const scrapSourcedTotalIn = 2 * couch_panelLen;            // just the 2 main panels
       const scrapSourcedYards   = scrapSourcedTotalIn / 36;
       const savedIn             = totalLength - scrapSourcedTotalIn;

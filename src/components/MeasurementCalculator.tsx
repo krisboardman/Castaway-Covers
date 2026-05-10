@@ -444,7 +444,89 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
         const extEachUsable = extDeficit / 2;
         const extSeamAllow = 1; // side-extension seam allowance
         const extEachCut = extEachUsable + extSeamAllow;
-        extraBolts = (2 * extEachCut <= B) ? 1 : 2;
+
+        // ── SCRAP-NESTING CHECK ─────────────────────────────────────
+        // If each side-extension piece (extEachCut wide × extActualLen
+        // long) fits in the leftover scrap of one main bolt, no extra
+        // bolt is needed — the extensions can be cut from material
+        // that would otherwise be thrown away.
+        // Mirrors the logic in couch_cover_calculator_snap_back_MFG.html.
+
+        // Compute extension actual length: the y-span where the
+        // assembled silhouette's half-width exceeds (B − extSeamAllow).
+        const halfBack  = WB / 2 + hem;
+        const halfMid   = assembledW / 2;
+        const halfFront = (W + 2 * frontExtDrop) / 2;
+        const yPointB   = sideDrop + backInset + taperLen;
+        const sideOff   = B - extSeamAllow;
+        const edge = [
+          [0,                                 halfBack],
+          [sideDrop,                          halfMid],
+          [sideDrop + backInset,              halfMid],
+          [yPointB,                           halfFront],
+          [panelLen,                          halfFront],
+        ];
+        let entryY: number | null = null;
+        let exitY: number | null = null;
+        for (let i = 0; i < edge.length - 1; i++) {
+          const [y1, h1] = edge[i];
+          const [y2, h2] = edge[i + 1];
+          const in1 = h1 >= sideOff;
+          const in2 = h2 >= sideOff;
+          if (entryY === null) {
+            if (in1) entryY = y1;
+            else if (in2) {
+              const t = (sideOff - h1) / (h2 - h1);
+              entryY = y1 + t * (y2 - y1);
+            }
+          }
+          if (entryY !== null) {
+            if (in2) exitY = y2;
+            else if (in1) {
+              const t = (sideOff - h1) / (h2 - h1);
+              exitY = y1 + t * (y2 - y1);
+              break;
+            }
+          }
+        }
+        const extActualLen = (entryY !== null && exitY !== null && exitY > entryY)
+          ? exitY - entryY
+          : panelLen;
+
+        // Scrap regions in each main bolt:
+        // 1. Front-skirt strip — clean rectangle, (panelLen − yPointB) ×
+        //    (B − halfFront)
+        // 2. Back-floor triangle — bounded by (0, halfBack), (0, B),
+        //    (x_back_cross, B). Inscribed-rectangle constraint:
+        //    w/x_back_cross + h/(B − halfBack) ≤ 1
+        const x_back_cross = (halfBack < B && halfMid > halfBack)
+          ? Math.min(sideDrop, sideDrop * (B - halfBack) / (halfMid - halfBack))
+          : 0;
+        const backScrapH = Math.max(0, B - halfBack);
+        const frontStripH = Math.max(0, B - halfFront);
+        const frontStripW = Math.max(0, panelLen - yPointB);
+
+        let extensionsFitInScrap = false;
+        const candidates = [
+          { w: extActualLen, h: extEachCut },
+          { w: extEachCut,   h: extActualLen },
+        ];
+        for (const c of candidates) {
+          if (c.w <= frontStripW && c.h <= frontStripH) {
+            extensionsFitInScrap = true;
+            break;
+          }
+          if (c.w > 0 && c.h > 0 && x_back_cross > 0 && backScrapH > 0
+              && (c.w / x_back_cross) + (c.h / backScrapH) <= 1.0) {
+            extensionsFitInScrap = true;
+            break;
+          }
+        }
+
+        // Only count an extra bolt if extensions DON'T fit in scrap.
+        if (!extensionsFitInScrap) {
+          extraBolts = (2 * extEachCut <= B) ? 1 : 2;
+        }
       }
 
       const totalBolts = 2 + extraBolts;
