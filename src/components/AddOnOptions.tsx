@@ -75,13 +75,24 @@ const AddOnOptions: React.FC<AddOnOptionsProps> = ({
                 <div>
                   <div className="relative h-80 md:h-96 rounded-lg overflow-hidden">
                     <Image
+                      src="/images/Options/snap-strap-in-use.jpg"
+                      alt="Snap strap in use — strap routes over the backrest of a covered chair"
+                      fill
+                      className="object-contain"
+                    />
+                  </div>
+                  <p className="text-xs text-gray-500 mt-2 text-center">Snap strap in use — strap routes over the backrest</p>
+                </div>
+                <div>
+                  <div className="relative h-80 md:h-96 rounded-lg overflow-hidden">
+                    <Image
                       src="/images/Options/snap-strap.jpg"
                       alt="Snap straps example"
                       fill
                       className="object-contain"
                     />
                   </div>
-                  <p className="text-xs text-gray-500 mt-2 text-center">Snap straps in use — strap routes over the backrest</p>
+                  <p className="text-xs text-gray-500 mt-2 text-center">Strap detail</p>
                 </div>
                 <div>
                   <div className="relative h-80 md:h-96 rounded-lg overflow-hidden">
