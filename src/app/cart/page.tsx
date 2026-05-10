@@ -432,7 +432,7 @@ export default function CartPage() {
                       disabled={loading}
                       className="w-full py-3 px-6 rounded-md font-semibold transition-colors mb-3 bg-brand-teal text-white hover:bg-brand-teal-dark"
                     >
-                      Place Order
+                      Continue to Details
                     </button>
                   </>
                 ) : (
