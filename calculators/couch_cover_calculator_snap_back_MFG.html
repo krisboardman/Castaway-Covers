@@ -750,11 +750,11 @@ function updateCutList(params){
 
   if (couch_extNeeded) {
     rows.push(['Left side extension',
-      `${fmtInch(couch_extEachCut, rm)}" wide × actual length needed (see cut diagram)`,
-      `Qty 1 — sewn to outer edge of left panel (incl. ${fmtExact(seam)}" seam allowance). Adds width on the left side of the couch.`]);
+      `${fmtInch(couch_extEachCut, rm)}" wide × ${fmtInch(couch_panelLen, rm)}" long`,
+      `Qty 1 — sewn to outer edge of left panel (incl. ${fmtExact(seam)}" seam allowance). Can be cut from a scrap of equivalent dimensions if available.`]);
     rows.push(['Right side extension',
-      `${fmtInch(couch_extEachCut, rm)}" wide × actual length needed (see cut diagram)`,
-      `Qty 1 — sewn to outer edge of right panel (incl. ${fmtExact(seam)}" seam allowance). Adds width on the right side of the couch.`]);
+      `${fmtInch(couch_extEachCut, rm)}" wide × ${fmtInch(couch_panelLen, rm)}" long`,
+      `Qty 1 — sewn to outer edge of right panel (incl. ${fmtExact(seam)}" seam allowance). Can be cut from a scrap of equivalent dimensions if available.`]);
   } else {
     rows.push(['Side extensions', 'Not required',
       `Two joined bolts (${B}" + ${B}" − 2×${fmtExact(seam)}" snap-seam = ${fmtExact(couch_joinedUsableW)}") cover the assembled width (${fmtExact(couch_assembledW)}").`]);
@@ -2705,6 +2705,34 @@ function compute(){
       ['Yards (exact)', `${fmtExact(exactYards)} yd`,
         `${fmtExact(totalLength)} ÷ 36 = ${fmtExact(exactYards)} yards (no rounding)`],
     ];
+
+    // ── ALTERNATIVE: source side extensions from scrap ─────────────
+    // If the side extensions are small, you may already have a piece
+    // of scrap material that can serve as the extension instead of
+    // having to buy an additional bolt. Show the savings explicitly
+    // so the cutter can decide based on what's on hand.
+    if (couch_extNeeded) {
+      const scrapSourcedTotalIn = 2 * couch_panelLen;            // just the 2 main panels
+      const scrapSourcedYards   = scrapSourcedTotalIn / 36;
+      const savedIn             = totalLength - scrapSourcedTotalIn;
+      const savedYards          = savedIn / 36;
+      const scrapPieceW         = couch_extEachCut;
+      const scrapPieceL         = couch_panelLen;
+      const bothExtsFitOneBolt  = (2 * couch_extEachCut) <= B;
+      const scrapNote = bothExtsFitOneBolt
+        ? `Both extensions would normally fit across one extra bolt — using scrap saves you that whole bolt.`
+        : `Each extension would normally need its own bolt — using scrap for both saves you 2 bolts.`;
+      bRows.push([`<span style="color:#7c3aed; font-weight:600; text-transform:uppercase; font-size:11px; letter-spacing:0.5px;">Alternative: source side extensions from scrap</span>`, '', `<span style="color:var(--sub);">If you have leftover material that fits the dimensions below, you can skip the extra bolt(s) for the extensions.</span>`]);
+      bRows.push(['Scrap pieces needed',
+        `2 × (${fmtInch(scrapPieceW, rounded)}" × ${fmtInch(scrapPieceL, rounded)}")`,
+        `One per side. Width includes the ${fmtExact(seam)}" seam allowance.`]);
+      bRows.push(['New fabric to buy (if scrap used)',
+        `${fmtInch(scrapSourcedTotalIn, rounded)} in (${fmtYardsFromInches(scrapSourcedTotalIn, rounded)} yd)`,
+        `Just the 2 main panels: 2 × ${fmtExact(couch_panelLen)}" = ${fmtExact(scrapSourcedTotalIn)}". ${scrapNote}`]);
+      bRows.push(['Savings vs. all-new fabric',
+        `${fmtInch(savedIn, rounded)} in (${fmtYardsFromInches(savedIn, rounded)} yd)`,
+        `${fmtExact(totalLength)}" − ${fmtExact(scrapSourcedTotalIn)}" = ${fmtExact(savedIn)}" saved if extensions come from scrap.`]);
+    }
     bRows.forEach(([label, value, calc], i)=>{
       const div = document.createElement('div');
       div.className = 'row';
