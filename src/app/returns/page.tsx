@@ -28,7 +28,6 @@ export default function ReturnsPage() {
                 <p className="font-semibold text-gray-900 mb-2">We Cannot Accept Returns For:</p>
                 <ul className="list-disc list-inside text-gray-700 space-y-1">
                   <li>Incorrect measurements provided by customer</li>
-                  <li>Change of mind or buyer's remorse</li>
                   <li>Color variations from screen display</li>
                   <li>Size issues due to customer measurement errors</li>
                   <li>Normal wear and tear after use</li>
