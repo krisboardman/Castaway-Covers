@@ -48,6 +48,18 @@ export const useCartStore = create<CartStore>()(
         set((state) => ({
           items: [...state.items, { ...item, id }]
         }));
+        // Fire Meta Pixel AddToCart event for ad-campaign optimization.
+        // This is a high-intent signal Meta can optimize toward.
+        if (typeof window !== 'undefined' && (window as any).fbq) {
+          (window as any).fbq('track', 'AddToCart', {
+            content_name: item.productType,
+            content_category: item.productType,
+            content_type: 'product',
+            value: item.total,
+            currency: 'USD',
+            num_items: item.quantity,
+          });
+        }
       },
       
       removeFromCart: (id) => {

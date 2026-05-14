@@ -6,11 +6,29 @@ import Link from 'next/link';
 
 export default function CheckoutSuccessPage() {
   const clearCart = useCartStore((state) => state.clearCart);
+  const items = useCartStore((state) => state.items);
+  const getTotalPrice = useCartStore((state) => state.getTotalPrice);
 
   useEffect(() => {
+    // Fire Meta Pixel Purchase event BEFORE clearing the cart, while the
+    // cart still has line items. This is the highest-value conversion
+    // signal we can send to Meta — used for sales-objective ad optimization.
+    if (typeof window !== 'undefined' && (window as any).fbq && items.length > 0) {
+      const total = getTotalPrice();
+      (window as any).fbq('track', 'Purchase', {
+        value: total,
+        currency: 'USD',
+        num_items: items.reduce((sum, i) => sum + i.quantity, 0),
+        content_ids: items.map((i) => i.coverSKU).filter(Boolean),
+        content_type: 'product',
+      });
+    }
     // Clear the cart after successful checkout
     clearCart();
-  }, [clearCart]);
+    // We intentionally fire-and-clear on first mount; deps left minimal
+    // so we don't re-fire on re-renders.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">

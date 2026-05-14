@@ -132,6 +132,19 @@ export default function ProductPage() {
     }
   }, [productType]);
 
+  // Fire Meta Pixel ViewContent event for ad-campaign optimization.
+  // Meta uses this signal to find more users likely to view product content,
+  // which is what we're optimizing toward in the Sales campaign ad set.
+  useEffect(() => {
+    if (typeof window !== 'undefined' && (window as any).fbq) {
+      (window as any).fbq('track', 'ViewContent', {
+        content_name: productName,
+        content_category: productType,
+        content_type: 'product',
+      });
+    }
+  }, [productType, productName]);
+
   // Handle client-side mounting
   useEffect(() => {
     setMounted(true);
