@@ -135,14 +135,34 @@ export default function ProductPage() {
   // Fire Meta Pixel ViewContent event for ad-campaign optimization.
   // Meta uses this signal to find more users likely to view product content,
   // which is what we're optimizing toward in the Sales campaign ad set.
+  // The pixel loads with strategy="afterInteractive" in layout.tsx, which
+  // can race with React hydration — fbq may not be defined when this effect
+  // first runs. We retry briefly until it's available, then give up.
   useEffect(() => {
-    if (typeof window !== 'undefined' && (window as any).fbq) {
-      (window as any).fbq('track', 'ViewContent', {
+    if (typeof window === 'undefined') return;
+
+    const fire = () => {
+      const w = window as any;
+      if (!w.fbq) return false;
+      w.fbq('track', 'ViewContent', {
         content_name: productName,
         content_category: productType,
         content_type: 'product',
       });
-    }
+      return true;
+    };
+
+    if (fire()) return;
+
+    const interval = setInterval(() => {
+      if (fire()) clearInterval(interval);
+    }, 250);
+    const timeout = setTimeout(() => clearInterval(interval), 8000);
+
+    return () => {
+      clearInterval(interval);
+      clearTimeout(timeout);
+    };
   }, [productType, productName]);
 
   // Handle client-side mounting

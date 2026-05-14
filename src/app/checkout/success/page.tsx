@@ -13,17 +13,33 @@ export default function CheckoutSuccessPage() {
     // Fire Meta Pixel Purchase event BEFORE clearing the cart, while the
     // cart still has line items. This is the highest-value conversion
     // signal we can send to Meta — used for sales-objective ad optimization.
-    if (typeof window !== 'undefined' && (window as any).fbq && items.length > 0) {
-      const total = getTotalPrice();
-      (window as any).fbq('track', 'Purchase', {
-        value: total,
-        currency: 'USD',
-        num_items: items.reduce((sum, i) => sum + i.quantity, 0),
-        content_ids: items.map((i) => i.coverSKU).filter(Boolean),
-        content_type: 'product',
-      });
+    // Snapshot the order details now so we still have them after clearCart().
+    const orderSnapshot = items.length > 0 ? {
+      value: getTotalPrice(),
+      currency: 'USD',
+      num_items: items.reduce((sum, i) => sum + i.quantity, 0),
+      content_ids: items.map((i) => i.coverSKU).filter(Boolean),
+      content_type: 'product',
+    } : null;
+
+    // Retry firing Purchase until fbq is loaded (handles the afterInteractive
+    // race condition on fresh page loads).
+    if (typeof window !== 'undefined' && orderSnapshot) {
+      const fire = () => {
+        const w = window as any;
+        if (!w.fbq) return false;
+        w.fbq('track', 'Purchase', orderSnapshot);
+        return true;
+      };
+      if (!fire()) {
+        const interval = setInterval(() => {
+          if (fire()) clearInterval(interval);
+        }, 250);
+        setTimeout(() => clearInterval(interval), 8000);
+      }
     }
-    // Clear the cart after successful checkout
+
+    // Clear the cart after capturing the snapshot.
     clearCart();
     // We intentionally fire-and-clear on first mount; deps left minimal
     // so we don't re-fire on re-renders.
