@@ -75,6 +75,7 @@ export default function FeaturesPage() {
               "Snaps eliminate bunching and gaps for a streamlined appearance"
             ]}
             imagePosition="left"
+            blurFill
           />
 
           {/* Feature 6: Double-Reinforced Weather-Rated Grommets */}
@@ -168,18 +169,28 @@ interface FeatureSectionProps {
   description: string;
   benefits: string[];
   imagePosition: 'left' | 'right';
+  blurFill?: boolean;
 }
 
-function FeatureSection({ imagePath, title, description, benefits, imagePosition }: FeatureSectionProps) {
+function FeatureSection({ imagePath, title, description, benefits, imagePosition, blurFill }: FeatureSectionProps) {
   return (
     <div className={`grid grid-cols-1 lg:grid-cols-2 gap-8 items-center ${imagePosition === 'right' ? 'lg:grid-flow-dense' : ''}`}>
       {/* Image */}
       <div className={`relative h-[400px] md:h-[500px] rounded-2xl overflow-hidden shadow-xl ${imagePosition === 'right' ? 'lg:col-start-2' : ''}`}>
+        {blurFill && (
+          <Image
+            src={imagePath}
+            alt=""
+            aria-hidden
+            fill
+            className="object-cover scale-110 blur-2xl"
+          />
+        )}
         <Image
           src={imagePath}
           alt={title}
           fill
-          className="object-cover"
+          className={blurFill ? 'object-contain' : 'object-cover'}
         />
       </div>
 
