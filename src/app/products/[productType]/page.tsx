@@ -726,8 +726,6 @@ const getGalleryImages = (productType: string, selectedColor?: string) => {
       { src: '/images/Tables/table3.jpg', alt: 'Table with Castaway Cover' },
       { src: '/images/Tables/table4.jpg', alt: 'Table Cover - Scalloped Edge on Patio' },
       { src: '/images/Tablesets/tableset6.jpg', alt: 'Table Set Cover - Winter Snow Protection' },
-      { src: '/images/Tablesets/tableset2.jpg', alt: 'Table Set Cover - Bungee System' },
-      { src: '/images/Tablesets/tableset4.jpg', alt: 'Table Set - Complete View' },
       { src: '/images/Tablesets/tableset5.jpg', alt: 'Table Set - Additional View' }
     ],
     'table-sets': [
