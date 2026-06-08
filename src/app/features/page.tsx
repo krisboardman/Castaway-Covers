@@ -64,7 +64,7 @@ export default function FeaturesPage() {
 
           {/* Feature 5: Tailored Corner Construction */}
           <FeatureSection
-            imagePath="/images/features/corner-construction.jpg"
+            imagePath="/images/features/corner-construction-v2.jpg"
             title="Tailored Corner Construction"
             description="Our tailored corner design allows the cover to drape smoothly and fit snugly over your furniture without bunching or gaps. Stainless steel snap closures at the back corners fold excess material neatly inward, creating a clean, streamlined appearance while helping keep the cover secure in windy conditions. All seams are sewn with UV resistant high strength polyester thread for long-lasting durability."
             benefits={[
