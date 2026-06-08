@@ -677,13 +677,15 @@ const getGalleryImages = (productType: string, selectedColor?: string) => {
       { src: '/images/Chairs-Recliners/chair2.jpg', alt: 'Chair Cover - Back View' },
       { src: '/images/Chairs-Recliners/chair3.jpg', alt: 'Chair Cover - Side View' },
       { src: '/images/Chairs-Recliners/chair4.jpg', alt: 'Patio Chair with Snap Cover' },
-      { src: '/images/Chairs-Recliners/chair7.jpg', alt: 'Chair Cover - Outdoor View' }
+      { src: '/images/Chairs-Recliners/chair7.jpg', alt: 'Chair Cover - Outdoor View' },
+      { src: '/images/Chairs-Recliners/chair8.jpg', alt: 'Chair Cover - Built-In Bungee Storage' }
     ],
     'sofas-loveseats': [
       { src: '/images/Sofas-Loveseats/sofa1.jpg', alt: 'Sofa with Castaway Cover' },
       { src: '/images/Sofas-Loveseats/sofa4.jpg', alt: 'Sofa Cover - Bungee & Handle Detail' },
       { src: '/images/Sofas-Loveseats/sofa5.jpg', alt: 'Sofa Cover - Additional View' },
-      { src: '/images/Sofas-Loveseats/sofa6.jpg', alt: 'Loveseat Cover in Blue - Outdoor View' }
+      { src: '/images/Sofas-Loveseats/sofa6.jpg', alt: 'Loveseat Cover in Blue - Outdoor View' },
+      { src: '/images/Sofas-Loveseats/sofa7.jpg', alt: 'Sofa Cover - Built-In Bungee Storage' }
     ],
     'chaise-lounge': [
       { src: '/images/ChaiseLounges/chaise1.jpg', alt: 'Chaise Lounge Cover in Blue - Flat Position' },
