@@ -79,7 +79,7 @@ export default function Home() {
             <div className="relative aspect-square rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-shadow">
               <Image
                 src="/images/gallery/Gallery2.webp"
-                alt="Outdoor Table Cover"
+                alt="Outdoor Furniture Cover in Blue"
                 fill
                 sizes="(max-width: 768px) 50vw, 33vw"
                 className="object-cover"

@@ -682,7 +682,8 @@ const getGalleryImages = (productType: string, selectedColor?: string) => {
     'sofas-loveseats': [
       { src: '/images/Sofas-Loveseats/sofa1.jpg', alt: 'Sofa with Castaway Cover' },
       { src: '/images/Sofas-Loveseats/sofa4.jpg', alt: 'Sofa Cover - Bungee & Handle Detail' },
-      { src: '/images/Sofas-Loveseats/sofa5.jpg', alt: 'Sofa Cover - Additional View' }
+      { src: '/images/Sofas-Loveseats/sofa5.jpg', alt: 'Sofa Cover - Additional View' },
+      { src: '/images/Sofas-Loveseats/sofa6.jpg', alt: 'Loveseat Cover in Blue - Outdoor View' }
     ],
     'chaise-lounge': [
       { src: '/images/ChaiseLounges/chaise1.jpg', alt: 'Chaise Lounge Cover in Blue - Flat Position' },
