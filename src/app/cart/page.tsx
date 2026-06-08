@@ -639,6 +639,6 @@ const productTypes = {
   'sofas-loveseats': 'Sofas / Loveseats',
   'chaise-lounge': 'Chaise Lounge',
   'ottomans': 'Ottomans',
-  'tables': 'Tables',
+  'tables': 'Tables / Sets',
   'table-sets': 'Table Sets'
 };

@@ -9,6 +9,12 @@ const nextConfig = {
   },
   async redirects() {
     return [
+      // Tables and Table Sets merged into a single "Tables / Sets" page.
+      {
+        source: '/products/table-sets',
+        destination: '/products/tables',
+        permanent: true,
+      },
       // Legacy WordPress / old-site URLs flagged by Google Search Console.
       // All 301 so link equity is preserved and Google drops the 404s from its index.
       {

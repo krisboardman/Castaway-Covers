@@ -26,19 +26,11 @@ export default function DesignPage() {
       description: "Pool and patio loungers"
     },
     {
-      name: "Tables",
+      name: "Tables / Sets",
       href: "/products/tables",
       image: "/images/sketch-icons/sketchtable.png",
-      description: "Dining and coffee tables"
+      description: "Dining tables, coffee tables, and full table sets with chairs"
     },
-    /* Table Sets - temporarily hidden
-    {
-      name: "Table Sets",
-      href: "/products/table-sets",
-      image: "/images/sketch-icons/sketchtableset.png",
-      description: "Complete dining sets with chairs or benches"
-    },
-    */
     {
       name: "Ottomans",
       href: "/products/ottomans",

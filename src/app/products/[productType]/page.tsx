@@ -80,7 +80,7 @@ const productTypes = {
   'chaise-lounge': 'Chaise Lounge',
   'chaise-lounges': 'Chaise Lounge',  // Support both singular and plural URLs
   'ottomans': 'Ottomans',
-  'tables': 'Tables',
+  'tables': 'Tables / Sets',
   'table-sets': 'Table Sets'
 };
 
@@ -111,7 +111,8 @@ export default function ProductPage() {
   const [measurementConfirmed, setMeasurementConfirmed] = useState(false);
   const [isCustomOrder, setIsCustomOrder] = useState(false);
   const [showAddedToast, setShowAddedToast] = useState(false);
-  
+  const [isTableSet, setIsTableSet] = useState(false);
+
   const addToCart = useCartStore((state) => state.addToCart);
   const updateItem = useCartStore((state) => state.updateItem);
   const removeFromCart = useCartStore((state) => state.removeFromCart);
@@ -394,6 +395,26 @@ export default function ProductPage() {
         {(productType === 'chaise-lounge' || productType === 'chaise-lounges') && (
           <div className="mt-4 bg-amber-50 border border-amber-200 rounded-lg px-5 py-3 text-sm text-amber-800">
             <strong>Note:</strong> Chaise lounge covers are designed to be used with the chaise in the fully flat (reclined) position.
+          </div>
+        )}
+
+        {/* Table set checkbox + measurement note */}
+        {productType === 'tables' && (
+          <div className="mt-4">
+            <label className="flex items-center gap-3 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={isTableSet}
+                onChange={(e) => setIsTableSet(e.target.checked)}
+                className="h-5 w-5 rounded border-gray-300 text-brand-teal focus:ring-brand-teal"
+              />
+              <span className="text-sm font-medium text-gray-800">This is a table set (table with chairs)</span>
+            </label>
+            {isTableSet && (
+              <div className="mt-3 bg-amber-50 border border-amber-200 rounded-lg px-5 py-3 text-sm text-amber-800">
+                <strong>Measuring a table set:</strong> Take your measurements with the chairs pushed in under the table. Measure the width and depth to the <strong>outside edges of the chairs</strong> (not just the table), and for height use the <strong>chairs or the table — whichever is taller</strong>.
+              </div>
+            )}
           </div>
         )}
 
@@ -700,9 +721,14 @@ const getGalleryImages = (productType: string, selectedColor?: string) => {
       { src: '/images/Ottomans/ottoman4.jpg', alt: 'Ottoman Cover - Gray Outdoor View' }
     ],
     'tables': [
+      { src: '/images/Tables/tableset-lakefront.jpg', alt: 'Table Set Cover - Lakefront View' },
       { src: '/images/Tables/table1.jpg', alt: 'Wine Table with Castaway Cover' },
       { src: '/images/Tables/table3.jpg', alt: 'Table with Castaway Cover' },
-      { src: '/images/Tables/table4.jpg', alt: 'Table Cover - Scalloped Edge on Patio' }
+      { src: '/images/Tables/table4.jpg', alt: 'Table Cover - Scalloped Edge on Patio' },
+      { src: '/images/Tablesets/tableset6.jpg', alt: 'Table Set Cover - Winter Snow Protection' },
+      { src: '/images/Tablesets/tableset2.jpg', alt: 'Table Set Cover - Bungee System' },
+      { src: '/images/Tablesets/tableset4.jpg', alt: 'Table Set - Complete View' },
+      { src: '/images/Tablesets/tableset5.jpg', alt: 'Table Set - Additional View' }
     ],
     'table-sets': [
       { src: '/images/Tablesets/tableset6.jpg', alt: 'Table Set Cover - Winter Snow Protection' },
