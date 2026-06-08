@@ -126,6 +126,36 @@ export default function Home() {
                 loading="lazy"
               />
             </div>
+            <div className="relative aspect-square rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-shadow">
+              <Image
+                src="/images/gallery/Gallery7.webp"
+                alt="Patio Chair Covers"
+                fill
+                sizes="(max-width: 768px) 50vw, 33vw"
+                className="object-cover"
+                loading="lazy"
+              />
+            </div>
+            <div className="relative aspect-square rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-shadow">
+              <Image
+                src="/images/gallery/Gallery8.webp"
+                alt="Ottoman Cover"
+                fill
+                sizes="(max-width: 768px) 50vw, 33vw"
+                className="object-cover"
+                loading="lazy"
+              />
+            </div>
+            <div className="relative aspect-square rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-shadow">
+              <Image
+                src="/images/gallery/Gallery9.webp"
+                alt="Patio Cover with Storage Straps"
+                fill
+                sizes="(max-width: 768px) 50vw, 33vw"
+                className="object-cover"
+                loading="lazy"
+              />
+            </div>
           </div>
         </div>
       </section>
