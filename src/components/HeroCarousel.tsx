@@ -5,7 +5,7 @@ import Image from 'next/image';
 
 const slides = [
   {
-    image: '/images/hero/hero1.webp',
+    image: '/images/hero/hero1-v2.webp',
     title: '',
     subtitle: ''
   },
@@ -25,7 +25,7 @@ const slides = [
     subtitle: 'Innovative snap straps let you fold back covers for instant relaxing'
   },
   {
-    image: '/images/hero/hero4.webp',
+    image: '/images/hero/hero4-v2.webp',
     title: 'Beautiful Styling',
     subtitle: 'Elegant wavy edges and premium marine-grade colors that complement any outdoor space'
   }
