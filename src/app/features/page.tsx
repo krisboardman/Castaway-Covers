@@ -50,7 +50,7 @@ export default function FeaturesPage() {
 
           {/* Feature 4: Built-In Bungee Cord Organization */}
           <FeatureSection
-            imagePath="/images/features/bungee-storage.jpg"
+            imagePath="/images/features/bungee-storage-v2.jpg"
             title="Built-In Bungee Cord Organization"
             description="Smart design means easy maintenance. Our bungee cords stay attached to the cover and hang discreetly at the back when not in use. Set the length once for your furniture, then it's simply hook for secure coverage and unhook to remove - the cord length stays set, so there's no readjusting each time you use it."
             benefits={[
