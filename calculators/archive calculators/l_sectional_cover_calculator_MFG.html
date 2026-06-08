@@ -1,0 +1,1474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>L-Shaped Sectional Cover Calculator — Snap-Back Design</title>
+<style>
+  :root { --bg:#f8fafc; --card:#ffffff; --text:#0f172a; --sub:#475569; --muted:#e2e8f0; --accent:#22c55e; }
+  body { font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; background:var(--bg); color:var(--text); margin:0; padding:24px; }
+  .wrap { max-width:1300px; margin:0 auto; }
+  h1 { font-size:24px; margin:0 0 4px; }
+  .sub { font-size:13px; color:var(--sub); margin:0 0 18px; }
+  .controls { display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin-bottom:12px; }
+  .pill { padding:6px 10px; border-radius:999px; border:1px solid #cbd5e1; background:#eff6ff; color:#1e293b; font-size:12px; }
+  .switch { display:flex; align-items:center; gap:8px; font-size:14px; }
+  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  .grid3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; }
+  .card { background:var(--card); border:1px solid var(--muted); border-radius:14px; padding:16px; box-shadow:0 1px 8px rgba(0,0,0,0.04); }
+  .title { font-weight:600; margin-bottom:8px; font-size:15px; }
+  .section-label { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.8px; margin:12px 0 6px; color:var(--sub); border-bottom:1px solid var(--muted); padding-bottom:4px; }
+  .inputs { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+  .inputs-3 { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+  label.lbl { display:grid; gap:6px; font-size:12px; color:var(--sub); }
+  input[type="number"] { border:1px solid var(--muted); border-radius:10px; padding:10px 12px; font-size:14px; width:100%; box-sizing:border-box; }
+  .row { display:flex; justify-content:space-between; align-items:center; font-size:14px; padding:8px 0; }
+  .row+.row { border-top:1px dashed var(--muted); }
+  .note { font-size:12px; color:var(--sub); margin-top:8px; }
+  .btn { padding:8px 10px; border-radius:10px; border:1px solid var(--muted); background:#fff; cursor:pointer; font-size:13px; }
+  .danger { color:#b91c1c; }
+  .diagramBox { display:flex; flex-direction:column; gap:10px; }
+  svg.diagram { width:100%; border:1px dashed #cbd5e1; border-radius:12px; background:#fcfdff; }
+  .legend { display:flex; gap:12px; align-items:center; font-size:12px; color:var(--sub); flex-wrap:wrap; }
+  .chip { display:inline-block; width:12px; height:12px; border-radius:2px; border:1px solid #0f172a22; }
+  .formula { display:none; font-size:11px; color:var(--sub); margin-top:4px; }
+  .show-work .formula { display:block; }
+  .sec-a { color:#2563eb; }
+  .sec-b { color:#16a34a; }
+  .tag-a { background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe; border-radius:6px; padding:2px 8px; font-size:11px; font-weight:700; }
+  .tag-b { background:#f0fdf4; color:#15803d; border:1px solid #bbf7d0; border-radius:6px; padding:2px 8px; font-size:11px; font-weight:700; }
+
+  @media print {
+    body { padding:0; margin:0; }
+    .wrap { max-width:100%; padding:0; }
+    .controls { display:none; }
+    .card { padding:8px; margin-bottom:8px; page-break-inside:avoid; }
+    .row { padding:3px 0; font-size:11px; }
+    .note { font-size:9px; }
+    svg.diagram { page-break-inside:avoid; }
+    .assembly-card { page:landscape; page-break-before:always; page-break-inside:avoid; padding:0 !important; border:none !important; }
+    .assembly-card svg.diagram { height:7in !important; border:none !important; }
+  }
+  @page landscape { size:11in 8.5in landscape; margin:0.15in; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>L-Shaped Sectional Cover Calculator — Snap-Back Design</h1>
+  <div class="sub">Two covers (Section A + Section B) that meet at the inner corner. Outer edges drape + bungee. Inner edges overlap with snaps.</div>
+
+  <div class="controls">
+    <span class="pill">Units: inches</span>
+    <label class="switch"><span>Rounding:</span>
+      <select id="roundMode" style="border:1px solid #cbd5e1;border-radius:8px;padding:6px 10px;font-size:13px;">
+        <option value="exact">Exact (decimal)</option>
+        <option value="half">1/2" increments (MFG)</option>
+        <option value="whole" selected>Whole inch</option>
+      </select>
+    </label>
+    <button id="recalc" class="btn">Recalculate</button>
+    <button id="resetBtn" class="btn">Reset to sample</button>
+  </div>
+
+  <!-- Row 1: Inputs -->
+  <div class="grid2">
+    <div class="card" id="inputsCard">
+      <div class="title">Inputs</div>
+
+      <div class="section-label">Fabric &amp; Shared Allowances</div>
+      <div class="inputs-3">
+        <label class="lbl">B (Bolt width)<input id="B" type="number" value="54" step="0.5"/></label>
+        <label class="lbl">FC + Wave Allowance<input id="FC" type="number" value="3" step="1"/></label>
+        <label class="lbl">Hem allowance (edges)<input id="hem" type="number" value="1" step="0.5"/></label>
+        <label class="lbl">Seam overlap (junctions)<input id="seam" type="number" value="1.5" step="0.5"/></label>
+        <label class="lbl">Wave allowance<input id="waveAllowance" type="number" value="3" step="0.5" min="0"/></label>
+        <label class="lbl">Bottom margin (front skirt)<input id="bottomMargin" type="number" value="8" step="0.5" min="0"/></label>
+      </div>
+
+      <div class="section-label">Shared Couch Measurements (both sections)</div>
+      <div class="inputs">
+        <label class="lbl">H (Height to backrest top)<input id="H" type="number" value="25" step="1"/></label>
+        <label class="lbl">D (Depth seat front to back)<input id="D" type="number" value="33" step="1"/></label>
+        <label class="lbl">F2A (Floor to Armrest)<input id="F2A" type="number" value="22" step="1"/></label>
+        <label class="lbl">F2BS (Floor to Bottom of seat)<input id="F2BS" type="number" value="13" step="1"/></label>
+        <label class="lbl">BR (Backrest thickness)<input id="BR" type="number" value="4" step="1"/></label>
+      </div>
+
+      <div class="section-label">L-Shape Orientation</div>
+      <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;padding:4px 0;">
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;">
+          <input type="radio" name="orientation" id="orientRight" value="right" checked/>
+          Short arm (B) on the <strong>Right</strong>
+        </label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;">
+          <input type="radio" name="orientation" id="orientLeft" value="left"/>
+          Short arm (B) on the <strong>Left</strong>
+        </label>
+      </div>
+
+      <div class="section-label"><span class="tag-a">A</span> Section A — Long Arm</div>
+      <div class="inputs">
+        <label class="lbl">W_A (Width arm-to-arm)<input id="WA" type="number" value="90" step="1"/></label>
+        <label class="lbl">WB_A (Back width)<input id="WBA" type="number" value="90" step="1"/></label>
+      </div>
+
+      <div class="section-label"><span class="tag-b">B</span> Section B — Short Arm</div>
+      <div class="inputs">
+        <label class="lbl">W_B (Width arm-to-arm)<input id="WB_inp" type="number" value="60" step="1"/></label>
+        <label class="lbl">WB_B (Back width)<input id="WBB" type="number" value="60" step="1"/></label>
+      </div>
+
+      <div id="err" class="note danger" style="display:none;margin-top:8px;"></div>
+    </div>
+
+    <!-- Results column -->
+    <div style="display:flex;flex-direction:column;gap:16px;">
+      <div class="card" id="resultsCard">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <div class="title" style="margin-bottom:0;">Results</div>
+          <button id="toggleWork" class="btn" style="font-size:12px;padding:4px 10px;">Show work</button>
+        </div>
+        <div id="resultsA"></div>
+        <div id="resultsB" style="margin-top:12px;border-top:2px solid var(--muted);padding-top:12px;"></div>
+      </div>
+
+      <div class="card">
+        <div class="title">Material to Buy</div>
+        <div id="buy"></div>
+        <div class="note">Rounded mode rounds <b>up</b>: inches to whole numbers; yards to the next whole yard.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Row 2: Cut Diagrams -->
+  <div class="grid2" style="margin-top:16px;">
+    <div class="card">
+      <div class="title"><span class="tag-a">A</span> Cover A — Cut Diagram</div>
+      <div id="cutlistA" style="margin-bottom:10px;"></div>
+      <div class="diagramBox">
+        <svg id="cutDiagramA" class="diagram" viewBox="0 0 800 420" preserveAspectRatio="xMidYMid meet" style="height:340px;"></svg>
+        <div class="legend">
+          <span class="chip" style="background:#bfdbfe55;border-color:#2563eb;"></span> Panel 1 &amp; 2 (identical taper)
+          <span class="chip" style="background:#bfdbfe55;border-color:#dc2626;"></span> Flap cut line (left edge only — material stays attached)
+          <span class="chip" style="background:#e2e8f0;"></span> Scrap
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="title"><span class="tag-b">B</span> Cover B — Cut Diagram</div>
+      <div id="cutlistB" style="margin-bottom:10px;"></div>
+      <div class="diagramBox">
+        <svg id="cutDiagramB" class="diagram" viewBox="0 0 800 420" preserveAspectRatio="xMidYMid meet" style="height:340px;"></svg>
+        <div class="legend">
+          <span class="chip" style="background:#bbf7d055;border-color:#16a34a;"></span> Outer panel
+          <span class="chip" style="background:#ddd6fe55;border-color:#7c3aed;"></span> Inner extension panel
+          <span class="chip" style="background:#e2e8f0;"></span> Scrap
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Row 3: Grommet + Snap -->
+  <div class="grid2" style="margin-top:16px;">
+    <div class="card">
+      <div class="title">Grommet Placement</div>
+      <div id="grommets"></div>
+    </div>
+    <div class="card">
+      <div class="title">Snap Placement</div>
+      <div id="snaps"></div>
+    </div>
+  </div>
+
+  <!-- Row 4: Flat-Pattern Assembly Diagrams (full width, one each) -->
+  <div class="card assembly-card" style="margin-top:16px;">
+    <div class="title" style="font-size:17px;"><span class="tag-a">A</span> Cover A — Assembly Diagram (Flat Pattern)</div>
+    <div class="diagramBox">
+      <svg id="assemblyA" class="diagram" viewBox="0 0 1400 900" preserveAspectRatio="xMidYMid meet" style="width:100%;height:auto;min-height:680px;"></svg>
+      <div class="legend">
+        <span class="chip" style="background:#eef2ff;border-color:#0f172a;"></span> Fabric
+        <span class="chip" style="background:none;border:2px solid #dc2626;width:10px;height:10px;"></span> Cut line / notch
+        <span class="chip" style="background:none;border:2px dashed #9333ea;width:10px;height:10px;"></span> Seam
+        <span class="chip" style="background:none;border:2.5px solid #b45309;border-radius:50%;width:10px;height:10px;"></span> Grommets
+        <span class="chip" style="background:#22c55e;border-color:#166534;border-radius:50%;"></span> Snaps
+        <span class="chip" style="background:#0ea5e9;border-color:#0369a1;"></span> Bungee tab
+      </div>
+    </div>
+  </div>
+
+  <div class="card assembly-card" style="margin-top:16px;">
+    <div class="title" style="font-size:17px;"><span class="tag-b">B</span> Cover B — Assembly Diagram (Flat Pattern)</div>
+    <div class="diagramBox">
+      <svg id="assemblyB" class="diagram" viewBox="0 0 1400 900" preserveAspectRatio="xMidYMid meet" style="width:100%;height:auto;min-height:680px;"></svg>
+      <div class="legend">
+        <span class="chip" style="background:#f0fdf4;border-color:#0f172a;"></span> Fabric
+        <span class="chip" style="background:none;border:2px solid #dc2626;width:10px;height:10px;"></span> Cut line
+        <span class="chip" style="background:none;border:2px dashed #9333ea;width:10px;height:10px;"></span> Seam
+        <span class="chip" style="background:none;border:2.5px solid #b45309;border-radius:50%;width:10px;height:10px;"></span> Grommets
+        <span class="chip" style="background:#22c55e;border-color:#166534;border-radius:50%;"></span> Snaps
+        <span class="chip" style="background:#0ea5e9;border-color:#0369a1;"></span> Bungee tab
+      </div>
+    </div>
+  </div>
+
+  <!-- Combined Assembly Diagram -->
+  <div class="card assembly-card" style="margin-top:24px;">
+    <div class="title" style="font-size:17px;">Assembly Diagram — Installed View (Top Down)</div>
+    <div class="diagramBox">
+      <svg id="assemblyDiagram" class="diagram" viewBox="0 0 1400 900" preserveAspectRatio="xMidYMid meet" style="width:100%;height:auto;min-height:700px;"></svg>
+      <div class="legend">
+        <span class="chip" style="background:#bfdbfe;border-color:#2563eb;"></span> Cover A fabric
+        <span class="chip" style="background:#bbf7d0;border-color:#16a34a;"></span> Cover B fabric
+        <span class="chip" style="background:#c4b5fd55;border-color:#7c3aed;"></span> Flap overlap (A on top)
+        <span class="chip" style="background:none;border:2px dashed #94a3b8;width:10px;height:10px;"></span> Sofa outline
+        <span class="chip" style="background:none;border:2px solid #b45309;border-radius:50%;width:10px;height:10px;"></span> Grommets
+        <span class="chip" style="background:#22c55e;border-color:#166534;border-radius:50%;"></span> Snaps
+        <span class="chip" style="background:#0ea5e9;border-color:#0369a1;transform:rotate(45deg);"></span> Bungee tabs
+        <span style="margin-left:auto;font-size:11px;">View from above — drape zones shown as shaded border around each cover</span>
+      </div>
+    </div>
+  </div>
+
+</div><!-- .wrap -->
+
+<script>
+// ─────────────────────────────────────────────
+// UTILITY FUNCTIONS
+// ─────────────────────────────────────────────
+function parseNum(id){ const v=Number(document.getElementById(id).value); return isFinite(v)?v:0; }
+function fmtExact(v){ return isFinite(v)?(Math.round(v*100)/100).toFixed(2):'–'; }
+function roundHalf(v){ return Math.ceil(v*2)/2; }
+function fmtInch(v,m){
+  if(m==='whole') return Math.ceil(v).toString();
+  if(m==='half')  return roundHalf(v).toString();
+  return fmtExact(v);
+}
+function fmtYd(inches,m){
+  const y=inches/36;
+  if(m==='whole') return Math.ceil(y).toString();
+  if(m==='half')  return roundHalf(y).toString();
+  return fmtExact(y);
+}
+
+// ─────────────────────────────────────────────
+// COVER A — Symmetric (long arm)
+// Both ends drape equally (sideDrop = H − FC).
+// A rectangular notch is cut from the front-right corner after assembly:
+//   notchWidth  = D  (Section B depth)
+//   notchDepth  = frontExtDrop (= F2A − FC)
+// The tab to the right of the notch becomes the flap that lays on Cover B.
+// ─────────────────────────────────────────────
+function computeCoverA(WA, WBA, H, D, F2A, F2BS, BR, FC, B, hem, seam, waveAllowance, bottomMargin){
+  const AT2F = Math.sqrt(Math.max(0,H-F2A)**2 + Math.max(0,D-BR)**2);
+  const sideDrop = H - FC;
+  const frontExtDrop = F2A - FC;
+  const backInset = hem + BR;
+  const frontInset = frontExtDrop;
+  const taperLen = Math.max(0, B - backInset - frontInset);
+  const totalFB = hem + BR + AT2F + frontExtDrop;
+  const frontFlapNeeded = totalFB > B;
+  const frontFlapWidth = frontFlapNeeded ? (totalFB - B) + hem : 0;
+  const frontStraight = frontInset + frontFlapWidth;
+  const outerPanelLen = sideDrop + backInset + taperLen + frontStraight;
+  const halfBack = WBA/2 + hem;
+  const halfMid = (WBA + 2*sideDrop) / 2;
+  const halfFront = (WA + 2*frontExtDrop) / 2;
+  const assembledW = WBA + 2*sideDrop;  // symmetric
+  const joinedUsableW = 2*B - seam;
+  const extNeeded = assembledW > joinedUsableW;
+  const extDeficit = Math.max(0, assembledW - joinedUsableW);
+  const extSeam = 1;
+  const extEachCut = extDeficit/2 + extSeam;
+  const boltCount = 2 + (extNeeded ? (2*extEachCut <= B ? 1 : 2) : 0);
+  const boltLengthEach = outerPanelLen;
+  const totalBoltLen = boltCount * boltLengthEach;
+  const notchWidth = D;           // width of corner notch = Section B depth
+  const notchDepth = frontExtDrop; // height of corner notch = front drape depth
+  const yPointB_in = sideDrop + backInset + taperLen;
+  const frontDiagonalHoriz = Math.max(0, frontExtDrop - bottomMargin);
+  const frontDiagonalVert = frontStraight;
+  const frontDiagonalLen = Math.sqrt(frontDiagonalHoriz**2 + frontDiagonalVert**2);
+  return { W:WA, WB:WBA, H, D, F2A, F2BS, BR, FC, B, hem, seam, bottomMargin,
+           AT2F, sideDrop, frontExtDrop, backInset, frontInset, taperLen,
+           totalFB, frontFlapNeeded, frontFlapWidth, frontStraight, outerPanelLen,
+           halfBack, halfMid, halfFront, assembledW, joinedUsableW,
+           extNeeded, extDeficit, extSeam, extEachCut, boltCount, boltLengthEach, totalBoltLen,
+           notchWidth, notchDepth, frontDiagonalHoriz, frontDiagonalVert, frontDiagonalLen,
+           yPointB_in, isSymmetric: true };
+}
+
+// ─────────────────────────────────────────────
+// COVER B — Asymmetric (short arm)
+// Outer end: full sideDrop drape.
+// Inner end: flat rectangular extension = frontExtDrop (matches Cover A flap).
+// ─────────────────────────────────────────────
+function computeCoverB(WBv, WBB, H, D, F2A, F2BS, BR, FC, B, hem, seam, waveAllowance, bottomMargin){
+  const AT2F = Math.sqrt(Math.max(0,H-F2A)**2 + Math.max(0,D-BR)**2);
+  const sideDrop = H - FC;
+  const frontExtDrop = F2A - FC;
+  const backInset = hem + BR;
+  const frontInset = frontExtDrop;
+  const taperLen = Math.max(0, B - backInset - frontInset);
+  const totalFB = hem + BR + AT2F + frontExtDrop;
+  const frontFlapNeeded = totalFB > B;
+  const frontFlapWidth = frontFlapNeeded ? (totalFB - B) + hem : 0;
+  const frontStraight = frontInset + frontFlapWidth;
+  const outerPanelLen = sideDrop + backInset + taperLen + frontStraight;
+  const halfBack = WBB/2 + hem;
+  const halfMid = (WBB + 2*sideDrop) / 2;
+  const halfFront = (WBv + 2*frontExtDrop) / 2;
+  const innerExtension = frontExtDrop; // matches Cover A flap depth
+  const innerPanelLen = WBB/2 + innerExtension;
+  const assembledW = (WBB/2 + sideDrop) + (WBB/2 + innerExtension); // asymmetric
+  const outerAssembledW = WBB + 2*sideDrop;
+  const joinedUsableW = 2*B - seam;
+  const extNeeded = outerAssembledW > joinedUsableW;
+  const extDeficit = Math.max(0, outerAssembledW - joinedUsableW);
+  const extSeam = 1;
+  const extEachCut = extDeficit/2 + extSeam;
+  const boltCount = 2 + (extNeeded ? (2*extEachCut <= B ? 1 : 2) : 0);
+  const boltLengthEach = outerPanelLen;
+  const totalBoltLen = boltCount * boltLengthEach;
+  const yPointB_in = sideDrop + backInset + taperLen;
+  const frontDiagonalHoriz = Math.max(0, frontExtDrop - bottomMargin);
+  const frontDiagonalVert = frontStraight;
+  const frontDiagonalLen = Math.sqrt(frontDiagonalHoriz**2 + frontDiagonalVert**2);
+  return { W:WBv, WB:WBB, H, D, F2A, F2BS, BR, FC, B, hem, seam, bottomMargin,
+           AT2F, sideDrop, frontExtDrop, backInset, frontInset, taperLen,
+           totalFB, frontFlapNeeded, frontFlapWidth, frontStraight, outerPanelLen,
+           innerPanelLen, innerExtension, halfBack, halfMid, halfFront,
+           assembledW, outerAssembledW, joinedUsableW,
+           extNeeded, extDeficit, extSeam, extEachCut, boltCount, boltLengthEach, totalBoltLen,
+           frontDiagonalHoriz, frontDiagonalVert, frontDiagonalLen, yPointB_in,
+           isSymmetric: false };
+}
+
+// ─────────────────────────────────────────────
+// RESULTS HTML
+// ─────────────────────────────────────────────
+function renderResults(containerId, p, label, roundMode){
+  const r = v => fmtInch(v, roundMode);
+  const el = document.getElementById(containerId);
+  if(!el) return;
+  let rows;
+  if(p.isSymmetric){
+    // Cover A
+    rows = [
+      [`<span style="font-weight:700;font-size:13px;">${label}</span>`, '', ''],
+      ['Diagonal drape (AT2F)', `${r(p.AT2F)}"`, `sqrt[(H-F2A)^2+(D-BR)^2] = ${fmtExact(p.AT2F)}"`],
+      ['Side drop (both ends equal)', `${r(p.sideDrop)}"`, `H-FC = ${p.H}-${p.FC} = ${fmtExact(p.sideDrop)}"`],
+      ['Front extension drop', `${r(p.frontExtDrop)}"`, `F2A-FC = ${p.F2A}-${p.FC} = ${fmtExact(p.frontExtDrop)}"`],
+      ['Outer panel length (bolt)', `${r(p.outerPanelLen)}" x ${r(p.B)}"`, `sideDrop+backInset+taperLen+frontStraight = ${fmtExact(p.outerPanelLen)}"`],
+      ['Assembled width (symmetric)', `${r(p.assembledW)}"`, `WBA+2*sideDrop = ${fmtExact(p.WB)}+2*${fmtExact(p.sideDrop)} = ${fmtExact(p.assembledW)}"`],
+      ['Flap zone (single cut line, left edge)', `${r(p.notchWidth)}" × ${r(p.notchDepth)}"`, `Width=D=${fmtExact(p.D)}", Depth=frontExtDrop=${fmtExact(p.frontExtDrop)}". Front-right corner. Material stays attached — cut left edge only, fold flat over Cover B.`],
+      ['Extensions needed?', p.extNeeded ? `Yes — ${r(p.extEachCut)}" each side` : 'No', p.extNeeded ? `Assembled ${fmtExact(p.assembledW)}" > 2xB-seam ${fmtExact(p.joinedUsableW)}"` : `Assembled ${fmtExact(p.assembledW)}" <= 2xB-seam ${fmtExact(p.joinedUsableW)}"`],
+    ];
+  } else {
+    // Cover B
+    rows = [
+      [`<span style="font-weight:700;font-size:13px;">${label}</span>`, '', ''],
+      ['Diagonal drape (AT2F)', `${r(p.AT2F)}"`, `sqrt[(H-F2A)^2+(D-BR)^2] = ${fmtExact(p.AT2F)}"`],
+      ['Outer side drop', `${r(p.sideDrop)}"`, `H-FC = ${p.H}-${p.FC} = ${fmtExact(p.sideDrop)}"`],
+      ['Front extension drop', `${r(p.frontExtDrop)}"`, `F2A-FC = ${p.F2A}-${p.FC} = ${fmtExact(p.frontExtDrop)}"`],
+      ['Outer panel length (bolt)', `${r(p.outerPanelLen)}" x ${r(p.B)}"`, `sideDrop+backInset+taperLen+frontStraight = ${fmtExact(p.outerPanelLen)}"`],
+      ['Inner extension (slides under Cover A flap)', `${r(p.innerExtension)}"`, `= frontExtDrop = ${fmtExact(p.frontExtDrop)}". Matches Cover A flap depth.`],
+      ['Inner panel length (bolt)', `${r(p.innerPanelLen)}" x ${r(p.B)}"`, `WBB/2 + frontExtDrop = ${fmtExact(p.WB/2)}+${fmtExact(p.innerExtension)} = ${fmtExact(p.innerPanelLen)}". Rectangular — no taper.`],
+      ['Assembled width (asymmetric)', `${r(p.assembledW)}"`, `Outer: WBB/2+sideDrop=${fmtExact(p.WB/2+p.sideDrop)}" + Inner: WBB/2+ext=${fmtExact(p.WB/2+p.innerExtension)}"`],
+      ['Extensions needed?', p.extNeeded ? `Yes — ${r(p.extEachCut)}" each side` : 'No', p.extNeeded ? `Outer assembledW ${fmtExact(p.outerAssembledW)}" > 2xB-seam ${fmtExact(p.joinedUsableW)}"` : `Outer assembledW ${fmtExact(p.outerAssembledW)}" <= 2xB-seam ${fmtExact(p.joinedUsableW)}"`],
+    ];
+  }
+  el.innerHTML = '';
+  rows.forEach(([lbl,val,calc],i) => {
+    const d = document.createElement('div');
+    d.className = 'row';
+    d.style.cssText = i>0 ? 'border-top:1px dashed var(--muted);display:block;padding:6px 0;' : 'display:block;padding:6px 0;';
+    d.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;"><span>${lbl}</span><strong>${val}</strong></div>${calc?`<div class="formula">${calc}</div>`:''}`;
+    el.appendChild(d);
+  });
+}
+
+// ─────────────────────────────────────────────
+// CUT DIAGRAM
+// Cover A: two identical taper panels side by side, notch annotation on panel 2.
+// Cover B: outer panel (taper) + inner extension panel (rectangle).
+// ─────────────────────────────────────────────
+function drawCutDiagram(svgId, p, roundMode, sectionColor, sectionLabel){
+  const svg = document.getElementById(svgId);
+  if(!svg) return;
+  while(svg.firstChild) svg.removeChild(svg.firstChild);
+  const VBW = 800, VBH = 420;
+  const add = (t,a,par=svg)=>{const e=document.createElementNS('http://www.w3.org/2000/svg',t);for(const k in a)e.setAttribute(k,a[k]);par.appendChild(e);return e;};
+  const r = v => fmtInch(v, roundMode);
+
+  const {B, outerPanelLen, halfBack, halfMid, halfFront,
+         sideDrop, backInset, taperLen, frontStraight, seam, extNeeded, extEachCut} = p;
+
+  const pad = 40;
+  const boltGap = 28;
+
+  const defs = add('defs',{});
+  const mk = add('marker',{id:'arr_cut',markerWidth:7,markerHeight:7,refX:3.5,refY:3.5,orient:'auto',viewBox:'0 0 7 7'},defs);
+  const mktip = document.createElementNS('http://www.w3.org/2000/svg','path');
+  mktip.setAttribute('d','M0,0 L7,3.5 L0,7 Z'); mktip.setAttribute('fill','#475569'); mk.appendChild(mktip);
+  const arrow=(x1,y1,x2,y2)=>add('line',{x1,y1,x2,y2,stroke:'#475569','stroke-width':1,'marker-start':'url(#arr_cut)','marker-end':'url(#arr_cut)'});
+
+  // Helper: compute outer panel polygon half-width at a given bolt-length position
+  function panelHW(xLen){
+    if(xLen <= 0) return halfBack;
+    if(xLen <= sideDrop) return halfBack + (halfMid-halfBack)*xLen/sideDrop;
+    if(xLen <= sideDrop+backInset) return halfMid;
+    if(xLen <= sideDrop+backInset+taperLen) return halfMid - (halfMid-halfFront)*(xLen-sideDrop-backInset)/taperLen;
+    return halfFront;
+  }
+  function clampHW(xLen){ return Math.min(panelHW(xLen), B); }
+
+  if(p.isSymmetric){
+    // ── Cover A: two identical taper panels ──
+    const maxLen = outerPanelLen;
+    const totalW = 2 * B + boltGap;
+    const sc = Math.min((VBW - pad*2 - 80) / totalW, (VBH - pad*2 - 60) / maxLen);
+    const boltWPx = B * sc;
+    const outerLenPx = outerPanelLen * sc;
+    const startX = (VBW - (2 * boltWPx + boltGap)) / 2;
+    const startY = pad + 30;
+    const yPB = sideDrop + backInset + taperLen;
+    const frontFloorHW = clampHW(outerPanelLen);
+
+    for(let panelIdx=0; panelIdx<2; panelIdx++){
+      const ox = startX + panelIdx * (boltWPx + boltGap);
+      const oy = startY;
+      const bR = ox + boltWPx;
+      const lbl = panelIdx===0 ? 'PANEL 1 (Left half)' : 'PANEL 2 (Right half) — add cut line at front-right corner after assembly';
+
+      // Bolt background
+      add('rect',{x:ox,y:oy,width:boltWPx,height:outerLenPx,fill:'#f8fafc',stroke:'#94a3b8','stroke-width':1,'stroke-dasharray':'4,3'});
+      add('text',{x:ox+boltWPx/2,y:oy-10,'text-anchor':'middle','font-size':10,fill:'#475569','font-weight':'bold'}).textContent=lbl;
+
+      // Panel polygon: inside edge on RIGHT
+      const bxy = (xLen, yWid) => [bR - yWid*sc, oy + xLen*sc];
+      const polyPts = [
+        [0,0],[0,clampHW(0)],
+        [sideDrop,clampHW(sideDrop)],
+        [sideDrop+backInset,clampHW(sideDrop+backInset)],
+        [yPB,clampHW(yPB)],
+        [outerPanelLen,frontFloorHW],
+        [outerPanelLen,0]
+      ].map(([xl,yw])=>bxy(xl,yw)).map(([x,y])=>`${x.toFixed(1)},${y.toFixed(1)}`).join(' ');
+
+      add('polygon',{points:polyPts,fill:sectionColor+'55',stroke:sectionColor,'stroke-width':1.5});
+
+      // Scrap
+      const polySvgPts = [
+        [0,0],[0,clampHW(0)],[sideDrop,clampHW(sideDrop)],
+        [sideDrop+backInset,clampHW(sideDrop+backInset)],
+        [yPB,clampHW(yPB)],[outerPanelLen,frontFloorHW],[outerPanelLen,0]
+      ].map(([xl,yw])=>bxy(xl,yw));
+      const scrapD = [
+        `M ${ox},${oy} L ${bR},${oy} L ${bR},${oy+outerLenPx} L ${ox},${oy+outerLenPx} Z`,
+        `M ${polySvgPts.map(([x,y])=>`${x.toFixed(1)},${y.toFixed(1)}`).join(' L ')} Z`
+      ].join(' ');
+      add('path',{d:scrapD,fill:'#e2e8f0','fill-rule':'evenodd',opacity:0.6,stroke:'none'});
+
+      const midX = bR - clampHW(sideDrop+backInset)*sc/2;
+      const midY = oy + (sideDrop+backInset)*sc/2;
+      add('text',{x:midX,y:midY-4,'text-anchor':'middle','font-size':11,fill:sectionColor,'font-weight':'bold'}).textContent='OUTER';
+      add('text',{x:midX,y:midY+12,'text-anchor':'middle','font-size':9,fill:sectionColor}).textContent=`${r(outerPanelLen)}"x${r(B)}"`;
+      add('text',{x:ox+boltWPx/2,y:oy-22,'text-anchor':'middle','font-size':9,fill:'#64748b','font-style':'italic'}).textContent='outer floor';
+      add('text',{x:ox+boltWPx/2,y:oy+outerLenPx+14,'text-anchor':'middle','font-size':9,fill:'#64748b','font-style':'italic'}).textContent='front floor';
+      add('text',{x:ox+boltWPx/2,y:oy-36,'text-anchor':'middle','font-size':9,fill:'#475569'}).textContent=`${r(B)}" wide`;
+
+      // Zone boundary dashed lines + width annotations
+      const zoneColor = '#64748b';
+      const zones = [
+        {yLen: sideDrop,                              label: `sideDrop=${r(sideDrop)}"`},
+        {yLen: sideDrop+backInset,                    label: `backInset=${r(backInset)}"`},
+        {yLen: sideDrop+backInset+taperLen,           label: `taper=${r(taperLen)}"`},
+      ];
+      zones.forEach(z => {
+        const zy = oy + z.yLen * sc;
+        // Dashed line across full bolt width
+        add('line',{x1:ox,y1:zy,x2:bR,y2:zy,stroke:zoneColor,'stroke-width':0.8,'stroke-dasharray':'5,4',opacity:0.7});
+        if(panelIdx===1){
+          // Zone label to the right of panel 2
+          add('text',{x:bR+6,y:zy+4,'font-size':7.5,fill:zoneColor}).textContent=`← ${z.label}`;
+        }
+      });
+      // Zone span labels (between dashed lines) on panel 2 only
+      if(panelIdx===1){
+        const labelZones = [
+          {y0:0,               y1:sideDrop,                          lbl:`side drop`},
+          {y0:sideDrop,        y1:sideDrop+backInset,                lbl:`back inset`},
+          {y0:sideDrop+backInset, y1:sideDrop+backInset+taperLen,    lbl:`taper zone`},
+          {y0:sideDrop+backInset+taperLen, y1:outerPanelLen,         lbl:`front straight`},
+        ];
+        labelZones.forEach(lz=>{
+          if(lz.y1 - lz.y0 < 1) return; // skip zero-length zones
+          const midY = oy + (lz.y0 + lz.y1)/2 * sc;
+          add('text',{x:bR+6,y:midY,'font-size':7,fill:zoneColor,'font-style':'italic'}).textContent=lz.lbl;
+        });
+      }
+      // Width arrow at top (back) and bottom (front) on outside of panel
+      if(panelIdx===0){
+        const hwTop = clampHW(0);
+        const hwBot = frontFloorHW;
+        // Back width arrow (at top of bolt)
+        const innerTopX = bR - hwTop*sc;
+        add('line',{x1:innerTopX,y1:oy-12,x2:bR,y2:oy-12,stroke:zoneColor,'stroke-width':1,'marker-start':`url(#arr_cut)`,'marker-end':`url(#arr_cut)`});
+        add('text',{x:(innerTopX+bR)/2,y:oy-16,'text-anchor':'middle','font-size':7.5,fill:zoneColor}).textContent=`${r(hwTop*2)}" back`;
+        // Front width arrow (at bottom)
+        const innerBotX = bR - hwBot*sc;
+        add('line',{x1:innerBotX,y1:oy+outerLenPx+12,x2:bR,y2:oy+outerLenPx+12,stroke:zoneColor,'stroke-width':1,'marker-start':`url(#arr_cut)`,'marker-end':`url(#arr_cut)`});
+        add('text',{x:(innerBotX+bR)/2,y:oy+outerLenPx+24,'text-anchor':'middle','font-size':7.5,fill:zoneColor}).textContent=`${r(hwBot*2)}" front`;
+      }
+
+      // On panel 2: draw flap zone + single cut line at front-right corner
+      if(panelIdx===1){
+        const notchW = p.notchWidth * sc;
+        const notchH = p.notchDepth * sc;
+        // Front-right corner = bottom-right of the bolt rectangle = (bR, oy+outerLenPx)
+        const notchX = bR - notchW;
+        const notchY = oy + outerLenPx - notchH;
+        // Flap zone — still-attached fabric, shown with a lighter tint
+        add('rect',{x:notchX,y:notchY,width:notchW,height:notchH,
+          fill:'#bfdbfe','fill-opacity':0.5,stroke:'none'});
+        // Single vertical cut line on the LEFT edge only
+        add('line',{x1:notchX,y1:notchY,x2:notchX,y2:notchY+notchH,
+          stroke:'#dc2626','stroke-width':2.5});
+        // Small tick marks at top and bottom of cut line
+        add('line',{x1:notchX-5,y1:notchY,   x2:notchX+5,y2:notchY,   stroke:'#dc2626','stroke-width':1.5});
+        add('line',{x1:notchX-5,y1:notchY+notchH,x2:notchX+5,y2:notchY+notchH,stroke:'#dc2626','stroke-width':1.5});
+        // Label
+        add('text',{x:notchX-6,y:notchY+notchH/2-6,'text-anchor':'end','font-size':8,fill:'#dc2626','font-weight':'bold'})
+          .textContent=`← cut line`;
+        add('text',{x:notchX+notchW/2,y:notchY+notchH/2+8,'text-anchor':'middle','font-size':7.5,fill:'#1d4ed8'})
+          .textContent=`flap folds over Cover B`;
+        add('text',{x:notchX+notchW/2,y:notchY+notchH/2+18,'text-anchor':'middle','font-size':7.5,fill:'#1d4ed8'})
+          .textContent=`${r(p.notchWidth)}" × ${r(p.notchDepth)}"`;
+      }
+
+      // Length arrow on outer left edge
+      if(panelIdx===0){
+        arrow(ox-14, oy, ox-14, oy+outerLenPx);
+        add('text',{x:ox-22,y:oy+outerLenPx/2,'text-anchor':'middle','font-size':9,fill:'#475569',transform:`rotate(-90 ${ox-22} ${oy+outerLenPx/2})`}).textContent=`${r(outerPanelLen)}"`;
+      }
+    }
+
+    const footerY = startY + outerLenPx + 28;
+    add('text',{x:VBW/2,y:footerY,'text-anchor':'middle','font-size':12,fill:'#0f172a','font-weight':'bold'})
+      .textContent=`${sectionLabel} — 2 identical panels x ${r(outerPanelLen)}" — single cut line on left edge of front-right flap zone (${r(p.notchWidth)}"×${r(p.notchDepth)}") — material stays attached, folds over Cover B`;
+
+  } else {
+    // ── Cover B: outer panel (taper) + inner extension panel (rectangle) ──
+    const innerPanelLen = p.innerPanelLen;
+    const innerExtension = p.innerExtension;
+    const WB = p.WB;
+    const maxLen = Math.max(outerPanelLen, innerPanelLen);
+    const totalW = 2 * B + boltGap;
+    const sc = Math.min((VBW - pad*2 - 80) / totalW, (VBH - pad*2 - 60) / maxLen);
+    const boltWPx = B * sc;
+    const outerLenPx = outerPanelLen * sc;
+    const innerLenPx = innerPanelLen * sc;
+    const startX = (VBW - (2 * boltWPx + boltGap)) / 2;
+    const startY = pad + 30;
+    const yPB = sideDrop + backInset + taperLen;
+    const frontFloorHW = clampHW(outerPanelLen);
+
+    // BOLT 1: outer panel (taper)
+    const ox1 = startX;
+    const oy1 = startY;
+    const bR1 = ox1 + boltWPx;
+
+    add('rect',{x:ox1,y:oy1,width:boltWPx,height:outerLenPx,fill:'#f8fafc',stroke:'#94a3b8','stroke-width':1,'stroke-dasharray':'4,3'});
+    add('text',{x:ox1+boltWPx/2,y:oy1-10,'text-anchor':'middle','font-size':11,fill:'#475569','font-weight':'bold'}).textContent='BOLT 1 — OUTER PANEL';
+
+    const bxy1 = (xLen, yWid) => [bR1 - yWid*sc, oy1 + xLen*sc];
+    const polyPts1 = [
+      [0,0],[0,clampHW(0)],
+      [sideDrop,clampHW(sideDrop)],
+      [sideDrop+backInset,clampHW(sideDrop+backInset)],
+      [yPB,clampHW(yPB)],
+      [outerPanelLen,frontFloorHW],
+      [outerPanelLen,0]
+    ].map(([xl,yw])=>bxy1(xl,yw)).map(([x,y])=>`${x.toFixed(1)},${y.toFixed(1)}`).join(' ');
+
+    add('polygon',{points:polyPts1,fill:sectionColor+'55',stroke:sectionColor,'stroke-width':1.5});
+
+    const polySvgPts1 = [
+      [0,0],[0,clampHW(0)],[sideDrop,clampHW(sideDrop)],
+      [sideDrop+backInset,clampHW(sideDrop+backInset)],
+      [yPB,clampHW(yPB)],[outerPanelLen,frontFloorHW],[outerPanelLen,0]
+    ].map(([xl,yw])=>bxy1(xl,yw));
+    const scrapD1 = [
+      `M ${ox1},${oy1} L ${bR1},${oy1} L ${bR1},${oy1+outerLenPx} L ${ox1},${oy1+outerLenPx} Z`,
+      `M ${polySvgPts1.map(([x,y])=>`${x.toFixed(1)},${y.toFixed(1)}`).join(' L ')} Z`
+    ].join(' ');
+    add('path',{d:scrapD1,fill:'#e2e8f0','fill-rule':'evenodd',opacity:0.6,stroke:'none'});
+
+    const midPanelX = bR1 - clampHW(sideDrop+backInset)*sc/2;
+    const midPanelY = oy1 + (sideDrop+backInset)*sc/2;
+    add('text',{x:midPanelX,y:midPanelY-4,'text-anchor':'middle','font-size':11,fill:sectionColor,'font-weight':'bold'}).textContent='OUTER';
+    add('text',{x:midPanelX,y:midPanelY+12,'text-anchor':'middle','font-size':9,fill:sectionColor}).textContent=`${r(outerPanelLen)}"x${r(B)}"`;
+    add('text',{x:ox1+boltWPx/2,y:oy1-22,'text-anchor':'middle','font-size':9,fill:'#64748b','font-style':'italic'}).textContent='outer floor';
+    add('text',{x:ox1+boltWPx/2,y:oy1+outerLenPx+14,'text-anchor':'middle','font-size':9,fill:'#64748b','font-style':'italic'}).textContent='front floor';
+    add('text',{x:ox1+boltWPx/2,y:oy1-36,'text-anchor':'middle','font-size':9,fill:'#475569'}).textContent=`${r(B)}" wide`;
+    arrow(ox1-14, oy1, ox1-14, oy1+outerLenPx);
+    add('text',{x:ox1-22,y:oy1+outerLenPx/2,'text-anchor':'middle','font-size':9,fill:'#475569',transform:`rotate(-90 ${ox1-22} ${oy1+outerLenPx/2})`}).textContent=`${r(outerPanelLen)}"`;
+
+    // Zone boundary dashed lines on BOLT 1 outer panel
+    const zc1 = '#64748b';
+    [{yLen:sideDrop,lbl:`sideDrop=${r(sideDrop)}"`},{yLen:sideDrop+backInset,lbl:`backInset=${r(backInset)}"`},{yLen:sideDrop+backInset+taperLen,lbl:`taper=${r(taperLen)}"`}]
+      .forEach(z=>{
+        const zy=oy1+z.yLen*sc;
+        add('line',{x1:ox1,y1:zy,x2:bR1,y2:zy,stroke:zc1,'stroke-width':0.8,'stroke-dasharray':'5,4',opacity:0.7});
+        add('text',{x:bR1+6,y:zy+4,'font-size':7.5,fill:zc1}).textContent=`← ${z.lbl}`;
+      });
+    [{y0:0,y1:sideDrop,lbl:'side drop'},{y0:sideDrop,y1:sideDrop+backInset,lbl:'back inset'},{y0:sideDrop+backInset,y1:sideDrop+backInset+taperLen,lbl:'taper zone'},{y0:sideDrop+backInset+taperLen,y1:outerPanelLen,lbl:'front straight'}]
+      .filter(lz=>lz.y1-lz.y0>0.5)
+      .forEach(lz=>add('text',{x:bR1+6,y:oy1+(lz.y0+lz.y1)/2*sc,'font-size':7,fill:zc1,'font-style':'italic'}).textContent=lz.lbl);
+
+    // BOLT 2: inner extension panel (rectangle)
+    const ox2 = startX + boltWPx + boltGap;
+    const oy2 = startY;
+
+    add('rect',{x:ox2,y:oy2,width:boltWPx,height:innerLenPx,fill:'#f8fafc',stroke:'#94a3b8','stroke-width':1,'stroke-dasharray':'4,3'});
+    add('rect',{x:ox2,y:oy2,width:boltWPx,height:innerLenPx,fill:'#ddd6fe55',stroke:'#7c3aed','stroke-width':1.5});
+
+    if(innerLenPx < outerLenPx){
+      add('rect',{x:ox2,y:oy2+innerLenPx,width:boltWPx,height:outerLenPx-innerLenPx,fill:'#e2e8f0',opacity:0.6});
+      add('text',{x:ox2+boltWPx/2,y:oy2+innerLenPx+(outerLenPx-innerLenPx)/2,'text-anchor':'middle','font-size':9,fill:'#64748b','font-style':'italic'}).textContent='scrap';
+    }
+
+    add('text',{x:ox2+boltWPx/2,y:oy2-10,'text-anchor':'middle','font-size':11,fill:'#475569','font-weight':'bold'}).textContent='BOLT 2 — INNER EXTENSION';
+    add('text',{x:ox2+boltWPx/2,y:oy2+innerLenPx/2-6,'text-anchor':'middle','font-size':11,fill:'#7c3aed','font-weight':'bold'}).textContent='INNER EXT';
+    add('text',{x:ox2+boltWPx/2,y:oy2+innerLenPx/2+10,'text-anchor':'middle','font-size':9,fill:'#7c3aed'}).textContent=`${r(innerPanelLen)}"x${r(B)}"`;
+    add('text',{x:ox2+boltWPx/2,y:oy2-22,'text-anchor':'middle','font-size':9,fill:'#64748b','font-style':'italic'}).textContent='center seam';
+    add('text',{x:ox2+boltWPx/2,y:oy2+innerLenPx+14,'text-anchor':'middle','font-size':9,fill:'#64748b','font-style':'italic'}).textContent='inner edge (slides under Cover A flap)';
+    add('text',{x:ox2+boltWPx/2,y:oy2-36,'text-anchor':'middle','font-size':9,fill:'#475569'}).textContent=`${r(B)}" wide`;
+
+    // Zone annotations: WBB/2 zone and innerExtension zone
+    const sc2 = Math.min((VBW - pad*2 - 80) / (2 * B + boltGap), (VBH - pad*2 - 60) / Math.max(outerPanelLen, innerPanelLen));
+    const wbHalfPx = (WB/2) * sc2;
+    const extPx = innerExtension * sc2;
+    if(wbHalfPx > 10 && extPx > 10){
+      add('line',{x1:ox2,y1:oy2+wbHalfPx,x2:ox2+boltWPx,y2:oy2+wbHalfPx,stroke:'#7c3aed','stroke-width':1,'stroke-dasharray':'5,3'});
+      add('text',{x:ox2+boltWPx+4,y:oy2+wbHalfPx/2+4,'font-size':8,fill:'#7c3aed'}).textContent=`WBB/2=${r(WB/2)}"`;
+      add('text',{x:ox2+boltWPx+4,y:oy2+wbHalfPx+extPx/2+4,'font-size':8,fill:'#7c3aed'}).textContent=`Inner ext=${r(innerExtension)}"`;
+      for(let yh=oy2+wbHalfPx; yh<oy2+innerLenPx; yh+=8)
+        add('line',{x1:ox2,y1:yh,x2:ox2+boltWPx,y2:yh,stroke:'#7c3aed','stroke-width':0.5,opacity:0.3});
+    }
+
+    arrow(ox2+boltWPx+20, oy2, ox2+boltWPx+20, oy2+innerLenPx);
+    add('text',{x:ox2+boltWPx+28,y:oy2+innerLenPx/2,'text-anchor':'middle','font-size':9,fill:'#475569',transform:`rotate(90 ${ox2+boltWPx+28} ${oy2+innerLenPx/2})`}).textContent=`${r(innerPanelLen)}"`;
+
+    const footerY = startY + Math.max(outerLenPx, innerLenPx) + 28;
+    add('text',{x:VBW/2,y:footerY,'text-anchor':'middle','font-size':12,fill:'#0f172a','font-weight':'bold'})
+      .textContent=`${sectionLabel} — outer panel ${r(outerPanelLen)}" + inner ext panel ${r(innerPanelLen)}" (WBB/2+frontExtDrop)`;
+  }
+}
+
+// ─────────────────────────────────────────────
+// COMBINED ASSEMBLY DIAGRAM — top-down installed view
+// ─────────────────────────────────────────────
+function drawCombinedAssembly(svgId, pA, pB, WB_val, roundMode, shortArmOnRight){
+  const VBW = 1400, VBH = 900;
+  const svg = document.getElementById(svgId);
+  if(!svg) return;
+  svg.setAttribute('viewBox',`0 0 ${VBW} ${VBH}`);
+  while(svg.firstChild) svg.removeChild(svg.firstChild);
+  const add = (t,a,par=svg)=>{const e=document.createElementNS('http://www.w3.org/2000/svg',t);for(const k in a)e.setAttribute(k,a[k]);par.appendChild(e);return e;};
+  const r = v => fmtInch(v, roundMode);
+
+  const WA        = pA.W;
+  const WBA       = pA.WB;
+  const WBv       = WB_val;
+  const D         = pA.D;
+  const sideDrop  = pA.sideDrop;
+  const frontExtDrop = pA.frontExtDrop;
+  // Cover A flap and Cover B inner extension are both frontExtDrop deep
+  const flapDepth = frontExtDrop;
+
+  // Total canvas span
+  const totalW = sideDrop + WA + sideDrop + 40;
+  const totalH = sideDrop + D + WBv + sideDrop + 40;
+  const pad = 70;
+  const sc = Math.min((VBW - pad*2) / totalW, (VBH - pad*2 - 60) / totalH);
+
+  // Section A anchor
+  const originX = pad + sideDrop * sc;
+  const originY = pad + sideDrop * sc;
+  const aW = WA * sc;
+  const aD = D  * sc;
+
+  // Section B anchor
+  const bW = D   * sc;
+  const bH = WBv * sc;
+  const bX = shortArmOnRight ? (originX + aW - bW) : originX;
+  const bY = originY + aD;
+
+  // Defs
+  const defs = add('defs',{});
+  const mkId = 'arr_ca';
+  const mk = add('marker',{id:mkId,markerWidth:6,markerHeight:6,refX:3,refY:3,orient:'auto',viewBox:'0 0 6 6'},defs);
+  const mktip = document.createElementNS('http://www.w3.org/2000/svg','path');
+  mktip.setAttribute('d','M0,0 L6,3 L0,6 Z'); mktip.setAttribute('fill','#475569'); mk.appendChild(mktip);
+
+  // Hatch for overlap
+  const hatch = add('pattern',{id:'hatch_overlap',patternUnits:'userSpaceOnUse',width:8,height:8},defs);
+  add('line',{x1:0,y1:8,x2:8,y2:0,stroke:'#7c3aed','stroke-width':1,opacity:0.4},hatch);
+
+  // Compass labels
+  add('text',{x:VBW/2,y:18,'text-anchor':'middle','font-size':11,fill:'#64748b','font-style':'italic'}).textContent='BACK OF SOFA (against wall)';
+  add('text',{x:VBW/2,y:VBH-8,'text-anchor':'middle','font-size':11,fill:'#64748b','font-style':'italic'}).textContent='FRONT OF SOFA';
+
+  // ── COVER A ─────────────────────────────────
+  // Symmetric: drapes sideDrop on left, right, back; frontExtDrop on front — EXCEPT
+  // front-right corner has a notch (D wide x frontExtDrop deep cut out).
+  // The tab to the right of the notch (D wide x frontExtDrop deep) is the flap.
+
+  const aOuterLeft  = originX - sideDrop*sc;
+  const aOuterTop   = originY - sideDrop*sc;
+  // Right drape extends sideDrop to right BUT where Section B is, the notch eats that corner
+  const aOuterRight = originX + aW + sideDrop*sc;
+  const aFrontBot   = originY + aD + frontExtDrop*sc; // front drape bottom
+
+  // The notch is at the front-right corner of the assembled Cover A.
+  // In top-down view:
+  //   - "right" = the corner where Section B meets Section A
+  //   - Notch is D wide (in x) x frontExtDrop deep (in y), at the front-right corner of the cover
+  // For shortArmOnRight: the inner corner is at x = originX + aW, and Section B spans D to its left.
+  // So notch occupies x=[originX+aW-D ... originX+aW+sideDrop], y=[originY+aD ... originY+aD+frontExtDrop]
+  // But the right drape goes sideDrop past, so we clip the notch accordingly.
+  // The notch removes the front-right corner: width = D, height = frontExtDrop.
+
+  // Cover A fabric: full symmetric rectangle minus notch at front-right corner
+  // We draw this as a polygon (clockwise starting NW):
+  let aCoverPts;
+  if(shortArmOnRight){
+    // Notch at bottom-right of the cover fabric
+    // Right side drapes sideDrop; the notch corner is at (aOuterRight-D*sc ... aOuterRight) x (aFrontBot-frontExtDrop*sc ... aFrontBot)
+    // i.e., notch: x=[aOuterRight-D*sc, aOuterRight], y=[originY+aD, aFrontBot]
+    const notchLeft = aOuterRight - pA.notchWidth * sc;
+    const notchTop  = originY + aD; // notch starts at the front edge of the sofa (not the drape — the sofa body)
+    aCoverPts = [
+      [aOuterLeft,  aOuterTop],    // NW — back-left outer drape corner
+      [aOuterRight, aOuterTop],    // NE — back-right outer drape corner
+      [aOuterRight, notchTop],     // going down right side to front of sofa level
+      [notchLeft,   notchTop],     // step left: start of notch
+      [notchLeft,   aFrontBot],    // corner: front-left of notch
+      [aOuterLeft,  aFrontBot],    // SW — front-left outer drape corner
+    ];
+  } else {
+    // Notch at bottom-left of the cover fabric (mirror)
+    const notchRight = aOuterLeft + pA.notchWidth * sc;
+    const notchTop   = originY + aD;
+    aCoverPts = [
+      [aOuterLeft,  aOuterTop],
+      [aOuterRight, aOuterTop],
+      [aOuterRight, aFrontBot],
+      [notchRight,  aFrontBot],
+      [notchRight,  notchTop],
+      [aOuterLeft,  notchTop],
+    ];
+  }
+  add('polygon',{
+    points: aCoverPts.map(([x,y])=>`${x.toFixed(1)},${y.toFixed(1)}`).join(' '),
+    fill:'#bfdbfe','fill-opacity':0.55,stroke:'#2563eb','stroke-width':2
+  });
+
+  // Cover A drape zone shading (back, left/right sides, front — but not the notch corner)
+  const aDrapeZones = shortArmOnRight ? [
+    // Back drape (north)
+    [[aOuterLeft,aOuterTop],[aOuterRight,aOuterTop],[aOuterRight,originY],[aOuterLeft,originY]],
+    // Left outer drape (west)
+    [[aOuterLeft,originY],[originX,originY],[originX,originY+aD],[aOuterLeft,originY+aD]],
+    // Right outer drape (east) — only the part above the notch
+    [[originX+aW,originY],[aOuterRight,originY],[aOuterRight,originY+aD],[originX+aW,originY+aD]],
+    // Front drape (south) — only left of the notch
+    [[aOuterLeft,originY+aD],[aOuterRight-pA.notchWidth*sc,originY+aD],[aOuterRight-pA.notchWidth*sc,aFrontBot],[aOuterLeft,aFrontBot]],
+  ] : [
+    [[aOuterLeft,aOuterTop],[aOuterRight,aOuterTop],[aOuterRight,originY],[aOuterLeft,originY]],
+    [[originX+aW,originY],[aOuterRight,originY],[aOuterRight,originY+aD],[originX+aW,originY+aD]],
+    [[aOuterLeft,originY],[aOuterLeft+pA.notchWidth*sc,originY],[aOuterLeft+pA.notchWidth*sc,originY+aD],[aOuterLeft,originY+aD]],
+    [[aOuterLeft+pA.notchWidth*sc,originY+aD],[aOuterRight,originY+aD],[aOuterRight,aFrontBot],[aOuterLeft+pA.notchWidth*sc,aFrontBot]],
+  ];
+  for(const zone of aDrapeZones)
+    add('polygon',{points:zone.map(([x,y])=>`${x.toFixed(1)},${y.toFixed(1)}`).join(' '),fill:'#3b82f6','fill-opacity':0.18,stroke:'none'});
+
+  // ── COVER A FLAP (the tab to the right of the notch, lays flat on Cover B) ──
+  // Flap: D wide x frontExtDrop deep, positioned at inner end of Section A
+  // It lays ON TOP of Cover B's inner extension.
+  // Top-down position: sits at the intersection of the notch column and front-drape row
+  let flapRect;
+  if(shortArmOnRight){
+    // Flap is the D-wide tab at front-right: x=[aOuterRight-D*sc, aOuterRight], y=[originY+aD, aFrontBot]
+    flapRect = { x: aOuterRight - pA.notchWidth*sc, y: originY+aD, w: pA.notchWidth*sc, h: frontExtDrop*sc };
+  } else {
+    flapRect = { x: aOuterLeft, y: originY+aD, w: pA.notchWidth*sc, h: frontExtDrop*sc };
+  }
+  // Draw flap as lighter blue rectangle sitting on Cover B
+  add('rect',{x:flapRect.x,y:flapRect.y,width:flapRect.w,height:flapRect.h,
+    fill:'#93c5fd','fill-opacity':0.7,stroke:'#2563eb','stroke-width':1.5,'stroke-dasharray':'4,3'});
+  add('text',{x:flapRect.x+flapRect.w/2,y:flapRect.y+flapRect.h/2,'text-anchor':'middle','font-size':9,fill:'#1d4ed8','font-weight':'bold'})
+    .textContent='FLAP A';
+
+  // ── COVER B ─────────────────────────────────
+  // Outer end (bottom): sideDrop drape. Back and front faces drape normally.
+  // Inner end (top, adjacent to Section A): flat extension = frontExtDrop deep.
+  const bInnerTop  = bY - flapDepth*sc;  // inner end extends UP into Section A area
+  const bOuterBot  = bY + bH + sideDrop*sc;
+  const bBackRight = shortArmOnRight ? bX + bW + sideDrop*sc : bX - sideDrop*sc; // back drape
+  const bFrontLeft = shortArmOnRight ? bX - frontExtDrop*sc : bX + bW + frontExtDrop*sc; // front drape
+
+  const bCoverPts = shortArmOnRight ? [
+    [bFrontLeft,   bInnerTop],
+    [bBackRight,   bInnerTop],
+    [bBackRight,   bOuterBot],
+    [bFrontLeft,   bOuterBot],
+  ] : [
+    [bBackRight,   bInnerTop],
+    [bFrontLeft,   bInnerTop],
+    [bFrontLeft,   bOuterBot],
+    [bBackRight,   bOuterBot],
+  ];
+  add('polygon',{
+    points: bCoverPts.map(([x,y])=>`${x.toFixed(1)},${y.toFixed(1)}`).join(' '),
+    fill:'#bbf7d0','fill-opacity':0.55,stroke:'#16a34a','stroke-width':2
+  });
+
+  // Cover B drape zones
+  const bDrapeZones = shortArmOnRight ? [
+    // Back drape (east)
+    [[bX+bW,bInnerTop],[bBackRight,bInnerTop],[bBackRight,bOuterBot],[bX+bW,bOuterBot]],
+    // Outer bottom drape (south)
+    [[bFrontLeft,bY+bH],[bBackRight,bY+bH],[bBackRight,bOuterBot],[bFrontLeft,bOuterBot]],
+    // Front drape (west)
+    [[bFrontLeft,bInnerTop],[bX,bInnerTop],[bX,bOuterBot],[bFrontLeft,bOuterBot]],
+  ] : [
+    [[bBackRight,bInnerTop],[bX,bInnerTop],[bX,bOuterBot],[bBackRight,bOuterBot]],
+    [[bFrontLeft,bY+bH],[bBackRight,bY+bH],[bBackRight,bOuterBot],[bFrontLeft,bOuterBot]],
+    [[bX+bW,bInnerTop],[bFrontLeft,bInnerTop],[bFrontLeft,bOuterBot],[bX+bW,bOuterBot]],
+  ];
+  for(const zone of bDrapeZones)
+    add('polygon',{points:zone.map(([x,y])=>`${x.toFixed(1)},${y.toFixed(1)}`).join(' '),fill:'#22c55e','fill-opacity':0.18,stroke:'none'});
+
+  // Cover B inner extension zone (top of Section B, extends up under Cover A flap)
+  add('rect',{x:bX,y:bInnerTop,width:bW,height:flapDepth*sc,
+    fill:'#86efac','fill-opacity':0.35,stroke:'#16a34a','stroke-width':1,'stroke-dasharray':'6,3'});
+
+  // ── FLAP OVERLAP ZONE (Cover A flap on top of Cover B inner extension) ──
+  const overlapX = flapRect.x;
+  const overlapY = flapRect.y;
+  const overlapW = flapRect.w;
+  const overlapH = flapRect.h;
+  add('rect',{x:overlapX,y:overlapY,width:overlapW,height:overlapH,
+    fill:'url(#hatch_overlap)','fill-opacity':1,stroke:'#7c3aed','stroke-width':1.5,'stroke-dasharray':'5,3'});
+  add('text',{x:overlapX+overlapW/2,y:overlapY+11,'text-anchor':'middle','font-size':9,fill:'#7c3aed','font-weight':'bold'})
+    .textContent='flap (A on top)';
+
+  // ── SOFA OUTLINES ──
+  const sofaColor = '#64748b';
+  add('rect',{x:originX,y:originY,width:aW,height:aD,fill:'#f1f5f9','fill-opacity':0.6,stroke:sofaColor,'stroke-width':2,'stroke-dasharray':'8,4',rx:4});
+  add('text',{x:originX+aW/2,y:originY+aD/2-6,'text-anchor':'middle','font-size':14,fill:sofaColor,'font-weight':'700'}).textContent='SECTION A';
+  add('text',{x:originX+aW/2,y:originY+aD/2+12,'text-anchor':'middle','font-size':11,fill:sofaColor}).textContent=`${r(WA)}" x ${r(D)}"`;
+
+  add('rect',{x:bX,y:bY,width:bW,height:bH,fill:'#f1f5f9','fill-opacity':0.6,stroke:sofaColor,'stroke-width':2,'stroke-dasharray':'8,4',rx:4});
+  add('text',{x:bX+bW/2,y:bY+bH/2-6,'text-anchor':'middle','font-size':14,fill:sofaColor,'font-weight':'700'}).textContent='SECT B';
+  add('text',{x:bX+bW/2,y:bY+bH/2+12,'text-anchor':'middle','font-size':11,fill:sofaColor}).textContent=`${r(D)}"x${r(WBv)}"`;
+
+  // ── GROMMETS ──
+  const gromColor = '#b45309';
+  const gromInsetA = sideDrop / 3;
+  // Cover A: outer LEFT end only (G1=back, G2=front)
+  const gA1 = [originX - (sideDrop - gromInsetA)*sc, originY];
+  const gA2 = [originX - (sideDrop - gromInsetA)*sc, originY + aD];
+  // Cover B: outer bottom end (G3=front/west side, G4=back/east side)
+  const gB3 = shortArmOnRight ? [bX, bY + bH - (sideDrop - gromInsetA)*sc] : [bX + bW, bY + bH - (sideDrop - gromInsetA)*sc];
+  const gB4 = shortArmOnRight ? [bX + bW, bY + bH - (sideDrop - gromInsetA)*sc] : [bX, bY + bH - (sideDrop - gromInsetA)*sc];
+
+  for(const [gx,gy,lbl] of [[gA1[0],gA1[1],'G1'],[gA2[0],gA2[1],'G2'],[gB3[0],gB3[1],'G3'],[gB4[0],gB4[1],'G4']]){
+    add('circle',{cx:gx,cy:gy,r:7,fill:'none',stroke:gromColor,'stroke-width':2.5});
+    add('circle',{cx:gx,cy:gy,r:2.5,fill:gromColor});
+    add('text',{x:gx,y:gy-11,'text-anchor':'middle','font-size':9,fill:'#92400e','font-weight':'bold'}).textContent=lbl;
+  }
+
+  // ── BUNGEE TABS at each grommet ──
+  const tabC='#0ea5e9', tabBorder='#0369a1', tabSz=9;
+  for(const [tx,ty] of [gA1, gA2, gB3, gB4]){
+    add('polygon',{points:`${tx},${ty-tabSz} ${tx+tabSz*0.7},${ty} ${tx},${ty+tabSz} ${tx-tabSz*0.7},${ty}`,
+      fill:tabC,stroke:tabBorder,'stroke-width':1.5,opacity:0.9});
+  }
+
+  // ── CORNER FOLD SNAPS (green circles labeled "C") ──
+  // Cover A: back-left corner, back-right corner
+  // Cover B: front-outer corner (far end of short arm, front face)
+  const snapColor = '#22c55e', snapStroke = '#166534';
+  const cornerSnaps = shortArmOnRight ? [
+    [aOuterLeft, aOuterTop, 'C'],    // Cover A back-left
+    [aOuterRight, aOuterTop, 'C'],   // Cover A back-right
+    [bFrontLeft, bOuterBot, 'C'],    // Cover B front-outer (bottom-left)
+  ] : [
+    [aOuterRight, aOuterTop, 'C'],   // Cover A back-right (outer)
+    [aOuterLeft, aOuterTop, 'C'],    // Cover A back-left
+    [bFrontLeft, bOuterBot, 'C'],    // Cover B front-outer
+  ];
+  for(const [sx,sy,lbl] of cornerSnaps){
+    add('circle',{cx:sx,cy:sy,r:7,fill:snapColor,stroke:snapStroke,'stroke-width':1.5});
+    add('text',{x:sx,y:sy+4,'text-anchor':'middle','font-size':9,fill:'#fff','font-weight':'bold'}).textContent=lbl;
+  }
+
+  // ── CONNECTION SNAPS (3 snaps "S" along leading edge of Cover A's flap on Cover B) ──
+  // The leading edge of the flap is at the inner side of the flap (the edge closest to Section B center)
+  const snapCount = 3;
+  const snapSpacing = overlapH / (snapCount + 1);
+  const snapX = overlapX + overlapW / 2;  // horizontally centered in flap
+  for(let i=1; i<=snapCount; i++){
+    const sy = overlapY + snapSpacing * i;
+    add('circle',{cx:snapX,cy:sy,r:6,fill:snapColor,stroke:snapStroke,'stroke-width':1.5});
+    add('text',{x:snapX,y:sy+4,'text-anchor':'middle','font-size':8,fill:'#fff','font-weight':'bold'}).textContent='S';
+  }
+  add('text',{x:snapX+overlapW*0.6,y:overlapY+overlapH+13,'text-anchor':'middle','font-size':9,fill:snapStroke,'font-weight':'bold'})
+    .textContent=`${snapCount} connection snaps`;
+
+  // ── DIMENSION ARROWS ──
+  const dc = '#334155';
+  const dimLine=(x1,y1,x2,y2)=>{
+    add('line',{x1,y1,x2,y2,stroke:dc,'stroke-width':1,'marker-start':`url(#${mkId})`,'marker-end':`url(#${mkId})`});
+  };
+  const tk=5;
+  const tickH=(x,y)=>{add('line',{x1:x-tk,y1:y,x2:x+tk,y2:y,stroke:dc,'stroke-width':1});};
+  const tickV=(x,y)=>{add('line',{x1:x,y1:y-tk,x2:x,y2:y+tk,stroke:dc,'stroke-width':1});};
+
+  // Section A width
+  const dimAWy = aOuterTop - 16;
+  dimLine(originX, dimAWy, originX+aW, dimAWy);
+  tickV(originX, dimAWy); tickV(originX+aW, dimAWy);
+  add('text',{x:originX+aW/2,y:dimAWy-5,'text-anchor':'middle','font-size':11,fill:dc,'font-weight':'bold'}).textContent=`Section A: ${r(WA)}"`;
+
+  // Section B length
+  const dimBHx = (shortArmOnRight ? bBackRight : bBackRight) + 16;
+  dimLine(dimBHx, bY, dimBHx, bY+bH);
+  tickH(dimBHx, bY); tickH(dimBHx, bY+bH);
+  add('text',{x:dimBHx+5,y:bY+bH/2,'text-anchor':'start','font-size':11,fill:dc,'font-weight':'bold',
+    transform:`rotate(-90 ${dimBHx+5} ${bY+bH/2})`}).textContent=`Section B: ${r(WBv)}"`;
+
+  // Drape depth labels
+  const dlc = '#64748b';
+  add('text',{x:originX+aW/2,y:originY-sideDrop*sc/2+4,'text-anchor':'middle','font-size':9,fill:dlc})
+    .textContent=`back drape ${r(sideDrop)}"`;
+  add('text',{x:originX-sideDrop*sc/2,y:originY+aD/2,'text-anchor':'middle','font-size':9,fill:dlc,
+    transform:`rotate(-90 ${originX-sideDrop*sc/2} ${originY+aD/2})`}).textContent=`outer drape ${r(sideDrop)}"`;
+  add('text',{x:overlapX+overlapW/2,y:bInnerTop-4,'text-anchor':'middle','font-size':8,fill:'#7c3aed'})
+    .textContent=`flap ${r(flapDepth)}"`;
+
+  // Cover A / B labels
+  const coverALabelX = shortArmOnRight ? originX + (aW-D)/2 : originX + D + (aW-D)/2;
+  add('text',{x:coverALabelX,y:originY+aD*0.22,'text-anchor':'middle','font-size':16,fill:'#1d4ed8','font-weight':'800','font-style':'italic'}).textContent='COVER A';
+  add('text',{x:bX+bW/2,y:bY+bH*0.22,'text-anchor':'middle','font-size':16,fill:'#15803d','font-weight':'800','font-style':'italic'}).textContent='COVER B';
+
+  // Legend note at bottom
+  add('text',{x:VBW/2,y:VBH-32,'text-anchor':'middle','font-size':10,fill:'#94a3b8'})
+    .textContent='Cover A (blue): symmetric — single cut line on left edge of front-right flap zone. Flap folds flat on Cover B. Cover B (green): outer end drapes, inner end slides under Cover A flap.';
+}
+
+// ─────────────────────────────────────────────
+// FLAT-PATTERN ASSEMBLY DIAGRAM — one per cover
+// ─────────────────────────────────────────────
+function drawAssemblyDiagram(svgId, p, roundMode, fabricFill, fabricStroke, sectionLabel){
+  const VBW = 1400, VBH = 900;
+  const svg = document.getElementById(svgId);
+  if(!svg) return;
+  svg.setAttribute('viewBox',`0 0 ${VBW} ${VBH}`);
+  while(svg.firstChild) svg.removeChild(svg.firstChild);
+  const add = (t,a,par=svg)=>{const e=document.createElementNS('http://www.w3.org/2000/svg',t);for(const k in a)e.setAttribute(k,a[k]);par.appendChild(e);return e;};
+  const r = v => fmtInch(v, roundMode);
+
+  const {W, WB, H, D, FC, B, hem, seam,
+         AT2F, sideDrop, frontExtDrop, backInset, taperLen, frontStraight,
+         outerPanelLen, halfBack, halfMid, halfFront,
+         assembledW, extNeeded, extEachCut,
+         bottomMargin, frontDiagonalHoriz, frontDiagonalVert} = p;
+
+  const pad = 90;
+  const dimMargin = 80;
+
+  const mkId = 'arr_asm_'+svgId;
+  const defs = add('defs',{});
+  const mk = add('marker',{id:mkId,markerWidth:7,markerHeight:7,refX:3.5,refY:3.5,orient:'auto',viewBox:'0 0 7 7'},defs);
+  const mktip = document.createElementNS('http://www.w3.org/2000/svg','path');
+  mktip.setAttribute('d','M0,0 L7,3.5 L0,7 Z'); mktip.setAttribute('fill','#475569'); mk.appendChild(mktip);
+  const dimLine=(x1,y1,x2,y2)=>add('line',{x1,y1,x2,y2,stroke:'#475569','stroke-width':1,'marker-start':`url(#${mkId})`,'marker-end':`url(#${mkId})`});
+  const tk = 5;
+
+  if(p.isSymmetric){
+    // ── COVER A — symmetric assembled shape ──────────────────────────────
+    // Both halves are identical taper panels, joined at center seam.
+    // Total assembled width = WBA + 2*sideDrop (symmetric)
+    const totalDiagW = assembledW + 40;
+    const totalDiagH = outerPanelLen + 40;
+    const sc = Math.min((VBW - pad*2 - dimMargin*2) / totalDiagW,
+                        (VBH - pad*2 - dimMargin*2) / totalDiagH);
+
+    const outerHalfW = (WB/2 + sideDrop) * sc;
+    const cx = pad + dimMargin + outerHalfW;
+
+    const drawTopY = pad + dimMargin;
+    const drawBotY = drawTopY + outerPanelLen * sc;
+
+    const yBackFloor   = drawTopY;
+    const yBackrestTop = drawTopY + sideDrop * sc;
+    const yBackrestEnd = yBackrestTop + backInset * sc;
+    const yPointB      = yBackrestEnd + taperLen * sc;
+
+    const hBack  = halfBack * sc;
+    const hMid   = Math.min(halfMid, B) * sc;
+    const hFront = halfFront * sc;
+    const hOuter = (WB/2 + sideDrop) * sc;
+    const frontFloorW = Math.min(W/2 + (bottomMargin||0), halfFront) * sc;
+
+    // Section label
+    add('text',{x:cx,y:drawTopY-52,'text-anchor':'middle','font-size':13,fill:'#0f172a','font-weight':'bold','letter-spacing':'2'})
+      .textContent='▼  OUTER FLOOR (drapes down + bungee)';
+
+    // Main fabric polygon — symmetric: mirrored both sides
+    const fabricPts = [
+      [cx - hBack,   yBackFloor],
+      [cx + hBack,   yBackFloor],
+      [cx + hMid,    yBackrestTop],
+      [cx + hMid,    yBackrestEnd],
+      [cx + hFront,  yPointB],
+      [cx + frontFloorW, drawBotY],
+      [cx - frontFloorW, drawBotY],
+      [cx - hFront,  yPointB],
+      [cx - hMid,    yBackrestEnd],
+      [cx - hMid,    yBackrestTop],
+    ];
+    add('polygon',{points:fabricPts.map(([x,y])=>`${x.toFixed(1)},${y.toFixed(1)}`).join(' '),
+      fill:fabricFill,stroke:fabricStroke,'stroke-width':2});
+
+    // Furniture outline (gray dashed)
+    const furnColor = '#94a3b8';
+    const furnW = W * sc;
+    const furnD = D * sc;
+    const furnX = cx - furnW/2;
+    const furnTopY = yBackrestTop + (yPointB - yBackrestTop - furnD)/2;
+    add('rect',{x:furnX,y:furnTopY,width:furnW,height:furnD,fill:'none',stroke:furnColor,'stroke-width':1.5,'stroke-dasharray':'6,4',rx:2});
+    add('text',{x:furnX+furnW/2,y:furnTopY+furnD/2+4,'text-anchor':'middle','font-size':10,fill:furnColor,'font-style':'italic'}).textContent=`${r(W)}"x${r(D)}"`;
+
+    // Center seam
+    const seamColor = '#9333ea';
+    add('line',{x1:cx,y1:yBackFloor,x2:cx,y2:drawBotY,stroke:seamColor,'stroke-width':2.5,'stroke-dasharray':'8,3'});
+    add('text',{x:cx+8,y:(yBackrestEnd+yPointB)/2,'font-size':10,fill:seamColor,'font-weight':'bold'}).textContent=`center seam — ${r(seam)}" overlap`;
+
+    // FLAP ZONE — still-attached fabric at front-right corner, single cut line on left edge
+    const notchWpx = p.notchWidth * sc;
+    const notchHpx = p.notchDepth * sc;
+    const notchX = cx + frontFloorW - notchWpx;
+    const notchY = drawBotY - notchHpx;
+    // Flap zone fill (attached fabric, distinct tint)
+    add('rect',{x:notchX,y:notchY,width:notchWpx,height:notchHpx,
+      fill:'#bfdbfe','fill-opacity':0.55,stroke:'none'});
+    // Single vertical cut line on the LEFT edge only
+    add('line',{x1:notchX,y1:notchY,x2:notchX,y2:notchY+notchHpx,
+      stroke:'#dc2626','stroke-width':3});
+    // Tick marks at ends of cut line
+    add('line',{x1:notchX-6,y1:notchY,        x2:notchX+6,y2:notchY,        stroke:'#dc2626','stroke-width':2});
+    add('line',{x1:notchX-6,y1:notchY+notchHpx,x2:notchX+6,y2:notchY+notchHpx,stroke:'#dc2626','stroke-width':2});
+    // Labels
+    add('text',{x:notchX-10,y:notchY+notchHpx/2-8,'text-anchor':'end','font-size':11,fill:'#dc2626','font-weight':'bold'})
+      .textContent='← cut line';
+    add('text',{x:notchX+notchWpx/2,y:notchY+notchHpx/2+4,'text-anchor':'middle','font-size':10,fill:'#1d4ed8','font-weight':'bold'})
+      .textContent='flap folds over Cover B';
+    add('text',{x:notchX+notchWpx/2,y:notchY+notchHpx/2+18,'text-anchor':'middle','font-size':9,fill:'#1d4ed8'})
+      .textContent=`${r(p.notchWidth)}" × ${r(p.notchDepth)}"`;
+    add('text',{x:notchX+notchWpx/2,y:notchY-10,'text-anchor':'middle','font-size':10,fill:'#475569','font-style':'italic'})
+      .textContent='(material stays attached)';
+
+    // Corner fold snaps at back-left and back-right
+    const snapColor = '#22c55e', snapStroke2 = '#166534';
+    const backSnapOffset = (WB/2 + sideDrop*0.5) * sc;
+    for(const sx of [cx - backSnapOffset, cx + backSnapOffset]){
+      add('circle',{cx:sx,cy:yBackFloor+8,r:6,fill:snapColor,stroke:snapStroke2,'stroke-width':1.5});
+      add('text',{x:sx,y:yBackFloor+12,'text-anchor':'middle','font-size':8,fill:'#fff','font-weight':'bold'}).textContent='C';
+    }
+    add('text',{x:cx,y:yBackFloor-8,'text-anchor':'middle','font-size':9,fill:snapStroke2}).textContent='corner fold snaps (back-left + back-right)';
+
+    // Grommets on LEFT (outer) end only
+    const gromColor = '#b45309';
+    const gromInset = sideDrop / 3;
+    const gromX = cx - (WB/2 + sideDrop - gromInset) * sc;
+    const gromYBack  = yBackFloor  + gromInset * sc;
+    const gromYFront = drawBotY    - gromInset * sc;
+    for(const [gx,gy,lbl] of [[gromX,gromYBack,'G1'],[gromX,gromYFront,'G2']]){
+      add('circle',{cx:gx,cy:gy,r:6,fill:'none',stroke:gromColor,'stroke-width':2.5});
+      add('circle',{cx:gx,cy:gy,r:2,fill:gromColor});
+      add('text',{x:gx-10,y:gy+4,'text-anchor':'end','font-size':9,fill:'#92400e','font-weight':'bold'}).textContent=lbl;
+    }
+
+    // Bungee tabs at grommets
+    const tabC='#0ea5e9', tabBorder='#0369a1', tabH=8, tabWt=12;
+    for(const [gx,gy] of [[gromX,gromYBack],[gromX,gromYFront]]){
+      add('polygon',{points:`${gx},${gy-tabH} ${gx+tabWt/2},${gy} ${gx},${gy+tabH} ${gx-tabWt/2},${gy}`,fill:tabC,stroke:tabBorder,'stroke-width':1.5,opacity:0.95});
+    }
+
+    // Overall dimensions
+    const dOff = 48;
+    const wDimY = drawTopY - 36;
+    dimLine(cx - hOuter, wDimY, cx + hOuter, wDimY);
+    add('text',{x:cx,y:wDimY-6,'text-anchor':'middle','font-size':13,fill:'#0f172a','font-weight':'bold'})
+      .textContent=`Assembled width: ${r(assembledW)}" (symmetric — both sides = ${r(WB/2+sideDrop)}")`;
+    const lenX = cx + hOuter + dOff;
+    dimLine(lenX, drawTopY, lenX, drawBotY);
+    add('text',{x:lenX+16,y:(drawTopY+drawBotY)/2,'text-anchor':'middle','font-size':13,fill:'#0f172a','font-weight':'bold',
+      transform:`rotate(-90 ${lenX+16} ${(drawTopY+drawBotY)/2})`}).textContent=`Panel length: ${r(outerPanelLen)}"`;
+
+    // Sub-dimensions
+    const sdc='#64748b', sdf=10;
+    const lx = cx - hOuter - dOff;
+    const subDim=(ya,yb,lbl)=>{
+      dimLine(lx,ya,lx,yb);
+      add('line',{x1:lx-5,y1:ya,x2:lx+5,y2:ya,stroke:sdc,'stroke-width':1});
+      add('line',{x1:lx-5,y1:yb,x2:lx+5,y2:yb,stroke:sdc,'stroke-width':1});
+      add('text',{x:lx-14,y:(ya+yb)/2,'text-anchor':'middle','font-size':sdf,fill:sdc,transform:`rotate(-90 ${lx-14} ${(ya+yb)/2})`}).textContent=lbl;
+    };
+    subDim(yBackFloor, yBackrestTop, `${r(sideDrop)}" outer drop`);
+    subDim(yBackrestTop, yBackrestEnd, `${r(backInset)}" back inset`);
+    subDim(yBackrestEnd, yPointB, `${r(taperLen)}" diagonal`);
+    subDim(yPointB, drawBotY, `${r(frontStraight)}" front`);
+
+    const bwY = drawTopY - 18;
+    dimLine(cx-hBack, bwY, cx+hBack, bwY);
+    add('line',{x1:cx-hBack,y1:bwY-4,x2:cx-hBack,y2:bwY+4,stroke:sdc,'stroke-width':1});
+    add('line',{x1:cx+hBack,y1:bwY-4,x2:cx+hBack,y2:bwY+4,stroke:sdc,'stroke-width':1});
+    add('text',{x:cx,y:bwY-4,'text-anchor':'middle','font-size':sdf,fill:sdc}).textContent=`${r(WB+2*hem)}" back floor (WBA+2xhem)`;
+
+    add('text',{x:cx,y:drawBotY+22,'text-anchor':'middle','font-size':13,fill:'#0f172a','font-weight':'bold'})
+      .textContent=`▲  FRONT FLOOR (front drape — cut line on left edge of flap zone)`;
+
+  } else {
+    // ── COVER B — asymmetric assembled shape ─────────────────────────────
+    // Outer half (taper) on the left, inner extension (rectangle) on the right.
+    const innerPanelLen = p.innerPanelLen;
+    const innerExtension = p.innerExtension;
+    const outerAssembledW = p.outerAssembledW;
+
+    const totalDiagW = assembledW + 40;
+    const totalDiagH = outerPanelLen + 40;
+    const sc = Math.min((VBW - pad*2 - dimMargin*2) / totalDiagW,
+                        (VBH - pad*2 - dimMargin*2) / totalDiagH);
+
+    const outerHalfW = (WB/2 + sideDrop) * sc;
+    const innerHalfW = (WB/2 + innerExtension) * sc;
+    const cx = pad + dimMargin + outerHalfW;
+
+    const drawTopY = pad + dimMargin;
+    const drawBotY = drawTopY + outerPanelLen * sc;
+
+    const yBackFloor   = drawTopY;
+    const yBackrestTop = drawTopY + sideDrop * sc;
+    const yBackrestEnd = yBackrestTop + backInset * sc;
+    const yPointB      = yBackrestEnd + taperLen * sc;
+
+    const hBack  = halfBack * sc;
+    const hMid   = Math.min(halfMid, B) * sc;
+    const hFront = halfFront * sc;
+    const hOuter = outerHalfW;
+    const hInner = innerHalfW;
+    const frontFloorOuter = Math.min(W/2 + (bottomMargin||0), halfFront) * sc;
+    const frontFloorInner = (WB/2 + innerExtension) * sc;
+
+    add('text',{x:cx,y:drawTopY-52,'text-anchor':'middle','font-size':13,fill:'#0f172a','font-weight':'bold','letter-spacing':'2'})
+      .textContent='▼  OUTER FLOOR (drapes down + bungee)';
+
+    // Inner extension zone highlight (purple dashed)
+    const innerEdgeX = cx + (WB/2)*sc;
+    const innExtW = innerExtension * sc;
+    add('rect',{x:innerEdgeX,y:yBackrestTop,width:innExtW,height:(drawBotY-yBackrestTop),
+      fill:'#ddd6fe','fill-opacity':0.3,stroke:'#9333ea','stroke-width':1.5,'stroke-dasharray':'5,3'});
+    add('text',{x:innerEdgeX+innExtW/2,y:(yBackrestTop+drawBotY)/2,'text-anchor':'middle','font-size':10,
+      fill:'#7c3aed','font-weight':'bold',transform:`rotate(-90 ${innerEdgeX+innExtW/2} ${(yBackrestTop+drawBotY)/2})`})
+      .textContent=`Inner extension ${r(innerExtension)}" — slides under Cover A flap`;
+
+    // Main fabric polygon (asymmetric)
+    const fabricPts = [
+      [cx - hBack,   yBackFloor],
+      [cx + hBack,   yBackFloor],
+      [cx + hInner,  yBackrestTop],
+      [cx + hInner,  yPointB],
+      [cx + frontFloorInner, drawBotY],
+      [cx - frontFloorOuter, drawBotY],
+      [cx - hFront,  yPointB],
+      [cx - hMid,    yBackrestEnd],
+      [cx - hMid,    yBackrestTop],
+    ];
+    add('polygon',{points:fabricPts.map(([x,y])=>`${x.toFixed(1)},${y.toFixed(1)}`).join(' '),
+      fill:fabricFill,stroke:fabricStroke,'stroke-width':2});
+
+    // Furniture outline
+    const furnColor = '#94a3b8';
+    const furnW = W * sc;
+    const furnD = D * sc;
+    const furnX = cx - furnW/2;
+    const furnTopY = yBackrestTop + (yPointB - yBackrestTop - furnD)/2;
+    add('rect',{x:furnX,y:furnTopY,width:furnW,height:furnD,fill:'none',stroke:furnColor,'stroke-width':1.5,'stroke-dasharray':'6,4',rx:2});
+    add('text',{x:furnX+furnW/2,y:furnTopY+furnD/2+4,'text-anchor':'middle','font-size':10,fill:furnColor,'font-style':'italic'}).textContent=`${r(W)}"x${r(D)}"`;
+
+    // Center seam
+    const seamColor = '#9333ea';
+    add('line',{x1:cx,y1:yBackFloor,x2:cx,y2:drawBotY,stroke:seamColor,'stroke-width':2.5,'stroke-dasharray':'8,3'});
+    add('text',{x:cx+8,y:(yBackrestEnd+yPointB)/2,'font-size':10,fill:seamColor,'font-weight':'bold'}).textContent=`center seam — ${r(seam)}" overlap`;
+
+    // Inner flap edge line
+    add('line',{x1:innerEdgeX,y1:yBackrestTop,x2:innerEdgeX,y2:drawBotY,stroke:seamColor,'stroke-width':1.5,'stroke-dasharray':'5,3'});
+    add('text',{x:innerEdgeX+4,y:yBackrestTop+20,'font-size':9,fill:seamColor,'font-style':'italic'}).textContent='inner edge of couch';
+
+    // Grommets — outer (left) end only
+    const gromColor = '#b45309';
+    const gromInset = sideDrop / 3;
+    const gromX = cx - (WB/2 + sideDrop - gromInset) * sc;
+    const gromYBack  = yBackFloor  + gromInset * sc;
+    const gromYFront = drawBotY    - gromInset * sc;
+    for(const [gx,gy,lbl] of [[gromX,gromYBack,'G3'],[gromX,gromYFront,'G4']]){
+      add('circle',{cx:gx,cy:gy,r:6,fill:'none',stroke:gromColor,'stroke-width':2.5});
+      add('circle',{cx:gx,cy:gy,r:2,fill:gromColor});
+      add('text',{x:gx-10,y:gy+4,'text-anchor':'end','font-size':9,fill:'#92400e','font-weight':'bold'}).textContent=lbl;
+    }
+
+    // Bungee tabs at grommets
+    const tabC='#0ea5e9', tabBorder='#0369a1', tabH=8, tabWt=12;
+    for(const [gx,gy] of [[gromX,gromYBack],[gromX,gromYFront]]){
+      add('polygon',{points:`${gx},${gy-tabH} ${gx+tabWt/2},${gy} ${gx},${gy+tabH} ${gx-tabWt/2},${gy}`,fill:tabC,stroke:tabBorder,'stroke-width':1.5,opacity:0.95});
+    }
+
+    // Corner fold snap — front-outer corner of outer end (front-left corner of outer half)
+    const snapColor = '#22c55e', snapStroke2 = '#166534';
+    const fOuterX = cx - frontFloorOuter;
+    const fOuterY = drawBotY;
+    add('circle',{cx:fOuterX,cy:fOuterY,r:6,fill:snapColor,stroke:snapStroke2,'stroke-width':1.5});
+    add('text',{x:fOuterX,y:fOuterY+4,'text-anchor':'middle','font-size':8,fill:'#fff','font-weight':'bold'}).textContent='C';
+    add('text',{x:fOuterX-10,y:fOuterY-8,'text-anchor':'end','font-size':9,fill:snapStroke2}).textContent='corner fold snap (front-outer)';
+
+    // Connection snaps — 3 evenly spaced along right edge of inner extension
+    const snapCount = 3;
+    const snapX2 = cx + hInner;
+    const connSnapY0 = yBackrestTop + (drawBotY - yBackrestTop) * 0.2;
+    const connSnapStep = (drawBotY - yBackrestTop) * 0.3;
+    for(let i=0; i<snapCount; i++){
+      const sy = connSnapY0 + i * connSnapStep;
+      add('circle',{cx:snapX2-4,cy:sy,r:5,fill:snapColor,stroke:snapStroke2,'stroke-width':1.5});
+      add('text',{x:snapX2-4,y:sy+4,'text-anchor':'middle','font-size':7,fill:'#fff','font-weight':'bold'}).textContent='S';
+    }
+    add('text',{x:snapX2+8,y:connSnapY0+(snapCount-1)*connSnapStep/2,'font-size':9,fill:snapStroke2,'font-weight':'bold'})
+      .textContent=`connection snaps (${snapCount}) — Cover A flap sits here`;
+
+    // Overall dimensions
+    const dOff = 48;
+    const wDimY = drawTopY - 36;
+    dimLine(cx - hOuter, wDimY, cx + hInner, wDimY);
+    add('text',{x:(cx-hOuter+cx+hInner)/2,y:wDimY-6,'text-anchor':'middle','font-size':13,fill:'#0f172a','font-weight':'bold'})
+      .textContent=`Assembled width: ${r(assembledW)}" (${r(WB/2+sideDrop)}" outer + ${r(WB/2+innerExtension)}" inner)`;
+    const lenX = cx + hInner + dOff;
+    dimLine(lenX, drawTopY, lenX, drawBotY);
+    add('text',{x:lenX+16,y:(drawTopY+drawBotY)/2,'text-anchor':'middle','font-size':13,fill:'#0f172a','font-weight':'bold',
+      transform:`rotate(-90 ${lenX+16} ${(drawTopY+drawBotY)/2})`}).textContent=`Panel length: ${r(outerPanelLen)}"`;
+
+    const sdc='#64748b', sdf=10;
+    const lx = cx - hOuter - dOff;
+    const subDim=(ya,yb,lbl)=>{
+      dimLine(lx,ya,lx,yb);
+      add('line',{x1:lx-5,y1:ya,x2:lx+5,y2:ya,stroke:sdc,'stroke-width':1});
+      add('line',{x1:lx-5,y1:yb,x2:lx+5,y2:yb,stroke:sdc,'stroke-width':1});
+      add('text',{x:lx-14,y:(ya+yb)/2,'text-anchor':'middle','font-size':sdf,fill:sdc,transform:`rotate(-90 ${lx-14} ${(ya+yb)/2})`}).textContent=lbl;
+    };
+    subDim(yBackFloor, yBackrestTop, `${r(sideDrop)}" outer drop`);
+    subDim(yBackrestTop, yBackrestEnd, `${r(backInset)}" back inset`);
+    subDim(yBackrestEnd, yPointB, `${r(taperLen)}" diagonal`);
+    subDim(yPointB, drawBotY, `${r(frontStraight)}" front`);
+
+    const bwY = drawTopY - 18;
+    dimLine(cx-hBack, bwY, cx+hBack, bwY);
+    add('line',{x1:cx-hBack,y1:bwY-4,x2:cx-hBack,y2:bwY+4,stroke:sdc,'stroke-width':1});
+    add('line',{x1:cx+hBack,y1:bwY-4,x2:cx+hBack,y2:bwY+4,stroke:sdc,'stroke-width':1});
+    add('text',{x:cx,y:bwY-4,'text-anchor':'middle','font-size':sdf,fill:sdc}).textContent=`${r(WB+2*hem)}" back floor (WBB+2xhem)`;
+
+    add('text',{x:cx,y:drawBotY+22,'text-anchor':'middle','font-size':13,fill:'#0f172a','font-weight':'bold'})
+      .textContent=`▲  INNER EXTENSION END (slides under Cover A flap — connection snaps here)`;
+  }
+}
+
+// ─────────────────────────────────────────────
+// MAIN COMPUTE
+// ─────────────────────────────────────────────
+function compute(){
+  try{
+    const roundMode = document.getElementById('roundMode').value;
+    const B   = parseNum('B');
+    const FC  = parseNum('FC');
+    const hem = parseNum('hem');
+    const seam= parseNum('seam');
+    const waveAllowance  = parseNum('waveAllowance');
+    const bottomMargin   = parseNum('bottomMargin');
+    const H   = parseNum('H');
+    const D   = parseNum('D');
+    const F2A = parseNum('F2A');
+    const F2BS= parseNum('F2BS');
+    const BR  = parseNum('BR');
+    const WA  = parseNum('WA');
+    const WBA = parseNum('WBA');
+    const WB_inp = parseNum('WB_inp');
+    const WBB = parseNum('WBB');
+
+    const pA = computeCoverA(WA, WBA, H, D, F2A, F2BS, BR, FC, B, hem, seam, waveAllowance, bottomMargin);
+    const pB = computeCoverB(WB_inp, WBB, H, D, F2A, F2BS, BR, FC, B, hem, seam, waveAllowance, bottomMargin);
+
+    // Results
+    renderResults('resultsA', pA, 'Cover A (Long Arm — Symmetric)', roundMode);
+    renderResults('resultsB', pB, 'Cover B (Short Arm — Asymmetric)', roundMode);
+
+    // Material to Buy
+    const buy = document.getElementById('buy');
+    const r = v => fmtInch(v, roundMode);
+    const totalLen = pA.totalBoltLen + pB.totalBoltLen;
+    buy.innerHTML = `
+      <div class="row"><span><span class="tag-a">A</span> Cover A — bolts</span><strong>${pA.boltCount} x ${r(pA.boltLengthEach)}" = ${r(pA.totalBoltLen)}"</strong></div>
+      <div class="row"><span><span class="tag-b">B</span> Cover B — bolts</span><strong>${pB.boltCount} x ${r(pB.boltLengthEach)}" = ${r(pB.totalBoltLen)}"</strong></div>
+      <div class="row"><span>Combined total</span><strong>${r(totalLen)}" (${fmtYd(totalLen,roundMode)} yd)</strong></div>
+      <div class="note" style="margin-top:6px;">Cover A: 2 identical panels — after joining, make a single cut on the left edge of the front-right flap zone (${r(pA.notchWidth)}"×${r(pA.notchDepth)}"). Material is NOT removed; the flap folds flat over Cover B. Cover B inner extension (WBB/2+frontExtDrop=${r(pB.innerPanelLen)}") can often be cut from scrap of the outer bolt.</div>
+    `;
+
+    // Grommet & snap info
+    document.getElementById('grommets').innerHTML = `
+      <div class="row"><span>Cover A grommets</span><strong>2 — outer (left) end only: G1 (back) + G2 (front)</strong></div>
+      <div class="row"><span>Cover B grommets</span><strong>2 — outer end only: G3 (front of outer end) + G4 (back of outer end)</strong></div>
+      <div class="row"><span>Inset from floor — Cover A</span><strong>${r(pA.sideDrop/3)}" (1/3 of side drop)</strong></div>
+      <div class="row"><span>Inset from floor — Cover B</span><strong>${r(pB.sideDrop/3)}" (1/3 of side drop)</strong></div>
+      <div class="note">No grommets on inner edges — Cover A flap overlaps Cover B's inner extension and they snap together.</div>
+    `;
+    document.getElementById('snaps').innerHTML = `
+      <div class="row"><span>Corner fold snaps</span><strong>Cover A: back-left + back-right corners; Cover B: front-outer corner</strong></div>
+      <div class="row"><span>Connection snaps</span><strong>3 pairs along leading edge of Cover A's front-right flap</strong></div>
+      <div class="row"><span>Connection snap position</span><strong>Horizontal line across Cover A flap (${r(pA.notchWidth)}" wide x ${r(pA.notchDepth)}" deep)</strong></div>
+      <div class="note">Cover A's notch flap lays flat on top of Cover B's inner extension. Connection snaps secure the overlap. Cover B's inner extension = ${r(pB.innerExtension)}" deep (matches Cover A flap).</div>
+    `;
+
+    // Cut lists
+    const fmtCutlist = (containerId, p) => {
+      const el = document.getElementById(containerId);
+      if(!el) return;
+      let rows;
+      if(p.isSymmetric){
+        rows = [
+          ['Panel 1 & 2 (identical, x2)', `${r(p.outerPanelLen)}" x ${r(p.B)}"`, `Both identical taper panels. Standard couch half-panel shape. Outer ends drape ${r(p.sideDrop)}". Both sides symmetric.`],
+          ['Flap zone cut line (after assembly)', `${r(p.notchWidth)}" × ${r(p.notchDepth)}"`, `After joining panels, make a SINGLE cut on the left edge of the front-right flap zone. Width = D = ${r(p.D)}". Depth = frontExtDrop = ${r(p.notchDepth)}". Material stays attached — fold flap flat over Cover B.`],
+          [p.extNeeded?'Side extensions (x2)':'Side extensions','Not required', p.extNeeded?`Each ${r(p.extEachCut)}" wide. Assembled ${r(p.assembledW)}" > 2xB-seam ${r(p.joinedUsableW)}".`:`Assembled ${r(p.assembledW)}" <= 2xB-seam ${r(p.joinedUsableW)}".`],
+          ['Snaps','2 corner fold pairs (back-L + back-R) + 3 connection pairs','Corner fold snaps on back piece (both corners). Connection snaps on front-right flap, connect to Cover B.'],
+        ];
+      } else {
+        rows = [
+          ['Outer panel (x1)', `${r(p.outerPanelLen)}" x ${r(p.B)}"`, `Standard taper shape. Outer end: full side drop ${r(p.sideDrop)}". Inner end joins at center seam.`],
+          ['Inner extension panel (x1)', `${r(p.innerPanelLen)}" x ${r(p.B)}"`, `Rectangular — no taper. WBB/2 (${r(p.WB/2)}") + frontExtDrop (${r(p.innerExtension)}") = ${r(p.innerPanelLen)}". Slides under Cover A flap.`],
+          [p.extNeeded?'Side extensions (x2)':'Side extensions','Not required', p.extNeeded?`Each ${r(p.extEachCut)}" wide. Outer assembled ${r(p.outerAssembledW)}" > 2xB-seam ${r(p.joinedUsableW)}".`:`Outer assembled ${r(p.outerAssembledW)}" <= 2xB-seam ${r(p.joinedUsableW)}".`],
+          ['Snaps','1 corner fold (front-outer) + 3 connection pairs','Corner fold snap at front-outer corner. Connection snaps on inner extension edge (Cover A flap sits here).'],
+        ];
+      }
+      el.innerHTML = rows.map((row,i)=>`<div class="row" style="${i?'border-top:1px dashed var(--muted);':''}display:flex;justify-content:space-between;align-items:flex-start;gap:8px;padding:6px 0;">
+        <span style="min-width:130px;">${row[0]}</span>
+        <strong style="white-space:nowrap;">${row[1]}</strong>
+        <span style="font-size:11px;color:var(--sub);text-align:right;">${row[2]}</span>
+      </div>`).join('');
+    };
+    fmtCutlist('cutlistA', pA);
+    fmtCutlist('cutlistB', pB);
+
+    // Diagrams
+    const errs = [];
+    try{ drawCutDiagram('cutDiagramA', pA, roundMode, '#2563eb', 'Cover A'); } catch(e){ errs.push('Cut A: '+e.message); console.error(e); }
+    try{ drawCutDiagram('cutDiagramB', pB, roundMode, '#16a34a', 'Cover B'); } catch(e){ errs.push('Cut B: '+e.message); console.error(e); }
+    try{ drawAssemblyDiagram('assemblyA', pA, roundMode, '#eef2ff', '#0f172a', 'Cover A'); } catch(e){ errs.push('Assembly A: '+e.message); console.error(e); }
+    try{ drawAssemblyDiagram('assemblyB', pB, roundMode, '#f0fdf4', '#166534', 'Cover B'); } catch(e){ errs.push('Assembly B: '+e.message); console.error(e); }
+    const orientEl = document.querySelector('input[name="orientation"]:checked');
+    const shortArmOnRight = !orientEl || orientEl.value === 'right';
+    try{ drawCombinedAssembly('assemblyDiagram', pA, pB, WB_inp, roundMode, shortArmOnRight); } catch(e){ errs.push('Assembly: '+e.message); console.error(e); }
+
+    const errEl = document.getElementById('err');
+    if(errs.length){ errEl.style.display='block'; errEl.innerHTML='<strong>Errors:</strong><br/>'+errs.join('<br/>'); }
+    else errEl.style.display='none';
+
+  } catch(e){
+    const err = document.getElementById('err');
+    err.style.display='block';
+    err.textContent='Error: '+e.message;
+    console.error(e);
+  }
+}
+
+// ─────────────────────────────────────────────
+// PERSISTENCE
+// ─────────────────────────────────────────────
+const ALL_FIELDS = ['B','FC','hem','seam','waveAllowance','bottomMargin','H','D','F2A','F2BS','BR','WA','WBA','WB_inp','WBB','roundMode'];
+const STORAGE_KEY = 'lSectionalCalc_v2';
+
+function saveInputs(){
+  const vals = {};
+  ALL_FIELDS.forEach(f=>{
+    const el=document.getElementById(f);
+    if(el) vals[f]=el.value;
+  });
+  const orientEl = document.querySelector('input[name="orientation"]:checked');
+  if(orientEl) vals['orientation'] = orientEl.value;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(vals));
+}
+
+function loadSavedInputs(){
+  try{
+    const saved=localStorage.getItem(STORAGE_KEY);
+    if(saved){
+      const vals=JSON.parse(saved);
+      ALL_FIELDS.forEach(f=>{
+        const el=document.getElementById(f);
+        if(el && vals[f]!==undefined) el.value=vals[f];
+      });
+      if(vals['orientation']){
+        const orientEl = document.querySelector(`input[name="orientation"][value="${vals['orientation']}"]`);
+        if(orientEl) orientEl.checked = true;
+      }
+      return true;
+    }
+  }catch(e){ console.error(e); }
+  return false;
+}
+
+const DEFAULTS = {B:54,FC:3,hem:1,seam:1.5,waveAllowance:3,bottomMargin:8,H:25,D:33,F2A:22,F2BS:13,BR:4,WA:90,WBA:90,WB_inp:60,WBB:60,roundMode:'whole'};
+
+function wire(){
+  loadSavedInputs();
+  const card = document.getElementById('inputsCard');
+  ['input','change','keyup'].forEach(ev=>{
+    card.addEventListener(ev,()=>{ compute(); saveInputs(); });
+  });
+  document.getElementById('roundMode').addEventListener('change',()=>{ saveInputs(); compute(); });
+  document.querySelectorAll('input[name="orientation"]').forEach(el=>{
+    el.addEventListener('change',()=>{ compute(); saveInputs(); });
+  });
+  document.getElementById('recalc').addEventListener('click', compute);
+  document.getElementById('resetBtn').addEventListener('click',()=>{
+    ALL_FIELDS.forEach(f=>{
+      const el=document.getElementById(f);
+      if(el && DEFAULTS[f]!==undefined) el.value=DEFAULTS[f];
+    });
+    compute(); saveInputs();
+  });
+  const toggleBtn = document.getElementById('toggleWork');
+  const resultsCard = document.getElementById('resultsCard');
+  if(toggleBtn && resultsCard){
+    toggleBtn.addEventListener('click',()=>{
+      const s=resultsCard.classList.toggle('show-work');
+      toggleBtn.textContent=s?'Hide work':'Show work';
+    });
+  }
+  compute();
+}
+
+document.addEventListener('DOMContentLoaded', wire);
+</script>
+</body>
+</html>

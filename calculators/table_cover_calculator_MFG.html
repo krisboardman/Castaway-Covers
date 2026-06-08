@@ -87,7 +87,8 @@
       <span class="chip" style="background:#fff; border:1px dashed #94a3b8;"></span> Diagonal corner cut (outer triangle removed)
       <span class="chip" style="background:#0891b2; border-color:#0891b2;"></span> Table top (dotted)
       <span class="chip" style="background:none; border:2px solid #b45309; border-radius:50%; width:10px; height:10px;"></span> Corner grommets
-      <span style="color:#22c55e; font-weight:600;">● Snaps</span>
+      <span style="color:#166534; font-weight:600;">● Snap stud</span>
+      <span style="color:#831843; font-weight:600;">● Snap socket</span>
       <span style="color:#7e22ce; font-weight:600;">— — Center seam (only when table is too wide for one bolt width)</span>
     </div>
   </div>
@@ -97,17 +98,6 @@
     <div id="cutlist"></div>
   </div>
 
-  <div class="card" style="margin-top:16px;">
-    <div class="title">Assembly Instructions</div>
-    <ol style="margin:0; padding-left:20px; line-height:1.7; font-size:13px;">
-      <li><strong>Cut</strong> the cover panel from the bolt. If the cover width (MD) fits within the bolt width, cut a single ML × MD rectangle. If MD exceeds the bolt width, cut <strong>two pieces</strong> running front-to-back — each piece is MD long (along the bolt) × ((ML + 1.5)/2) wide — and join them along the long centerline with a 1.5" overlapped seam to form the full ML × MD panel.</li>
-      <li><strong>Mark and cut</strong> the diagonal at each corner: from a point one side-drop in along the long edge to a point one side-drop in along the short edge. Remove the outer triangle. A triangular flap (the inner half of the corner square) remains.</li>
-      <li>Add the wavy edge pattern around the perimeter (skip the diagonal cut edges, since they will be joined to each other).</li>
-      <li>At each corner, fold the two adjacent side drops together so the diagonal cut edges meet. <strong>Install 2 snaps per corner</strong> (add another pair for every ~15" of drop).</li>
-      <li><strong>Install corner grommets</strong> at the four corners where the long sides meet the short sides. On the flat cover, position each grommet <strong>drop ÷ 3</strong> in from the outer long edge (and 5" past the diagonal chamfer). When the cover is installed, that puts the grommet about <strong>two-thirds of the way down the drop</strong>, so the bungee has enough fabric below it to cinch tight underneath without lifting the grommet back over the top edge.</li>
-      <li>Install the cover by laying it over the table top, snapping the four corners closed, then running a bungee through the two grommets on each short end and wrapping it under the short side of the table to cinch the cover tight.</li>
-    </ol>
-  </div>
 </div>
 
 <script>
@@ -208,29 +198,19 @@ function compute(){
 
   // Grommets
   document.getElementById('grommets').innerHTML = `
-    <div class='row'><span>Total grommets</span><strong>4 (one at each corner of the long sides)</strong></div>
-    <div class='row'><span>From outer cover edge (perpendicular)</span><strong>${r(gromDownIn)} in (= drop ÷ 3)</strong></div>
-    <div class='row'><span>From corner along long edge</span><strong>${gromAlongIn} in past the diagonal chamfer</strong></div>
-    <div class='row'><span>Bungees</span><strong>2 pieces × ${r(bungeeLen)} in</strong></div>
-    <div class='row' style='display:block;'>
-      <div style='font-size:12px;color:var(--sub);margin-top:4px;'>
-        <strong>Placement logic:</strong> Each grommet sits at <strong>${r(gromDownIn)}"</strong> from the outer cover edge on the top-down layout. When the cover is installed and the fabric folds over the table edge, that puts the grommet <strong>${r(drop - gromDownIn)}"</strong> below the fold — about <strong>two-thirds of the way down the ${r(drop)}" drop</strong>. Hanging low means the bungee has enough fabric below it to cinch tight underneath without the grommet pulling up over the top edge of the table.<br/><br/>
-        Each bungee runs through the two corner grommets at one short end of the cover and wraps under the short side of the table.<br/>
-        Length = W + 2 × (drop − ${r(gromDownIn)}") + ${bungeeSlack}" slack = ${W} + 2×${r(drop - gromDownIn)} + ${bungeeSlack} = <strong>${r(bungeeLen)}"</strong>
-      </div>
-    </div>
+    <div class='row'><span>Total grommets</span><strong>4 — one at each corner of the long sides</strong></div>
+    <div class='row'><span>Bungee length</span><strong>2 pieces × ${r(bungeeLen)}"</strong></div>
   `;
 
   // Snap card
   document.getElementById('snaps').innerHTML = `
-    <div class='row'><span>Snaps per corner</span><strong>${snapsPerCorner}</strong></div>
-    <div class='row'><span>Total snaps</span><strong>${totalSnaps}</strong></div>
-    <div class='row' style='display:block;'>
-      <div style='font-size:12px;color:var(--sub);margin-top:4px;'>
-        One mating pair per corner (2 snaps): one on the long-side flap, one on the short-side flap, mirrored across the diagonal cut. When snapped together they gather the corner bulk inward for a clean finish — aesthetic, not structural, so a single pair is enough regardless of drop depth.
-        <br/><br/>
-        <strong>Snap placement (per corner):</strong> From the outer fabric corner, measure <strong>${r(drop - 2)}"</strong> along each adjacent edge toward the table corner (= drop − 2", so the snap sits 2" in from the table-edge fold line), then <strong>${r(drop / 2)}"</strong> perpendicular from the outer fabric edge (= halfway to the table edge). Placing the snap 2" inside the corner fold keeps the cover gathered cleanly at the corner — pulling enough excess material in to eliminate the loose drape, without pinning the fabric right at the crease.
-      </div>
+    <div class='row'><span>Snap sets per corner</span><strong>1 set (1 stud + 1 socket)</strong></div>
+    <div class='row'><span>Total snap sets / total pieces</span><strong>4 sets / 8 pieces</strong></div>
+    <div class='note' style='margin-top:6px;'>
+      Each snap is one mating pair —
+      one <strong style='color:#166534'>stud (green dot)</strong>
+      and one <strong style='color:#831843'>socket (magenta dot)</strong>
+      that press together across the diagonal cut when the corner flap folds inward.
     </div>
   `;
 
@@ -384,26 +364,14 @@ function drawDiagram(p){
       fill:gromLabelColor, 'font-weight':'bold'}).textContent = `${gromAlongIn}" past chamfer`;
   }
 
-  // Bungees — show a curved line at each short end going around the short side of the table
-  // Left short end (vertical edge on the left): bungee from top-left grommet to bottom-left grommet
-  const bungeeColor = '#0891b2';
-  const lg1 = grommetPts[0], lg2 = grommetPts[3];
-  const rg1 = grommetPts[1], rg2 = grommetPts[2];
-  // curve OUT past the cover edge (left)
-  const bowL = xL - 12, bowR = xR + 12;
-  add('path',{d:`M${lg1[0]},${lg1[1]} C${bowL},${lg1[1]} ${bowL},${lg2[1]} ${lg2[0]},${lg2[1]}`,
-    fill:'none', stroke:bungeeColor, 'stroke-width':2, 'stroke-dasharray':'5,3'});
-  add('path',{d:`M${rg1[0]},${rg1[1]} C${bowR},${rg1[1]} ${bowR},${rg2[1]} ${rg2[0]},${rg2[1]}`,
-    fill:'none', stroke:bungeeColor, 'stroke-width':2, 'stroke-dasharray':'5,3'});
-  add('text',{x:bowL - 6, y:(lg1[1]+lg2[1])/2, 'text-anchor':'end','font-size':10, fill:bungeeColor, 'font-weight':'bold'}).textContent = 'bungee';
-  add('text',{x:bowR + 6, y:(rg1[1]+rg2[1])/2, 'text-anchor':'start','font-size':10, fill:bungeeColor, 'font-weight':'bold'}).textContent = 'bungee';
-
   // Snaps — NOT on the diagonal cut edge. Instead, each snap sits inside
   // the corner-square (the drop×drop area at each corner), centered in one of
   // the two adjacent side-drop strips. That puts each snap roughly halfway
   // between the table edge and the outer fabric edge, just inside the
   // diagonal cut, where it can grab both layers when the corner is folded.
-  const snapColor = '#22c55e';
+  // Each corner is one mating pair: slot 0 = stud (green), slot 1 = socket (magenta).
+  const STUD_FILL = '#22c55e', STUD_STROKE = '#166534';
+  const SOCKET_FILL = '#db2777', SOCKET_STROKE = '#831843';
   // Per-corner local positions, expressed as (alongStrip, perpStrip) in units
   // of the side drop d. The "alongStrip" axis runs from the cover's outer
   // corner (0) toward the table corner (1); the "perpStrip" axis runs from
@@ -461,7 +429,14 @@ function drawDiagram(p){
         lx = c.ox + c.sx * slot.perp  * dPx;
         ly = c.oy + c.sy * slot.along * dPx;
       }
-      add('circle',{cx:lx, cy:ly, r:4, fill:snapColor, stroke:'#166534', 'stroke-width':1});
+      // Slot 0 of each corner pair is the stud, slot 1 is the socket.
+      const isStud = (i % 2) === 0;
+      add('circle',{
+        cx:lx, cy:ly, r:4,
+        fill: isStud ? STUD_FILL : SOCKET_FILL,
+        stroke: isStud ? STUD_STROKE : SOCKET_STROKE,
+        'stroke-width':1
+      });
     }
   }
   // Annotate the bottom-left corner with snap dimensions (moved from top-left to keep top clean).

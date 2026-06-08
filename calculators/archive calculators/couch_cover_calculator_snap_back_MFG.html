@@ -99,6 +99,8 @@
             <label class="lbl">Hem allowance (edges)<input id="hem" type="number" value="1" step="0.5" /></label>
             <label class="lbl">Seam overlap (piece junctions)<input id="seam" type="number" value="1.5" step="0.5" /></label>
             <label class="lbl">Side ease (extra per side at front)<input id="sideEase" type="number" value="0" step="0.5" min="0" /></label>
+            <label class="lbl">Front corner chamfer — in (along bottom)<input id="frontChamferIn" type="number" value="12" step="0.5" min="0" /></label>
+            <label class="lbl">Front corner chamfer — up (along side)<input id="frontChamferUp" type="number" value="6" step="0.5" min="0" /></label>
             <label class="lbl" style="grid-column:1/-1; flex-direction:row; align-items:center; gap:8px;">
               <input id="snapStrapsOpt" type="checkbox" style="width:auto; margin:0;" />
               <span style="font-weight:500;">Customer ordered snap straps (optional add-on)</span>
@@ -428,7 +430,8 @@ function drawDiagram(params){
     polyOutline.push([x_taper_cross, B]);
   }
   polyOutline.push([yPointB, clampedHalf(yPointB)]);             // (yPointB, halfFront)
-  polyOutline.push([couch_panelLen, clampedHalf(couch_panelLen)]); // (panelLen, halfFront)
+  polyOutline.push([couch_panelLen - 6, clampedHalf(couch_panelLen)]);  // front angle: outer edge 6" before front end
+  polyOutline.push([couch_panelLen, clampedHalf(couch_panelLen) - 12]); // front angle: front end 12" from outer edge
   polyOutline.push([couch_panelLen, 0]);     // bottom-inside corner
 
   // BACK SCRAP TRIANGLE — at the back-floor end of each bolt, bounded by
@@ -717,7 +720,7 @@ function drawDiagram(params){
       `Each extension is too wide to share a bolt — uses its own bolt.`;
   } else {
     add('text',{x:VBW/2, y:sy + 34, 'text-anchor':'middle', 'font-size':10, fill:'#475569'}).textContent=
-      `No side extensions needed — assembled width (${rIn(couch_assembledW)}") fits within 2×B − 2×seam = ${rIn(couch_joinedUsableW)}"`;
+      `No side extensions needed — assembled width (${rIn(couch_assembledW)}") fits within 2×B − seam = ${rIn(couch_joinedUsableW)}"`;
   }
 }
 
@@ -995,7 +998,7 @@ function updateCutList(params){
     `Qty 1 — runs front-to-back: floor → up back of couch → over backrest → over seat → down front to floor.`]);
   rows.push(['Right panel',
     `${fmtInch(couch_panelLen, rm)}" × ${fmtInch(couch_panelW, rm)}" (full bolt width)`,
-    `Qty 1 — mirrors left panel. Joined to left panel along the center snap seam (${fmtExact(seam)}" overlap each side).`]);
+    `Qty 1 — mirrors left panel. Joined to left panel along the center seam (${fmtExact(seam)}" overlap).`]);
 
   if (couch_extNeeded) {
     const _extLen = couch_extActualLen || couch_panelLen;
@@ -1007,7 +1010,7 @@ function updateCutList(params){
       `Qty 1 — sewn to outer edge of right panel only where the silhouette is wider than 2 joined bolts (incl. 1" ext-seam allowance). Can be cut from a scrap of equivalent dimensions if available.`]);
   } else {
     rows.push(['Side extensions', 'Not required',
-      `Two joined bolts (${B}" + ${B}" − 2×${fmtExact(seam)}" snap-seam = ${fmtExact(couch_joinedUsableW)}") cover the assembled width (${fmtExact(couch_assembledW)}").`]);
+      `Two joined bolts (${B}" + ${B}" − ${fmtExact(seam)}" seam = ${fmtExact(couch_joinedUsableW)}") cover the assembled width (${fmtExact(couch_assembledW)}").`]);
   }
 
   rows.push(['Total bolts',
@@ -1016,8 +1019,8 @@ function updateCutList(params){
       ? `2 main panels + ${couch_extBoltsNeeded} bolt(s) for the two side extensions (${2*couch_extEachCut <= B ? 'both fit across one bolt width' : 'extensions too wide to share a bolt'}).`
       : `2 bolts — one per panel.`]);
 
-  rows.push(['Snap hardware', 'Center snap seam + 1 snap pair per back corner (2 pairs total)',
-    `Center snap seam runs the full length of the panels. Back corner snaps: one pair per back corner, both halves on the back piece — the extension pleats at the corner and the snap closes the fold.`]);
+  rows.push(['Snap hardware', '1 snap pair per back corner (2 pairs total)',
+    `Center seam is a regular sewn lap seam — no snaps along the center. Back corner snaps: one pair per back corner, both halves on the back piece — the extension pleats at the corner and the snap closes the fold.`]);
 
   cutlist.innerHTML = rows.map((r,i)=>`<div class="row" style="${i? 'border-top:1px dashed var(--muted);':''}"><span>${r[0]}</span><strong>${r[1]}</strong><span style="color:var(--sub)">${r[2]}</span></div>`).join('');
 }
@@ -1216,23 +1219,26 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
   // x-axis: side-to-side across the couch (left edge → center seam → right edge)
   // y-axis: front-to-back (top = back of couch, bottom = front of couch)
   // Pieces (each is a rectangle):
-  //   [left side ext?] [LEFT PANEL B] [center snap seam overlap] [RIGHT PANEL B] [right side ext?]
+  //   [left side ext?] [LEFT PANEL B] [center seam overlap] [RIGHT PANEL B] [right side ext?]
   // All pieces are couch_panelLen long (the front-to-back wrap distance).
   // ============================================================
   const VBW = vbw, VBH = vbh;
-  const pad = 60;
-  const legendH = 180;
+  const pad = 40;
+  const legendW = 360;        // right-side legend column (replaces old 180px bottom strip)
+  const legendGap = 16;       // gap between diagram area and legend column
 
   const extW = couch_extNeeded ? couch_extEachCut : 0;
   // Visual total width: assembled cover width (the silhouette's widest line at backrest).
   const totalDiagW = couch_assembledW + 40;
   const totalDiagH = couch_panelLen + 60;
 
-  const scX = (VBW - pad*2) / totalDiagW;
-  const scY = (VBH - pad*2 - legendH) / totalDiagH;
+  const diagramAreaW = VBW - pad*2 - legendW - legendGap;
+  const diagramAreaH = VBH - pad*2;
+  const scX = diagramAreaW / totalDiagW;
+  const scY = diagramAreaH / totalDiagH;
   const sc  = Math.min(scX, scY);
 
-  const cx = VBW / 2;                                      // center seam x
+  const cx = pad + diagramAreaW / 2;                       // center seam x (centered in diagram area, not whole viewBox)
   const drawTopY = pad + 30;                               // top of panels (back of couch)
   const drawBotY = drawTopY + couch_panelLen * sc;         // bottom of panels (front of couch)
   const halfBpx  = B * sc / 2;                             // half-bolt pixel width
@@ -1240,7 +1246,7 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
 
   // Panel x-edges
   const leftPanelLeftX  = cx - 2 * halfBpx;                // outer edge of left panel
-  const leftPanelRightX = cx;                              // inner edge of left panel (snap seam center)
+  const leftPanelRightX = cx;                              // inner edge of left panel (center seam line)
   const rightPanelLeftX = cx;
   const rightPanelRightX = cx + 2 * halfBpx;
   const leftExtLeftX    = leftPanelLeftX - extPx;
@@ -1262,6 +1268,10 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
   const frontWidthAfterCut_couch = W + 2 * frontExtDrop;
   const halfFront  = (frontWidthAfterCut_couch / 2) * sc;
 
+  // Front corner angle: 12" in from outer edge at bottom, 6" up from front edge on side
+  const frontAngleInPx  = 12 * sc;   // 12" in along the bottom front edge
+  const frontAngleUpPx  =  6 * sc;   // 6" up along the outer side edge
+
   // Right-half polygon (clockwise from top center)
   const rightPts = [
     [cx,               yBackFloor],
@@ -1269,14 +1279,16 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
     [cx + halfMid,     yBackrestTop],
     [cx + halfMid,     yBackrestEnd],
     [cx + halfFront,   yPointB],
-    [cx + halfFront,   drawBotY],
+    [cx + halfFront,   drawBotY - frontAngleUpPx],   // 6" up from front on outer side
+    [cx + halfFront - frontAngleInPx, drawBotY],     // 12" in from outer edge at front
     [cx,               drawBotY]
   ];
   // Left-half polygon (mirror)
   const leftPts = [
     [cx,               yBackFloor],
     [cx,               drawBotY],
-    [cx - halfFront,   drawBotY],
+    [cx - halfFront + frontAngleInPx, drawBotY],     // 12" in from outer edge at front
+    [cx - halfFront,   drawBotY - frontAngleUpPx],   // 6" up from front on outer side
     [cx - halfFront,   yPointB],
     [cx - halfMid,     yBackrestEnd],
     [cx - halfMid,     yBackrestTop],
@@ -1300,14 +1312,14 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
   add('text',{x:cx + halfMid/2, y:labY + 12, 'text-anchor':'middle',
     'font-size':10, fill:'#1e40af'}).textContent=`${rIn(couch_panelLen)}" × ${rIn(B)}" (bolt 2)`;
 
-  // === CENTER SNAP SEAM (internal vertical division) ===
+  // === CENTER SEAM (internal vertical division — regular lap seam) ===
   const seamPx = seam * sc;
-  add('rect',{x:cx - seamPx, y:yBackFloor, width:seamPx*2, height:drawBotY-yBackFloor,
+  add('rect',{x:cx - seamPx/2, y:yBackFloor, width:seamPx, height:drawBotY-yBackFloor,
     fill:'#fde68a99', stroke:'none'});
   add('line',{x1:cx, y1:yBackFloor, x2:cx, y2:drawBotY,
     stroke:'#d97706', 'stroke-width':1.4, 'stroke-dasharray':'5,3'});
   add('text',{x:cx + 4, y:yPointB + 14, 'font-size':9,
-    fill:'#92400e', 'font-weight':'bold'}).textContent=`center snap seam (${rIn(seam*2)}" overlap = 2 × ${rIn(seam)}")`;
+    fill:'#92400e', 'font-weight':'bold'}).textContent=`center seam (${rIn(seam)}" overlap)`;
 
   // === SIDE SEAMS for extensions (if needed) ===
   // The seam runs vertically at x = cx ± (B − seam) — i.e., the inner edge of the extension panel.
@@ -1641,78 +1653,110 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
     });
   }
 
-  // === BOTTOM LEGEND BOX (couch-specific snap/grommet info) ===
-  const keyTotalW = VBW - pad * 2;
-  const keyX = pad;
-  const keyY = VBH - legendH + 4;
-  const keyH = legendH - 14;
-  const colW = keyTotalW / 3;
-  add('rect',{x:keyX, y:keyY, width:keyTotalW, height:keyH, rx:6, fill:'#f0fdf4', stroke:'#059669', 'stroke-width':1.5});
-  add('text',{x:keyX + 10, y:keyY + 16, 'font-size':12, fill:'#059669', 'font-weight':'bold'}).textContent='COUCH SNAP-BACK ASSEMBLY KEY';
-  add('line',{x1:keyX + colW, y1:keyY + 22, x2:keyX + colW, y2:keyY + keyH - 6, stroke:'#86efac', 'stroke-width':1});
-  add('line',{x1:keyX + 2*colW, y1:keyY + 22, x2:keyX + 2*colW, y2:keyY + keyH - 6, stroke:'#86efac', 'stroke-width':1});
+  // === RIGHT-SIDE LEGEND COLUMN (couch-specific snap/grommet info) ===
+  // Moved from the old bottom strip so the diagram itself can fill more of the page.
+  const keyX = VBW - pad - legendW;
+  const keyY = pad;
+  const keyH = VBH - pad * 2;
+  add('rect',{x:keyX, y:keyY, width:legendW, height:keyH, rx:6, fill:'#f0fdf4', stroke:'#059669', 'stroke-width':1.5});
+  add('text',{x:keyX + 12, y:keyY + 18, 'font-size':12, fill:'#059669', 'font-weight':'bold'}).textContent='COUCH SNAP-BACK ASSEMBLY KEY';
 
-  // Left column: snap seam + corner snaps
-  let row = keyY + 36;
-  add('text',{x:keyX + 12, y:row, 'font-size':11, fill:'#059669', 'font-weight':'bold'}).textContent='Center snap seam';
-  row += 14;
-  add('text',{x:keyX + 12, y:row, 'font-size':10, fill:'#334155'}).textContent=`Runs full ${rIn(couch_panelLen)}" length down the middle. Overlap zone: 2 × ${rIn(seam)}" = ${rIn(seam*2)}".`;
+  const colX = keyX + 12;
+  let row = keyY + 40;
 
-  // Right column: grommets + bolt summary
-  row = keyY + 36;
-  const xR = keyX + colW + 12;
-  add('text',{x:xR, y:row, 'font-size':11, fill:'#b45309', 'font-weight':'bold'}).textContent='Grommets (4 total — for bungees)';
+  // Section 1: Center seam
+  add('text',{x:colX, y:row, 'font-size':11, fill:'#059669', 'font-weight':'bold'}).textContent='Center seam';
   row += 14;
-  add('text',{x:xR, y:row, 'font-size':10, fill:'#334155'}).textContent=`Front: ±${rIn(gromFrontX)}" from center, ${rIn(gromInset)}" inset from front floor edge.`;
+  add('text',{x:colX, y:row, 'font-size':10, fill:'#334155'}).textContent=`Runs full ${rIn(couch_panelLen)}" length down`;
   row += 12;
-  add('text',{x:xR, y:row, 'font-size':10, fill:'#334155'}).textContent=`Back:  ±${rIn(gromBackX)}" from center, ${rIn(gromInset)}" inset from back floor edge.`;
+  add('text',{x:colX, y:row, 'font-size':10, fill:'#334155'}).textContent=`the middle. Regular lap seam:`;
+  row += 12;
+  add('text',{x:colX, y:row, 'font-size':10, fill:'#334155'}).textContent=`${rIn(seam)}" overlap.`;
+
+  // Section divider
+  row += 12;
+  add('line',{x1:colX, y1:row, x2:keyX + legendW - 12, y2:row, stroke:'#86efac', 'stroke-width':1});
+
+  // Section 2: Grommets
   row += 16;
-  add('text',{x:xR, y:row, 'font-size':11, fill:'#7c3aed', 'font-weight':'bold'}).textContent='Side extension seams';
+  add('text',{x:colX, y:row, 'font-size':11, fill:'#b45309', 'font-weight':'bold'}).textContent='Grommets (4 total — for bungees)';
+  row += 14;
+  add('text',{x:colX, y:row, 'font-size':10, fill:'#334155'}).textContent=`Front: ±${rIn(gromFrontX)}" from center,`;
+  row += 12;
+  add('text',{x:colX, y:row, 'font-size':10, fill:'#334155'}).textContent=`${rIn(gromInset)}" inset from front floor edge.`;
+  row += 12;
+  add('text',{x:colX, y:row, 'font-size':10, fill:'#334155'}).textContent=`Back:  ±${rIn(gromBackX)}" from center,`;
+  row += 12;
+  add('text',{x:colX, y:row, 'font-size':10, fill:'#334155'}).textContent=`${rIn(gromInset)}" inset from back floor edge.`;
+
+  // Section divider
+  row += 12;
+  add('line',{x1:colX, y1:row, x2:keyX + legendW - 12, y2:row, stroke:'#86efac', 'stroke-width':1});
+
+  // Section 3: Side extension seams
+  row += 16;
+  add('text',{x:colX, y:row, 'font-size':11, fill:'#7c3aed', 'font-weight':'bold'}).textContent='Side extension seams';
   row += 14;
   if (couch_extNeeded) {
-    add('text',{x:xR, y:row, 'font-size':10, fill:'#334155'}).textContent=`Each strip: ${rIn(couch_extEachCut)}" wide × ${rIn(couch_panelLen)}" long, 1" seam allowance.`;
+    const _extLen = couch_extActualLen || couch_panelLen;
+    add('text',{x:colX, y:row, 'font-size':10, fill:'#334155'}).textContent=`Each strip: ${rIn(couch_extEachCut)}" wide ×`;
+    row += 12;
+    add('text',{x:colX, y:row, 'font-size':10, fill:'#334155'}).textContent=`${rIn(_extLen)}" long, 1" seam allowance.`;
   } else {
-    add('text',{x:xR, y:row, 'font-size':10, fill:'#334155'}).textContent=`Not needed — cover fits within 2 bolts.`;
+    add('text',{x:colX, y:row, 'font-size':10, fill:'#334155'}).textContent=`Not needed — cover fits within`;
+    row += 12;
+    add('text',{x:colX, y:row, 'font-size':10, fill:'#334155'}).textContent=`2 bolts.`;
   }
 
-  // Third column: snap placement info
-  const xS = keyX + 2*colW + 12;
-  let srow = keyY + 36;
-  add('text',{x:xS, y:srow, 'font-size':11, fill:'#059669', 'font-weight':'bold'}).textContent='Snap placement';
-  srow += 14;
-  add('circle',{cx:xS + 6, cy:srow - 3, r:5, fill:'#059669', stroke:'#fff', 'stroke-width':1.5});
-  add('text',{x:xS + 16, y:srow, 'font-size':9, fill:'#334155'}).textContent='= back-side (2" past WB/2 fold)';
-  add('circle',{cx:xS + 170, cy:srow - 3, r:5, fill:'#059669', stroke:'#dc2626', 'stroke-width':1.5});
-  add('text',{x:xS + 180, y:srow, 'font-size':9, fill:'#334155'}).textContent='= front-side (near seam)';
+  // Section divider
+  row += 12;
+  add('line',{x1:colX, y1:row, x2:keyX + legendW - 12, y2:row, stroke:'#86efac', 'stroke-width':1});
+
+  // Section 4: Snap placement
+  row += 16;
+  add('text',{x:colX, y:row, 'font-size':11, fill:'#059669', 'font-weight':'bold'}).textContent='Snap placement';
+  row += 16;
+  add('circle',{cx:colX + 6, cy:row - 3, r:5, fill:'#059669', stroke:'#fff', 'stroke-width':1.5});
+  add('text',{x:colX + 16, y:row, 'font-size':9, fill:'#334155'}).textContent='= back-side (2" past WB/2 fold)';
+  row += 14;
+  add('circle',{cx:colX + 6, cy:row - 3, r:5, fill:'#059669', stroke:'#dc2626', 'stroke-width':1.5});
+  add('text',{x:colX + 16, y:row, 'font-size':9, fill:'#334155'}).textContent='= front-side (near seam)';
   if (snapInfo_couch.length > 0) {
     const s = snapInfo_couch[0];
-    srow += 14;
-    add('text',{x:xS, y:srow, 'font-size':10, fill:'#059669', 'font-weight':'bold'}).textContent=`One pair per corner — both on back piece`;
-    srow += 11;
-    add('text',{x:xS, y:srow, 'font-size':9, fill:'#334155'}).textContent=`Back-side: ${rIn(s.backDownFromSeam)}" from seam, ${rIn(s.backFromCenter)}" from center (halfway down; WB/2 + 2)`;
-    srow += 11;
-    add('text',{x:xS, y:srow, 'font-size':9, fill:'#334155'}).textContent=`Front-side: ${rIn(s.frontDownFromSeam)}" from seam, ${rIn(s.frontFromCenter)}" from center (2" above seam; WB/2 + (H−FC)/2)`;
+    row += 14;
+    add('text',{x:colX, y:row, 'font-size':10, fill:'#059669', 'font-weight':'bold'}).textContent=`One pair per corner — both on back piece`;
+    row += 12;
+    add('text',{x:colX, y:row, 'font-size':9, fill:'#334155'}).textContent=`Back-side: ${rIn(s.backDownFromSeam)}" from seam,`;
+    row += 11;
+    add('text',{x:colX, y:row, 'font-size':9, fill:'#334155'}).textContent=`${rIn(s.backFromCenter)}" from center (½ down; WB/2 + 2)`;
+    row += 12;
+    add('text',{x:colX, y:row, 'font-size':9, fill:'#334155'}).textContent=`Front-side: ${rIn(s.frontDownFromSeam)}" from seam,`;
+    row += 11;
+    add('text',{x:colX, y:row, 'font-size':9, fill:'#334155'}).textContent=`${rIn(s.frontFromCenter)}" from center`;
   }
 
   // --- Snap-strap addendum (only when the customer ordered straps) ---
   if (snapStrapsOpt) {
-    srow += 16;
-    add('circle',{cx:xS + 6, cy:srow - 3, r:5, fill:strapColor, stroke:strapBorderColor, 'stroke-width':1.5});
-    add('text',{x:xS + 16, y:srow, 'font-size':11, fill:strapColor, 'font-weight':'bold'})
-      .textContent=`Snap straps (optional add-on) — ${strapCount} straps`;
-    srow += 12;
+    // Section divider
+    row += 14;
+    add('line',{x1:colX, y1:row, x2:keyX + legendW - 12, y2:row, stroke:'#86efac', 'stroke-width':1});
+    row += 16;
+    add('circle',{cx:colX + 6, cy:row - 3, r:5, fill:strapColor, stroke:strapBorderColor, 'stroke-width':1.5});
+    add('text',{x:colX + 16, y:row, 'font-size':11, fill:strapColor, 'font-weight':'bold'})
+      .textContent=`Snap straps — ${strapCount} straps`;
+    row += 14;
     const offsetsList = strapOffsets.map(o => (o >= 0 ? '+' : '') + rIn(o)).join(', ');
-    add('text',{x:xS, y:srow, 'font-size':9, fill:'#334155'})
-      .textContent=`${strapCount * 2} snaps total (${strapCount} back + ${strapCount} front), 8" webbing each`;
-    srow += 11;
-    add('text',{x:xS, y:srow, 'font-size':9, fill:'#334155'})
-      .textContent=`Horizontal offsets from center: ${offsetsList}"`;
-    srow += 11;
-    add('text',{x:xS, y:srow, 'font-size':9, fill:'#334155'})
-      .textContent=`Back snaps: ${rIn(strapBackUpFromSeam)}" toward floor from backrest top`;
-    srow += 11;
-    add('text',{x:xS, y:srow, 'font-size':9, fill:'#334155'})
-      .textContent=`Front snaps: ${rIn(strapFrontDownFromSeam)}" down front (⅔ × ${rIn(strapFrontDrapingLength)}")`;
+    add('text',{x:colX, y:row, 'font-size':9, fill:'#334155'})
+      .textContent=`${strapCount * 2} snaps total, 8" webbing each`;
+    row += 11;
+    add('text',{x:colX, y:row, 'font-size':9, fill:'#334155'})
+      .textContent=`Offsets from center: ${offsetsList}"`;
+    row += 11;
+    add('text',{x:colX, y:row, 'font-size':9, fill:'#334155'})
+      .textContent=`Back: ${rIn(strapBackUpFromSeam)}" toward floor from backrest`;
+    row += 11;
+    add('text',{x:colX, y:row, 'font-size':9, fill:'#334155'})
+      .textContent=`Front: ${rIn(strapFrontDownFromSeam)}" down (⅔ × ${rIn(strapFrontDrapingLength)}")`;
   }
 }
 
@@ -1723,7 +1767,8 @@ function _drawAssemblyDiagramFlat_chair_legacy(params, svgId, vbw, vbh){
          totalFB, confirmCoverageWidth, backWidth, frontWidth, rounded, roundMode, hem, seam,
          backPieceTopWidth, backPieceBottomWidth, backPieceHeight,
          backPieceWidth, backPieceLength, frontFlapNeeded, frontFlapWidth, frontFlapLength,
-         backInset, frontInset, markFromSideEdge, frontWidthAfterCut, taperZoneLength} = params;
+         backInset, frontInset, markFromSideEdge, frontWidthAfterCut, taperZoneLength,
+         frontChamferIn, frontChamferUp} = params;
   const rIn = v => roundMode === 'whole' ? Math.ceil(v) : roundMode === 'half' ? roundHalf(v) : Math.round(v*100)/100;
   const svg = document.getElementById(svgId);
   if (!svg) return;
@@ -1830,18 +1875,33 @@ function _drawAssemblyDiagramFlat_chair_legacy(params, svgId, vbw, vbh){
   const frontLeftX = mainX + trimPx;                // front zone, reduced width
   const frontRightX = mainX + mainW - trimPx;
 
-  // Draw the cut shape as a polygon (hexagon/octagon with front flap extension)
+  // Front corner chamfer — clip a diagonal off each front-bottom corner so the
+  // corner lifts off the floor instead of puddling. Triangle removed has legs
+  // frontChamferIn (along front-bottom edge) × frontChamferUp (along side edge).
+  // Clamp the chamfer so it can't be larger than the available front-zone
+  // height or half the front bottom width.
+  const frontZonePx = frontBottomY - frontInsetY;  // available vertical room in front zone (incl. flap)
+  const frontHalfWPx = (frontRightX - frontLeftX) / 2;
+  const chmInPx = Math.max(0, Math.min((frontChamferIn || 0) * sc, frontHalfWPx - 2));
+  const chmUpPx = Math.max(0, Math.min((frontChamferUp || 0) * sc, frontZonePx - 2));
+
+  // Draw the cut shape as a polygon. With chamfered front corners, the front
+  // bottom corner becomes two points (one on the side edge, one on the bottom).
   // Path: back-left → back-right → back-right-at-inset → front-right-at-taper-end →
-  //        front-right-bottom → front-left-bottom → front-left-at-taper-end → back-left-at-inset
+  //        front-right chamfer-top → front-right chamfer-bottom →
+  //        front-left chamfer-bottom → front-left chamfer-top →
+  //        front-left-at-taper-end → back-left-at-inset
   const shapePts = [
-    `${topLeftX},${mainTopY}`,          // back-left corner
-    `${topRightX},${mainTopY}`,         // back-right corner
-    `${topRightX},${backInsetY}`,       // right side at back inset
-    `${frontRightX},${frontInsetY}`,    // right side at front inset (after taper)
-    `${frontRightX},${frontBottomY}`,   // front-right bottom (includes flap)
-    `${frontLeftX},${frontBottomY}`,    // front-left bottom (includes flap)
-    `${frontLeftX},${frontInsetY}`,     // left side at front inset (after taper)
-    `${topLeftX},${backInsetY}`,        // left side at back inset
+    `${topLeftX},${mainTopY}`,                                  // back-left corner
+    `${topRightX},${mainTopY}`,                                 // back-right corner
+    `${topRightX},${backInsetY}`,                               // right side at back inset
+    `${frontRightX},${frontInsetY}`,                            // right side at front inset (after taper)
+    `${frontRightX},${frontBottomY - chmUpPx}`,                 // front-right chamfer top
+    `${frontRightX - chmInPx},${frontBottomY}`,                 // front-right chamfer bottom
+    `${frontLeftX + chmInPx},${frontBottomY}`,                  // front-left chamfer bottom
+    `${frontLeftX},${frontBottomY - chmUpPx}`,                  // front-left chamfer top
+    `${frontLeftX},${frontInsetY}`,                             // left side at front inset (after taper)
+    `${topLeftX},${backInsetY}`,                                // left side at back inset
   ].join(' ');
 
   add('polygon', {
@@ -1853,17 +1913,35 @@ function _drawAssemblyDiagramFlat_chair_legacy(params, svgId, vbw, vbh){
   // Left diagonal: from back inset to front inset
   add('line', {x1:topLeftX, y1:backInsetY, x2:frontLeftX, y2:frontInsetY,
     stroke:'#0f172a', 'stroke-width':2.5, 'stroke-dasharray':'12,5'});
-  // Left vertical trim line in front zone
+  // Left vertical trim line in front zone — stops where the front chamfer starts
   if (frInPx > 2) {
-    add('line', {x1:frontLeftX, y1:frontInsetY, x2:frontLeftX, y2:frontBottomY,
+    add('line', {x1:frontLeftX, y1:frontInsetY, x2:frontLeftX, y2:frontBottomY - chmUpPx,
       stroke:'#0f172a', 'stroke-width':1.5, 'stroke-dasharray':'6,4'});
   }
   // Right diagonal
   add('line', {x1:topRightX, y1:backInsetY, x2:frontRightX, y2:frontInsetY,
     stroke:'#0f172a', 'stroke-width':2.5, 'stroke-dasharray':'12,5'});
   if (frInPx > 2) {
-    add('line', {x1:frontRightX, y1:frontInsetY, x2:frontRightX, y2:frontBottomY,
+    add('line', {x1:frontRightX, y1:frontInsetY, x2:frontRightX, y2:frontBottomY - chmUpPx,
       stroke:'#0f172a', 'stroke-width':1.5, 'stroke-dasharray':'6,4'});
+  }
+
+  // === FRONT CORNER CHAMFER LINES (dashed red, like other cut lines) ===
+  if (chmInPx > 1 && chmUpPx > 1) {
+    // Left front chamfer
+    add('line', {x1:frontLeftX, y1:frontBottomY - chmUpPx, x2:frontLeftX + chmInPx, y2:frontBottomY,
+      stroke:'#b91c1c', 'stroke-width':2.5, 'stroke-dasharray':'10,4'});
+    // Right front chamfer
+    add('line', {x1:frontRightX, y1:frontBottomY - chmUpPx, x2:frontRightX - chmInPx, y2:frontBottomY,
+      stroke:'#b91c1c', 'stroke-width':2.5, 'stroke-dasharray':'10,4'});
+    // Label on the left chamfer (centered, offset inward)
+    const lblX = frontLeftX + chmInPx / 2 + 6;
+    const lblY = frontBottomY - chmUpPx / 2 + 2;
+    add('text', {x:lblX, y:lblY, 'font-size':10, fill:'#b91c1c', 'font-weight':'bold'})
+      .textContent = `${rIn(frontChamferIn)}" × ${rIn(frontChamferUp)}" chamfer`;
+    add('text', {x:frontRightX - chmInPx / 2 - 6, y:frontBottomY - chmUpPx / 2 + 2,
+      'text-anchor':'end', 'font-size':10, fill:'#b91c1c', 'font-weight':'bold'})
+      .textContent = `${rIn(frontChamferIn)}" × ${rIn(frontChamferUp)}" chamfer`;
   }
 
   // === SNAP POSITION MARKERS ===
@@ -2300,7 +2378,8 @@ function drawWavyEdgeDiagram(params) {
          totalFB, roundMode, hem, seam,
          backPieceTopWidth, backPieceBottomWidth, backPieceHeight,
          frontFlapNeeded, frontFlapWidth, frontFlapLength,
-         backInset, frontInset, markFromSideEdge, frontWidthAfterCut} = params;
+         backInset, frontInset, markFromSideEdge, frontWidthAfterCut,
+         frontChamferIn, frontChamferUp} = params;
   const rIn = v => roundMode === 'whole' ? Math.ceil(v) : roundMode === 'half' ? roundHalf(v) : Math.round(v*100)/100;
   const svg = document.getElementById('assemblyWavyEdge');
   if (!svg) return;
@@ -2347,12 +2426,21 @@ function drawWavyEdgeDiagram(params) {
   const bpBotW = backPieceBottomWidth * sc;
   const bpTopY = mainTopY - bpPhysH;
 
+  // Front corner chamfer — same logic as flat diagram, must match.
+  const wFrontZonePx = frontBottomY - frontInsetY;
+  const wFrontHalfWPx = (frontRightX - frontLeftX) / 2;
+  const chmInPx = Math.max(0, Math.min((frontChamferIn || 0) * sc, wFrontHalfWPx - 2));
+  const chmUpPx = Math.max(0, Math.min((frontChamferUp || 0) * sc, wFrontZonePx - 2));
+
   // --- Draw filled shapes (light, so wavy lines stand out) ---
-  // Main piece + front flap
+  // Main piece + front flap (with chamfered front corners)
   const shapePts = [
     `${topLeftX},${mainTopY}`, `${topRightX},${mainTopY}`,
     `${topRightX},${backInsetY}`, `${frontRightX},${frontInsetY}`,
-    `${frontRightX},${frontBottomY}`, `${frontLeftX},${frontBottomY}`,
+    `${frontRightX},${frontBottomY - chmUpPx}`,
+    `${frontRightX - chmInPx},${frontBottomY}`,
+    `${frontLeftX + chmInPx},${frontBottomY}`,
+    `${frontLeftX},${frontBottomY - chmUpPx}`,
     `${frontLeftX},${frontInsetY}`, `${topLeftX},${backInsetY}`
   ].join(' ');
   add('polygon', {points: shapePts, fill: '#fca5a5', stroke: 'none', opacity: 0.5});
@@ -2395,14 +2483,23 @@ function drawWavyEdgeDiagram(params) {
 
   // == MAIN PIECE — single continuous path ==
   // Clockwise from top-left: seam(straight) → right back → right diag → right front →
-  // right corner curve → bottom → left corner curve → left front → left diag → left back
+  // right chamfer (straight diagonal at front corner) → bottom → left chamfer →
+  // left front → left diag → left back
   {
-    const cornerStopY = frontBottomY - cornerPx;
+    // Use the front chamfer (not the old fixed 13" C-curve scoop) so the wavy
+    // edge follows the actual cut shape from the flat diagram.
+    const cornerStopY = frontBottomY - chmUpPx;
+    const bottomStartLX = frontLeftX + chmInPx;
+    const bottomStartRX = frontRightX - chmInPx;
     // Edge point arrays (with tapering at corners)
     const rightBack = wavyEdgePoints(topRightX, mainTopY, topRightX, backInsetY, depthPx, wavePx, -1, taperPx);
     const rightDiag = wavyEdgePoints(topRightX, backInsetY, frontRightX, frontInsetY, depthPx, wavePx, -1, taperPx);
     const rightFront = wavyEdgePoints(frontRightX, frontInsetY, frontRightX, cornerStopY, depthPx, wavePx, -1, taperPx);
-    const bottom = wavyEdgePoints(frontLeftX + cornerPx, frontBottomY, frontRightX - cornerPx, frontBottomY, depthPx, wavePx, 1, taperPx);
+    // Right chamfer: straight diagonal from (frontRightX, cornerStopY) to (bottomStartRX, frontBottomY)
+    const rightChamfer = wavyEdgePoints(frontRightX, cornerStopY, bottomStartRX, frontBottomY, depthPx, wavePx, -1, taperPx);
+    const bottom = wavyEdgePoints(bottomStartLX, frontBottomY, bottomStartRX, frontBottomY, depthPx, wavePx, 1, taperPx);
+    // Left chamfer
+    const leftChamfer = wavyEdgePoints(bottomStartLX, frontBottomY, frontLeftX, cornerStopY, depthPx, wavePx, -1, taperPx);
     const leftFront = wavyEdgePoints(frontLeftX, cornerStopY, frontLeftX, frontInsetY, depthPx, wavePx, -1, taperPx);
     const leftDiag = wavyEdgePoints(frontLeftX, frontInsetY, topLeftX, backInsetY, depthPx, wavePx, -1, taperPx);
     const leftBack = wavyEdgePoints(topLeftX, backInsetY, topLeftX, mainTopY, depthPx, wavePx, -1, taperPx);
@@ -2542,6 +2639,13 @@ function compute(){
     const hem  = parseNum('hem');
     const seam = parseNum('seam');
     const sideEase = parseNum('sideEase');
+    // Front corner chamfer — cuts a diagonal off each front-bottom corner of the
+    // finished cover so the corner lifts off the floor instead of puddling.
+    // Geometry: triangle removed at each front corner with legs
+    //   frontChamferIn (along the front-bottom edge inward from the corner)
+    //   frontChamferUp (along the side edge upward from the corner)
+    const frontChamferIn = parseNum('frontChamferIn');
+    const frontChamferUp = parseNum('frontChamferUp');
     const snapStrapsOpt = !!document.getElementById('snapStrapsOpt')?.checked;
 
     // === MAIN PIECE CALCULATIONS (Side-to-Side Design) ===
@@ -2862,7 +2966,7 @@ function compute(){
     // ============================================================
     // Each panel runs FRONT-TO-BACK, bolt width B going side-to-side.
     // Panel length = back drop + BR + AT2F + front drop.
-    // Two panels are joined by a center snap seam (2" overlap each → loses 2*seam of usable width).
+    // Two panels are joined by a center seam (regular lap seam → one piece overlaps the other by `seam`, loses 1*seam of usable width).
     // If the assembled width (WB + 2*sideDrop) exceeds the joined usable width, side extensions are added.
     // === Match the chair calculator's flat layout exactly ===
     // The chair compresses the AT2F diagonal into the bolt-width B and adds a "front flap"
@@ -2879,11 +2983,11 @@ function compute(){
     const couch_panelLen   = sideDrop + couch_backInset + couch_taperLen + couch_frontStraight; // = sideDrop + B + frontFlap
     const couch_assembledW = WB + 2 * sideDrop;                          // assembled width at backrest (widest line)
     const couch_panelW     = B;                                          // each main panel = full bolt width
-    const couch_joinedUsableW = 2 * couch_panelW - 2 * seam;             // 2 bolts joined at center, minus snap-seam overlap
+    const couch_joinedUsableW = 2 * couch_panelW - seam;                 // 2 bolts joined at center, minus regular lap-seam overlap
     const couch_extNeeded  = couch_assembledW > couch_joinedUsableW;
     const couch_extDeficit = Math.max(0, couch_assembledW - couch_joinedUsableW);
     const couch_extEachUsable = couch_extDeficit / 2;
-    const couch_extSeam = 1;                                             // side-extension seam allowance (1" — slimmer than center snap seam)
+    const couch_extSeam = 1;                                             // side-extension seam allowance (1" — slimmer than the 1.5" center seam)
     const couch_extEachCut = couch_extEachUsable + couch_extSeam;        // each side extension cut width (incl. seam to main panel)
     // Bolt usage:
     //   Main panels: always 2 bolts, each couch_panelLen long.
@@ -2989,7 +3093,7 @@ function compute(){
     } else if (couch_extNeeded) {
       nestingNote = `${couch_totalBolts} bolts × ${fmtExact(couch_panelLen)}" = ${fmtExact(couch_total_inches)}". 2 main panels + ${couch_extBoltsNeeded} bolt(s) for side extensions (each ext ${fmtExact(couch_extEachCut)}" wide). Extensions don't fit in main-bolt scrap.`;
     } else {
-      nestingNote = `2 bolts × ${fmtExact(couch_panelLen)}" = ${fmtExact(couch_total_inches)}". Joined width 2×${B} − 2×${seam} = ${fmtExact(couch_joinedUsableW)}" covers assembled ${fmtExact(couch_assembledW)}" — no side extensions needed.`;
+      nestingNote = `2 bolts × ${fmtExact(couch_panelLen)}" = ${fmtExact(couch_total_inches)}". Joined width 2×${B} − ${seam} = ${fmtExact(couch_joinedUsableW)}" covers assembled ${fmtExact(couch_assembledW)}" — no side extensions needed.`;
     }
 
     // === DISPLAY RESULTS ===
@@ -3486,6 +3590,7 @@ function compute(){
          couch_backInset, couch_taperLen, couch_frontStraight, couch_frontInset, couch_frontFlapWidth, couch_frontFlapNeeded,
       couch_extNeeded, couch_extEachCut, couch_extSeam, couch_extBoltsNeeded, couch_totalBolts, couch_extActualLen,
       couch_total_inches, couch_total_yards,
+      frontChamferIn, frontChamferUp,
       snapStrapsOpt};
     // Call each diagram in its own try/catch so one failure doesn't block the others
     const diagramErrors = [];

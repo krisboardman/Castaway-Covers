@@ -355,6 +355,21 @@ function drawDiagram(params){
   add('text',{x:sx - 22, y:sy + mainH/2, 'text-anchor':'end', 'dominant-baseline':'middle', 'font-size':12, fill:'#334155', transform:`rotate(-90 ${sx-22} ${sy + mainH/2})`}).textContent=`Bolt (B): ${rIn(B)}"`;
   add('circle',{cx:sx + mainW/2, cy:sy + mainH/2, r:4, fill:'#dc2626', stroke:'#ffffff', 'stroke-width':1.5});
 
+  // === FRONT CORNER ANGLE CUTS (12" in from outer edge, 6" up from front) ===
+  {
+    const frontTrimPx    = (markFromSideEdge || 0) * scale;
+    const frontAngleInPx = 12 * scale;
+    const frontAngleUpPx =  6 * scale;
+    // Left front corner: from (sx+trim, bottom-6") diagonally to (sx+trim+12", bottom)
+    add('line',{x1:sx + frontTrimPx,              y1:sy + mainH - frontAngleUpPx,
+                x2:sx + frontTrimPx + frontAngleInPx, y2:sy + mainH,
+                stroke:cutColor, 'stroke-width':2, 'stroke-dasharray':'8,4'});
+    // Right front corner: from (sx+mainW-trim, bottom-6") diagonally to (sx+mainW-trim-12", bottom)
+    add('line',{x1:sx + mainW - frontTrimPx,               y1:sy + mainH - frontAngleUpPx,
+                x2:sx + mainW - frontTrimPx - frontAngleInPx, y2:sy + mainH,
+                stroke:cutColor, 'stroke-width':2, 'stroke-dasharray':'8,4'});
+  }
+
   let rightEdgeX = sx + mainW;
 
   // === BACK PIECE (always required, sequential after main piece) ===
@@ -937,18 +952,24 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
   const frontLeftX = mainX + trimPx;                // front zone, reduced width
   const frontRightX = mainX + mainW - trimPx;
 
+  // Front corner angle: 12" in from outer edge at bottom, 6" up from front edge on side
+  const frontAngleInPx = 12 * sc;   // 12" in along the bottom front edge
+  const frontAngleUpPx =  6 * sc;   // 6" up along the outer side edge
+
   // Draw the cut shape as a polygon (hexagon/octagon with front flap extension)
   // Path: back-left → back-right → back-right-at-inset → front-right-at-taper-end →
   //        front-right-bottom → front-left-bottom → front-left-at-taper-end → back-left-at-inset
   const shapePts = [
-    `${topLeftX},${mainTopY}`,          // back-left corner
-    `${topRightX},${mainTopY}`,         // back-right corner
-    `${topRightX},${backInsetY}`,       // right side at back inset
-    `${frontRightX},${frontInsetY}`,    // right side at front inset (after taper)
-    `${frontRightX},${frontBottomY}`,   // front-right bottom (includes flap)
-    `${frontLeftX},${frontBottomY}`,    // front-left bottom (includes flap)
-    `${frontLeftX},${frontInsetY}`,     // left side at front inset (after taper)
-    `${topLeftX},${backInsetY}`,        // left side at back inset
+    `${topLeftX},${mainTopY}`,                                // back-left corner
+    `${topRightX},${mainTopY}`,                               // back-right corner
+    `${topRightX},${backInsetY}`,                             // right side at back inset
+    `${frontRightX},${frontInsetY}`,                          // right side at front inset (after taper)
+    `${frontRightX},${frontBottomY - frontAngleUpPx}`,        // 6" up from front on right outer side
+    `${frontRightX - frontAngleInPx},${frontBottomY}`,        // 12" in from right outer edge at front
+    `${frontLeftX + frontAngleInPx},${frontBottomY}`,         // 12" in from left outer edge at front
+    `${frontLeftX},${frontBottomY - frontAngleUpPx}`,         // 6" up from front on left outer side
+    `${frontLeftX},${frontInsetY}`,                           // left side at front inset (after taper)
+    `${topLeftX},${backInsetY}`,                              // left side at back inset
   ].join(' ');
 
   add('polygon', {

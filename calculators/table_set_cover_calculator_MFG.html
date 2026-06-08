@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Table Set Cover with Chairs Calculator</title>
+<style>
+  :root { --bg:#f8fafc; --card:#ffffff; --text:#0f172a; --sub:#475569; --muted:#e2e8f0; }
+  body { font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; background:var(--bg); color:var(--text); margin:0; padding:24px; }
+  .wrap { max-width: 1100px; margin:0 auto; }
+  h1 { font-size:24px; margin:0 0 6px; }
+  .sub { font-size:13px; color:var(--sub); margin-bottom:14px; }
+  .controls { display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+  .btn { padding:8px 10px; border:1px solid var(--muted); border-radius:10px; background:#fff; cursor:pointer; }
+  .grid { display:grid; grid-template-columns: 1.05fr 0.95fr; gap:16px; }
+  .card { background:var(--card); border:1px solid var(--muted); border-radius:14px; padding:16px; }
+  .title { font-weight:600; margin-bottom:8px; }
+  .inputs { display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:10px; }
+  .inputs-3 { display:grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap:10px; }
+  label.lbl { display:grid; gap:6px; font-size:12px; color:var(--sub); }
+  input[type="number"] { padding:10px 12px; border:1px solid var(--muted); border-radius:10px; font-size:14px; }
+  input[type="radio"] { margin-right:6px; }
+  input[type="checkbox"] { margin-right:6px; }
+  select { padding:10px 12px; border:1px solid var(--muted); border-radius:10px; font-size:14px; background:#fff; }
+  .row { display:flex; justify-content:space-between; align-items:center; font-size:14px; padding:8px 0; }
+  .row + .row { border-top:1px dashed var(--muted); }
+  .note { font-size:12px; color:var(--sub); }
+  .alert { font-size:12px; color:#b45309; background:#fef9c3; border:1px solid #fde047; border-radius:8px; padding:8px 10px; margin-top:8px; }
+  svg { width:100%; border:1px dashed #cbd5e1; border-radius:12px; background:#fcfdff; }
+  #cutDiagram { height:440px; }
+  #assemblyDiagram { height:660px; }
+  .legend { display:flex; gap:12px; align-items:center; font-size:12px; color:var(--sub); flex-wrap:wrap; }
+  .chip { display:inline-block; width:12px; height:12px; border-radius:2px; border:1px solid #0f172a22; }
+  .drape-mode-row { display:flex; gap:18px; align-items:center; flex-wrap:wrap; padding:6px 0; }
+  .drape-mode-row label { font-size:13px; cursor:pointer; }
+  .drape-detail { padding:6px 0 0 0; display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:10px; }
+  .hidden { display:none !important; }
+  .badge { display:inline-block; font-size:11px; font-weight:600; padding:2px 8px; border-radius:99px; margin-left:6px; }
+  .badge-warn { background:#fef3c7; color:#92400e; }
+  .badge-ok { background:#dcfce7; color:#15803d; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Table Set Cover with Chairs Calculator</h1>
+  <div class="sub">Cover for a table with chairs pushed in underneath. Uniform drape on all four sides. Diagonal corner cuts with snaps at each corner. Bungees wrap around each short end (2 bungees total, 4 grommets).</div>
+  <div class="controls">
+    <label><input id="round" type="checkbox" checked> Round inches up / yards to whole</label>
+    <button class="btn" id="recalc">Recalculate</button>
+    <button class="btn" id="reset">Reset sample</button>
+    <button class="btn" id="exportBtn">⬇ Export values</button>
+    <label class="btn" style="cursor:pointer;">⬆ Import values<input id="importFile" type="file" accept=".json" style="display:none"></label>
+    <span id="saveIndicator" style="font-size:12px;color:#16a34a;display:none;">✓ Saved</span>
+  </div>
+
+  <div class="grid">
+    <div>
+      <div class="card" id="inputsCard">
+
+        <!-- ── TABLE ─────────────────────────────────── -->
+        <div class="title">Table Dimensions</div>
+        <div class="inputs">
+          <label class="lbl">Table length L (long axis)<input id="L" type="number" step="1" value="84"></label>
+          <label class="lbl">Table width W (short axis)<input id="W" type="number" step="1" value="42"></label>
+          <label class="lbl">Table height H (floor to tabletop)<input id="Htable" type="number" step="0.5" value="30"></label>
+          <label class="lbl">Apron/skirt depth (table thickness + beam below surface, 0 if none)<input id="apronDepth" type="number" step="0.25" value="0"></label>
+          <label class="lbl">Chair push-in limit — long sides (apron lip, 0 = full chair slides under)<input id="crossbarDist" type="number" step="0.5" value="0"></label>
+          <label class="lbl">Chair push-in limit — short ends (brace between legs, 0 = full chair slides under)<input id="crossbarDistEnd" type="number" step="0.5" value="0"></label>
+          <label class="lbl">Leg clearance — long side (inner faces of legs along L, 0 = use L)<input id="legSpanSide" type="number" step="0.5" value="0" min="0"></label>
+          <label class="lbl">Leg clearance — short end (inner faces of legs along W, 0 = use W)<input id="legSpanEnd" type="number" step="0.5" value="0" min="0"></label>
+        </div>
+        <div class="note" style="margin-top:8px;">
+          Apron depth = table top thickness + any beam below it (e.g. 1" top + 3" beam = 4"). Chair push-in limit = how far a chair slides under before hitting something. Long sides and short ends can differ — e.g. a 3" apron lip on the sides but a deeper leg brace on the ends that lets chairs slide in 23". Any seat depth beyond the limit overhangs the table edge and is added to the cover dimensions. Leg clearance is the usable space between legs for tucking chairs.
+        </div>
+
+        <!-- ── CHAIRS ─────────────────────────────────── -->
+        <div class="title" style="margin-top:16px;">Chair Dimensions</div>
+        <div class="inputs">
+          <label class="lbl">Chair back height (floor to top of back)<input id="Hback" type="number" step="0.5" value="36"></label>
+          <label class="lbl">Chair seat height (floor to seat top)<input id="Hseat" type="number" step="0.5" value="18"></label>
+          <label class="lbl">Chair seat depth (front to back)<input id="chairSeatDepth" type="number" step="0.5" value="18"></label>
+          <label class="lbl">Chair width (seat width, side to side)<input id="chairWidth" type="number" step="0.5" value="18" min="0"></label>
+          <label class="lbl">Chairs per long side (each side)<input id="chairsPerSide" type="number" step="1" value="3" min="0"></label>
+          <label class="lbl">Chairs per short end (each end, 0 if none)<input id="chairsPerEnd" type="number" step="1" value="1" min="0"></label>
+        </div>
+        <div id="chairAlert" class="alert hidden"></div>
+
+        <!-- ── COVER ─────────────────────────────────── -->
+        <div class="title" style="margin-top:16px;">Drape Depth</div>
+        <div class="drape-mode-row">
+          <label><input type="radio" name="drapeMode" id="drapeFloor" value="floor" checked> Floor clearance</label>
+          <label><input type="radio" name="drapeMode" id="drapeSeat" value="seat"> Below chair seat</label>
+          <label><input type="radio" name="drapeMode" id="drapeCustom" value="custom"> Custom</label>
+        </div>
+        <div id="drapeDetailFloor" class="drape-detail">
+          <label class="lbl">Floor clearance (inches from ground)<input id="floorClearance" type="number" step="0.5" value="3"></label>
+          <div class="note" style="align-self:end; padding-bottom:4px;">Drape = H &minus; floor clearance. Covers chairs almost entirely.</div>
+        </div>
+        <div id="drapeDetailSeat" class="drape-detail hidden">
+          <label class="lbl">Drop below seat (inches past seat bottom)<input id="belowSeat" type="number" step="0.5" value="2"></label>
+          <div class="note" style="align-self:end; padding-bottom:4px;">Drape = H &minus; seat height + drop. Chair legs visible; seats hidden.</div>
+        </div>
+        <div id="drapeDetailCustom" class="drape-detail hidden">
+          <label class="lbl">Custom drape depth (inches)<input id="customDrape" type="number" step="0.5" value="27"></label>
+          <div class="note" style="align-self:end; padding-bottom:4px;">Enter the exact drape depth to hang from the table edge.</div>
+        </div>
+
+        <div class="title" style="margin-top:16px;">Layout &amp; Seams</div>
+        <div class="inputs">
+          <label class="lbl">Bolt width (B)<input id="B" type="number" step="1" value="54"></label>
+          <label class="lbl">Slack (extra inches for loose fit)<input id="slack" type="number" step="0.5" value="3"></label>
+          <label class="lbl" style="grid-column:span 2;">Split direction
+            <select id="splitDir">
+              <option value="auto" selected>Auto (default to less bolt material)</option>
+              <option value="long">Long-ways &mdash; seam runs along long axis</option>
+              <option value="short">Short-ways &mdash; seams run along short axis</option>
+            </select>
+          </label>
+          <label class="lbl" style="grid-column:span 2;">Seam overlap (total per seam, in inches)<input id="seamOverlap" type="number" step="0.25" value="1.5"></label>
+        </div>
+
+        <div class="title" style="margin-top:16px;">Grommet &amp; Bungee Placement</div>
+        <div class="inputs">
+          <label class="lbl">Grommet offset from short-end corner (inches along long-side drape)<input id="gromOffset" type="number" step="0.5" value="5"></label>
+          <label class="lbl">Grommet depth into long-side drape (inches from fold line, 0 = auto ⅔ drape depth)<input id="gromDepth" type="number" step="0.5" value="0"></label>
+        </div>
+
+      </div><!-- /inputsCard -->
+
+      <div class="card" style="margin-top:16px;">
+        <div class="title">Grommets &amp; Bungees</div>
+        <div id="grommets"></div>
+        <div class="note">G1 &amp; G3 are on the front drape near the left and right short-end corners; G2 &amp; G4 mirror them on the back drape. Left bungee: G1&rarr;G3 (wraps left short end). Right bungee: G2&rarr;G4 (wraps right short end).</div>
+      </div>
+
+      <div class="card" style="margin-top:16px;">
+        <div class="title">Corner Snaps</div>
+        <div id="snaps"></div>
+        <div class="note">Diagonal cut at all 4 corners. The two adjacent drape flaps fold together along the cut and are held closed by a snap set (1 stud + 1 socket per corner).</div>
+      </div>
+    </div><!-- /left column -->
+
+    <div class="card">
+      <div class="title">Results</div>
+      <div id="results"></div>
+      <div class="title" style="margin-top:10px;">Material to Buy</div>
+      <div id="buy"></div>
+    </div>
+  </div><!-- /grid -->
+
+  <div class="card" style="margin-top:16px;">
+    <div class="title">Cut Diagram &mdash; Bolt Layout (for the cutting table)</div>
+    <svg id="cutDiagram" viewBox="0 0 1200 460"></svg>
+    <div class="legend">
+      <span class="chip" style="background:#f1f5f9; border-color:#475569;"></span> Bolt of vinyl
+      <span class="chip" style="background:#eef2ff; border-color:#0f172a;"></span> Cover panel piece(s)
+      <span class="chip" style="background:#fef2f2; border-color:#fca5a5;"></span> Bolt waste
+    </div>
+    <div style="border-top:1px solid var(--muted); margin-top:14px; padding-top:12px;">
+      <div class="title">Cut List</div>
+      <div id="cutlist"></div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:16px;">
+    <div class="title">Assembly Diagram &mdash; Finished Cover (for the sewing table)</div>
+    <svg id="assemblyDiagram" viewBox="0 0 1200 780"></svg>
+    <div class="legend">
+      <span class="chip" style="background:#eef2ff; border-color:#0f172a;"></span> Cover panel
+      <span class="chip" style="background:#f0fdf4; border-color:#16a34a;"></span> Table footprint zone
+      <span style="color:#dc2626; font-weight:600;">&mdash; Corner cuts (all 4)</span>
+      <span style="color:#166534; font-weight:600;">&#9679; Snap stud</span>
+      <span style="color:#831843; font-weight:600;">&#9679; Snap socket</span>
+      <span style="color:#b45309; font-weight:600;">&#9675; Grommets G1&ndash;G4</span>
+      <span style="color:#7e22ce; font-weight:600;">&mdash; &mdash; Seams</span>
+      <span style="color:#94a3b8; font-style:italic;">&#9632; Chair seat outside table</span>
+      <span style="color:#cbd5e1; font-style:italic;">&#9632; Chair seat tucked under table</span>
+    </div>
+    <div class="note" style="margin-top:8px;">
+      Finished cover laid flat, top-down view. FRONT is the short end at the top. Grommets G1 (front-left), G2 (front-right), G3 (back-left), G4 (back-right). Chair outlines are approximate.
+    </div>
+  </div>
+</div><!-- /wrap -->
+
+<script>
+function n(id){ const v=Number(document.getElementById(id).value); return isFinite(v)?v:0; }
+function fin(v,r){ return r?Math.ceil(v):Math.round(v*100)/100; }
+function yds(inch,r){ const y=inch/36; return r?Math.ceil(y):Math.round(y*100)/100; }
+
+// ── Drape-mode visibility ────────────────────────────────────────────────────
+function updateDrapeVisibility() {
+  const mode = document.querySelector('input[name="drapeMode"]:checked').value;
+  document.getElementById('drapeDetailFloor').classList.toggle('hidden', mode !== 'floor');
+  document.getElementById('drapeDetailSeat').classList.toggle('hidden', mode !== 'seat');
+  document.getElementById('drapeDetailCustom').classList.toggle('hidden', mode !== 'custom');
+}
+document.querySelectorAll('input[name="drapeMode"]').forEach(r => r.addEventListener('change', () => { updateDrapeVisibility(); compute(); }));
+updateDrapeVisibility();
+
+// ── Main compute ─────────────────────────────────────────────────────────────
+function compute() {
+  const rounded = document.getElementById('round').checked;
+  const r  = v => fin(v, rounded);
+
+  // Table basics
+  const B      = n('B');
+  const L      = n('L');
+  const W      = n('W');
+  const Htable = n('Htable');
+  const slack  = n('slack');
+
+  // Chair dimensions
+  const Hback         = n('Hback');
+  const Hseat         = n('Hseat');
+  const chairSeatDepth = n('chairSeatDepth') || 18;
+  const apronDepth    = n('apronDepth');
+  const crossbarDist  = n('crossbarDist');
+  const chairsPerSide = Math.max(0, Math.round(n('chairsPerSide')));
+  const chairsPerEnd  = Math.max(0, Math.round(n('chairsPerEnd')));
+  const chairWidth    = n('chairWidth') || 18;
+  const legSpanSideIn = n('legSpanSide');
+  const legSpanEndIn  = n('legSpanEnd');
+  const legSpanSide   = legSpanSideIn > 0 ? legSpanSideIn : L;  // fallback to table length
+  const legSpanEnd    = legSpanEndIn  > 0 ? legSpanEndIn  : W;  // fallback to table width
+
+  const crossbarDistEnd = n('crossbarDistEnd');
+
+  // Under-table clearance & seat overhang — separate for long sides vs. short ends
+  const innerClearance  = Math.max(0, Htable - apronDepth);
+  const seatFitsUnder   = Hseat < innerClearance;
+  const maxPushInSide   = crossbarDist    > 0 ? Math.min(chairSeatDepth, crossbarDist)    : chairSeatDepth;
+  const maxPushInEnd    = crossbarDistEnd > 0 ? Math.min(chairSeatDepth, crossbarDistEnd) : chairSeatDepth;
+  const seatOverhangSide = Math.max(0, chairSeatDepth - maxPushInSide);  // sticking out on long sides
+  const seatOverhangEnd  = Math.max(0, chairSeatDepth - maxPushInEnd);   // sticking out on short ends
+
+  // Drape depth
+  const mode = document.querySelector('input[name="drapeMode"]:checked').value;
+  let drapeDepth;
+  if (mode === 'floor') {
+    const floorClearance = n('floorClearance');
+    drapeDepth = Math.max(0, Htable - floorClearance);
+  } else if (mode === 'seat') {
+    const belowSeat = n('belowSeat');
+    drapeDepth = Math.max(0, (Htable - Hseat) + belowSeat);
+  } else {
+    drapeDepth = Math.max(0, n('customDrape'));
+  }
+
+  // Obstacle slack: chair backs taller than table
+  const obstacleSlack = Math.max(0, Hback - Htable);
+  const hasObstacle = obstacleSlack > 0;
+
+  // Chair fit checks
+  const sideChairsWidth = chairsPerSide * chairWidth;
+  const endChairsWidth  = chairsPerEnd  * chairWidth;
+  const sideFits = chairsPerSide === 0 || sideChairsWidth <= legSpanSide;
+  const endFits  = chairsPerEnd  === 0 || endChairsWidth  <= legSpanEnd;
+
+  // Build alert messages
+  const alerts = [];
+  if (hasObstacle)
+    alerts.push('⚠ Chair backs are taller than the table — obstacle slack will be added so the cover can tent over them.');
+  if (apronDepth > 0 && !seatFitsUnder)
+    alerts.push('⚠ Chair seat (' + Hseat + '") does not fit under the apron (inner clearance ' + r(innerClearance) + '") — chairs cannot fully tuck under.');
+  if (seatOverhangSide > 0)
+    alerts.push('⚠ Long-side chair seat overhangs ' + r(seatOverhangSide) + '" past the lip/crossbar — adding ' + r(seatOverhangSide) + '" per long side to cover width.');
+  if (seatOverhangEnd > 0)
+    alerts.push('⚠ Short-end chair seat overhangs ' + r(seatOverhangEnd) + '" past the brace/lip — adding ' + r(seatOverhangEnd) + '" per short end to cover length.');
+  if (!sideFits)
+    alerts.push('⚠ Long side: ' + chairsPerSide + ' chairs × ' + r(chairWidth) + '" = ' + r(sideChairsWidth) + '" — exceeds leg clearance of ' + r(legSpanSide) + '"' + (legSpanSideIn === 0 ? ' (using L as estimate — enter actual leg span to verify)' : '') + '.');
+  if (!endFits)
+    alerts.push('⚠ Short end: ' + chairsPerEnd + ' chair' + (chairsPerEnd > 1 ? 's' : '') + ' × ' + r(chairWidth) + '" = ' + r(endChairsWidth) + '" — exceeds leg clearance of ' + r(legSpanEnd) + '"' + (legSpanEndIn === 0 ? ' (using W as estimate — enter actual leg span to verify)' : '') + '.');
+  const alertEl = document.getElementById('chairAlert');
+  alertEl.classList.toggle('hidden', alerts.length === 0);
+  alertEl.innerHTML = alerts.join('<br>');
+
+  // Cover dimensions (drape uniform on all 4 sides; seat overhang expands affected axes)
+  // CL = total cover length (along table long axis); seatOverhang on ends if chairs at ends
+  // CW = total cover width (along table short axis); seatOverhang on sides if chairs on sides
+  const sideOH = (chairsPerSide > 0) ? seatOverhangSide : 0;
+  const endOH  = (chairsPerEnd  > 0) ? seatOverhangEnd  : 0;
+  const CL = L + 2 * drapeDepth + obstacleSlack + slack + 2 * endOH;
+  const CW = W + 2 * drapeDepth + obstacleSlack + slack + 2 * sideOH;
+
+  // Layout / seams
+  const seamOverlap = n('seamOverlap');
+  const seamPerStrip = seamOverlap / 2;
+
+  function computeOption(span, length) {
+    const N = Math.max(1, Math.ceil((span - seamPerStrip) / (B - seamPerStrip)));
+    const stripW = (span + (N - 1) * seamPerStrip) / N;
+    return { pieces: N, stripW, stripL: length, totalBolt: N * length, seams: N - 1, fits: stripW <= B };
+  }
+  const optLong  = computeOption(CW, CL);   // long-ways: seams parallel to CL
+  const optShort = computeOption(CL, CW);   // short-ways: seams parallel to CW
+
+  const splitDirChoice = document.getElementById('splitDir').value;
+  let splitDir;
+  if (splitDirChoice === 'auto') {
+    if (optLong.totalBolt < optShort.totalBolt) splitDir = 'long';
+    else if (optShort.totalBolt < optLong.totalBolt) splitDir = 'short';
+    else splitDir = optLong.pieces <= optShort.pieces ? 'long' : 'short';
+  } else {
+    splitDir = splitDirChoice;
+  }
+  const chosen = splitDir === 'long' ? optLong : optShort;
+  const pieceCount   = chosen.pieces;
+  const pieceL       = chosen.stripL;
+  const pieceW       = chosen.stripW;
+  const totalBoltLen = chosen.totalBolt;
+  const seamCount    = chosen.seams;
+  const fitsBolt     = chosen.fits;
+
+  // Grommets & bungees
+  const gromOffset = n('gromOffset') || 5;
+  const gromDepthIn = n('gromDepth') > 0 ? n('gromDepth') : drapeDepth * (2/3);
+  const bungeeSlack = 10;
+  // Bungee wraps around the outside of each SHORT END (left and right):
+  // from front-drape grommet → around the short-end drape (W wide) → back-drape grommet
+  // Approximate path: W + diagonal to/from grommets + slack
+  const bungeeLen = W + 2 * Math.sqrt(gromOffset*gromOffset + gromDepthIn*gromDepthIn) + bungeeSlack;
+
+  const totalGrommets = 4;
+  const snapsPerCorner = 1;
+  const totalSnaps = 4;
+
+  // Where drape lands relative to chairs
+  const drapeFloorGap = Htable - drapeDepth;
+  const drapeBelowSeat = drapeFloorGap - Hseat;
+  let drapeNote;
+  if (drapeFloorGap <= 0) drapeNote = `Drape reaches to the ground or below.`;
+  else if (drapeBelowSeat <= 0) drapeNote = `Drape lands ${r(Math.abs(drapeBelowSeat))}" below the chair seat — seats are covered.`;
+  else drapeNote = `Drape lands ${r(drapeFloorGap)}" from the ground — ${r(drapeBelowSeat)}" above the chair seat bottom (chair legs and lower seat visible).`;
+
+  // Layout comparison labels
+  const longLabel  = optLong.pieces  === 1 ? 'Single piece (no seam)'
+    : `${optLong.pieces} strips × ${r(optLong.stripW)}" wide × ${r(optLong.stripL)}" long, ${optLong.seams} seam${optLong.seams>1?'s':''} parallel to long axis`;
+  const shortLabel = optShort.pieces === 1 ? 'Single piece (no seam)'
+    : `${optShort.pieces} strips × ${r(optShort.stripW)}" wide × ${r(optShort.stripL)}" long, ${optShort.seams} seam${optShort.seams>1?'s':''} parallel to short axis`;
+  const longBoltYd  = yds(optLong.totalBolt, rounded);
+  const shortBoltYd = yds(optShort.totalBolt, rounded);
+  const longActive  = splitDir === 'long'  ? ' <span style="color:#16a34a;font-weight:bold">[selected]</span>' : '';
+  const shortActive = splitDir === 'short' ? ' <span style="color:#16a34a;font-weight:bold">[selected]</span>' : '';
+
+  document.getElementById('results').innerHTML = `
+    <div class='row'><span>Table footprint (L × W)</span><strong>${r(L)}" × ${r(W)}"</strong></div>
+    ${apronDepth > 0 ? `<div class='row'><span>Inner clearance (under apron)</span><strong>${r(innerClearance)}" ${!seatFitsUnder ? '<span style="color:#b91c1c">— seat does not fit!</span>' : '— seat clears ✓'}</strong></div>` : ''}
+    <div class='row'><span>Drape depth (uniform all 4 sides)</span><strong>${r(drapeDepth)}"</strong></div>
+    ${hasObstacle ? `<div class='row'><span>Obstacle slack (chair backs ${r(Hback)}" > table ${r(Htable)}")</span><strong>+${r(obstacleSlack)}" added to each axis</strong></div>` : ''}
+    ${seatOverhangSide > 0 ? `<div class='row'><span>Long-side seat overhang (past lip/crossbar)</span><strong>+${r(seatOverhangSide)}" per long side added to cover width</strong></div>` : ''}
+    ${seatOverhangEnd  > 0 ? `<div class='row'><span>Short-end seat overhang (past brace/lip)</span><strong>+${r(seatOverhangEnd)}" per short end added to cover length</strong></div>` : ''}
+    <div class='row'><span>General slack</span><strong>+${r(slack)}"</strong></div>
+    <div class='row'><span>Cover length CL (long axis total)</span><strong>${r(CL)}"</strong></div>
+    <div class='row'><span>Cover width CW (short axis total)</span><strong>${r(CW)}"</strong></div>
+    <div class='row'><span>Corner cuts (all 4 corners)</span><strong>${r(drapeDepth)}" × ${r(drapeDepth)}" diagonal — same on all corners</strong></div>
+    <div class='row'><span>Drape coverage</span><strong>${drapeNote}</strong></div>
+    ${chairsPerSide > 0 ? `<div class='row'><span>Long-side chairs (${chairsPerSide} × ${r(chairWidth)}" wide = ${r(sideChairsWidth)}")</span><strong>${sideFits ? '✓ fits in ' + r(legSpanSide) + '" leg clearance' : '<span style="color:#b91c1c">✗ ' + r(sideChairsWidth - legSpanSide) + '" too wide for ' + r(legSpanSide) + '" leg clearance</span>'}</strong></div>` : ''}
+    ${chairsPerEnd > 0 ? `<div class='row'><span>Short-end chairs (${chairsPerEnd} × ${r(chairWidth)}" wide = ${r(endChairsWidth)}")</span><strong>${endFits ? '✓ fits in ' + r(legSpanEnd) + '" leg clearance' : '<span style="color:#b91c1c">✗ ' + r(endChairsWidth - legSpanEnd) + '" too wide for ' + r(legSpanEnd) + '" leg clearance</span>'}</strong></div>` : ''}
+    <div class='row'><span>Snaps per corner / total sets / total pieces</span><strong>${snapsPerCorner} snap set × 4 corners = ${totalSnaps} sets (${totalSnaps*2} pieces)</strong></div>
+    <div class='row' style='display:block;'>
+      <div style='font-weight:600;margin-bottom:6px;'>Layout comparison:</div>
+      <div style='font-size:13px;line-height:1.6;padding-left:8px;border-left:3px solid #e2e8f0;'>
+        <div><strong>Long-ways</strong>${longActive}: ${longLabel}<br/>
+          &nbsp;&nbsp;&nbsp;&rarr; ${r(optLong.totalBolt)}" of bolt = <strong>${longBoltYd} yd</strong> &middot; ${optLong.fits ? `waste per strip ${r(B - optLong.stripW)}"` : `<span style='color:#b91c1c'>doesn't fit ${r(B)}" bolt</span>`}</div>
+        <div style='margin-top:6px;'><strong>Short-ways</strong>${shortActive}: ${shortLabel}<br/>
+          &nbsp;&nbsp;&nbsp;&rarr; ${r(optShort.totalBolt)}" of bolt = <strong>${shortBoltYd} yd</strong> &middot; ${optShort.fits ? `waste per strip ${r(B - optShort.stripW)}"` : `<span style='color:#b91c1c'>doesn't fit ${r(B)}" bolt</span>`}</div>
+        <div style='margin-top:6px;color:#64748b;font-size:12px;'>Savings short-ways: ${r(Math.max(0, optLong.totalBolt - optShort.totalBolt))}" (${Math.max(0, Math.round((longBoltYd - shortBoltYd)*100)/100)} yd) &middot; cost: ${Math.max(0, optShort.seams - optLong.seams)} extra seam${Math.max(0,optShort.seams-optLong.seams)===1?'':'s'}.</div>
+      </div>
+    </div>
+    <div class='row'><span>Selected layout fits ${r(B)}" bolt?</span><strong>${fitsBolt
+      ? `Yes — ${pieceCount} piece${pieceCount>1?'s':''}, each ${r(pieceW)}" wide, ${r(B-pieceW)}" waste per strip`
+      : `<span style='color:#b91c1c'>No — needs ${r(pieceW)}" wide, exceeds ${B}" bolt. Try other split direction.</span>`
+    }</strong></div>
+  `;
+
+  document.getElementById('buy').innerHTML = `
+    <div class='row'><span>Selected: ${splitDir==='long'?'Long-ways':'Short-ways'} split</span><strong>${pieceCount} piece${pieceCount>1?'s':''}</strong></div>
+    <div class='row'><span>Total bolt length to buy</span><strong>${r(totalBoltLen)}"</strong></div>
+    <div class='row'><span>Yards to buy</span><strong>${yds(totalBoltLen,rounded)} yd</strong></div>
+    <div class='row'><span>Cut to width</span><strong>${pieceCount===1 ? `${r(pieceW)}" wide (from ${r(B)}" bolt)` : `${pieceCount} strips, each ${r(pieceW)}" wide × ${r(pieceL)}" long`}</strong></div>
+  `;
+
+  document.getElementById('cutlist').innerHTML = `
+    ${pieceCount===1
+      ? `<div class='row'><span>Panel</span><strong>${r(CL)}" × ${r(CW)}"</strong><span style='color:#64748b'>Qty 1</span></div>`
+      : `<div class='row'><span>Strips (sew into one ${r(CL)}" × ${r(CW)}" panel)</span><strong>${r(pieceW)}" × ${r(pieceL)}" each — ${seamOverlap}" overlap</strong><span style='color:#64748b'>Qty ${pieceCount}</span></div>`}
+    <div class='row'><span>Corner cuts (all 4 corners)</span><strong>${r(drapeDepth)}" along edge × ${r(drapeDepth)}" down side × diagonal</strong><span style='color:#dc2626'>✕ ×4</span></div>
+  `;
+
+  document.getElementById('grommets').innerHTML = `
+    <div class='row'><span>Total grommets</span><strong>4 — G1 left-front, G2 right-front, G3 left-back, G4 right-back (${r(gromOffset)}" from corner, ${r(gromDepthIn)}" into drape)</strong></div>
+    <div class='row'><span>Bungee length</span><strong>2 pieces × ${r(bungeeLen)}"</strong></div>
+    <div class='note' style='margin-top:6px;'>Each bungee starts at a grommet on the front long-side drape (G1 or G2), wraps around the outside of the short end (${r(W)}" wide), and hooks at the grommet on the back long-side drape (G3 or G4) at the same end. Keep ~${r(bungeeSlack)}" extra for hooks and slack.</div>
+  `;
+
+  document.getElementById('snaps').innerHTML = `
+    <div class='row'><span>Snap sets per corner</span><strong>1 set (1 <span style='color:#831843'>socket</span> + 1 <span style='color:#166534'>stud</span> piece)</strong></div>
+    <div class='row'><span>Total snap sets / total pieces</span><strong>${totalSnaps} sets / ${totalSnaps*2} pieces</strong></div>
+    <div class='note' style='margin-top:6px;'>At each corner, the diagonal cut removes the outer triangle leaving two adjacent flaps. The two halves fold together along the cut; one <strong style='color:#831843'>socket</strong> on one flap, one <strong style='color:#166534'>stud</strong> on the other — press to close the corner.</div>
+  `;
+
+  const payload = {
+    rounded, B, L, W, Htable, Hback, Hseat, slack, drapeDepth, obstacleSlack,
+    CL, CW, gromOffset, gromDepthIn, bungeeLen,
+    seamOverlap, splitDir, pieceCount, pieceL, pieceW, seamCount, totalBoltLen,
+    chairsPerSide, chairsPerEnd, chairSeatDepth, chairWidth,
+    maxPushInSide, seatOverhangSide, maxPushInEnd, seatOverhangEnd, sideOH, endOH
+  };
+  drawCutDiagram(payload);
+  drawAssemblyDiagram(payload);
+}
+
+// ── Cut Diagram ──────────────────────────────────────────────────────────────
+function drawCutDiagram(p) {
+  const { rounded, B, CL, CW, drapeDepth,
+          pieceCount, pieceL, pieceW, splitDir, seamOverlap, seamCount, totalBoltLen } = p;
+  const svg = document.getElementById('cutDiagram');
+  while (svg.firstChild) svg.removeChild(svg.firstChild);
+  const VBW = 1200, VBH = 460;  // hardcoded to match viewBox="0 0 1200 460"
+  const pad = 60;
+  const r = v => rounded ? Math.ceil(v) : Math.round(v*100)/100;
+  const add = (t, a) => {
+    const e = document.createElementNS('http://www.w3.org/2000/svg', t);
+    for (const k in a) e.setAttribute(k, a[k]);
+    svg.appendChild(e); return e;
+  };
+
+  // Arrowhead marker
+  const defs = add('defs', {});
+  const m = add('marker', {id:'ca', markerWidth:8, markerHeight:8, refX:4, refY:4, orient:'auto', viewBox:'0 0 8 8'});
+  defs.appendChild(m);
+  const ah = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  ah.setAttribute('d', 'M0,0 L8,4 L0,8 Z'); ah.setAttribute('fill', '#334155');
+  m.appendChild(ah);
+  const arrow = (x1,y1,x2,y2) => add('line',{x1,y1,x2,y2,stroke:'#334155','marker-start':'url(#ca)','marker-end':'url(#ca)'});
+
+  const totalLen = pieceCount * pieceL;
+  const scale = Math.min((VBW - pad*2) / totalLen, (VBH - pad*2) / B);
+  const x0 = pad, y0 = (VBH - B*scale) / 2;
+  const boltW = totalLen * scale, boltH = B * scale;
+  const stripPxL = pieceL * scale, stripPxW = pieceW * scale;
+
+  // Bolt background
+  add('rect', {x:x0, y:y0, width:boltW, height:boltH, fill:'#f1f5f9', stroke:'#475569', 'stroke-width':1.5});
+
+  // Strips
+  const fills = ['#eef2ff','#e0e7ff','#dbeafe','#bfdbfe','#93c5fd'];
+  for (let i=0; i<pieceCount; i++) {
+    const sx = x0 + i*stripPxL;
+    add('rect', {x:sx, y:y0, width:stripPxL, height:stripPxW, fill:fills[i%fills.length], stroke:'#0f172a', 'stroke-width':2});
+    add('text', {x:sx+stripPxL/2, y:y0+stripPxW/2-6, 'text-anchor':'middle', 'font-size':12, fill:'#0f172a', 'font-weight':'bold'})
+      .textContent = pieceCount===1 ? 'COVER PANEL' : `STRIP ${i+1} of ${pieceCount}`;
+    add('text', {x:sx+stripPxL/2, y:y0+stripPxW/2+10, 'text-anchor':'middle', 'font-size':10, fill:'#475569'})
+      .textContent = `${r(pieceL)}" along bolt × ${r(pieceW)}" across`;
+  }
+
+  // Bolt waste
+  if (B > pieceW) {
+    add('rect', {x:x0, y:y0+stripPxW, width:boltW, height:boltH-stripPxW, fill:'#fef2f2', stroke:'#fca5a5', 'stroke-width':1, 'stroke-dasharray':'4,3'});
+    if ((B-pieceW)*scale > 16)
+      add('text', {x:x0+boltW/2, y:y0+stripPxW+(boltH-stripPxW)/2+4, 'text-anchor':'middle', 'font-size':10, fill:'#b91c1c'})
+        .textContent = `bolt waste: ${r(B-pieceW)}" × ${r(totalLen)}"`;
+  }
+
+  // Corner cuts on cut diagram
+  const dPx = drapeDepth * scale;
+  const cutC = '#dc2626';
+  const drawCornerCut = (cx, cy, dx, dy) => {
+    const ax = cx + dx*dPx, ay = cy;
+    const bx = cx, by = cy + dy*dPx;
+    add('polygon', {points:`${cx},${cy} ${ax},${ay} ${bx},${by}`, fill:'#fef2f2', stroke:cutC, 'stroke-width':1});
+    add('line', {x1:ax, y1:ay, x2:bx, y2:by, stroke:cutC, 'stroke-width':2.5});
+  };
+
+  if (splitDir === 'short') {
+    // Strip 1: front-left, Strip N: front-right corner
+    drawCornerCut(x0, y0, +1, +1);
+    const snRX = x0 + (pieceCount-1)*stripPxL + stripPxL;
+    drawCornerCut(snRX, y0, -1, +1);
+    add('text', {x:x0-6, y:y0+stripPxW/2+4, 'text-anchor':'end', 'font-size':10, fill:'#334155', 'font-weight':'bold'}).textContent = '◀ FRONT';
+    add('text', {x:snRX+6, y:y0+stripPxW/2+4, 'text-anchor':'start', 'font-size':10, fill:'#334155', 'font-weight':'bold'}).textContent = 'BACK ▶';
+    if (dPx > 18) {
+      add('line', {x1:x0-30, y1:y0, x2:x0-30, y2:y0+dPx, stroke:cutC, 'stroke-width':1});
+      add('line', {x1:x0-27, y1:y0, x2:x0-33, y2:y0, stroke:cutC, 'stroke-width':1});
+      add('line', {x1:x0-27, y1:y0+dPx, x2:x0-33, y2:y0+dPx, stroke:cutC, 'stroke-width':1});
+      const my = (y0+y0+dPx)/2;
+      add('text', {x:x0-40, y:my, 'text-anchor':'middle', 'font-size':8, fill:cutC, 'font-weight':'bold', transform:`rotate(-90 ${x0-40} ${my})`}).textContent = `${r(drapeDepth)}"`;
+      add('line', {x1:x0, y1:y0-12, x2:x0+dPx, y2:y0-12, stroke:cutC, 'stroke-width':1});
+      add('line', {x1:x0, y1:y0-9, x2:x0, y2:y0-15, stroke:cutC, 'stroke-width':1});
+      add('line', {x1:x0+dPx, y1:y0-9, x2:x0+dPx, y2:y0-15, stroke:cutC, 'stroke-width':1});
+      add('text', {x:x0+dPx/2, y:y0-17, 'text-anchor':'middle', 'font-size':8, fill:cutC, 'font-weight':'bold'}).textContent = `${r(drapeDepth)}"`;
+    }
+  } else {
+    // Long-ways or single: front end is top of strip 1; back corners are also chamfered
+    drawCornerCut(x0, y0, +1, +1);
+    drawCornerCut(x0+stripPxL, y0, -1, +1);
+    add('text', {x:x0+stripPxL/2, y:y0-7, 'text-anchor':'middle', 'font-size':10, fill:'#334155', 'font-weight':'bold'}).textContent = '▼ FRONT END (top of Strip 1)';
+    if (dPx > 18) {
+      add('line', {x1:x0-14, y1:y0, x2:x0-14, y2:y0+dPx, stroke:cutC, 'stroke-width':1});
+      add('line', {x1:x0-11, y1:y0, x2:x0-17, y2:y0, stroke:cutC, 'stroke-width':1});
+      add('line', {x1:x0-11, y1:y0+dPx, x2:x0-17, y2:y0+dPx, stroke:cutC, 'stroke-width':1});
+      const my = (y0+y0+dPx)/2;
+      add('text', {x:x0-24, y:my, 'text-anchor':'middle', 'font-size':8, fill:cutC, 'font-weight':'bold', transform:`rotate(-90 ${x0-24} ${my})`}).textContent = `${r(drapeDepth)}"`;
+      add('line', {x1:x0, y1:y0-12, x2:x0+dPx, y2:y0-12, stroke:cutC, 'stroke-width':1});
+      add('line', {x1:x0, y1:y0-9, x2:x0, y2:y0-15, stroke:cutC, 'stroke-width':1});
+      add('line', {x1:x0+dPx, y1:y0-9, x2:x0+dPx, y2:y0-15, stroke:cutC, 'stroke-width':1});
+      add('text', {x:x0+dPx/2, y:y0-17, 'text-anchor':'middle', 'font-size':8, fill:cutC, 'font-weight':'bold'}).textContent = `${r(drapeDepth)}"`;
+    }
+  }
+
+  // Note: back corners also cut — noted in diagram
+  add('text', {x:x0+boltW/2, y:y0+boltH+18, 'text-anchor':'middle', 'font-size':10, fill:cutC, 'font-weight':'bold'})
+    .textContent = 'All 4 corners cut diagonally — repeat same cut at all corner positions';
+
+  // Seam label
+  if (pieceCount > 1) {
+    add('text', {x:x0+boltW/2, y:y0+boltH+32, 'text-anchor':'middle', 'font-size':10, fill:'#7e22ce', 'font-weight':'bold'})
+      .textContent = `Sew ${pieceCount} strips with ${seamOverlap}" overlap seam${seamCount>1?'s':''} (${seamOverlap/2}" from each piece)`;
+  }
+
+  // Dimension arrows
+  arrow(x0-14, y0, x0-14, y0+stripPxW);
+  add('text', {x:x0-22, y:y0+stripPxW/2, 'text-anchor':'middle', 'font-size':11, fill:'#334155', 'font-weight':'bold', transform:`rotate(-90 ${x0-22} ${y0+stripPxW/2})`}).textContent = `${r(pieceW)}" across`;
+  arrow(x0, y0-16, x0+pieceCount*stripPxL, y0-16);
+  add('text', {x:x0+boltW/2, y:y0-22, 'text-anchor':'middle', 'font-size':12, fill:'#334155', 'font-weight':'bold'})
+    .textContent = pieceCount===1 ? `bolt length = ${r(pieceL)}"` : `total bolt = ${pieceCount} × ${r(pieceL)}" = ${r(totalLen)}"`;
+  arrow(x0+boltW+14, y0, x0+boltW+14, y0+boltH);
+  add('text', {x:x0+boltW+28, y:y0+boltH/2, 'text-anchor':'middle', 'font-size':12, fill:'#334155', 'font-weight':'bold', transform:`rotate(-90 ${x0+boltW+28} ${y0+boltH/2})`}).textContent = `Bolt B = ${r(B)}"`;
+  add('text', {x:x0, y:VBH-10, 'text-anchor':'start', 'font-size':11, fill:'#0f172a', 'font-weight':'bold'})
+    .textContent = `Total to buy: ${r(totalBoltLen)}" ≈ ${rounded ? Math.ceil(totalBoltLen/36) : Math.round(totalBoltLen/36*100)/100} yd of ${r(B)}" bolt`;
+}
+
+// ── Assembly Diagram ─────────────────────────────────────────────────────────
+function drawAssemblyDiagram(p) {
+  const { rounded, L, W, Htable, Hback, Hseat,
+          drapeDepth, obstacleSlack, CL, CW,
+          gromOffset, gromDepthIn, splitDir, pieceCount, seamOverlap,
+          chairsPerSide, chairsPerEnd, chairSeatDepth, chairWidth,
+          maxPushInSide, seatOverhangSide, maxPushInEnd, seatOverhangEnd } = p;
+
+  const svg = document.getElementById('assemblyDiagram');
+  while (svg.firstChild) svg.removeChild(svg.firstChild);
+  const VBW = 1200, VBH = 780;  // hardcoded to match viewBox="0 0 1200 780"
+  const pad = 90;
+  const r = v => rounded ? Math.ceil(v) : Math.round(v*100)/100;
+
+  const add = (t, a, par) => {
+    const e = document.createElementNS('http://www.w3.org/2000/svg', t);
+    for (const k in a) e.setAttribute(k, a[k]);
+    (par||svg).appendChild(e); return e;
+  };
+
+  const scale = Math.min((VBW - pad*2) / CL, (VBH - pad*2) / CW);
+  const w = CL * scale, h = CW * scale;
+  const x0 = (VBW - w) / 2, y0 = (VBH - h) / 2;
+  const xL = x0, xR = x0+w, yT = y0, yB = y0+h;
+  const dPx = drapeDepth * scale;  // drape depth in pixels
+  const tk = 4;
+
+  // Arrowhead marker
+  const defs = add('defs', {});
+  const mkr = add('marker', {id:'da2', markerWidth:7, markerHeight:7, refX:3.5, refY:3.5, orient:'auto', viewBox:'0 0 7 7'}, defs);
+  const tip = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  tip.setAttribute('d','M0,0 L7,3.5 L0,7 Z'); tip.setAttribute('fill','#475569');
+  mkr.appendChild(tip);
+  const dimLine = (x1,y1,x2,y2) =>
+    add('line',{x1,y1,x2,y2,stroke:'#475569','stroke-width':1,'marker-start':'url(#da2)','marker-end':'url(#da2)'});
+
+  // Fold lines (where table edges are)
+  const yFront = yT + dPx;  // front fold (top short end drape → table top)
+  const yBack  = yB - dPx;  // back fold (table top → back short end drape)
+  const xLeft  = xL + dPx;  // left fold (left long-side drape → table top)
+  const xRight = xR - dPx;  // right fold (table top → right long-side drape)
+
+  // Cover polygon — all 4 corners chamfered (diagonal cuts)
+  const pts = [
+    [xL + dPx, yT],        // front edge start (left of front chamfer)
+    [xR - dPx, yT],        // front edge end (right of front chamfer)
+    [xR,       yT + dPx],  // front-right chamfer end
+    [xR,       yB - dPx],  // right side to back-right chamfer start
+    [xR - dPx, yB],        // back-right chamfer end
+    [xL + dPx, yB],        // back edge
+    [xL,       yB - dPx],  // back-left chamfer end
+    [xL,       yT + dPx],  // left side to front-left chamfer start
+  ];
+  add('polygon', {points: pts.map(q=>q.join(',')).join(' '),
+    fill:'#eef2ff', stroke:'#0f172a', 'stroke-width':2});
+
+  // Table footprint inner zone (light green)
+  add('rect', {x:xLeft, y:yFront, width:xRight-xLeft, height:yBack-yFront,
+    fill:'#f0fdf4', stroke:'#16a34a', 'stroke-width':1.5, 'stroke-dasharray':'6,4', rx:2});
+
+  // Table footprint label
+  add('text', {x:(xLeft+xRight)/2, y:(yFront+yBack)/2-4, 'text-anchor':'middle', 'font-size':10, fill:'#166534', 'font-weight':'bold'})
+    .textContent = `TABLE TOP`;
+  add('text', {x:(xLeft+xRight)/2, y:(yFront+yBack)/2+12, 'text-anchor':'middle', 'font-size':10, fill:'#166534'})
+    .textContent = `${r(L)}" × ${r(W)}"`;
+
+  // Corner fold-line indicators (dashed lines continuing into drape zone)
+  const cornerDrapes = [
+    [xLeft, yFront, xL, yFront], [xLeft, yFront, xLeft, yT],    // front-left
+    [xRight, yFront, xR, yFront], [xRight, yFront, xRight, yT], // front-right
+    [xLeft, yBack, xL, yBack],   [xLeft, yBack, xLeft, yB],     // back-left
+    [xRight, yBack, xR, yBack],  [xRight, yBack, xRight, yB],   // back-right
+  ];
+  for (const [x1,y1,x2,y2] of cornerDrapes)
+    add('line', {x1,y1,x2,y2, stroke:'#94a3b8', 'stroke-width':1.5, 'stroke-dasharray':'5,4'});
+
+  // Corner cuts — all 4 diagonals (red)
+  const cuts = [
+    [xLeft, yT,  xL, yFront],   // front-left
+    [xRight, yT, xR, yFront],   // front-right
+    [xL, yBack,  xLeft, yB],    // back-left
+    [xR, yBack,  xRight, yB],   // back-right
+  ];
+  for (const [x1,y1,x2,y2] of cuts)
+    add('line',{x1,y1,x2,y2, stroke:'#dc2626','stroke-width':2.5});
+
+  // Seams
+  if (pieceCount > 1) {
+    const sc = '#9333ea';
+    if (splitDir === 'long') {
+      for (let i=1; i<pieceCount; i++) {
+        const ys = yT + (i/pieceCount)*h;
+        add('line',{x1:xL,y1:ys,x2:xR,y2:ys,stroke:sc,'stroke-width':2.5,'stroke-dasharray':'8,3'});
+        if (i===1) add('text',{x:xL+6,y:ys-5,'text-anchor':'start','font-size':10,fill:'#7e22ce','font-weight':'bold'}).textContent=`seam — ${seamOverlap}" overlap`;
+      }
+    } else {
+      for (let i=1; i<pieceCount; i++) {
+        const xs = xL + (i/pieceCount)*w;
+        add('line',{x1:xs,y1:yT,x2:xs,y2:yB,stroke:sc,'stroke-width':2.5,'stroke-dasharray':'8,3'});
+        if (i===1) add('text',{x:xs+5,y:yT+16,'text-anchor':'start','font-size':10,fill:'#7e22ce','font-weight':'bold'}).textContent=`seam — ${seamOverlap}" overlap`;
+      }
+    }
+  }
+
+  // ── Grommets: G1 (left-front), G2 (right-front), G3 (left-back), G4 (right-back)
+  // Grommets sit on the FRONT and BACK long-side drapes,
+  // gromOffset from the short-end corner, gromDepthIn from the fold line (into the drape).
+  // Bungees wrap around each SHORT END (left end and right end).
+  const gOffPx = gromOffset * scale;
+  const gDepPx = gromDepthIn * scale;
+
+  // G1: left-front — on FRONT drape, gromOffset from the left corner (xLeft), gromDepthIn above yFront
+  const g1 = [xLeft  + gOffPx, yFront - gDepPx];
+  // G2: right-front — on FRONT drape, gromOffset from the right corner (xRight), gromDepthIn above yFront
+  const g2 = [xRight - gOffPx, yFront - gDepPx];
+  // G3: left-back — on BACK drape, gromOffset from the left corner (xLeft), gromDepthIn below yBack
+  const g3 = [xLeft  + gOffPx, yBack  + gDepPx];
+  // G4: right-back — on BACK drape, gromOffset from the right corner (xRight), gromDepthIn below yBack
+  const g4 = [xRight - gOffPx, yBack  + gDepPx];
+
+  const grommets = [g1, g2, g3, g4];
+  const gromLabels = ['G1','G2','G3','G4'];
+  const gromColors = ['#b45309','#b45309','#b45309','#b45309'];
+
+  // G1 & G3 are near xLeft (left short end) → label above/left; G2 & G4 near xRight → label above/right
+  for (let i=0; i<4; i++) {
+    const [gx, gy] = grommets[i];
+    add('circle', {cx:gx, cy:gy, r:7, fill:'none', stroke:'#b45309', 'stroke-width':2.5});
+    add('circle', {cx:gx, cy:gy, r:2, fill:'#b45309'});
+    const nearRight = (i === 1 || i === 3);  // G2 (i=1) and G4 (i=3) are near right corner
+    const lx = nearRight ? gx + 12 : gx - 12;
+    const anchor = nearRight ? 'start' : 'end';
+    add('text', {x:lx, y:gy+4, 'text-anchor':anchor, 'font-size':9, fill:'#92400e', 'font-weight':'bold'}).textContent = gromLabels[i];
+  }
+
+  // ── Grommet dimension annotations (shown at G1, top-left area)
+  // gromOffset: horizontal distance from xLeft (corner) to G1.x — shown above G1
+  // gromDepthIn: vertical distance from yFront (fold line) up to G1.y — shown to the left of G1
+  const gc = '#92400e';
+  const gf = 9;
+  if (gOffPx > 10) {
+    // Horizontal tick: xLeft → g1[0], positioned above the grommet
+    add('line',{x1:xLeft,y1:g1[1]-14,x2:g1[0],y2:g1[1]-14,stroke:gc,'stroke-width':1});
+    add('line',{x1:xLeft,y1:g1[1]-18,x2:xLeft,y2:g1[1]-10,stroke:gc,'stroke-width':1});
+    add('line',{x1:g1[0],y1:g1[1]-18,x2:g1[0],y2:g1[1]-10,stroke:gc,'stroke-width':1});
+    add('text',{x:(xLeft+g1[0])/2,y:g1[1]-19,'text-anchor':'middle','font-size':gf,fill:gc,'font-weight':'bold'}).textContent=r(gromOffset)+'"';
+  }
+  if (gDepPx > 10) {
+    // Vertical tick: yFront → g1[1], positioned to the left of the grommet
+    add('line',{x1:g1[0]-14,y1:yFront,x2:g1[0]-14,y2:g1[1],stroke:gc,'stroke-width':1});
+    add('line',{x1:g1[0]-18,y1:yFront,x2:g1[0]-10,y2:yFront,stroke:gc,'stroke-width':1});
+    add('line',{x1:g1[0]-18,y1:g1[1],x2:g1[0]-10,y2:g1[1],stroke:gc,'stroke-width':1});
+    add('text',{x:g1[0]-20,y:(yFront+g1[1])/2+4,'text-anchor':'end','font-size':gf,fill:gc,'font-weight':'bold'}).textContent=r(gromDepthIn)+'"';
+  }
+
+  // ── Snaps — 2 dots per corner, placed along the FOLD LINES (not the diagonal cut)
+  // Each pair straddles the table-top corner: one dot on each adjacent drape flap.
+  // snapD: halfway along the drape depth from the table corner, measured along the fold line.
+  // snapIn: 2" perpendicular into the drape from the fold line.
+  // When the two flaps are folded together along the diagonal cut, the two dots align and snap.
+  // First half of each pair = STUD (green); second half = SOCKET (magenta)
+  const STUD_FILL='#22c55e', STUD_STROKE='#166534';
+  const SOCKET_FILL='#db2777', SOCKET_STROKE='#831843';
+  const snapD  = (drapeDepth / 2) * scale;   // ~halfway down the drape
+  const snapIn = 2 * scale;                   // 2" in from the fold line
+
+  const snapPairs = [
+    // Front-left table corner (xLeft, yFront)
+    // Stud: on front drape — left along yFront fold line, then up 2" into front drape
+    // Socket: on left drape — up along xLeft fold line, then right 2" into left drape
+    [[xLeft - snapD, yFront - snapIn], [xLeft - snapIn, yFront - snapD]],
+    // Front-right table corner (xRight, yFront)
+    [[xRight + snapD, yFront - snapIn], [xRight + snapIn, yFront - snapD]],
+    // Back-left table corner (xLeft, yBack)
+    [[xLeft - snapD, yBack + snapIn],  [xLeft - snapIn,  yBack + snapD]],
+    // Back-right table corner (xRight, yBack)
+    [[xRight + snapD, yBack + snapIn], [xRight + snapIn, yBack + snapD]],
+  ];
+  for (const [[ax, ay], [bx, by]] of snapPairs) {
+    add('circle', {cx:ax, cy:ay, r:4, fill:STUD_FILL,   stroke:STUD_STROKE,  'stroke-width':1});
+    add('circle', {cx:bx, cy:by, r:4, fill:SOCKET_FILL, stroke:SOCKET_STROKE,'stroke-width':1});
+  }
+
+  // ── Chair outlines — straddle the table fold line to show push-in vs. overhang
+  if (chairsPerSide > 0 || chairsPerEnd > 0) {
+    const sidePushPx     = maxPushInSide    * scale;
+    const sideOverhangPx = seatOverhangSide * scale;
+    const endPushPx      = maxPushInEnd     * scale;
+    const endOverhangPx  = seatOverhangEnd  * scale;
+    const chairPx_w      = chairWidth       * scale;
+    const chairC = '#94a3b8';
+
+    // Helper: draw one chair segment; underTable=true → faded to indicate hidden beneath cover
+    const drawChairPart = (x, y, w, h, underTable) =>
+      add('rect', {x, y, width: w, height: h,
+        fill: underTable ? '#e2e8f0' : '#f8fafc',
+        stroke: chairC,
+        'stroke-width': underTable ? 1 : 1.5,
+        'stroke-dasharray': underTable ? '3,3' : '4,3',
+        rx: underTable ? 0 : 3,
+        opacity: underTable ? 0.5 : 0.85});
+
+    // Side chairs: at front (above yFront) and back (below yBack), spaced along the table length
+    if (chairsPerSide > 0) {
+      const tableRowLen = xRight - xLeft;
+      const spacing = tableRowLen / chairsPerSide;
+      for (let i = 0; i < chairsPerSide; i++) {
+        const cx = xLeft + i * spacing + (spacing - chairPx_w) / 2;
+        // Front: overhang above yFront (drape zone), push-in below yFront (under table)
+        if (sideOverhangPx > 0) drawChairPart(cx, yFront - sideOverhangPx, chairPx_w, sideOverhangPx, false);
+        if (sidePushPx     > 0) drawChairPart(cx, yFront,                  chairPx_w, sidePushPx,     true);
+        // Back: push-in above yBack (under table), overhang below yBack (drape zone)
+        if (sidePushPx     > 0) drawChairPart(cx, yBack - sidePushPx,  chairPx_w, sidePushPx,     true);
+        if (sideOverhangPx > 0) drawChairPart(cx, yBack,               chairPx_w, sideOverhangPx, false);
+      }
+    }
+
+    // End chairs: at left (before xLeft) and right (after xRight), spaced along the table width
+    if (chairsPerEnd > 0) {
+      const tableColLen = yBack - yFront;
+      const spacing = tableColLen / chairsPerEnd;
+      for (let i = 0; i < chairsPerEnd; i++) {
+        const cy = yFront + i * spacing + (spacing - chairPx_w) / 2;
+        // Left end: overhang left of xLeft (drape zone), push-in right of xLeft (under table)
+        if (endOverhangPx > 0) drawChairPart(xLeft - endOverhangPx, cy, endOverhangPx, chairPx_w, false);
+        if (endPushPx     > 0) drawChairPart(xLeft,                 cy, endPushPx,     chairPx_w, true);
+        // Right end: push-in left of xRight (under table), overhang right of xRight (drape zone)
+        if (endPushPx     > 0) drawChairPart(xRight - endPushPx, cy, endPushPx,     chairPx_w, true);
+        if (endOverhangPx > 0) drawChairPart(xRight,             cy, endOverhangPx, chairPx_w, false);
+      }
+    }
+  }
+
+  // ── Snap dimension annotations — back-right corner only (same on all 4 corners)
+  // back-right table corner fold-line intersection: (xRight, yBack)
+  // snap A on back drape:  (xRight + snapD, yBack + snapIn)
+  // snap B on right drape: (xRight + snapIn, yBack + snapD)
+  const sc2 = '#16a34a';
+  const sf  = 9;
+  const tk2 = 3;
+
+  // Dim 1 — horizontal: "½ drape depth" along the back fold from corner to snap A
+  //          bracket drawn below snap A
+  const saDimY = yBack + snapIn + 18;
+  add('line',{x1:xRight,      y1:saDimY, x2:xRight+snapD, y2:saDimY, stroke:sc2,'stroke-width':1});
+  add('line',{x1:xRight,      y1:saDimY-tk2, x2:xRight,      y2:saDimY+tk2, stroke:sc2,'stroke-width':1});
+  add('line',{x1:xRight+snapD, y1:saDimY-tk2, x2:xRight+snapD, y2:saDimY+tk2, stroke:sc2,'stroke-width':1});
+  add('text',{x:xRight+snapD/2, y:saDimY+10, 'text-anchor':'middle','font-size':sf, fill:sc2,'font-weight':'bold'})
+    .textContent = r(drapeDepth/2) + '" (½ drape)';
+
+  // Dim 2 — vertical: "2"" perpendicular into the drape from the back fold line
+  //          bracket drawn to the right of snap A
+  const saDimX = xRight + snapD + 18;
+  add('line',{x1:saDimX, y1:yBack,       x2:saDimX, y2:yBack+snapIn, stroke:sc2,'stroke-width':1});
+  add('line',{x1:saDimX-tk2, y1:yBack,       x2:saDimX+tk2, y2:yBack,       stroke:sc2,'stroke-width':1});
+  add('line',{x1:saDimX-tk2, y1:yBack+snapIn, x2:saDimX+tk2, y2:yBack+snapIn, stroke:sc2,'stroke-width':1});
+  add('text',{x:saDimX+5, y:yBack+snapIn/2+4, 'text-anchor':'start','font-size':sf, fill:sc2,'font-weight':'bold'})
+    .textContent = '2" in';
+
+  // ── Overall dimension arrows
+  const dOff = 50;
+  dimLine(xL, yT-dOff, xR, yT-dOff);
+  add('text',{x:(xL+xR)/2,y:yT-dOff-7,'text-anchor':'middle','font-size':13,fill:'#0f172a','font-weight':'bold'}).textContent=`${r(CL)}"`;
+
+  dimLine(xR+dOff, yT, xR+dOff, yB);
+  add('text',{x:xR+dOff+15,y:(yT+yB)/2,'text-anchor':'middle','font-size':13,fill:'#0f172a','font-weight':'bold',transform:`rotate(-90 ${xR+dOff+15} ${(yT+yB)/2})`}).textContent=`${r(CW)}"`;
+
+  // ── Sub-dimensions
+  const sdc = '#64748b';
+  const sdf = 10;
+  const tick = (x1,y1,x2,y2) => add('line',{x1,y1,x2,y2,stroke:sdc,'stroke-width':1});
+
+  // Top edge: drapeDepth (left) | L span | drapeDepth (right)
+  const iY = yT - 26;
+  dimLine(xL, iY, xLeft, iY);
+  tick(xL, iY-4, xL, iY+4); tick(xLeft, iY-4, xLeft, iY+4);
+  add('text',{x:(xL+xLeft)/2,y:iY-5,'text-anchor':'middle','font-size':sdf,fill:sdc}).textContent=`${r(drapeDepth)}"`;
+
+  dimLine(xLeft, iY, xRight, iY);
+  tick(xRight, iY-4, xRight, iY+4);
+  add('text',{x:(xLeft+xRight)/2,y:iY-5,'text-anchor':'middle','font-size':sdf,fill:sdc}).textContent=`${r(L)}" table`;
+
+  dimLine(xRight, iY, xR, iY);
+  tick(xR, iY-4, xR, iY+4);
+  add('text',{x:(xRight+xR)/2,y:iY-5,'text-anchor':'middle','font-size':sdf,fill:sdc}).textContent=`${r(drapeDepth)}"`;
+
+  // Left edge: drapeDepth (top) | W span | drapeDepth (bottom)
+  const lx = xL - dOff;
+  dimLine(lx, yT, lx, yFront);
+  tick(lx-4,yT,lx+4,yT); tick(lx-4,yFront,lx+4,yFront);
+  add('text',{x:lx-14,y:(yT+yFront)/2,'text-anchor':'middle','font-size':sdf,fill:sdc,transform:`rotate(-90 ${lx-14} ${(yT+yFront)/2})`}).textContent=`${r(drapeDepth)}"`;
+
+  dimLine(lx, yFront, lx, yBack);
+  tick(lx-4,yBack,lx+4,yBack);
+  add('text',{x:lx-14,y:(yFront+yBack)/2,'text-anchor':'middle','font-size':sdf,fill:sdc,transform:`rotate(-90 ${lx-14} ${(yFront+yBack)/2})`}).textContent=`${r(W)}" table`;
+
+  dimLine(lx, yBack, lx, yB);
+  tick(lx-4,yB,lx+4,yB);
+  add('text',{x:lx-14,y:(yBack+yB)/2,'text-anchor':'middle','font-size':sdf,fill:sdc,transform:`rotate(-90 ${lx-14} ${(yBack+yB)/2})`}).textContent=`${r(drapeDepth)}"`;
+
+  // FRONT label
+  add('text',{x:(xL+xR)/2,y:yT-8,'text-anchor':'middle','font-size':13,fill:'#0f172a','font-weight':'bold','letter-spacing':'2'}).textContent='▼  FRONT (short end)';
+}
+
+// ── Storage & wiring ─────────────────────────────────────────────────────────
+const STORAGE_KEY = 'tableSetCalc_v3';
+const ALL_FIELDS  = ['B','L','W','Htable','slack','floorClearance','belowSeat','customDrape','Hback','Hseat','chairSeatDepth','apronDepth','crossbarDist','crossbarDistEnd','chairsPerSide','chairsPerEnd','chairWidth','legSpanSide','legSpanEnd','seamOverlap','splitDir','round','gromOffset','gromDepth'];
+const DEFAULTS = {B:54,L:84,W:42,Htable:30,slack:3,floorClearance:3,belowSeat:2,customDrape:27,Hback:36,Hseat:18,chairSeatDepth:18,apronDepth:0,crossbarDist:0,crossbarDistEnd:0,chairsPerSide:3,chairsPerEnd:1,chairWidth:18,legSpanSide:0,legSpanEnd:0,seamOverlap:1.5,splitDir:'auto',round:true,gromOffset:5,gromDepth:0};
+
+function saveToStorage() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(collectValues())); } catch(e){}
+}
+
+function loadFromStorage() {
+  let saved;
+  try { saved = JSON.parse(localStorage.getItem(STORAGE_KEY)); } catch(e){}
+  if (!saved) return false;
+  applyValues(saved);
+  return true;
+}
+
+function collectValues() {
+  const saved = {};
+  ALL_FIELDS.forEach(f => {
+    const el = document.getElementById(f); if(!el) return;
+    saved[f] = el.type==='checkbox' ? el.checked : el.value;
+  });
+  const dm = document.querySelector('input[name="drapeMode"]:checked');
+  if (dm) saved.drapeMode = dm.value;
+  return saved;
+}
+
+function applyValues(saved) {
+  ALL_FIELDS.forEach(f => {
+    if (!(f in saved)) return;
+    const el = document.getElementById(f); if(!el) return;
+    if (el.type==='checkbox') el.checked = saved[f]; else el.value = saved[f];
+  });
+  if (saved.drapeMode) {
+    const dm = document.querySelector(`input[name="drapeMode"][value="${saved.drapeMode}"]`);
+    if (dm) { dm.checked = true; updateDrapeVisibility(); }
+  }
+}
+
+function wire() {
+  const inputsCard = document.getElementById('inputsCard');
+  const saveIndicator = document.getElementById('saveIndicator');
+  let saveTimer;
+
+  ['input','change','keyup'].forEach(ev => inputsCard.addEventListener(ev, () => {
+    saveToStorage();
+    // Show "Saved" indicator briefly to confirm localStorage is working
+    clearTimeout(saveTimer);
+    saveIndicator.style.display = 'inline';
+    saveTimer = setTimeout(() => { saveIndicator.style.display = 'none'; }, 1800);
+    compute();
+  }));
+
+  document.getElementById('recalc').addEventListener('click', compute);
+
+  document.getElementById('reset').addEventListener('click', () => {
+    try { localStorage.removeItem(STORAGE_KEY); } catch(e){}
+    for (const k in DEFAULTS) {
+      const el = document.getElementById(k); if(!el) continue;
+      if (el.type==='checkbox') el.checked = DEFAULTS[k]; else el.value = DEFAULTS[k];
+    }
+    const dm = document.getElementById('drapeFloor');
+    if (dm) { dm.checked = true; updateDrapeVisibility(); }
+    compute();
+  });
+
+  // Export: save current inputs as a JSON file
+  document.getElementById('exportBtn').addEventListener('click', () => {
+    const data = JSON.stringify(collectValues(), null, 2);
+    const blob = new Blob([data], {type: 'application/json'});
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href = url; a.download = 'cover-calculator-values.json';
+    a.click(); URL.revokeObjectURL(url);
+  });
+
+  // Import: load inputs from a previously exported JSON file
+  document.getElementById('importFile').addEventListener('change', (e) => {
+    const file = e.target.files[0]; if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        const saved = JSON.parse(ev.target.result);
+        applyValues(saved);
+        saveToStorage();
+        compute();
+      } catch(err) { alert('Could not read file — make sure it is a valid export from this calculator.'); }
+    };
+    reader.readAsText(file);
+    e.target.value = ''; // allow re-importing same file
+  });
+
+  const restored = loadFromStorage();
+  if (restored) {
+    saveIndicator.textContent = '✓ Restored';
+    saveIndicator.style.display = 'inline';
+    saveTimer = setTimeout(() => {
+      saveIndicator.textContent = '✓ Saved';
+      saveIndicator.style.display = 'none';
+    }, 2000);
+  }
+  compute();
+}
+document.addEventListener('DOMContentLoaded', wire);
+</script>
+</body>
+</html>

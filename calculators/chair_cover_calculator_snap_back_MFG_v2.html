@@ -1,0 +1,1763 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Chair Cover Calculator — Snap-Back Design</title>
+<style>
+  :root { --bg:#f8fafc; --card:#ffffff; --text:#0f172a; --sub:#475569; --muted:#e2e8f0; --accent:#22c55e; }
+  body { font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; background:var(--bg); color:var(--text); margin:0; padding:24px; }
+  .wrap { max-width: 1200px; margin: 0 auto; }
+  h1 { font-size: 24px; margin: 0 0 18px; }
+  .controls { display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin-bottom:12px; }
+  .pill { padding:6px 10px; border-radius:999px; border:1px solid #cbd5e1; background:#eff6ff; color:#1e293b; font-size:12px; }
+  .switch { display:flex; align-items:center; gap:8px; font-size:14px; }
+  .grid { display:grid; grid-template-columns: 1.1fr 0.9fr; gap:16px; }
+  .card { background:var(--card); border:1px solid var(--muted); border-radius:14px; padding:16px; box-shadow: 0 1px 8px rgba(0,0,0,0.04); }
+  .title { font-weight:600; margin-bottom:8px; }
+  .inputs { display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:10px; }
+  label.lbl { display:grid; gap:6px; font-size:12px; color:var(--sub); }
+  input[type="number"] { border:1px solid var(--muted); border-radius:10px; padding:10px 12px; font-size:14px; }
+  .row { display:flex; justify-content:space-between; align-items:center; font-size:14px; padding:8px 0; }
+  .row + .row { border-top:1px dashed var(--muted); }
+  .note { font-size:12px; color:var(--sub); margin-top:8px; }
+  .btn { padding:8px 10px; border-radius:10px; border:1px solid var(--muted); background:#fff; cursor:pointer; }
+  .danger { color:#b91c1c; }
+  .diagramBox { display:flex; flex-direction:column; gap:10px; }
+  svg { width:100%; height:520px; border:1px dashed #cbd5e1; border-radius:12px; background:#fcfdff; }
+  .legend { display:flex; gap:12px; align-items:center; font-size:12px; color:var(--sub); flex-wrap:wrap; }
+  .chip { display:inline-block; width:12px; height:12px; border-radius:2px; border:1px solid #0f172a22; }
+  .formula { display:none; font-size:11px; color:var(--sub); margin-top:4px; }
+  .show-work .formula { display:block; }
+
+  @media print {
+    body { padding: 0 !important; margin: 0 !important; font-size: 11px; }
+    .wrap { max-width: 100% !important; margin: 0 !important; padding: 0 !important; }
+    h1 { font-size: 14px; margin: 0 0 4px; }
+    .controls, .sub { display: none !important; }
+    .card { padding: 6px 10px; margin-bottom: 6px; box-shadow: none; border-radius: 6px; }
+    .title { font-size: 12px; margin-bottom: 4px; font-weight: 600; }
+    .grid { gap: 6px; }
+    .row { padding: 3px 0; font-size: 10.5px; }
+    .note { font-size: 10px; margin-top: 4px; }
+    .legend { font-size: 10px; gap: 6px; margin-top: 4px; }
+    .chip { width: 10px; height: 10px; }
+    input[type="number"] { font-size: 10px; padding: 3px 5px; }
+    label.lbl { font-size: 9px; }
+    .inputs { gap: 5px; }
+    .danger { font-size: 9px; }
+    ol, ul { margin: 0; padding-left: 16px; line-height: 1.4; font-size: 10px; }
+    svg { min-height: 0 !important; }
+    /* Cut and Assembly diagrams: each on its own page, sized to fit a landscape Letter page */
+    .cut-diagram-card { page-break-before: always; page-break-inside: avoid; }
+    .cut-diagram-card svg { height: 6.8in !important; width: 100% !important; max-width: 100%; display: block; }
+    .assembly-flat-card { page-break-before: always; page-break-inside: avoid; padding: 6px 10px; }
+    .assembly-flat-card .title { font-size: 11px; margin-bottom: 2px; }
+    .assembly-flat-card .legend { font-size: 9px; gap: 5px; margin-top: 2px; }
+    .assembly-flat-card svg { height: 6.8in !important; width: 100% !important; max-width: 100%; display: block; }
+  }
+
+  @page { size: 11in 8.5in; margin: 0.4in; }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Chair Cover Calculator — Snap-Back Design</h1>
+    <div class="controls">
+      <span class="pill">Units: inches</span>
+      <label class="switch" style="gap:6px;"><span>Rounding:</span>
+        <select id="roundMode" style="border:1px solid #cbd5e1; border-radius:8px; padding:6px 10px; font-size:13px;">
+          <option value="exact">Exact (decimal)</option>
+          <option value="half">½" increments (MFG)</option>
+          <option value="whole" selected>Whole inch</option>
+        </select>
+      </label>
+      <button id="recalc" class="btn">Recalculate</button>
+      <button id="resetBtn" class="btn">Reset to sample</button>
+    </div>
+
+    <!-- Row 1: Inputs (left) | Results + Material to Buy + Cut List (right) -->
+    <div class="grid">
+      <div>
+        <div class="card" id="inputsCard">
+          <div class="title">Inputs</div>
+          <div class="inputs">
+            <label class="lbl">B (Bolt width - Fabric size)<input id="B" type="number" value="54" step="0.1" /></label>
+            <label class="lbl">W (Chair width arm-to-arm)<input id="W" type="number" value="36" step="1" /></label>
+            <label class="lbl">WB (Back width)<input id="WB" type="number" value="25" step="1" /></label>
+            <label class="lbl">H (Height)<input id="H" type="number" value="39" step="1" /></label>
+            <label class="lbl">D (Depth)<input id="D" type="number" value="30" step="1" /></label>
+            <label class="lbl">F2A (Floor → Armrest)<input id="F2A" type="number" value="26" step="1" /></label>
+            <label class="lbl">F2BS (Floor → Bottom of seat cushion)<input id="F2BS" type="number" value="18" step="1" /></label>
+            <label class="lbl">BR (Backrest thickness)<input id="BR" type="number" value="4" step="1" /></label>
+            <label class="lbl">FC (Floor clearance)<input id="FC" type="number" value="3" step="1" /></label>
+            <label class="lbl">Hem allowance (edges)<input id="hem" type="number" value="0" step="0.5" /></label>
+            <label class="lbl">Seam overlap (piece junctions)<input id="seam" type="number" value="1.5" step="0.5" /></label>
+            <label class="lbl">Bottom margin past arm (front flap)<input id="bottomMargin" type="number" value="8" step="0.5" min="0" /></label>
+          </div>
+          <div class="note" style="margin-top:8px;">Main piece runs side-to-side. Back piece is a trapezoid with snap-folded corners. Front flap is a trapezoid (wider at seam, narrower at hem) to take up the front-corner dog-ear.</div>
+          <div id="err" class="note danger" style="display:none;"></div>
+        </div>
+      </div>
+
+      <div>
+        <div class="card" id="resultsCard">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <div class="title" style="margin-bottom:0;">Results</div>
+            <button id="toggleWork" class="btn" style="display:none; font-size:12px; padding:4px 10px;">Show work</button>
+          </div>
+          <div id="results"></div>
+          <div class="title" style="margin-top:10px;">Material to Buy</div>
+          <div id="buy"></div>
+          <div class="note">Rounded mode rounds <b>up</b>: inches to whole numbers; yards to the next whole yard.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cut Diagram (with Cut List folded in) — full width -->
+    <div class="card cut-diagram-card" style="margin-top:16px;">
+      <div class="title">Cut Diagram (to scale)</div>
+      <div id="cutlist" style="margin-bottom:12px;"></div>
+      <div class="diagramBox">
+        <svg id="diagram" viewBox="0 0 1200 560" preserveAspectRatio="xMidYMid meet" style="height:480px;"></svg>
+        <div class="legend">
+          <span class="chip" style="background:#eef2ff;"></span> Main piece (side-to-side)
+          <span class="chip" style="background:#93c5fd;"></span> Back piece (trapezoid)
+          <span class="chip" style="background:#c4b5fd;"></span> Back half 2 (if split-nested)
+          <span class="chip" style="background:#fde68a;"></span> Front flap (if needed)
+          <span style="color:#b91c1c; font-weight:600;">Red = cut depths</span>
+          <span style="margin-left:auto; font-size:12px;">— — Dashed lines = cut lines &nbsp;|&nbsp; Labels use rounded values</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Grommets | Snap Straps — side by side -->
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px; margin-top:16px;">
+      <div class="card">
+        <div class="title">Grommet Placement</div>
+        <div id="grommets"></div>
+      </div>
+
+      <div class="card">
+        <div class="title">Snap Placement</div>
+        <div id="snapstraps"></div>
+      </div>
+    </div>
+
+    <!-- Assembly Diagram — Flat Layout (LAST PAGE, landscape in print) -->
+    <div class="card assembly-flat-card" style="margin-top:24px;">
+      <div class="title" style="font-size:18px;">Assembly Diagram — Flat Layout (Full Size)</div>
+      <div class="diagramBox">
+        <svg id="assemblyDiagramFlatFull" viewBox="0 0 1200 900" preserveAspectRatio="xMidYMid meet" style="width:100%; height:auto; min-height:900px;"></svg>
+        <div class="legend">
+          <span class="chip" style="background:#fca5a5;"></span> Main piece + front flap (cut shape)
+          <span class="chip" style="background:#93c5fd;"></span> Back piece (trapezoid, snap corners)
+          <span class="chip" style="background:#c4b5fd;"></span> Seam overlap
+          <span style="color:var(--sub); font-size:11px;">— — Diagonal cut line (inset: back zone → front zone)</span>
+          <span class="chip" style="background:none; border:2px solid #b45309; border-radius:50%; width:10px; height:10px;"></span> <span style="font-size:11px;">Grommets (brass)</span>
+          <span class="chip" style="background:#22c55e; border-color:#166534;"></span> <span style="font-size:11px; color:#166534;">Snap stud</span>
+          <span class="chip" style="background:#db2777; border-color:#831843;"></span> <span style="font-size:11px; color:#831843;">Snap socket</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+<script>
+function parseNum(id){
+  const el = document.getElementById(id);
+  const v = Number(el.value);
+  return isFinite(v) ? v : 0;
+}
+function fmtExact(val){ return isFinite(val) ? (Math.round(val*100)/100).toFixed(2) : "–"; }
+function roundHalf(val){ return Math.ceil(val * 2) / 2; }
+// roundMode: 'exact' | 'half' | 'whole', or boolean true (=whole) for backward compat
+function _resolveMode(m){ return m === true ? 'whole' : m === false ? 'exact' : m; }
+function fmtInch(val, roundMode){
+  const m = _resolveMode(roundMode);
+  if (m === 'whole') return Math.ceil(val).toString();
+  if (m === 'half') return roundHalf(val).toString();
+  return fmtExact(val);
+}
+function fmtYardsFromInches(inches, roundMode){
+  const m = _resolveMode(roundMode);
+  const y = inches/36;
+  if (m === 'whole') return Math.ceil(y).toString();
+  if (m === 'half') return roundHalf(y).toString();
+  return fmtExact(y);
+}
+
+function drawDiagram(params){
+  const {B, ML, W, WB, H, FC, roundMode, nestingStrategy, totalLength,
+         backPieceTopWidth, backPieceBottomWidth, backPieceHeight,
+         backPieceWidth, backPieceLength, frontFlapNeeded, frontFlapWidth, frontFlapLength,
+         flapTopWidth, flapBottomWidth, flapDiagonalHoriz, waveAllowance, bottomMargin,
+         hem, seam, backInset, frontInset, markFromSideEdge, taperZoneLength,
+         useSplitBack, splitBackHalfTop, splitBackHalfBot, splitBackBoltLength,
+         splitBackMinOffset, splitBackNestedWidth, splitBackCenterSeam} = params;
+  const rIn = v => roundMode === 'whole' ? Math.ceil(v) : roundMode === 'half' ? roundHalf(v) : Math.round(v*100)/100;
+  const svg = document.getElementById('diagram');
+  while (svg.firstChild) svg.removeChild(svg.firstChild);
+  const VBW = svg.viewBox.baseVal.width, VBH = svg.viewBox.baseVal.height;
+  const pad = 50;
+
+  const add = (t,a,p=svg)=>{const e=document.createElementNS('http://www.w3.org/2000/svg',t); for(const k in a) e.setAttribute(k,a[k]); p.appendChild(e); return e;};
+  const defs = add('defs',{});
+  const m = add('marker',{id:'arr',markerWidth:8,markerHeight:8,refX:4,refY:4,orient:'auto',viewBox:'0 0 8 8'},defs);
+  const p = document.createElementNS('http://www.w3.org/2000/svg','path'); p.setAttribute('d','M0,0 L8,4 L0,8 Z'); p.setAttribute('fill','#334155'); m.appendChild(p);
+  const arrow=(x1,y1,x2,y2)=>add('line',{x1,y1,x2,y2,stroke:'#334155','marker-start':'url(#arr)','marker-end':'url(#arr)'});
+
+  const cutColor = '#b91c1c';
+  const cutFontSm = 9;
+
+  // No gussets in snap-back design — just main, back, and front flap pieces
+  let diagramTotalLength = totalLength + 20;
+  const diagramTotalHeight = B;
+  const scale = Math.min((VBW - pad*2) / diagramTotalLength, (VBH - pad*2) / diagramTotalHeight) || 1;
+  const sx = pad, sy = pad;
+  const gap = 10 * scale;
+
+  // === MAIN PIECE ===
+  const mainW = ML * scale;
+  const mainH = B * scale;
+  add('rect',{x:sx, y:sy, width:mainW, height:mainH, fill:'#eef2ff', stroke:'#0f172a'});
+  add('text',{x:sx + mainW/2, y:sy + mainH/2 - 8, 'text-anchor':'middle', 'font-size':12, fill:'#334155', 'font-weight':'bold'}).textContent='MAIN PIECE';
+  add('text',{x:sx + mainW/2, y:sy + mainH/2 + 8, 'text-anchor':'middle', 'font-size':11, fill:'#475569'}).textContent=`${rIn(ML)}" × ${rIn(B)}" (side-to-side)`;
+
+  // ML dimension arrow
+  arrow(sx, sy - 18, sx + mainW, sy - 18);
+  add('text',{x:sx + mainW/2, y:sy - 24, 'text-anchor':'middle', 'font-size':12, fill:'#334155'}).textContent=`ML: ${rIn(ML)}"`;
+  // Bolt width arrow
+  arrow(sx - 18, sy, sx - 18, sy + mainH);
+  add('text',{x:sx - 22, y:sy + mainH/2, 'text-anchor':'end', 'dominant-baseline':'middle', 'font-size':12, fill:'#334155', transform:`rotate(-90 ${sx-22} ${sy + mainH/2})`}).textContent=`Bolt (B): ${rIn(B)}"`;
+  add('circle',{cx:sx + mainW/2, cy:sy + mainH/2, r:4, fill:'#dc2626', stroke:'#ffffff', 'stroke-width':1.5});
+
+  // === FRONT CORNER ANGLE CUTS (12" in from outer edge, 6" up from front) ===
+  {
+    const frontTrimPx    = (markFromSideEdge || 0) * scale;
+    const frontAngleInPx = 12 * scale;
+    const frontAngleUpPx =  6 * scale;
+    // Left front corner: from (sx+trim, bottom-6") diagonally to (sx+trim+12", bottom)
+    add('line',{x1:sx + frontTrimPx,              y1:sy + mainH - frontAngleUpPx,
+                x2:sx + frontTrimPx + frontAngleInPx, y2:sy + mainH,
+                stroke:cutColor, 'stroke-width':2, 'stroke-dasharray':'8,4'});
+    // Right front corner: from (sx+mainW-trim, bottom-6") diagonally to (sx+mainW-trim-12", bottom)
+    add('line',{x1:sx + mainW - frontTrimPx,               y1:sy + mainH - frontAngleUpPx,
+                x2:sx + mainW - frontTrimPx - frontAngleInPx, y2:sy + mainH,
+                stroke:cutColor, 'stroke-width':2, 'stroke-dasharray':'8,4'});
+  }
+
+  let rightEdgeX = sx + mainW;
+
+  // === BACK PIECE (always required, sequential after main piece) ===
+  const bpX = rightEdgeX + gap;
+  const bpY = sy; // top-aligned with bolt
+
+  if (useSplitBack) {
+    // SPLIT-BACK NESTING: Draw one fabric rectangle with a single diagonal cut
+    // line dividing it into Half 1 and Half 2. This matches how you'd actually
+    // cut the bolt: lay out the rectangle, run the cutter once along the diagonal,
+    // then rotate one half 180° before sewing.
+    const boltLenPx = splitBackBoltLength * scale;                          // along bolt (horizontal)
+    const acrossPx  = Math.min(splitBackNestedWidth, B) * scale;            // across bolt (vertical)
+    const h1TopPx   = splitBackHalfTop * scale;                             // cut line top x-offset
+    const h1BotPx   = splitBackHalfBot * scale;                             // cut line bottom x-offset
+
+    // Outer rectangle — the actual fabric you cut from the bolt
+    add('rect',{x:bpX, y:bpY, width:boltLenPx, height:acrossPx,
+      fill:'#f8fafc', stroke:'#1e40af', 'stroke-width':1.5});
+
+    // The diagonal cut line. Top of cut is at (h1TopPx, 0), bottom at (boltLenPx - h1TopPx, acrossPx).
+    // This produces two mirrored right-trapezoid halves whose diagonal edges meet.
+    const cutTopX = bpX + h1TopPx;
+    const cutBotX = bpX + boltLenPx - h1TopPx;
+    add('line',{x1:cutTopX, y1:bpY, x2:cutBotX, y2:bpY + acrossPx,
+      stroke:'#dc2626', 'stroke-width':2, 'stroke-dasharray':'6,4'});
+
+    // Shade the two halves so the cut reads visually
+    const half1Pts = `${bpX},${bpY} ${cutTopX},${bpY} ${cutBotX},${bpY + acrossPx} ${bpX},${bpY + acrossPx}`;
+    add('polygon',{points:half1Pts, fill:'#93c5fd33', stroke:'none'});
+    const half2Pts = `${cutTopX},${bpY} ${bpX + boltLenPx},${bpY} ${bpX + boltLenPx},${bpY + acrossPx} ${cutBotX},${bpY + acrossPx}`;
+    add('polygon',{points:half2Pts, fill:'#c4b5fd33', stroke:'none'});
+
+    // Labels — centered in each half
+    const h1CenterX = (bpX + cutTopX + bpX + cutBotX) / 2 / 1; // rough centroid x for half 1
+    const h1Cx = (bpX + (cutTopX + cutBotX) / 2) / 2 + bpX / 2; // simpler: midpoint
+    add('text',{x:(bpX + cutTopX) / 2 + (cutBotX - cutTopX) / 4,
+      y:bpY + acrossPx / 2 - 2, 'text-anchor':'middle', 'font-size':10,
+      fill:'#1e40af', 'font-weight':'bold'}).textContent='BACK HALF 1';
+    add('text',{x:(bpX + cutTopX) / 2 + (cutBotX - cutTopX) / 4,
+      y:bpY + acrossPx / 2 + 11, 'text-anchor':'middle', 'font-size':8,
+      fill:'#1e40af'}).textContent='(as cut)';
+
+    add('text',{x:(cutTopX + bpX + boltLenPx) / 2 - (cutBotX - cutTopX) / 4,
+      y:bpY + acrossPx / 2 - 2, 'text-anchor':'middle', 'font-size':10,
+      fill:'#7c3aed', 'font-weight':'bold'}).textContent='BACK HALF 2';
+    add('text',{x:(cutTopX + bpX + boltLenPx) / 2 - (cutBotX - cutTopX) / 4,
+      y:bpY + acrossPx / 2 + 11, 'text-anchor':'middle', 'font-size':8,
+      fill:'#7c3aed'}).textContent='(rotate 180° after cut)';
+
+    // Cut line label
+    add('text',{x:(cutTopX + cutBotX) / 2 + 6, y:bpY + acrossPx / 2 + 24,
+      'text-anchor':'start', 'font-size':8, fill:'#dc2626',
+      'font-weight':'bold'}).textContent='← cut line';
+
+    // Seam allowance callout — each half includes splitBackCenterSeam (= seam,
+    // default 1.5") of extra fabric on its diagonal edge so the two halves can
+    // be sewn together at center without losing finished width.
+    add('text',{x:(cutTopX + cutBotX) / 2 + 6, y:bpY + acrossPx / 2 + 38,
+      'text-anchor':'start', 'font-size':8, fill:'#7c3aed',
+      'font-weight':'bold'}).textContent=`+ ${rIn(splitBackCenterSeam)}" seam allowance per half`;
+    add('text',{x:(cutTopX + cutBotX) / 2 + 6, y:bpY + acrossPx / 2 + 50,
+      'text-anchor':'start', 'font-size':8, fill:'#7c3aed'})
+      .textContent='(built into the diagonal — sew halves together first)';
+
+    // Dimension: bolt length consumed
+    arrow(bpX, bpY - 12, bpX + boltLenPx, bpY - 12);
+    add('text',{x:bpX + boltLenPx/2, y:bpY - 16, 'text-anchor':'middle',
+      'font-size':cutFontSm, fill:'#1e40af', 'font-weight':'bold'})
+      .textContent=`Split back: ${rIn(splitBackBoltLength)}"`;
+    // Dimension: across-bolt width used
+    arrow(bpX - 12, bpY, bpX - 12, bpY + acrossPx);
+    add('text',{x:bpX - 16, y:bpY + acrossPx/2, 'text-anchor':'end',
+      'dominant-baseline':'middle', 'font-size':cutFontSm, fill:'#1e40af',
+      'font-weight':'bold',
+      transform:`rotate(-90 ${bpX-16} ${bpY + acrossPx/2})`})
+      .textContent=`${rIn(Math.min(splitBackNestedWidth, B))}"`;
+  } else {
+    // FULL TRAPEZOID: Draw single trapezoid
+    const topWidthPx = backPieceTopWidth * scale;
+    const bottomWidthPx = backPieceBottomWidth * scale;
+    const heightPx = backPieceHeight * scale;
+    const tapperSide = (topWidthPx - bottomWidthPx) / 2;
+    const trapezoidPoints = `${bpX},${bpY} ${bpX + topWidthPx},${bpY} ${bpX + topWidthPx - tapperSide},${bpY + heightPx} ${bpX + tapperSide},${bpY + heightPx}`;
+    add('polygon',{points:trapezoidPoints, fill:'#93c5fd55', stroke:'#2563eb', 'stroke-width':1.5});
+    add('text',{x:bpX + topWidthPx/2, y:bpY + heightPx/2 - 6, 'text-anchor':'middle', 'font-size':10, fill:'#1e40af', 'font-weight':'bold'}).textContent='BACK PIECE';
+    add('text',{x:bpX + topWidthPx/2, y:bpY + heightPx/2 + 8, 'text-anchor':'middle', 'font-size':8, fill:'#1e40af'}).textContent=`Trapezoid`;
+
+    // Dimension arrows
+    arrow(bpX, bpY - 12, bpX + topWidthPx, bpY - 12);
+    add('text',{x:bpX + topWidthPx/2, y:bpY - 16, 'text-anchor':'middle', 'font-size':cutFontSm, fill:'#1e40af', 'font-weight':'bold'}).textContent=`Top: ${rIn(backPieceTopWidth)}"`;
+    arrow(bpX, bpY + heightPx + 12, bpX + bottomWidthPx, bpY + heightPx + 12);
+    add('text',{x:bpX + bottomWidthPx/2, y:bpY + heightPx + 16, 'text-anchor':'middle', 'font-size':cutFontSm, fill:'#1e40af', 'font-weight':'bold'}).textContent=`Bottom: ${rIn(backPieceBottomWidth)}"`;
+    arrow(bpX - 12, bpY, bpX - 12, bpY + heightPx);
+    add('text',{x:bpX - 16, y:bpY + heightPx/2, 'text-anchor':'end', 'dominant-baseline':'middle', 'font-size':cutFontSm, fill:'#1e40af', 'font-weight':'bold', transform:`rotate(-90 ${bpX-16} ${bpY + heightPx/2})`}).textContent=`${rIn(backPieceHeight)}"`;
+  }
+
+  // === FRONT FLAP (if needed, nested alongside back piece or sequential) ===
+  const effectiveBpBoltLen = useSplitBack ? splitBackBoltLength : backPieceTopWidth;
+  const bpEffBoltLen = effectiveBpBoltLen * scale;
+  const bpAcrossBolt = backPieceHeight * scale;
+  let lastEndX = bpX + bpEffBoltLen;
+  const {useSplitFlap, splitHalfLength: shl,
+         useWasteNesting, wasteNestIsSplit, wasteNestOrientation, wasteNestPieceW, wasteNestPieceH,
+         wasteTriBase: wtBase, wasteTriHeight: wtHeight, wasteTriHyp: wtHyp, wasteTriAlt: wtAlt,
+         wasteNestDiagonal, wasteNestDiagAngle, wasteNestDiagOffset} = params;
+  if (frontFlapNeeded && useWasteNesting) {
+    // WASTE NESTING: flap pieces cut from diagonal waste INSIDE the main piece rectangle
+    // With inset diagonal: back zone (0→backInset) is full width, taper zone (backInset→B-frontInset),
+    // front zone (B-frontInset→B) is constant reduced width.
+    // In the bolt diagram, y=sy is the back edge, y=sy+mainH is the front edge.
+    const bkInsetPx = (backInset || 0) * scale;
+    const frInsetPx = (frontInset || 0) * scale;
+    const trimPx = (markFromSideEdge || 0) * scale;  // amount trimmed from each side
+
+    // Left side inset diagonal: from (sx, sy + bkInsetPx) to (sx + trimPx, sy + mainH - frInsetPx)
+    // Then vertical line from (sx + trimPx, sy + mainH - frInsetPx) to (sx + trimPx, sy + mainH) [front zone]
+    add('line',{x1:sx, y1:sy + bkInsetPx, x2:sx + trimPx, y2:sy + mainH - frInsetPx,
+      stroke:'#d97706', 'stroke-width':2, 'stroke-dasharray':'8,4'});
+    add('line',{x1:sx + trimPx, y1:sy + mainH - frInsetPx, x2:sx + trimPx, y2:sy + mainH,
+      stroke:'#d97706', 'stroke-width':1.5, 'stroke-dasharray':'4,3'});
+    // Right side mirror
+    add('line',{x1:sx + mainW, y1:sy + bkInsetPx, x2:sx + mainW - trimPx, y2:sy + mainH - frInsetPx,
+      stroke:'#d97706', 'stroke-width':2, 'stroke-dasharray':'8,4'});
+    add('line',{x1:sx + mainW - trimPx, y1:sy + mainH - frInsetPx, x2:sx + mainW - trimPx, y2:sy + mainH,
+      stroke:'#d97706', 'stroke-width':1.5, 'stroke-dasharray':'4,3'});
+
+    // Shade waste areas (left side: triangle + rectangle)
+    // Triangle in taper zone
+    add('polygon',{
+      points:`${sx},${sy + bkInsetPx} ${sx + trimPx},${sy + mainH - frInsetPx} ${sx},${sy + mainH - frInsetPx}`,
+      fill:'#fbbf2433', stroke:'none'});
+    // Rectangle in front zone
+    add('rect',{x:sx, y:sy + mainH - frInsetPx, width:trimPx, height:frInsetPx,
+      fill:'#fbbf2433', stroke:'none'});
+    // Right side mirror
+    add('polygon',{
+      points:`${sx+mainW},${sy + bkInsetPx} ${sx+mainW - trimPx},${sy + mainH - frInsetPx} ${sx+mainW},${sy + mainH - frInsetPx}`,
+      fill:'#fbbf2433', stroke:'none'});
+    add('rect',{x:sx + mainW - trimPx, y:sy + mainH - frInsetPx, width:trimPx, height:frInsetPx,
+      fill:'#fbbf2433', stroke:'none'});
+
+    // Waste dimension labels (left side)
+    add('text',{x:sx + trimPx/2, y:sy + mainH + 12, 'text-anchor':'middle', 'font-size':7, fill:'#d97706'}).textContent=`trim: ${rIn(markFromSideEdge)}"`;
+    // Zone labels
+    if (bkInsetPx > 10) {
+      add('text',{x:sx - 4, y:sy + bkInsetPx/2, 'text-anchor':'end', 'font-size':6, fill:'#94a3b8',
+        transform:`rotate(-90 ${sx - 4} ${sy + bkInsetPx/2})`}).textContent=`back inset ${rIn(backInset)}"`;
+    }
+    if (frInsetPx > 10) {
+      add('text',{x:sx - 4, y:sy + mainH - frInsetPx/2, 'text-anchor':'end', 'font-size':6, fill:'#94a3b8',
+        transform:`rotate(-90 ${sx - 4} ${sy + mainH - frInsetPx/2})`}).textContent=`front zone ${rIn(frontInset)}"`;
+    }
+
+    // AXIS-ALIGNED nesting in waste area (rect + triangle combined)
+    add('text',{x:sx + 4, y:sy + mainH - 4, 'font-size':7, fill:'#d97706', 'font-weight':'bold'}).textContent='waste';
+    add('text',{x:sx + mainW - 4, y:sy + mainH - 4, 'text-anchor':'end', 'font-size':7, fill:'#d97706', 'font-weight':'bold'}).textContent='waste';
+    if (wasteNestIsSplit) {
+      const pw = (wasteNestPieceW || shl) * scale;
+      const ph = (wasteNestPieceH || frontFlapWidth) * scale;
+      add('rect',{x:sx, y:sy + mainH - ph, width:pw, height:ph, fill:'#fde68a88', stroke:'#d97706', 'stroke-width':1.5});
+      add('text',{x:sx + pw/2, y:sy + mainH - ph/2 - 4, 'text-anchor':'middle', 'font-size':8, fill:'#92400e', 'font-weight':'bold'}).textContent='FLAP HALF 1';
+      add('text',{x:sx + pw/2, y:sy + mainH - ph/2 + 8, 'text-anchor':'middle', 'font-size':7, fill:'#92400e'}).textContent=`${rIn(wasteNestPieceW)}" x ${rIn(wasteNestPieceH)}"`;
+      add('rect',{x:sx + mainW - pw, y:sy + mainH - ph, width:pw, height:ph, fill:'#fde68a88', stroke:'#d97706', 'stroke-width':1.5, 'stroke-dasharray':'4,2'});
+      add('text',{x:sx + mainW - pw/2, y:sy + mainH - ph/2 - 4, 'text-anchor':'middle', 'font-size':8, fill:'#92400e', 'font-weight':'bold'}).textContent='FLAP HALF 2';
+      add('text',{x:sx + mainW - pw/2, y:sy + mainH - ph/2 + 8, 'text-anchor':'middle', 'font-size':7, fill:'#92400e'}).textContent=`${rIn(wasteNestPieceW)}" x ${rIn(wasteNestPieceH)}"`;
+    } else {
+      const pw = (wasteNestPieceW || frontFlapLength) * scale;
+      const ph = (wasteNestPieceH || frontFlapWidth) * scale;
+      add('rect',{x:sx, y:sy + mainH - ph, width:pw, height:ph, fill:'#fde68a88', stroke:'#d97706', 'stroke-width':1.5});
+      add('text',{x:sx + pw/2, y:sy + mainH - ph/2 - 4, 'text-anchor':'middle', 'font-size':9, fill:'#92400e', 'font-weight':'bold'}).textContent='FRONT FLAP';
+      add('text',{x:sx + pw/2, y:sy + mainH - ph/2 + 8, 'text-anchor':'middle', 'font-size':8, fill:'#92400e'}).textContent=`${rIn(wasteNestPieceW)}" x ${rIn(wasteNestPieceH)}"`;
+    }
+    // No additional bolt length for flap — it's from waste
+    // lastEndX stays at bpX + bpEffBoltLen
+  } else if (frontFlapNeeded) {
+    if (useSplitFlap && nestingStrategy === 'split-flap-nested') {
+      // SPLIT FLAP: Both halves nest alongside back piece across bolt width
+      const halfLen = shl * scale;
+      const ffAcrossBolt = frontFlapWidth * scale;
+
+      // First half below back piece
+      const ff1Y = bpY + bpAcrossBolt;
+      add('rect',{x:bpX, y:ff1Y, width:halfLen, height:ffAcrossBolt, fill:'#fde68a55', stroke:'#d97706'});
+      add('text',{x:bpX + halfLen/2, y:ff1Y + ffAcrossBolt/2 - 4, 'text-anchor':'middle', 'font-size':9, fill:'#92400e', 'font-weight':'bold'}).textContent='FLAP HALF 1';
+      add('text',{x:bpX + halfLen/2, y:ff1Y + ffAcrossBolt/2 + 8, 'text-anchor':'middle', 'font-size':8, fill:'#92400e'}).textContent=`${rIn(shl)}" × ${rIn(frontFlapWidth)}"`;
+
+      // Second half below first half
+      const ff2Y = ff1Y + ffAcrossBolt;
+      add('rect',{x:bpX, y:ff2Y, width:halfLen, height:ffAcrossBolt, fill:'#fde68a55', stroke:'#d97706', 'stroke-dasharray':'4,2'});
+      add('text',{x:bpX + halfLen/2, y:ff2Y + ffAcrossBolt/2 - 4, 'text-anchor':'middle', 'font-size':9, fill:'#92400e', 'font-weight':'bold'}).textContent='FLAP HALF 2';
+      add('text',{x:bpX + halfLen/2, y:ff2Y + ffAcrossBolt/2 + 8, 'text-anchor':'middle', 'font-size':8, fill:'#92400e'}).textContent=`${rIn(shl)}" × ${rIn(frontFlapWidth)}"`;
+
+      // Width arrows (right side)
+      const arrowX = bpX + Math.max(bpEffBoltLen, halfLen) + 8;
+      arrow(arrowX, bpY, arrowX, bpY + bpAcrossBolt);
+      add('text',{x:arrowX + 4, y:bpY + bpAcrossBolt/2 + 3, 'font-size':cutFontSm, fill:'#1e40af', 'font-weight':'bold'}).textContent=`${rIn(backPieceWidth)}"`;
+      arrow(arrowX, ff1Y, arrowX, ff1Y + ffAcrossBolt);
+      add('text',{x:arrowX + 4, y:ff1Y + ffAcrossBolt/2 + 3, 'font-size':cutFontSm, fill:'#92400e', 'font-weight':'bold'}).textContent=`${rIn(frontFlapWidth)}"`;
+      arrow(arrowX, ff2Y, arrowX, ff2Y + ffAcrossBolt);
+      add('text',{x:arrowX + 4, y:ff2Y + ffAcrossBolt/2 + 3, 'font-size':cutFontSm, fill:'#92400e', 'font-weight':'bold'}).textContent=`${rIn(frontFlapWidth)}"`;
+
+      // Length arrow for halves
+      arrow(bpX, ff2Y + ffAcrossBolt + 10, bpX + halfLen, ff2Y + ffAcrossBolt + 10);
+      add('text',{x:bpX + halfLen/2, y:ff2Y + ffAcrossBolt + 22, 'text-anchor':'middle', 'font-size':cutFontSm, fill:'#92400e', 'font-weight':'bold'}).textContent=`${rIn(shl)}" each half`;
+
+      lastEndX = bpX + Math.max(bpEffBoltLen, halfLen);
+    } else if (nestingStrategy === 'flap-nested') {
+      // Original: single front flap alongside back piece (both fit across bolt width)
+      // v2 — TRAPEZOID flap. Flap lies with its WIDTH (top/bottom edges) along the bolt;
+      // its DEPTH (frontFlapWidth) sits across the bolt. Top edge (flapTopWidth) is the
+      // wider one; bottom edge (flapBottomWidth) is narrower. Drawn as a polygon.
+      const ffY = bpY + bpAcrossBolt;
+      const ffAlongBolt = frontFlapLength * scale;  // = flapTopWidth * scale (bounding box width along bolt)
+      const ffAcrossBolt = frontFlapWidth * scale;
+      const flapTopPx = flapTopWidth * scale;
+      const flapBotPx = flapBottomWidth * scale;
+      const flapIndent = (flapTopPx - flapBotPx) / 2;
+      // Trapezoid: top long side at y=ffY (wider), bottom long side at y=ffY+ffAcrossBolt (narrower)
+      const trapPts = `${bpX},${ffY} ${bpX + flapTopPx},${ffY} ${bpX + flapTopPx - flapIndent},${ffY + ffAcrossBolt} ${bpX + flapIndent},${ffY + ffAcrossBolt}`;
+      add('polygon',{points:trapPts, fill:'#fde68a55', stroke:'#d97706', 'stroke-width':1.5});
+      add('text',{x:bpX + ffAlongBolt/2, y:ffY + ffAcrossBolt/2 - 6, 'text-anchor':'middle', 'font-size':10, fill:'#92400e', 'font-weight':'bold'}).textContent='FRONT FLAP';
+      add('text',{x:bpX + ffAlongBolt/2, y:ffY + ffAcrossBolt/2 + 8, 'text-anchor':'middle', 'font-size':9, fill:'#92400e'}).textContent=`Top: ${rIn(flapTopWidth)}" Bot: ${rIn(flapBottomWidth)}" × ${rIn(frontFlapWidth)}"`;
+
+      // Width arrow for front flap (right side)
+      const ffRightX = bpX + ffAlongBolt + 8;
+      arrow(ffRightX, ffY, ffRightX, ffY + ffAcrossBolt);
+      add('text',{x:ffRightX + 4, y:ffY + ffAcrossBolt/2 + 3, 'font-size':cutFontSm, fill:'#92400e', 'font-weight':'bold'}).textContent=`${rIn(frontFlapWidth)}"`;
+
+      // Back piece width arrow (right side of back piece)
+      const bpRightX = bpX + bpEffBoltLen + 8;
+      arrow(bpRightX, bpY, bpRightX, bpY + bpAcrossBolt);
+      add('text',{x:bpRightX + 4, y:bpY + bpAcrossBolt/2 + 3, 'font-size':cutFontSm, fill:'#1e40af', 'font-weight':'bold'}).textContent=`${rIn(backPieceWidth)}"`;
+
+      lastEndX = bpX + Math.max(bpEffBoltLen, ffAlongBolt);
+    } else {
+      // Sequential: front flap after back piece
+      // v2 — TRAPEZOID flap drawn as a polygon (wider top, narrower bottom).
+      const ffX = lastEndX + gap;
+      const ffAlongBolt = frontFlapLength * scale;
+      const ffAcrossBolt = frontFlapWidth * scale;
+      const flapTopPx = flapTopWidth * scale;
+      const flapBotPx = flapBottomWidth * scale;
+      const flapIndent = (flapTopPx - flapBotPx) / 2;
+      const trapPts = `${ffX},${sy} ${ffX + flapTopPx},${sy} ${ffX + flapTopPx - flapIndent},${sy + ffAcrossBolt} ${ffX + flapIndent},${sy + ffAcrossBolt}`;
+      add('polygon',{points:trapPts, fill:'#fde68a55', stroke:'#d97706', 'stroke-width':1.5});
+      add('text',{x:ffX + ffAlongBolt/2, y:sy + ffAcrossBolt/2 - 6, 'text-anchor':'middle', 'font-size':10, fill:'#92400e', 'font-weight':'bold'}).textContent='FRONT FLAP';
+      add('text',{x:ffX + ffAlongBolt/2, y:sy + ffAcrossBolt/2 + 8, 'text-anchor':'middle', 'font-size':9, fill:'#92400e'}).textContent=`Top: ${rIn(flapTopWidth)}" Bot: ${rIn(flapBottomWidth)}" × ${rIn(frontFlapWidth)}"`;
+
+      arrow(ffX, sy - 12, ffX + ffAlongBolt, sy - 12);
+      add('text',{x:ffX + ffAlongBolt/2, y:sy - 16, 'text-anchor':'middle', 'font-size':cutFontSm, fill:'#92400e', 'font-weight':'bold'}).textContent=`${rIn(frontFlapLength)}"`;
+
+      lastEndX = ffX + ffAlongBolt;
+    }
+  }
+
+  rightEdgeX = lastEndX;
+
+  // Total length arrow
+  arrow(sx, sy + mainH + 38, rightEdgeX, sy + mainH + 38);
+  add('text',{x:(sx + rightEdgeX)/2, y:sy + mainH + 52, 'text-anchor':'middle', 'font-size':12, fill:'#334155'}).textContent=`Total: ${rIn(totalLength)}" (${rIn(totalLength/36)} yd)`;
+
+  // No gussets in snap-back design — snaps will be noted in assembly instructions
+}
+
+function updateCutList(params){
+  const {B, ML, H, FC, WB, roundMode, seam, hem,
+         backPieceTopWidth, backPieceBottomWidth, backPieceHeight, frontFlapNeeded, frontFlapWidth, frontFlapLength,
+         flapTopWidth, flapBottomWidth, flapDiagonalHoriz, waveAllowance, bottomMargin, frontWidthAfterCut,
+         useSplitFlap, splitHalfLength,
+         useWasteNesting, wasteNestIsSplit, wasteNestPieceW, wasteNestPieceH, wasteNestDiagonal,
+         useSplitBack, splitBackHalfTop, splitBackHalfBot, splitBackBoltLength, splitBackMinOffset, splitBackCenterSeam} = params;
+  const rm = roundMode;
+  const cutlist = document.getElementById('cutlist');
+  const rows = [];
+
+  rows.push(['Main piece', `${fmtInch(ML, rm)}" × ${fmtInch(B, rm)}" (full bolt width)`, `Qty 1 — runs side-to-side over both armrests`]);
+  if (useSplitBack) {
+    rows.push(['Back piece (split trapezoid)', `2 halves: top ${fmtInch(splitBackHalfTop, rm)}" / bottom ${fmtInch(splitBackHalfBot, rm)}" / height ${fmtInch(backPieceHeight, rm)}"`,
+      `Qty 2 — cut trapezoid in half at center (+${fmtExact(splitBackCenterSeam)}" seam each). Nest on bolt with ${fmtInch(splitBackMinOffset, rm)}" offset (${fmtInch(splitBackBoltLength, rm)}" bolt length). Sew halves at center seam before attaching.`]);
+  } else {
+    rows.push(['Back piece (trapezoid)', `Top: ${fmtInch(backPieceTopWidth, rm)}" / Bottom: ${fmtInch(backPieceBottomWidth, rm)}" / Height: ${fmtInch(backPieceHeight, rm)}"`, `Qty 1 — Trapezoid with top edge matching main piece (ML), tapering to narrow bottom (WB+2×hem). At each back corner, the side extension folds back over the central WB portion along the WB/2 fold line; a snap pair (both halves on the back piece) closes the fold.`]);
+  }
+
+  if (frontFlapNeeded && useWasteNesting && wasteNestIsSplit) {
+    rows.push(['Front flap (from waste)', `${fmtInch(wasteNestPieceW, rm)}" × ${fmtInch(wasteNestPieceH, rm)}"`,
+      `Qty 2 — cut from diagonal trim waste (one per side)${wasteNestDiagonal ? ', placed along the diagonal cut line' : ''}. Sew halves together, then attach. No extra bolt length!`]);
+  } else if (frontFlapNeeded && useWasteNesting) {
+    rows.push(['Front flap (from waste)', `${fmtInch(wasteNestPieceW, rm)}" × ${fmtInch(wasteNestPieceH, rm)}"`,
+      `Qty 1 — cut from diagonal trim waste${wasteNestDiagonal ? ', placed along the diagonal cut line' : ''}. No extra bolt length!`]);
+  } else if (frontFlapNeeded && useSplitFlap) {
+    rows.push(['Front flap (split)', `${fmtInch(splitHalfLength, rm)}" × ${fmtInch(frontFlapWidth, rm)}"`, `Qty 2 — each half is half the flap length + 0.5" center seam. Sew halves together, then attach to main piece.`]);
+  } else if (frontFlapNeeded) {
+    rows.push(['Front flap (trapezoid)', `Top: ${fmtInch(flapTopWidth, rm)}" / Bottom: ${fmtInch(flapBottomWidth, rm)}" / Height: ${fmtInch(frontFlapWidth, rm)}"`,
+      `Qty 1 — trapezoid; diagonal sides ${fmtInch(flapDiagonalHoriz, rm)}" horizontal × ${fmtInch(frontFlapWidth, rm)}" vertical. Top edge sews to middle ${fmtInch(flapTopWidth, rm)}" of main piece's ${fmtInch(frontWidthAfterCut, rm)}" front edge.`]);
+  } else {
+    rows.push(['Front flap', 'Not required', `Bolt width (${B}") covers full front-to-back distance`]);
+  }
+
+  // Snap placement (replaces gussets)
+  rows.push(['Snap hardware', 'Install 1 snap pair per corner (2 pairs total)', `Both halves of each pair are on the back piece. The extension flap folds over the WB/2 fold line; snap closes the fold at halfway down.`]);
+
+  cutlist.innerHTML = rows.map((r,i)=>`<div class="row" style="${i? 'border-top:1px dashed var(--muted);':''}"><span>${r[0]}</span><strong>${r[1]}</strong><span style="color:var(--sub)">${r[2]}</span></div>`).join('');
+}
+
+
+// === ASSEMBLY DIAGRAM (FLAT LAYOUT) — restyled to match grill island look ===
+function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
+  svgId = svgId || 'assemblyDiagramFlatFull';
+  vbw = vbw || 1200;
+  vbh = vbh || 900;
+  const {H, W, WB, D, F2A, BR, FC, B, ML, sideDrop,
+         hem, seam,
+         backPieceTopWidth, backPieceBottomWidth, backPieceHeight,
+         frontFlapNeeded, frontFlapWidth, flapTopWidth, flapBottomWidth,
+         roundMode,
+         backInset, frontInset, markFromSideEdge, frontWidthAfterCut} = params;
+  const rIn = v => roundMode === 'whole' ? Math.ceil(v) : roundMode === 'half' ? roundHalf(v) : Math.round(v*100)/100;
+  const svg = document.getElementById(svgId);
+  if (!svg) return;
+  svg.setAttribute('viewBox', `0 0 ${vbw} ${vbh}`);
+  while(svg.firstChild) svg.removeChild(svg.firstChild);
+  const add = (t,a,p=svg)=>{const e=document.createElementNS('http://www.w3.org/2000/svg',t); for(const k in a) e.setAttribute(k,a[k]); p.appendChild(e); return e;};
+
+  const VBW = vbw, VBH = vbh;
+  const pad = 80;
+
+  // Arrowhead marker for overall dimension lines
+  const mkrId = 'arr_' + svgId;
+  const defs = add('defs', {});
+  const mkr = add('marker', {id:mkrId, markerWidth:7, markerHeight:7,
+    refX:3.5, refY:3.5, orient:'auto', viewBox:'0 0 7 7'}, defs);
+  const tip = document.createElementNS('http://www.w3.org/2000/svg','path');
+  tip.setAttribute('d','M0,0 L7,3.5 L0,7 Z'); tip.setAttribute('fill','#475569');
+  mkr.appendChild(tip);
+  const dimLine = (x1, y1, x2, y2) =>
+    add('line', {x1, y1, x2, y2, stroke:'#475569', 'stroke-width':1,
+      'marker-start':`url(#${mkrId})`, 'marker-end':`url(#${mkrId})`});
+
+  // Layout: back piece (top), main piece (middle), front flap (bottom)
+  const extraBack  = backPieceHeight;
+  const extraFront = frontFlapNeeded ? frontFlapWidth : 0;
+  const topLabelSpace = 60;
+  const totalDiagH = B + extraBack + extraFront + 40 + topLabelSpace;
+  const totalDiagW = ML + 80;
+
+  const sc = Math.min((VBW - pad*2) / totalDiagW, (VBH - pad*2) / totalDiagH);
+
+  const cx = VBW / 2;
+  const backPieceTopY = pad + 10 + topLabelSpace;
+  const mainTopY = backPieceTopY + extraBack * sc;
+  const mainBotY = mainTopY + B * sc;
+
+  const bpPhysH = backPieceHeight * sc;
+  const bpTopW  = backPieceTopWidth * sc;
+  const bpBotW  = backPieceBottomWidth * sc;
+  const bpTopY  = mainTopY - bpPhysH;
+
+  const mainW = ML * sc;
+  const mainH = B * sc;
+  const mainX = cx - mainW / 2;
+  const trimPx = (markFromSideEdge || 0) * sc;
+  const bkInPx = (backInset || 0) * sc;
+  const frInPx = (frontInset || 0) * sc;
+  const ffH = frontFlapNeeded ? frontFlapWidth * sc : 0;
+  const frontBottomY = mainBotY + ffH;
+  const backInsetY = mainTopY + bkInPx;
+  const frontInsetY = mainBotY - frInPx;
+  const topLeftX  = mainX;
+  const topRightX = mainX + mainW;
+  const frontLeftX  = mainX + trimPx;
+  const frontRightX = mainX + mainW - trimPx;
+
+  // FRONT label
+  add('text', {x: cx, y: bpTopY - 38, 'text-anchor':'middle', 'font-size':13,
+    fill:'#0f172a', 'font-weight':'bold', 'letter-spacing':'2'})
+    .textContent = '▼  FRONT';
+
+  // Fabric drape polygons (indigo fill, slate stroke)
+  const fabricFill   = '#eef2ff';
+  const fabricStroke = '#0f172a';
+  const fabricSW     = 2;
+
+  // Back piece trapezoid
+  const bpPts = [
+    [cx - bpTopW/2, mainTopY],
+    [cx + bpTopW/2, mainTopY],
+    [cx + bpBotW/2, bpTopY],
+    [cx - bpBotW/2, bpTopY],
+  ];
+  add('polygon', {points: bpPts.map(q=>q.join(',')).join(' '),
+    fill: fabricFill, stroke: fabricStroke, 'stroke-width': fabricSW});
+
+  // Main piece cut shape (with diagonal inset)
+  let mainShapePts;
+  if (frontFlapNeeded) {
+    mainShapePts = [
+      [topLeftX, mainTopY],
+      [topRightX, mainTopY],
+      [topRightX, backInsetY],
+      [frontRightX, frontInsetY],
+      [frontRightX, mainBotY],
+      [frontLeftX, mainBotY],
+      [frontLeftX, frontInsetY],
+      [topLeftX, backInsetY],
+    ];
+  } else {
+    mainShapePts = [
+      [topLeftX, mainTopY],
+      [topRightX, mainTopY],
+      [topRightX, backInsetY],
+      [frontRightX, frontInsetY],
+      [frontRightX, frontBottomY],
+      [frontLeftX, frontBottomY],
+      [frontLeftX, frontInsetY],
+      [topLeftX, backInsetY],
+    ];
+  }
+  add('polygon', {points: mainShapePts.map(q=>q.join(',')).join(' '),
+    fill: fabricFill, stroke: fabricStroke, 'stroke-width': fabricSW});
+
+  // Front flap trapezoid
+  if (frontFlapNeeded) {
+    const fTopHalf = (flapTopWidth / 2) * sc;
+    const fBotHalf = (flapBottomWidth / 2) * sc;
+    const flapPts = [
+      [cx - fTopHalf, mainBotY],
+      [cx + fTopHalf, mainBotY],
+      [cx + fBotHalf, frontBottomY],
+      [cx - fBotHalf, frontBottomY],
+    ];
+    add('polygon', {points: flapPts.map(q=>q.join(',')).join(' '),
+      fill: fabricFill, stroke: fabricStroke, 'stroke-width': fabricSW});
+  }
+
+  // Furniture outline (gray dashed)
+  const furnColor = '#94a3b8';
+  const furnW = W * sc;
+  const furnD = D * sc;
+  const furnX = cx - furnW / 2;
+  const hemPx = hem * sc;
+  const furnY = mainTopY + hemPx;
+  add('rect', {x: furnX, y: furnY, width: furnW, height: furnD,
+    fill:'none', stroke: furnColor, 'stroke-width':1.5, 'stroke-dasharray':'6,4', rx:2});
+  add('text', {x: cx, y: furnY + furnD/2 + 4, 'text-anchor':'middle',
+    'font-size':10, fill: furnColor, 'font-style':'italic'})
+    .textContent = `chair ${rIn(W)}\" × ${rIn(D)}\"`;
+
+  // Corner drape indicator lines (gray dashed)
+  const cornerDrape = [
+    [furnX, furnY,           topLeftX, furnY],
+    [furnX, furnY,           furnX,    mainTopY],
+    [furnX + furnW, furnY,   topRightX, furnY],
+    [furnX + furnW, furnY,   furnX + furnW, mainTopY],
+    [furnX, furnY + furnD,   frontLeftX, furnY + furnD],
+    [furnX, furnY + furnD,   furnX, mainBotY],
+    [furnX + furnW, furnY + furnD, frontRightX, furnY + furnD],
+    [furnX + furnW, furnY + furnD, furnX + furnW, mainBotY],
+  ];
+  for (const [x1,y1,x2,y2] of cornerDrape)
+    add('line', {x1,y1,x2,y2, stroke: furnColor, 'stroke-width':1.5, 'stroke-dasharray':'6,4'});
+
+  // Seams (purple dashed)
+  const seamColor = '#9333ea';
+  const seamSW    = 2.5;
+  const seamDash  = '8,3';
+  add('line', {x1: cx - bpTopW/2, y1: mainTopY, x2: cx + bpTopW/2, y2: mainTopY,
+    stroke: seamColor, 'stroke-width': seamSW, 'stroke-dasharray': seamDash});
+  if (frontFlapNeeded) {
+    const fTopHalf = (flapTopWidth / 2) * sc;
+    add('line', {x1: cx - fTopHalf, y1: mainBotY, x2: cx + fTopHalf, y2: mainBotY,
+      stroke: seamColor, 'stroke-width': seamSW, 'stroke-dasharray': seamDash});
+  }
+
+  // Cut lines (red solid)
+  const cutColor = '#dc2626';
+  const cutSW    = 2;
+  add('line', {x1: topLeftX, y1: backInsetY, x2: frontLeftX, y2: frontInsetY,
+    stroke: cutColor, 'stroke-width': cutSW});
+  if (frInPx > 2)
+    add('line', {x1: frontLeftX, y1: frontInsetY, x2: frontLeftX, y2: mainBotY,
+      stroke: cutColor, 'stroke-width': cutSW});
+  add('line', {x1: topRightX, y1: backInsetY, x2: frontRightX, y2: frontInsetY,
+    stroke: cutColor, 'stroke-width': cutSW});
+  if (frInPx > 2)
+    add('line', {x1: frontRightX, y1: frontInsetY, x2: frontRightX, y2: mainBotY,
+      stroke: cutColor, 'stroke-width': cutSW});
+
+  // Grommets (hollow + inner dot)
+  const gromColor = '#b45309';
+  const gromInset = sideDrop / 3;
+  const gromFrontHorizFromCenter = W / 2 - 5;
+  const gromBackHorizFromCenter  = WB / 2 - 5;
+
+  const gFL = [cx - gromFrontHorizFromCenter * sc, frontBottomY - gromInset * sc];
+  const gFR = [cx + gromFrontHorizFromCenter * sc, frontBottomY - gromInset * sc];
+  const gBL = [cx - gromBackHorizFromCenter  * sc, bpTopY        + gromInset * sc];
+  const gBR = [cx + gromBackHorizFromCenter  * sc, bpTopY        + gromInset * sc];
+
+  for (const [gx, gy] of [gFL, gFR, gBL, gBR]) {
+    add('circle', {cx: gx, cy: gy, r: 6, fill: 'none', stroke: gromColor, 'stroke-width': 2.5});
+    add('circle', {cx: gx, cy: gy, r: 2, fill: gromColor});
+  }
+  // G-labels on LEFT side only
+  add('text', {x: gBL[0] - 10, y: gBL[1] + 4, 'text-anchor':'end',
+    'font-size':9, fill:'#92400e', 'font-weight':'bold'}).textContent = 'G1';
+  add('text', {x: gFL[0] - 10, y: gFL[1] + 4, 'text-anchor':'end',
+    'font-size':9, fill:'#92400e', 'font-weight':'bold'}).textContent = 'G2';
+
+  // Grommet dimensions — LEFT SIDE ONLY (amber)
+  const tk = 4;
+  const gc = '#92400e';
+  const gf = 9;
+  const gDimH = (xa, xb, y, label, above) => {
+    add('line', {x1:xa, y1:y, x2:xb, y2:y, stroke:gc, 'stroke-width':1});
+    add('line', {x1:xa, y1:y-tk, x2:xa, y2:y+tk, stroke:gc, 'stroke-width':1});
+    add('line', {x1:xb, y1:y-tk, x2:xb, y2:y+tk, stroke:gc, 'stroke-width':1});
+    add('text', {x:(xa+xb)/2, y:above ? y-4 : y+10, 'text-anchor':'middle',
+      'font-size':gf, fill:gc, 'font-weight':'bold'}).textContent = label;
+  };
+  const gDimV = (x, ya, yb, label, right) => {
+    add('line', {x1:x, y1:ya, x2:x, y2:yb, stroke:gc, 'stroke-width':1});
+    add('line', {x1:x-tk, y1:ya, x2:x+tk, y2:ya, stroke:gc, 'stroke-width':1});
+    add('line', {x1:x-tk, y1:yb, x2:x+tk, y2:yb, stroke:gc, 'stroke-width':1});
+    add('text', {x:right ? x+5 : x-5, y:(ya+yb)/2+4, 'text-anchor':right ? 'start' : 'end',
+      'font-size':gf, fill:gc, 'font-weight':'bold'}).textContent = label;
+  };
+  // G1: vertical from top edge of back piece down to grommet (= sideDrop/3)
+  gDimV(gBL[0] - 14, bpTopY, gBL[1], `${rIn(gromInset)}\"`, false);
+  // G1: horizontal from center to grommet
+  gDimH(cx, gBL[0], gBL[1] - 12, `${rIn(gromBackHorizFromCenter)}\" from center`, true);
+  // G2: vertical from grommet down to bottom of front material (= sideDrop/3)
+  gDimV(gFL[0] - 14, gFL[1], frontBottomY, `${rIn(gromInset)}\"`, false);
+  // G2: horizontal from center to grommet
+  gDimH(cx, gFL[0], gFL[1] + 14, `${rIn(gromFrontHorizFromCenter)}\" from center`, false);
+
+  // Snap markers — each corner is one mating pair: 1 stud + 1 socket
+  // Convention (CLAUDE.md): sA = stud (green), sB = socket (magenta)
+  // Per corner pair: back-side half = STUD, front-side half = SOCKET.
+  // When the extension flap folds at the midpoint, stud meets socket.
+  const STATIC_OFFSET = 2;
+  const STUD_FILL   = '#22c55e', STUD_STROKE   = '#166534';
+  const SOCKET_FILL = '#db2777', SOCKET_STROKE = '#831843';
+  const backDownFromSeam  = backPieceHeight / 2;
+  const backSnapY         = mainTopY - backDownFromSeam * sc;
+  const backFromCenter    = WB / 2 + STATIC_OFFSET;
+  const frontDownFromSeam = STATIC_OFFSET;
+  const frontSnapY        = mainTopY - frontDownFromSeam * sc;
+  const frontFromCenter   = WB / 2 + backPieceHeight / 2;
+
+  // Back-side halves of each corner pair = studs (green)
+  const snLB = [cx - backFromCenter  * sc, backSnapY];
+  const snRB = [cx + backFromCenter  * sc, backSnapY];
+  // Front-side halves of each corner pair = sockets (magenta)
+  const snLF = [cx - frontFromCenter * sc, frontSnapY];
+  const snRF = [cx + frontFromCenter * sc, frontSnapY];
+
+  // Draw studs (back-side halves)
+  for (const [sx, sy] of [snLB, snRB])
+    add('circle', {cx:sx, cy:sy, r:4, fill: STUD_FILL, stroke: STUD_STROKE, 'stroke-width':1});
+  // Draw sockets (front-side halves)
+  for (const [sx, sy] of [snLF, snRF])
+    add('circle', {cx:sx, cy:sy, r:4, fill: SOCKET_FILL, stroke: SOCKET_STROKE, 'stroke-width':1});
+
+  // Snap dimensions — RIGHT SIDE ONLY
+  const sc2 = '#16a34a';
+  const sDimH = (xa, xb, y, label, above) => {
+    add('line', {x1:xa, y1:y, x2:xb, y2:y, stroke:sc2, 'stroke-width':1});
+    add('line', {x1:xa, y1:y-tk, x2:xa, y2:y+tk, stroke:sc2, 'stroke-width':1});
+    add('line', {x1:xb, y1:y-tk, x2:xb, y2:y+tk, stroke:sc2, 'stroke-width':1});
+    add('text', {x:(xa+xb)/2, y:above ? y-4 : y+10, 'text-anchor':'middle',
+      'font-size':9, fill:sc2, 'font-weight':'bold'}).textContent = label;
+  };
+  const sDimV = (x, ya, yb, label, right) => {
+    add('line', {x1:x, y1:ya, x2:x, y2:yb, stroke:sc2, 'stroke-width':1});
+    add('line', {x1:x-tk, y1:ya, x2:x+tk, y2:ya, stroke:sc2, 'stroke-width':1});
+    add('line', {x1:x-tk, y1:yb, x2:x+tk, y2:yb, stroke:sc2, 'stroke-width':1});
+    add('text', {x:right ? x+5 : x-5, y:(ya+yb)/2+4, 'text-anchor':right ? 'start' : 'end',
+      'font-size':9, fill:sc2, 'font-weight':'bold'}).textContent = label;
+  };
+  // back snap: 2" past WB/2 fold, half height down
+  sDimV(snRB[0] + 12, mainTopY, snRB[1], `${rIn(backDownFromSeam)}\"`, true);
+  sDimH(cx, snRB[0], snRB[1] + 14, `${rIn(backFromCenter)}\" from center`, false);
+  // front snap: 2" from seam, at (WB/2 + (H-FC)/2) from center
+  sDimV(snRF[0] + 12, mainTopY, snRF[1], `${rIn(frontDownFromSeam)}\"`, true);
+
+  // Bungee tabs (diamonds) sewn into the back seam at mainTopY
+  const tabC = '#0ea5e9';
+  const tabBorder = '#0369a1';
+  const tabY = mainTopY;
+  const tabLX = cx - gromBackHorizFromCenter * sc;
+  const tabRX = cx + gromBackHorizFromCenter * sc;
+  const tabH = 8, tabW = 12;
+  for (const tx of [tabLX, tabRX]) {
+    add('polygon', {
+      points: `${tx},${tabY - tabH} ${tx + tabW/2},${tabY} ${tx},${tabY + tabH} ${tx - tabW/2},${tabY}`,
+      fill: tabC, stroke: tabBorder, 'stroke-width': 1.5, opacity: 0.95
+    });
+    // White "T" mark
+    add('line', {x1: tx - tabW/2 + 2, y1: tabY, x2: tx + tabW/2 - 2, y2: tabY,
+      stroke: '#fff', 'stroke-width': 1.2});
+    add('line', {x1: tx, y1: tabY - tabH + 2, x2: tx, y2: tabY + tabH - 2,
+      stroke: '#fff', 'stroke-width': 1.2});
+  }
+  // BT label on LEFT tab only
+  add('text', {x: tabLX - 10, y: tabY + 4, 'text-anchor':'end',
+    'font-size':9, fill: tabBorder, 'font-weight':'bold'}).textContent = 'BT';
+
+  // Overall dimensions (charcoal, bold 13)
+  const dOff = 50;
+  dimLine(topLeftX, bpTopY - dOff, topRightX, bpTopY - dOff);
+  add('text', {x: cx, y: bpTopY - dOff - 7, 'text-anchor':'middle',
+    'font-size':13, fill:'#0f172a', 'font-weight':'bold'}).textContent = `ML: ${rIn(ML)}\"`;
+  const fbDimX = topRightX + dOff;
+  dimLine(fbDimX, bpTopY, fbDimX, frontBottomY);
+  const totalCoverageIn = backPieceHeight + B + (frontFlapNeeded ? frontFlapWidth : 0);
+  add('text', {x: fbDimX + 15, y: (bpTopY + frontBottomY)/2, 'text-anchor':'middle',
+    'font-size':13, fill:'#0f172a', 'font-weight':'bold',
+    transform: `rotate(-90 ${fbDimX+15} ${(bpTopY + frontBottomY)/2})`})
+    .textContent = `${rIn(totalCoverageIn)}\"`;
+
+  // Sub-dimensions (slate gray) — left edge: back drop, bolt B, flap drop
+  const sdc = '#64748b';
+  const sdf = 10;
+  const tick = (x1, y1, x2, y2) =>
+    add('line', {x1, y1, x2, y2, stroke: sdc, 'stroke-width':1});
+  const lx = topLeftX - dOff;
+  dimLine(lx, bpTopY, lx, mainTopY);
+  tick(lx - 5, bpTopY,   lx + 5, bpTopY);
+  tick(lx - 5, mainTopY, lx + 5, mainTopY);
+  add('text', {x: lx - 14, y: (bpTopY + mainTopY)/2, 'text-anchor':'middle',
+    'font-size': sdf, fill: sdc,
+    transform: `rotate(-90 ${lx-14} ${(bpTopY + mainTopY)/2})`})
+    .textContent = `${rIn(backPieceHeight)}\" back drop`;
+  dimLine(lx, mainTopY, lx, mainBotY);
+  tick(lx - 5, mainBotY, lx + 5, mainBotY);
+  add('text', {x: lx - 14, y: (mainTopY + mainBotY)/2, 'text-anchor':'middle',
+    'font-size': sdf, fill: sdc,
+    transform: `rotate(-90 ${lx-14} ${(mainTopY + mainBotY)/2})`})
+    .textContent = `${rIn(B)}\" B (bolt)`;
+  if (frontFlapNeeded) {
+    dimLine(lx, mainBotY, lx, frontBottomY);
+    tick(lx - 5, frontBottomY, lx + 5, frontBottomY);
+    add('text', {x: lx - 14, y: (mainBotY + frontBottomY)/2, 'text-anchor':'middle',
+      'font-size': sdf, fill: sdc,
+      transform: `rotate(-90 ${lx-14} ${(mainBotY + frontBottomY)/2})`})
+      .textContent = `${rIn(frontFlapWidth)}\" flap`;
+  }
+  // Top sub-dim: back piece narrow edge
+  const tDimY = bpTopY - 22;
+  dimLine(cx - bpBotW/2, tDimY, cx + bpBotW/2, tDimY);
+  tick(cx - bpBotW/2, tDimY - 5, cx - bpBotW/2, tDimY + 5);
+  tick(cx + bpBotW/2, tDimY - 5, cx + bpBotW/2, tDimY + 5);
+  add('text', {x: cx, y: tDimY - 5, 'text-anchor':'middle',
+    'font-size': sdf, fill: sdc})
+    .textContent = `${rIn(backPieceBottomWidth)}\" back narrow`;
+
+  // Front width labels at the bottom of the diagram
+  if (frontFlapNeeded) {
+    const flBL = cx - (flapBottomWidth/2)*sc;
+    const flBR = cx + (flapBottomWidth/2)*sc;
+    dimLine(flBL, frontBottomY + 24, flBR, frontBottomY + 24);
+    add('text', {x: cx, y: frontBottomY + 38, 'text-anchor':'middle',
+      'font-size':11, fill:'#0f172a', 'font-weight':'bold'})
+      .textContent = `Front floor width: ${rIn(flapBottomWidth)}\"`;
+    // before-cut width sub-dim above the flap (between the flap top and where the main piece's
+    // front edge sits) — keeps the user aware of the trapezoid before cutting
+    const fcBL = frontLeftX;
+    const fcBR = frontRightX;
+    dimLine(fcBL, mainBotY - 16, fcBR, mainBotY - 16);
+    add('text', {x: cx, y: mainBotY - 20, 'text-anchor':'middle',
+      'font-size':10, fill: sdc, 'font-weight':'bold'})
+      .textContent = `Front (before flap): ${rIn(frontWidthAfterCut)}\"`;
+  } else {
+    const fcBL = frontLeftX;
+    const fcBR = frontRightX;
+    dimLine(fcBL, mainBotY + 24, fcBR, mainBotY + 24);
+    add('text', {x: cx, y: mainBotY + 38, 'text-anchor':'middle',
+      'font-size':11, fill:'#0f172a', 'font-weight':'bold'})
+      .textContent = `Front width: ${rIn(frontWidthAfterCut)}\"`;
+  }
+
+  // Piece labels
+  add('text', {x: cx, y: bpTopY + bpPhysH/2 + 4, 'text-anchor':'middle',
+    'font-size':12, fill:'#475569', 'font-weight':'bold'})
+    .textContent = 'BACK PIECE';
+  add('text', {x: cx, y: mainTopY + mainH/2 - 6, 'text-anchor':'middle',
+    'font-size':13, fill:'#475569', 'font-weight':'bold'})
+    .textContent = 'MAIN PIECE';
+  add('text', {x: cx, y: mainTopY + mainH/2 + 10, 'text-anchor':'middle',
+    'font-size':10, fill:'#64748b'}).textContent = `${rIn(ML)}\" × ${rIn(B)}\"`;
+  if (frontFlapNeeded) {
+    add('text', {x: cx, y: (mainBotY + frontBottomY)/2 + 4, 'text-anchor':'middle',
+      'font-size':11, fill:'#475569', 'font-weight':'bold'})
+      .textContent = 'FRONT FLAP';
+  }
+}
+
+function compute(){
+  try{
+    const roundMode = document.getElementById('roundMode').value;
+    const rounded = roundMode; // passed to fmtInch/fmtYardsFromInches which accept 'exact'|'half'|'whole'
+
+    const B    = parseNum('B');
+    const W    = parseNum('W');
+    const WB   = parseNum('WB');
+    const H    = parseNum('H');
+    const D    = parseNum('D');
+    const F2A  = parseNum('F2A');
+    const F2BS = parseNum('F2BS');
+    const BR   = parseNum('BR');
+    const FC   = parseNum('FC');
+    const hem  = parseNum('hem');
+    const seam = parseNum('seam');
+    const sideEase = 0;
+    const waveAllowance = 0;
+    const bottomMargin = parseNum('bottomMargin');
+    const snapStrapsOpt = false;
+
+    // === MAIN PIECE CALCULATIONS (Side-to-Side Design) ===
+    // AT2F: diagonal drape from front edge of backrest top to front of seat
+    // Uses (D - BR) because the fabric has already traversed BR across the backrest top
+    const AT2F = Math.sqrt(Math.max(0, H - F2A)**2 + Math.max(0, D - BR)**2);
+
+    // Side drop: from floor (minus clearance) up to top of backrest
+    // The fabric must go up and over the FULL HEIGHT of the chair on each side
+    const sideDrop = H - FC;
+
+    // Front extension drop: from armrest down to floor (used in front-to-back coverage calc)
+    const frontExtDrop = F2A - FC;
+
+    // Main piece length (side-to-side wrap):
+    // Left side drop (H - FC) + back width (WB) + right side drop (H - FC)
+    // Uses WB (not W) because the center of the material sits across the backrest
+    // The backInset zone (hem + BR from back edge) already provides the gusset hem area
+    // on the main piece, which also serves as the lap seam for the back piece.
+    const ML = WB + 2 * sideDrop;
+
+    // Front-to-back coverage needed (bolt width direction):
+    // hem + BR + AT2F + front drop (F2A - FC)
+    const totalFB = hem + BR + AT2F + frontExtDrop;
+
+    // Back drop: from backrest top to floor (for back piece)
+    const backDrop = H - FC;
+
+    // MW: for compatibility with shared diagram functions
+    const MW = WB + 2 * (H - FC);  // same as ML
+
+    // === DIAGONAL INSET ZONES ===
+    // The diagonal does NOT start at the corners. It's inset from both ends:
+    //   Back inset = hem + BR (seam attachment zone — fabric must maintain full ML width
+    //     through the floor hem and across the backrest top where it seams to the back piece)
+    //   Front inset = F2A - FC (front skirt zone, stays at reduced front width)
+    // The diagonal only tapers in the middle zone between these two points.
+    const backInset = hem + BR;         // 5" from back edge with defaults (same as gusset design)
+    const frontInset = F2A - FC;        // 20" from front edge with defaults
+    const taperZoneLength = Math.max(0, B - frontInset - backInset);  // the zone where diagonal tapers
+
+    // Width at the front of the cover after diagonal cut:
+    // At the front, the chair is W wide at armrest level, and the side drops
+    // need to reach from the armrest (F2A) to the floor minus clearance.
+    // So front width = W + 2*(F2A - FC) + 2*sideEase
+    const frontWidthAfterCut = W + 2 * frontExtDrop + 2 * sideEase;
+
+    // Amount trimmed from each side at the front inset point (and in the front zone):
+    const markFromSideEdge = Math.max(0, (ML - frontWidthAfterCut) / 2);
+    const markFromCenter = frontWidthAfterCut / 2;
+
+    // === BACK PIECE (always required) — TRAPEZOID in snap-back design ===
+    // The back piece is a trapezoid with side extensions that wrap around corners and snap:
+    // - Top edge (at backrest seam): ML (same width as main piece)
+    // - Bottom edge (at floor): WB + 2*hem (narrower, just covers back width)
+    // - Height: H - FC (back drop)
+    // Side extensions provide continuous material coverage at the corners (replacing gussets).
+    // Excess material at corners folds inward and is held by snaps.
+    const backPieceTopWidth = ML;            // Top edge at seam — same width as main piece
+    const backPieceBottomWidth = WB + 2 * hem;  // Bottom edge (e.g., 27")
+    const backPieceHeight = H - FC;              // Height: back drop (e.g., 33")
+    // For nesting and display, use the top width (the longer dimension along bolt)
+    const backPieceLength = backPieceTopWidth;   // Along bolt (full trapezoid)
+    const backPieceWidth = backPieceHeight;      // Across bolt (must fit within B)
+
+    // === SPLIT-BACK NESTING OPTIMIZATION ===
+    // Split the trapezoidal back piece in half vertically (down the center).
+    // Each half is a smaller trapezoid. Rotate one half 180° in-plane (NOT flipped —
+    // good side stays up!) so the wide end of one nests against the narrow end of the other.
+    // This can reduce bolt length needed for the back piece.
+    const splitBackCenterSeam = seam;  // seam allowance for center join
+    const splitBackHalfTop = backPieceTopWidth / 2 + splitBackCenterSeam;     // each half's wide end + seam
+    const splitBackHalfBot = backPieceBottomWidth / 2 + splitBackCenterSeam;  // each half's narrow end + seam
+    // When nested (one rotated 180°), combined width at every point = halfTop + halfBot (constant!)
+    const splitBackNestedWidth = splitBackHalfTop + splitBackHalfBot;
+    // If combined width > B, we need to offset one half along the bolt to fit within B
+    const splitBackTaper = splitBackHalfTop - splitBackHalfBot;  // taper per half over full height
+    const splitBackMinOffset = splitBackNestedWidth <= B ? 0
+      : splitBackTaper > 0 ? (splitBackNestedWidth - B) * backPieceHeight / splitBackTaper : Infinity;
+    const splitBackFits = isFinite(splitBackMinOffset);
+    const splitBackBoltLength = splitBackFits ? backPieceHeight + splitBackMinOffset : backPieceLength;
+    const splitBackSavings = backPieceLength - splitBackBoltLength;
+    // Use split-back if it saves at least 1" of bolt
+    let useSplitBack = splitBackFits && splitBackSavings > 1;
+
+    // === FRONT FLAP (if bolt can't cover full front-to-back) ===
+    // v2 — TRAPEZOID front flap (replaces former rectangle).
+    // The flap is wider at the seam (top) and narrower at the hem (bottom) so the
+    // front-corner dog-ear that used to puddle on the floor is taken up by the cut.
+    const frontFlapNeeded = totalFB > B;
+    const frontFlapShortage = frontFlapNeeded ? totalFB - B : 0;
+    const frontFlapWidth = frontFlapNeeded ? frontFlapShortage + hem : 0;  // depth (front-to-back) — unchanged
+    // With the inset diagonal, the front zone (first frontInset from front edge) is at constant
+    // frontWidthAfterCut. The flap's TOP (seam) edge spans the centered portion of that front width,
+    // (waveAllowance retained at 0 — wavy edges removed).
+    const flapTopWidth = frontFlapNeeded ? Math.max(W, W + 2 * (F2A - FC) - 2 * waveAllowance) : 0;   // wider — at seam
+    const flapBottomWidth = frontFlapNeeded ? (W + 2 * bottomMargin) : 0;                              // narrower — at hem
+    const flapDiagonalHoriz = frontFlapNeeded ? Math.max(0, (F2A - FC) - waveAllowance - bottomMargin) : 0;  // horiz extent per side
+    const flapExtension = frontFlapNeeded ? frontExtDrop : 0;
+    // For nesting/material calculations, the flap fits in a flapTopWidth × frontFlapWidth bounding box.
+    const frontFlapLength = frontFlapNeeded ? flapTopWidth : 0;
+    // diagCrossDist kept for compatibility
+    const diagCrossDist_sts = frontFlapNeeded ? frontExtDrop * (B - D) / (totalFB - D) : 0;
+
+    // === DIAGONAL CUT / SIDE ANGLE ===
+    // The diagonal tapers each side from full ML width at the back to frontWidthAfterCut at the front.
+    // Back inset zone (0 to backInset from back): full ML width, no cut
+    // Taper zone (backInset to B-frontInset): diagonal taper
+    // Front inset zone (B-frontInset to B): constant frontWidthAfterCut
+    // This gives uniform FC clearance along the entire side of the chair.
+    const confirmCoverageWidth = totalFB;  // width at armrest level (front-to-back)
+    const backWidth = ML;  // widest point (at back, full ML)
+    const frontWidth = frontWidthAfterCut;  // at front, after diagonal
+    const startCutFromCenterLine = markFromCenter;  // from center at front
+
+    // Side panels are NOT used in this design
+    const sidePanelsNeeded = false;
+    const sideEach = 0;
+    const addWidth = 0;
+    const sidePanelLength = 0;
+    const setbackFromFront = 0;
+
+    // Diagonal span and crossing (for reference/compatibility)
+    const diagSpan = taperZoneLength;  // the zone where the diagonal actually tapers
+    const diagCrossDist = diagCrossDist_sts;
+    const ML_eff = totalFB;
+
+    // === NESTING / MATERIAL TO BUY ===
+    // Pieces to cut from bolt:
+    // 1. Main piece: ML × B
+    // 2. Back piece: trapezoid — full or split into 2 halves for nesting
+    // 3. Front flap: frontFlapLength × frontFlapWidth (if needed)
+    //
+    // KEY OPTIMIZATION: Compare split-back vs full trapezoid strategies.
+    // Split-back saves bolt length on the back piece but may prevent front flap nesting.
+    // Full trapezoid is longer along bolt but only uses H-FC across bolt, leaving room
+    // for the front flap to nest alongside. Pick whichever gives the lower TOTAL.
+
+    // --- Strategy A: Full trapezoid (no split-back) ---
+    let totalA = ML + backPieceLength;  // back piece along bolt
+    let noteA = `Main piece (${fmtExact(ML)}") + back piece (${fmtExact(backPieceLength)}") sequential.`;
+    let stratA = 'full-back-sequential';
+    if (frontFlapNeeded) {
+      if (backPieceWidth + frontFlapWidth <= B) {
+        // Flap nests alongside full trapezoid (height + flapWidth ≤ B)
+        const nestedLen = Math.max(backPieceLength, frontFlapLength);
+        totalA = ML + nestedLen;
+        noteA = `Main piece (${fmtExact(ML)}") + back piece & front flap nested alongside (${fmtExact(nestedLen)}"). Back piece ${fmtExact(backPieceWidth)}" + flap ${fmtExact(frontFlapWidth)}" = ${fmtExact(backPieceWidth + frontFlapWidth)}" ≤ bolt ${B}".`;
+        stratA = 'flap-nested';
+      } else {
+        totalA = ML + backPieceLength + frontFlapLength;
+        noteA = `Main piece (${fmtExact(ML)}") + back piece (${fmtExact(backPieceLength)}") + front flap (${fmtExact(frontFlapLength)}") all sequential.`;
+        stratA = 'all-sequential';
+      }
+    }
+
+    // --- Strategy B: Split-back (if feasible) ---
+    let totalB = Infinity;
+    let noteB = '';
+    let stratB = '';
+    if (splitBackFits && splitBackSavings > 1) {
+      totalB = ML + splitBackBoltLength;
+      noteB = `Main piece (${fmtExact(ML)}") + split back halves (${fmtExact(splitBackBoltLength)}").`;
+      stratB = 'split-back-nested';
+      if (frontFlapNeeded) {
+        // Can flap nest alongside split-back?
+        // The split-back nested width at the tightest cross-section = B (by design).
+        // So flap can only nest if splitBackNestedWidth + flapWidth ≤ B.
+        if (splitBackNestedWidth + frontFlapWidth <= B) {
+          const nestedLen = Math.max(splitBackBoltLength, frontFlapLength);
+          totalB = ML + nestedLen;
+          noteB = `Main piece (${fmtExact(ML)}") + split back halves & front flap nested (${fmtExact(nestedLen)}").`;
+          stratB = 'split-back-flap-nested';
+        } else {
+          totalB = ML + splitBackBoltLength + frontFlapLength;
+          noteB = `Main piece (${fmtExact(ML)}") + split back halves (${fmtExact(splitBackBoltLength)}") + front flap (${fmtExact(frontFlapLength)}") sequential.`;
+          stratB = 'split-back-all-sequential';
+        }
+      }
+    }
+
+    // --- Pick the best strategy ---
+    let totalLength, nestingNote, nestingStrategy;
+    if (totalA <= totalB) {
+      totalLength = totalA;
+      nestingNote = noteA;
+      nestingStrategy = stratA;
+      useSplitBack = false;  // override: full trapezoid is better
+    } else {
+      totalLength = totalB;
+      nestingNote = noteB;
+      nestingStrategy = stratB;
+      useSplitBack = true;
+    }
+
+    // === SPLIT FRONT FLAP OPTIMIZATION ===
+    // Instead of one long front flap piece, cut it in half and sew the two halves together.
+    // Each half gets +0.5" on the center join edge for hemming/seam.
+    // This may allow both halves to nest alongside the back piece, saving bolt length.
+    const splitCenterSeam = 0.5; // half inch per side for center join
+    let useSplitFlap = false;
+    let splitHalfLength = 0;
+    let splitSavings = 0;
+    let splitTotalLength = totalLength;
+    let splitNestingNote = '';
+
+    if (frontFlapNeeded) {
+      splitHalfLength = Math.ceil(frontFlapLength / 2) + splitCenterSeam;
+
+      // Try nesting split halves: can BOTH halves fit alongside back piece across bolt?
+      const bothHalvesFit = backPieceWidth + 2 * frontFlapWidth <= B;
+      const oneHalfFits = backPieceWidth + frontFlapWidth <= B;
+
+      if (bothHalvesFit) {
+        // Best case: back piece + both flap halves all nest side-by-side
+        splitTotalLength = ML + Math.max(backPieceLength, splitHalfLength);
+        splitNestingNote = `Main piece (${fmtExact(ML)}") + back piece & 2 flap halves nested (${fmtExact(backPieceWidth)} + 2×${fmtExact(frontFlapWidth)} = ${fmtExact(backPieceWidth + 2*frontFlapWidth)}" ≤ B ${B}"). Bolt length: ${fmtExact(ML)} + ${fmtExact(Math.max(backPieceLength, splitHalfLength))}" = ${fmtExact(splitTotalLength)}".`;
+      } else if (oneHalfFits) {
+        // One half nests with back piece, other sequential
+        splitTotalLength = ML + Math.max(backPieceLength, splitHalfLength) + splitHalfLength;
+        splitNestingNote = `Main piece + (back piece & 1 flap half nested) + 1 flap half sequential.`;
+      } else {
+        // All sequential
+        splitTotalLength = ML + backPieceLength + 2 * splitHalfLength;
+        splitNestingNote = `All pieces sequential — no nesting advantage.`;
+      }
+
+      splitSavings = totalLength - splitTotalLength;
+
+      // Use split flap if it saves material
+      if (splitSavings > 0.5) {
+        useSplitFlap = true;
+        totalLength = splitTotalLength;
+        nestingNote = splitNestingNote;
+        nestingStrategy = bothHalvesFit ? 'split-flap-nested' : (oneHalfFits ? 'split-flap-partial' : 'split-flap-sequential');
+      }
+    }
+
+    // === WASTE NESTING OPTIMIZATION ===
+    // With the inset diagonal, waste on each side consists of:
+    //   1. Triangle in taper zone: base = markFromSideEdge, height = taperZoneLength
+    //   2. Rectangle in front zone: markFromSideEdge × frontInset
+    // The front flap might fit in the rectangle portion (which is the larger, simpler shape).
+    //
+    // NOTE: Compare against pre-split-flap totalLength since waste nesting is an alternative
+    // to split-flap nesting.
+    const preSplitTotalLength = useSplitFlap ? (totalLength + splitSavings) : totalLength;
+    let useWasteNesting = false;
+    let wasteNestOrientation = '';
+    let wasteNestPieceW = 0;
+    let wasteNestPieceH = 0;
+    let wasteNestSavings = 0;
+    let wasteNestIsSplit = false;
+    // Waste triangle (taper zone only — the triangle part)
+    const wasteTriBase = markFromSideEdge;   // horizontal extent of cut at front inset
+    const wasteTriHeight = taperZoneLength;  // vertical extent of taper zone
+    const wasteTriHyp = Math.sqrt(wasteTriBase**2 + wasteTriHeight**2);
+    const wasteTriAlt = wasteTriBase > 0 ? wasteTriBase * wasteTriHeight / wasteTriHyp : 0;
+    // Waste rectangle (front zone)
+    const wasteRectW = markFromSideEdge;
+    const wasteRectH = frontInset;
+    let wasteNestDiagonal = false;
+    let wasteNestDiagAngle = 0;
+    let wasteNestDiagOffset = 0;
+
+    if (frontFlapNeeded) {
+      // With inset diagonal, waste on each side = triangle (taper zone) + rectangle (front zone).
+      // The front zone rectangle (wasteRectW × wasteRectH) is the best nesting area.
+      // Helper: does a piece (w, h) fit in the front zone waste rectangle?
+      function fitsInWasteRect(w, h) {
+        return w <= wasteRectW && h <= wasteRectH;
+      }
+      // Helper: does a piece (w, h) fit in the combined waste (rect + triangle)?
+      // The triangle sits above the rectangle. At height y above the rect top,
+      // the available width narrows linearly from wasteRectW to 0.
+      function fitsInCombinedWaste(w, h) {
+        if (w > wasteRectW) return false;
+        if (h <= wasteRectH) return true;  // fits in rect alone
+        // Piece extends into triangle zone by (h - wasteRectH)
+        const triPortion = h - wasteRectH;
+        if (triPortion > wasteTriHeight) return false;
+        // At the top of the piece in the triangle, available width:
+        const availAtTop = wasteTriBase * (wasteTriHeight - triPortion) / wasteTriHeight;
+        return availAtTop >= w;
+      }
+
+      // === TRY FITTING FLAP IN WASTE ===
+      const fullFitsA = fitsInCombinedWaste(frontFlapLength, frontFlapWidth);
+      const fullFitsB = fitsInCombinedWaste(frontFlapWidth, frontFlapLength);
+      const halfFitsA = fitsInCombinedWaste(splitHalfLength, frontFlapWidth);
+      const halfFitsB = fitsInCombinedWaste(frontFlapWidth, splitHalfLength);
+
+      const wasteTotalLength = ML + backPieceLength;
+
+      if (fullFitsA || fullFitsB) {
+        wasteNestSavings = preSplitTotalLength - wasteTotalLength;
+        if (wasteNestSavings >= 0) {
+          useWasteNesting = true;
+          wasteNestIsSplit = false;
+          wasteNestOrientation = fullFitsA ? 'horizontal' : 'vertical';
+          wasteNestPieceW = fullFitsA ? frontFlapLength : frontFlapWidth;
+          wasteNestPieceH = fullFitsA ? frontFlapWidth : frontFlapLength;
+          totalLength = wasteTotalLength;
+          useSplitFlap = false;
+          nestingNote = `Main piece (${fmtExact(ML)}") + back piece (${fmtExact(backPieceLength)}"). Front flap cut from diagonal waste — no extra bolt needed!`;
+          nestingStrategy = 'waste-nested-full';
+        }
+      } else if (halfFitsA || halfFitsB) {
+        wasteNestSavings = preSplitTotalLength - wasteTotalLength;
+        if (wasteNestSavings >= 0) {
+          useWasteNesting = true;
+          wasteNestIsSplit = true;
+          wasteNestOrientation = halfFitsA ? 'horizontal' : 'vertical';
+          wasteNestPieceW = halfFitsA ? splitHalfLength : frontFlapWidth;
+          wasteNestPieceH = halfFitsA ? frontFlapWidth : splitHalfLength;
+          totalLength = wasteTotalLength;
+          nestingNote = `Main piece (${fmtExact(ML)}") + back piece (${fmtExact(backPieceLength)}"). Split flap halves cut from diagonal waste — no extra bolt needed!`;
+          nestingStrategy = 'waste-nested-split';
+          useSplitFlap = true;
+        }
+      }
+    }
+
+    // === DISPLAY RESULTS ===
+    const rows = [
+      ['Diagonal drape (AT2F)', `${fmtInch(AT2F, rounded)} in`],
+      ['Main length ML (side-to-side wrap)', `${fmtInch(ML, rounded)} in`],
+      ['Front-to-back coverage needed', `${fmtInch(totalFB, rounded)} in`],
+      ['Fits in bolt width (totalFB ≤ B)', totalFB <= B ? 'Yes — no front flap needed' : `No — ${fmtInch(frontFlapShortage, rounded)}" short`],
+      ['Back piece (trapezoid)', `Top: ${fmtInch(backPieceTopWidth, rounded)}" / Bottom: ${fmtInch(backPieceBottomWidth, rounded)}" / Height: ${fmtInch(backPieceHeight, rounded)}"`],
+      ['Split-back nesting', useSplitBack
+          ? `<span style="color:#059669;">Active — saves ${fmtInch(splitBackSavings, rounded)}"</span>`
+          : `<span style="color:#94a3b8;">Not used${!splitBackFits ? ' (won\'t fit)' : ' (full trapezoid + flap nesting is more efficient)'}</span>`],
+    ];
+
+    const results = document.getElementById('results');
+    results.innerHTML = '';
+    rows.forEach(([label, value], i)=>{
+      const div = document.createElement('div');
+      div.className = 'row';
+      div.style.display = 'block';
+      div.style.padding = '8px 0';
+      if (i>0) div.style.borderTop = '1px dashed var(--muted)';
+      div.innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span>${label}</span><strong>${value}</strong>
+        </div>
+      `;
+      results.appendChild(div);
+    });
+
+    // === MATERIAL TO BUY ===
+    const buy = document.getElementById('buy');
+    buy.innerHTML = '';
+    const exactYards = totalLength / 36;
+    const bRows = [
+      ['Total bolt length', `${fmtInch(totalLength, rounded)} in`],
+      ['Yards to buy (rounded up)', `${fmtYardsFromInches(totalLength, rounded)} yd`],
+      ['Yards (exact)', `${fmtExact(exactYards)} yd`],
+    ];
+    bRows.forEach(([label, value], i)=>{
+      const div = document.createElement('div');
+      div.className = 'row';
+      div.style.display = 'block';
+      div.style.padding = '8px 0';
+      if (i>0) div.style.borderTop = '1px dashed var(--muted)';
+      div.innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span>${label}</span><strong>${value}</strong>
+        </div>
+      `;
+      buy.appendChild(div);
+    });
+
+    // === GROMMET PLACEMENT ===
+    // All grommets sit at sideDrop/3 from the floor edge (⅓ up from floor = ⅔ down
+    // from the fold when installed), so front and back grommets are on the same plane.
+    const gromInsetFromFloor = sideDrop / 3;
+    const gromFrontHorizFromCenter = W / 2 - 5;  // 5" in from each armrest edge
+    const gromBackHorizFromCenter = WB / 2 - 5;  // 5" in from each chair-back edge
+    const gromFrontEdgeInset = gromInsetFromFloor;  // same plane as back grommets
+    const gromBackUpFromFloor = gromInsetFromFloor;
+    const bungeeLength = D + gromInsetFromFloor * 2 + 10;
+
+    const grommetsSection = document.getElementById('grommets');
+    grommetsSection.innerHTML = `
+      <div class='row'><span>Total grommets: 4</span><strong>5" from nearest corner, &#8531; of side drop up from each floor edge</strong></div>
+      <div class='row'><span>Bungee length</span><strong>2 pieces &times; ${fmtInch(bungeeLength, rounded)}"</strong></div>
+      <div class='note' style='margin-top:6px;'>See assembly diagram for exact placement measurements.</div>
+    `;
+
+    // === SNAP STRAP PLACEMENT ===
+    const strapLength = 8;
+    const snapInset = 1;
+    const strapHorizontalFromCenter = (WB / 2) - 2;
+    const frontDrapingLength = AT2F + (F2A - FC);
+    const frontSnapFromSeam = (frontDrapingLength / 3) * 2;
+
+    // Snap placement for back corners (snap-back design).
+    // One snap pair per back corner — BOTH HALVES on the back piece.
+    // Placed at HALF THE BACK PIECE HEIGHT above the seam line. Each
+    // half sits 2" in from one of the extension's edges:
+    //   - Back-side half:  2" past the WB/2 fold line (near the back corner)
+    //   - Front-side half: 2" inward from the outer diagonal edge
+    // When the outer half of the extension folds back onto the inner half
+    // (pleat at the midpoint), the two snap halves land on top of each
+    // other and close.
+    const backDiagonalLength = Math.sqrt(backPieceHeight ** 2 + ((backPieceTopWidth - backPieceBottomWidth) / 2) ** 2);
+    const snapsPerCorner = 1;  // one pair per corner
+    const fullExtensionPerSide = (backPieceTopWidth - backPieceBottomWidth) / 2;  // max extension (top minus bottom, per side)
+    const STATIC_OFFSET = 2;      // static 2" breathing room from each edge
+
+    // Back-side half: halfway down the back piece, 2" past the WB/2 fold.
+    const backSnapDown = backPieceHeight / 2;                 // = (H-FC)/2
+    const backFromCenter = WB / 2 + STATIC_OFFSET;
+
+    // Front-side half: 2" from the seam (close to the main piece), and
+    // X = "18 from end" horizontally along the seam, or equivalently
+    // (H-FC)/2 in from the outer edge — at WB/2 + (H-FC)/2 from centerline.
+    const frontSnapDown = STATIC_OFFSET;                      // 2" from seam
+    const frontFromCenter = WB / 2 + backPieceHeight / 2;     // = WB/2 + (H-FC)/2
+
+    const snapStrapsSection = document.getElementById('snapstraps');
+    snapStrapsSection.innerHTML = `
+      <div class='row'><span>Snap sets per corner</span><strong>1 set (1 stud + 1 socket)</strong></div>
+      <div class='row'><span>Total snap sets / total pieces</span><strong>2 sets / 4 pieces</strong></div>
+      <div class='note' style='margin-top:6px;'>Each set is a mating pair: <strong style='color:#166534'>stud</strong> + <strong style='color:#831843'>socket</strong>. Both halves of each set are on the back piece &mdash; the extension pleats at the midpoint and the pair snaps closed. See assembly diagram for exact placement measurements.</div>
+    `;
+
+    // === SIDE ANGLE CUT (computation kept for compatibility) ===
+    const Weff = frontWidthAfterCut;
+    const diagCutLength = Math.sqrt(markFromSideEdge ** 2 + taperZoneLength ** 2);
+    const diagMarkOnMainFront = markFromSideEdge;
+    const flapSideEdgeOffset = frontFlapNeeded ? (ML - frontFlapLength) / 2 : 0;
+    const diagMarkOnFlapSeam = 0;
+    const diagMarkOnFlapOuter = 0;
+
+    const _sideAngleSink = `
+      <div class="row" style="display:block; padding:8px 0; background:#fffbeb;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span><strong>How to mark & cut the diagonal (snap-back design)</strong></span>
+        </div>
+        <div style="font-size:12px;color:var(--text);margin-top:4px;">
+          The main piece is a rectangle: <strong>${fmtInch(ML, rounded)}"</strong> wide × <strong>${fmtInch(B, rounded)}"</strong> deep.
+          The diagonal tapers the side drops to match the chair profile — wider at the tall back, narrower at the lower armrests.
+          This gives <strong>uniform ${fmtInch(FC, rounded)}" clearance</strong> along the entire side.<br/><br/>
+          The diagonal is <strong>inset from both ends</strong> — it only tapers in the middle zone:<br/>
+          • <strong>Back zone</strong> (first ${fmtInch(backInset, rounded)}" from back edge): full ML width — seam attachment zone (hem + BR).<br/>
+          • <strong>Taper zone</strong> (middle ${fmtInch(taperZoneLength, rounded)}"): diagonal tapers from ML to front width.<br/>
+          • <strong>Front zone</strong> (last ${fmtInch(frontInset, rounded)}" to front edge): constant ${fmtInch(frontWidthAfterCut, rounded)}" — the front skirt zone.<br/><br/>
+          <strong>Marking on the flat material:</strong><br/>
+          1. From the <strong>back edge</strong>, measure <strong>${fmtInch(backInset, rounded)}"</strong> forward → mark a line across (this is Point A — full width here)<br/>
+          2. From the <strong>front edge</strong>, measure <strong>${fmtInch(frontInset, rounded)}"</strong> backward → mark a line across<br/>
+          3. At this front inset line, measure <strong style="color:#b91c1c;">${fmtInch(markFromCenter, rounded)}"</strong> from centerline toward each side → mark (this is Point B)<br/>
+          <span style="font-size:11px; color:var(--sub); margin-left:20px;">Or equivalently: measure <strong>${fmtInch(markFromSideEdge, rounded)}"</strong> inward from each side edge</span><br/>
+          4. Draw a straight line from A → B on each side<br/>
+          5. At the <strong>front edge</strong>, also mark ${fmtInch(markFromSideEdge, rounded)}" from each side edge (same mark — front zone is constant width)<br/>
+          6. Cut along the diagonal lines and trim the front zone rectangles
+        </div>
+      </div>
+      <div class="row" style="display:block; padding:8px 0; border-top:1px dashed var(--muted);">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span>Back inset (from back edge)</span><strong>${fmtInch(backInset, rounded)}"</strong>
+        </div>
+        <div style="font-size:11px;color:var(--sub);margin-top:4px;">
+          hem + BR = ${hem} + ${BR} = ${fmtExact(backInset)}" — seam attachment zone. Full ML width maintained here for back piece seam.
+        </div>
+      </div>
+      <div class="row" style="display:block; padding:8px 0; border-top:1px dashed var(--muted);">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span>Front inset (from front edge)</span><strong>${fmtInch(frontInset, rounded)}"</strong>
+        </div>
+        <div style="font-size:11px;color:var(--sub);margin-top:4px;">
+          F2A − FC = ${F2A} − ${FC} = ${fmtExact(frontInset)}" — front skirt zone (armrest to floor minus clearance). Constant front width here.
+        </div>
+      </div>
+      <div class="row" style="display:block; padding:8px 0; border-top:1px dashed var(--muted);">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span>Front mark from center</span><strong style="color:#b91c1c;">${fmtInch(markFromCenter, rounded)}"</strong>
+        </div>
+        <div style="font-size:11px;color:var(--sub);margin-top:4px;">
+          (W + 2×(F2A−FC)${sideEase > 0 ? ' + 2×ease' : ''}) ÷ 2 = (${W} + 2×${fmtExact(frontExtDrop)}${sideEase > 0 ? ' + 2×' + fmtExact(sideEase) : ''}) ÷ 2 = ${fmtExact(markFromCenter)}"<br/>
+          That's ${fmtExact(W/2)}" to the arm edge + ${fmtExact(frontExtDrop)}" of side drop past the arm${sideEase > 0 ? ' + ' + fmtExact(sideEase) + '" ease' : ''}.
+        </div>
+      </div>
+      <div class="row" style="display:block; padding:8px 0; border-top:1px dashed var(--muted);">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span>Front mark from side edge (amount trimmed)</span><strong style="color:#b91c1c;">${fmtInch(markFromSideEdge, rounded)}"</strong>
+        </div>
+        <div style="font-size:11px;color:var(--sub);margin-top:4px;">
+          (ML − front width) ÷ 2 = (${fmtExact(ML)} − ${fmtExact(frontWidthAfterCut)}) ÷ 2 = ${fmtExact(markFromSideEdge)}"<br/>
+          This is the back rise material (H − F2A = ${H} − ${F2A} = ${fmtExact(H - F2A)}") that tapers away at the front where there's no backrest.
+        </div>
+      </div>
+      <div class="row" style="display:block; padding:8px 0; border-top:1px dashed var(--muted);">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span>Width at back (full ML)</span><strong>${fmtInch(ML, rounded)}"</strong>
+        </div>
+        <div style="font-size:11px;color:var(--sub);margin-top:4px;">
+          ML = WB + 2 × sideDrop = ${WB} + 2 × ${fmtExact(sideDrop)} = ${fmtExact(ML)}" — full width in the back zone and at the back inset point.
+        </div>
+      </div>
+      <div class="row" style="display:block; padding:8px 0; border-top:1px dashed var(--muted);">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span>Width at front (after cut)</span><strong>${fmtInch(frontWidthAfterCut, rounded)}"</strong>
+        </div>
+        <div style="font-size:11px;color:var(--sub);margin-top:4px;">
+          W + 2×(F2A−FC)${sideEase > 0 ? ' + 2×ease' : ''} = ${W} + 2×${fmtExact(frontExtDrop)}${sideEase > 0 ? ' + 2×' + fmtExact(sideEase) : ''} = ${fmtExact(frontWidthAfterCut)}" — constant through the front zone.
+        </div>
+      </div>
+      <div class="row" style="display:block; padding:8px 0; border-top:1px dashed var(--muted);">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span>Diagonal cut length (taper zone only)</span><strong>${fmtInch(diagCutLength, rounded)}"</strong>
+        </div>
+        <div style="font-size:11px;color:var(--sub);margin-top:4px;">
+          √(markFromSideEdge² + taperZone²) = √(${fmtExact(markFromSideEdge)}² + ${fmtExact(taperZoneLength)}²) = ${fmtExact(diagCutLength)}" — each diagonal line from front inset mark to back inset side edge.
+        </div>
+      </div>
+      <div class="row" style="display:block; padding:8px 0; border-top:1px dashed var(--muted);">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span>Side drop (each side)</span><strong>${fmtInch(sideDrop, rounded)}"</strong>
+        </div>
+        <div style="font-size:11px;color:var(--sub);margin-top:4px;">
+          H − FC = ${H} − ${FC} = ${fmtExact(sideDrop)}" — the total drop from backrest top to floor (minus clearance) on each side.
+        </div>
+      </div>
+      <div class="row" style="display:block; padding:8px 0; border-top:1px solid #22c55e; background:#ecfdf5;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span><strong style="color:#059669;">Floor clearance check</strong></span><strong style="color:#059669;">${fmtInch(FC, rounded)}" uniform</strong>
+        </div>
+        <div style="font-size:11px;color:var(--sub);margin-top:4px;">
+          At front (armrest): drop = ${fmtExact(frontExtDrop)}", armrest height = ${F2A}" → reaches ${F2A} − ${fmtExact(frontExtDrop)} = ${fmtExact(FC)}" from floor ✓<br/>
+          At back (backrest): drop = ${fmtExact(sideDrop)}", back height = ${H}" → reaches ${H} − ${fmtExact(sideDrop)} = ${fmtExact(FC)}" from floor ✓<br/>
+          The diagonal traces the chair profile so clearance is ${fmtInch(FC, rounded)}" everywhere along the side.
+        </div>
+      </div>
+    `;
+
+    // === FRONT FLAP & BACK PIECE DETAILS ===
+    // Pre-compute split flap explanation for the "no savings" case
+    let splitNoSaveExplanation = '';
+    if (frontFlapNeeded && !useSplitFlap) {
+      const canNestOne = backPieceWidth + frontFlapWidth <= B;
+      if (!canNestOne) {
+        splitNoSaveExplanation = `Splitting the flap into 2 pieces of ${fmtInch(splitHalfLength, rounded)}" × ${fmtInch(frontFlapWidth, rounded)}" would not save material.<br/>
+          <span style="font-size:10px;">Reason: Flap width (${fmtExact(frontFlapWidth)}") + back piece (${fmtExact(backPieceWidth)}") = ${fmtExact(backPieceWidth + frontFlapWidth)}" exceeds bolt width (${B}") — halves can't nest alongside back piece.<br/>
+          Split total: ${fmtExact(splitTotalLength)}" vs current: ${fmtExact(totalLength)}" (splitting adds ${fmtExact(splitCenterSeam * 2)}" of seam overhead with no nesting gain).<br/>
+          Would need bolt ≥ ${Math.ceil(backPieceWidth + frontFlapWidth)}" wide, or flap ≤ ${fmtExact(B - backPieceWidth)}" wide to enable nesting.</span>`;
+      } else {
+        splitNoSaveExplanation = `Splitting the flap into 2 pieces of ${fmtInch(splitHalfLength, rounded)}" × ${fmtInch(frontFlapWidth, rounded)}" — savings too small (${fmtExact(Math.abs(splitSavings))}").`;
+      }
+    }
+    const _flapBackSink = `
+      <div class="row" style="display:block; padding:8px 0;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span>Back piece (trapezoid, always required)</span><strong>Top: ${fmtInch(backPieceTopWidth, rounded)}" / Bottom: ${fmtInch(backPieceBottomWidth, rounded)}" / Height: ${fmtInch(backPieceHeight, rounded)}"</strong>
+        </div>
+        <div style="font-size:11px;color:var(--sub);margin-top:4px;">
+          <strong>Trapezoid shape:</strong><br/>
+          Top edge (at backrest seam): ML = ${fmtExact(backPieceTopWidth)}" (matches main piece width)<br/>
+          Bottom edge (at floor): WB + 2×hem = ${WB} + 2×${hem} = ${fmtExact(backPieceBottomWidth)}"<br/>
+          Height: H − FC = ${H} − ${FC} = ${fmtExact(backPieceHeight)}"<br/>
+          <strong>Installation:</strong> Sewn to main piece at backrest top (wider edge). At each back corner, the extension flap folds over the WB/2 fold line onto the central WB portion to take up excess material; a snap pair closes the fold (both halves on the back piece).
+        </div>
+      </div>
+      ${useSplitBack ? `<div class="row" style="display:block; padding:8px 0; border-top:1px dashed var(--muted); background:#ecfdf5;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span><strong style="color:#059669;">Split-back nesting (active)</strong></span><strong style="color:#059669;">Saves ${fmtInch(splitBackSavings, rounded)}" of bolt</strong>
+        </div>
+        <div style="font-size:11px;color:var(--sub);margin-top:4px;">
+          Cut the trapezoid in half down the center. Each half gets +${fmtExact(splitBackCenterSeam)}" seam on the center edge.<br/>
+          <strong>Left half:</strong> top ${fmtExact(splitBackHalfTop)}" / bottom ${fmtExact(splitBackHalfBot)}" / height ${fmtExact(backPieceHeight)}"<br/>
+          <strong>Right half:</strong> mirror image (same dimensions)<br/><br/>
+          <strong>How to nest on bolt:</strong><br/>
+          1. Cut left half normally (good side up)<br/>
+          2. Rotate right half 180° in-plane (spin it around — good side stays up!)<br/>
+          3. Place rotated right half next to left half, offset by <strong>${fmtExact(splitBackMinOffset)}"</strong> along the bolt<br/>
+          4. Combined width: ${fmtExact(splitBackNestedWidth)}" fits within bolt width ${B}"<br/>
+          5. Total bolt length for back piece: <strong>${fmtExact(splitBackBoltLength)}"</strong> (vs ${fmtExact(backPieceLength)}" for full trapezoid)<br/><br/>
+          <strong>After cutting:</strong> Rotate right half back to normal orientation. Sew the two halves together at center seam (${fmtExact(splitBackCenterSeam)}" overlap). Both halves have the good side facing the same direction.
+        </div>
+      </div>` : `<div class="row" style="display:block; padding:8px 0; border-top:1px dashed var(--muted);">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span>Split-back nesting</span><strong style="color:#94a3b8;">Not used — full trapezoid is more efficient</strong>
+        </div>
+        <div style="font-size:11px;color:var(--sub);margin-top:4px;">
+          ${splitBackFits
+            ? `Full trapezoid (${fmtExact(backPieceWidth)}" across bolt) leaves room for front flap (${fmtExact(frontFlapWidth)}") to nest alongside → lower total material than split-back + sequential flap.`
+            : 'Nested halves width (' + fmtExact(splitBackNestedWidth) + '") exceeds bolt width (' + B + '") and cannot be offset to fit.'}
+        </div>
+      </div>`}
+      <div class="row" style="display:block; padding:8px 0; border-top:1px dashed var(--muted);">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span>Front flap (trapezoid)</span><strong>${frontFlapNeeded ? 'Top: ' + fmtInch(flapTopWidth, rounded) + '" / Bot: ' + fmtInch(flapBottomWidth, rounded) + '" / H: ' + fmtInch(frontFlapWidth, rounded) + '"' : 'Not needed'}</strong>
+        </div>
+        <div style="font-size:11px;color:var(--sub);margin-top:4px;">
+          ${frontFlapNeeded
+            ? `Shortage: totalFB − B = ${fmtExact(totalFB)} − ${B} = ${fmtExact(frontFlapShortage)}"<br/>
+               Height (depth): shortage + hem = ${fmtExact(frontFlapShortage)} + ${hem} = ${fmtExact(frontFlapWidth)}"<br/>
+               <strong>Trapezoid dimensions:</strong><br/>
+               &nbsp;&nbsp;Top edge (at seam): max(W, W + 2×(F2A−FC) − 2×waveAllowance) = max(${W}, ${W} + 2×${fmtExact(F2A-FC)} − 2×${fmtExact(waveAllowance)}) = ${fmtExact(flapTopWidth)}"<br/>
+               &nbsp;&nbsp;Bottom edge (at hem): W + 2×bottomMargin = ${W} + 2×${fmtExact(bottomMargin)} = ${fmtExact(flapBottomWidth)}"<br/>
+               &nbsp;&nbsp;Diagonal sides (per side): horizontal ${fmtExact(flapDiagonalHoriz)}" × vertical ${fmtExact(frontFlapWidth)}"<br/>
+               <span style="font-size:10px;">Main piece's front edge is ${fmtExact(frontWidthAfterCut)}" wide; flap top (${fmtExact(flapTopWidth)}") attaches to the centered ${fmtExact(flapTopWidth)}" of that edge.</span><br/>
+               Sewn to main piece at front edge with ${fmtExact(seam)}" lap seam.`
+            : `Bolt width (${B}") ≥ totalFB (${fmtExact(totalFB)}") — bolt covers full front-to-back distance, no flap needed.`}
+        </div>
+      </div>
+      ${frontFlapNeeded ? `<div class="row" style="display:block; padding:8px 0; border-top:1px dashed var(--muted); ${useWasteNesting ? 'background:#ecfdf5;' : useSplitFlap ? 'background:#ecfdf5;' : ''}">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span>Flap from diagonal waste</span><strong style="color:${useWasteNesting ? '#059669' : useSplitFlap ? '#059669' : '#94a3b8'};">${
+            useWasteNesting
+              ? (wasteNestIsSplit ? 'ACTIVE (split' : 'ACTIVE (full') + (wasteNestDiagonal ? ', along diagonal' : '') + ') — saves ' + fmtInch(wasteNestSavings, rounded) + '"'
+              : useSplitFlap ? 'N/A — using split nesting (saves ' + fmtInch(splitSavings, rounded) + '")'
+              : 'Not possible'
+          }</strong>
+        </div>
+        <div style="font-size:11px;color:var(--sub);margin-top:4px;">
+          <span style="font-size:10px;color:#64748b;">Waste triangle (each side): base ${fmtExact(wasteTriBase)}" × height ${wasteTriHeight}" × diagonal ${fmtExact(wasteTriHyp)}" · altitude ${fmtExact(wasteTriAlt)}"</span><br/>
+          ${useWasteNesting
+            ? (wasteNestIsSplit
+              ? `Cut flap in half → 2 pieces of ${fmtInch(splitHalfLength, rounded)}" × ${fmtInch(frontFlapWidth, rounded)}" (each half + ${splitCenterSeam}" center seam).<br/>
+                 Each half cut from diagonal waste triangle (one per side)${wasteNestDiagonal ? ' — placed along the diagonal cut line' : ''} — <strong style="color:#059669;">zero extra bolt needed!</strong><br/>
+                 Piece placed ${wasteNestOrientation}ly: ${fmtExact(wasteNestPieceW)}" × ${fmtExact(wasteNestPieceH)}".<br/>
+                 <strong style="color:#059669;">Saves ${fmtInch(wasteNestSavings, rounded)}" of bolt (${fmtExact(wasteNestSavings / 36)} fewer yards).</strong>`
+              : `Full front flap (${fmtInch(frontFlapLength, rounded)}" × ${fmtInch(frontFlapWidth, rounded)}") cut from one diagonal waste triangle${wasteNestDiagonal ? ' — placed along the diagonal cut line' : ''} — <strong style="color:#059669;">zero extra bolt needed!</strong><br/>
+                 Piece placed ${wasteNestOrientation}ly: ${fmtExact(wasteNestPieceW)}" × ${fmtExact(wasteNestPieceH)}".<br/>
+                 <strong style="color:#059669;">Saves ${fmtInch(wasteNestSavings, rounded)}" of bolt (${fmtExact(wasteNestSavings / 36)} fewer yards).</strong>`)
+            : useSplitFlap
+              ? `Cut flap in half → 2 pieces of ${fmtInch(splitHalfLength, rounded)}" × ${fmtInch(frontFlapWidth, rounded)}" (each half + ${splitCenterSeam}" center seam).<br/>
+                 Sew halves together at center, then attach assembled flap to main piece.<br/>
+                 <strong style="color:#059669;">Saves ${fmtInch(splitSavings, rounded)}" of bolt length (${fmtExact(splitSavings / 36)} fewer yards).</strong><br/>
+                 Both halves nest alongside back piece across bolt width.`
+              : `Flap pieces too large for waste triangle.<br/>
+                 <span style="font-size:10px;">Corner placement: need ${fmtExact(splitHalfLength)}" wide at ${fmtExact(frontFlapWidth)}" tall — only ${fmtExact(wasteTriBase * (wasteTriHeight - frontFlapWidth) / wasteTriHeight)}" available.<br/>
+                 Along diagonal: need ${fmtExact(splitHalfLength)}" long × ${fmtExact(frontFlapWidth)}" wide — max length at that width is ${fmtExact(frontFlapWidth <= wasteTriAlt ? wasteTriHyp * (1 - frontFlapWidth / wasteTriAlt) : 0)}" (altitude limit: ${fmtExact(wasteTriAlt)}").</span><br/>
+                 ${splitNoSaveExplanation}`}
+        </div>
+      </div>` : ''}
+      <div class="row" style="display:block; padding:8px 0; border-top:1px dashed var(--muted);">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span>Nesting strategy</span><strong>${nestingStrategy}</strong>
+        </div>
+        <div style="font-size:11px;color:var(--sub);margin-top:4px;">${nestingNote}</div>
+      </div>
+    `;
+
+    // === DRAW DIAGRAM ===
+    const payload = {B, ML, MW, W, WB, BR, D, AT2F, H, F2A, F2BS, FC, hem, seam,
+      sidePanelsNeeded, sideEach, addWidth, sidePanelLength, setbackFromFront,
+      backDrop, frontExtDrop, frontWidth, frontWidthAfterCut, confirmCoverageWidth, backWidth,
+      startCutFromCenterLine, totalLength, nestingStrategy, rounded, roundMode, diagCrossDist,
+      diagSpan, ML_eff, totalFB, sideDrop, sideEase, flapExtension,
+      markFromSideEdge, markFromCenter, backInset, frontInset, taperZoneLength,
+      backPieceTopWidth, backPieceBottomWidth, backPieceHeight, backPieceLength, backPieceWidth,
+      frontFlapNeeded, frontFlapWidth, frontFlapLength,
+      flapTopWidth, flapBottomWidth, flapDiagonalHoriz, waveAllowance, bottomMargin,
+      useSplitFlap, splitHalfLength, splitSavings, splitCenterSeam,
+      useWasteNesting, wasteNestIsSplit, wasteNestOrientation, wasteNestPieceW, wasteNestPieceH,
+      wasteTriBase, wasteTriHeight, wasteTriHyp, wasteTriAlt, wasteNestSavings,
+      wasteRectW, wasteRectH,
+      wasteNestDiagonal, wasteNestDiagAngle, wasteNestDiagOffset,
+      useSplitBack, splitBackHalfTop, splitBackHalfBot, splitBackBoltLength,
+      splitBackMinOffset, splitBackNestedWidth, splitBackSavings, splitBackCenterSeam,
+      snapStrapsOpt};
+    // Call each diagram in its own try/catch so one failure doesn't block the others
+    const diagramErrors = [];
+    try { drawDiagram(payload); } catch(e) { diagramErrors.push('Cut diagram: ' + e.message); console.error('drawDiagram error:', e); }
+    try { updateCutList(payload); } catch(e) { diagramErrors.push('Cut list: ' + e.message); console.error('updateCutList error:', e); }
+    try { drawAssemblyDiagramFlat(payload, 'assemblyDiagramFlatFull', 1200, 900); } catch(e) { diagramErrors.push('Flat diagram: ' + e.message); console.error('drawAssemblyDiagramFlat error:', e); }
+
+    // Toggle the conditional assembly step about sewing the back-piece halves
+    // together — only relevant when the back is cut as 2 halves.
+    const stepHalves = document.getElementById('step-sew-back-halves');
+    if (stepHalves) {
+      stepHalves.style.display = useSplitBack ? '' : 'none';
+      const allowanceEl = document.getElementById('step-sew-back-halves-allowance');
+      if (allowanceEl) allowanceEl.textContent = `${splitBackCenterSeam}"`;
+    }
+
+    // Toggle the snap-straps assembly step + fill in live measurements.
+    const stepSnaps = document.getElementById('step-snap-straps');
+    if (stepSnaps) {
+      stepSnaps.style.display = snapStrapsOpt ? '' : 'none';
+      if (snapStrapsOpt) {
+        const horizEl = document.getElementById('step-snap-straps-horiz');
+        const frontyEl = document.getElementById('step-snap-straps-fronty');
+        const horizVal = (WB / 2) - 2;
+        const frontyVal = (AT2F + (F2A - FC)) * 2 / 3;
+        if (horizEl) horizEl.textContent = `${Math.round(horizVal * 100) / 100}`;
+        if (frontyEl) frontyEl.textContent = `${Math.round(frontyVal * 100) / 100}`;
+      }
+    }
+
+    const errEl = document.getElementById('err');
+    if (diagramErrors.length > 0) {
+      errEl.style.display = 'block';
+      errEl.innerHTML = '<strong>Diagram errors:</strong><br/>' + diagramErrors.join('<br/>');
+    } else {
+      errEl.style.display = 'none';
+    }
+  } catch (e) {
+    const err = document.getElementById('err');
+    err.style.display = 'block';
+    err.textContent = 'Error: ' + e.message;
+    console.error('compute() error:', e);
+  }
+}
+
+
+function saveInputs(){
+  const fields = ['B', 'W', 'WB', 'H', 'D', 'F2A', 'F2BS', 'BR', 'FC', 'hem', 'seam'];
+  const values = {};
+  fields.forEach(field => {
+    const el = document.getElementById(field);
+    if (el) values[field] = el.value;
+  });
+  values.roundMode = document.getElementById('roundMode').value;
+  localStorage.setItem('snapBackCalculatorInputs', JSON.stringify(values));
+}
+
+function loadSavedInputs(){
+  try {
+    const saved = localStorage.getItem('snapBackCalculatorInputs');
+    if (saved) {
+      const values = JSON.parse(saved);
+      Object.entries(values).forEach(([field, value]) => {
+        if (field === 'roundMode') {
+          document.getElementById('roundMode').value = value;
+        } else if (field === 'roundToggle') {
+          // backward compat: old boolean → new select
+          document.getElementById('roundMode').value = value ? 'whole' : 'exact';
+        } else {
+          const el = document.getElementById(field);
+          if (el) el.value = value;
+        }
+      });
+      return true;
+    }
+  } catch (e) { console.error('Error loading saved inputs:', e); }
+  return false;
+}
+
+function loadFromURL(){
+  const params = new URLSearchParams(window.location.search);
+  const fields = ['B', 'W', 'WB', 'H', 'D', 'F2A', 'F2BS', 'BR', 'FC', 'hem', 'seam'];
+  let loaded = false;
+  fields.forEach(field => {
+    const value = params.get(field);
+    if (value !== null) {
+      const el = document.getElementById(field);
+      if (el) { el.value = value; loaded = true; }
+    }
+  });
+  return loaded;
+}
+
+function wire(){
+  const wasLoadedFromURL = loadFromURL();
+  if (wasLoadedFromURL) {
+    saveInputs();
+  } else {
+    loadSavedInputs();
+  }
+
+  const inputsCard = document.getElementById('inputsCard');
+  ['input','change','keyup'].forEach(ev => {
+    inputsCard.addEventListener(ev, () => { compute(); saveInputs(); });
+  });
+  document.getElementById('roundMode').addEventListener('change', () => { saveInputs(); compute(); });
+
+  document.getElementById('recalc').addEventListener('click', compute);
+  document.getElementById('resetBtn').addEventListener('click', ()=>{
+    const defaults = {B:54, W:36, WB:25, H:39, D:30, F2A:26, F2BS:18, BR:4, FC:3, hem:1, seam:1.5};
+    Object.entries(defaults).forEach(([id,val])=>{ const el=document.getElementById(id); if(el) el.value=val; });
+    document.getElementById('roundMode').value = 'whole';
+    compute();
+    saveInputs();
+  });
+
+  // Show/Hide work toggle for formula breakdowns
+  const toggleBtn = document.getElementById('toggleWork');
+  const resultsCard = document.getElementById('resultsCard');
+  if (toggleBtn && resultsCard) {
+    toggleBtn.addEventListener('click', () => {
+      const showing = resultsCard.classList.toggle('show-work');
+      toggleBtn.textContent = showing ? 'Hide work' : 'Show work';
+    });
+  }
+
+  compute();
+}
+
+document.addEventListener('DOMContentLoaded', wire);
+</script>
+</body>
+</html>

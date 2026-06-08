@@ -1,0 +1,1898 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Couch Cover Calculator — Snap-Back Design v4</title>
+<style>
+  :root { --bg:#f8fafc; --card:#ffffff; --text:#0f172a; --sub:#475569; --muted:#e2e8f0; --accent:#22c55e; }
+  body { font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; background:var(--bg); color:var(--text); margin:0; padding:24px; }
+  .wrap { max-width: 1200px; margin: 0 auto; }
+  /* On wider screens, let the assembly diagram break out of the 1200px wrap so it can render larger */
+  @media (min-width: 1300px) {
+    .assembly-flat-card {
+      margin-left: calc((100% - 100vw) / 2 + 24px);
+      margin-right: calc((100% - 100vw) / 2 + 24px);
+    }
+  }
+  h1 { font-size: 24px; margin: 0 0 18px; }
+  .controls { display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin-bottom:12px; }
+  .pill { padding:6px 10px; border-radius:999px; border:1px solid #cbd5e1; background:#eff6ff; color:#1e293b; font-size:12px; }
+  .switch { display:flex; align-items:center; gap:8px; font-size:14px; }
+  .grid { display:grid; grid-template-columns: 1.1fr 0.9fr; gap:16px; }
+  .card { background:var(--card); border:1px solid var(--muted); border-radius:14px; padding:16px; box-shadow: 0 1px 8px rgba(0,0,0,0.04); }
+  .title { font-weight:600; margin-bottom:8px; }
+  .inputs { display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:10px; }
+  label.lbl { display:grid; gap:6px; font-size:12px; color:var(--sub); }
+  input[type="number"] { border:1px solid var(--muted); border-radius:10px; padding:10px 12px; font-size:14px; }
+  .row { display:flex; justify-content:space-between; align-items:center; font-size:14px; padding:8px 0; }
+  .row + .row { border-top:1px dashed var(--muted); }
+  .note { font-size:12px; color:var(--sub); margin-top:8px; }
+  .btn { padding:8px 10px; border-radius:10px; border:1px solid var(--muted); background:#fff; cursor:pointer; }
+  .danger { color:#b91c1c; }
+  .diagramBox { display:flex; flex-direction:column; gap:10px; }
+  svg { width:100%; border:1px dashed #cbd5e1; border-radius:12px; background:#fcfdff; }
+  .legend { display:flex; gap:12px; align-items:center; font-size:12px; color:var(--sub); flex-wrap:wrap; }
+  .chip { display:inline-block; width:12px; height:12px; border-radius:2px; border:1px solid #0f172a22; }
+  .formula { display:none; font-size:11px; color:var(--sub); margin-top:4px; }
+  .show-work .formula { display:block; }
+  .sectional-section { border-top: 1px dashed var(--muted); margin-top: 12px; padding-top: 12px; }
+  .sectional-toggle { display:flex; align-items:center; gap:8px; font-size:14px; font-weight:600; cursor:pointer; margin-bottom:8px; }
+  .sectional-side { display:flex; gap:16px; align-items:center; font-size:13px; padding:4px 0; }
+  @media print {
+    body { padding: 0 !important; margin: 0 !important; font-size: 11px; }
+    .wrap { max-width: 100% !important; margin: 0 !important; }
+    h1 { font-size: 14px; margin: 0 0 4px; }
+    .controls, .sub { display: none !important; }
+    .card { padding: 6px 10px; margin-bottom: 6px; box-shadow: none; border-radius: 6px; }
+    .title { font-size: 12px; margin-bottom: 4px; }
+    .grid { gap: 6px; }
+    .row { padding: 3px 0; font-size: 10.5px; }
+    .note { font-size: 10px; }
+    .legend { font-size: 10px; gap: 6px; margin-top: 4px; }
+    .chip { width: 10px; height: 10px; }
+    /* Kill any screen-only min-height that would inflate SVGs in print */
+    svg { min-height: 0 !important; }
+    /* Cut diagram and Assembly diagram each get their own page.
+       Heights sized to fit a landscape Letter page (11"×8.5") with default margins
+       (~7.7" tall usable area), minus title/legend space. */
+    .cut-diagram-card { page-break-before: always; page-break-inside: avoid; }
+    .cut-diagram-card svg { height: 6.8in !important; width: 100% !important; max-width: 100%; display: block; }
+    .assembly-flat-card { page-break-before: always; page-break-inside: avoid; }
+    .assembly-flat-card svg { height: 6.8in !important; width: 100% !important; max-width: 100%; display: block; }
+  }
+  @page { size: 11in 8.5in; margin: 0.4in; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Couch Cover Calculator — Snap-Back Design</h1>
+  <div class="controls">
+    <span class="pill">Units: inches</span>
+    <label class="switch" style="gap:6px;"><span>Rounding:</span>
+      <select id="roundMode" style="border:1px solid #cbd5e1; border-radius:8px; padding:6px 10px; font-size:13px;">
+        <option value="exact">Exact (decimal)</option>
+        <option value="half">½" increments (MFG)</option>
+        <option value="whole" selected>Whole inch</option>
+      </select>
+    </label>
+    <button id="recalc" class="btn">Recalculate</button>
+    <button id="resetBtn" class="btn">Reset to sample</button>
+  </div>
+
+  <div class="grid">
+    <div>
+      <div class="card" id="inputsCard">
+        <div class="title">Inputs</div>
+        <div class="inputs">
+          <label class="lbl">B (Bolt width — fabric roll width)<input id="B" type="number" value="54" step="0.1" /></label>
+          <label class="lbl">W (Width arm-to-arm)<input id="W" type="number" value="84" step="1" /></label>
+          <label class="lbl">WB (Back width)<input id="WB" type="number" value="84" step="1" /></label>
+          <label class="lbl">H (Height — floor to top of back)<input id="H" type="number" value="25" step="1" /></label>
+          <label class="lbl">D (Depth — front to back)<input id="D" type="number" value="33" step="1" /></label>
+          <label class="lbl">F2A (Floor → armrest top)<input id="F2A" type="number" value="22" step="1" /></label>
+          <label class="lbl">F2BS (Floor → bottom of seat cushion)<input id="F2BS" type="number" value="13" step="1" /></label>
+          <label class="lbl">BR (Backrest thickness)<input id="BR" type="number" value="4" step="1" /></label>
+          <label class="lbl">FC (Floor clearance)<input id="FC" type="number" value="3" step="1" /></label>
+          <label class="lbl">Hem allowance<input id="hem" type="number" value="0" step="0.5" /></label>
+          <label class="lbl">Seam overlap<input id="seam" type="number" value="1.5" step="0.5" /></label>
+          <label class="lbl">Bottom margin past arm<input id="bottomMargin" type="number" value="8" step="0.5" min="0" /></label>
+        </div>
+
+        <!-- Sectional Section -->
+        <div class="sectional-section">
+          <label class="sectional-toggle">
+            <input type="checkbox" id="isSectional" style="width:16px;height:16px;cursor:pointer;" />
+            <span style="color:#1d4ed8;">This is a sectional piece</span>
+          </label>
+          <div id="sectionalFields" style="display:none;">
+            <div style="font-size:12px;color:#475569;margin-bottom:10px;">
+              Run the calculator separately for each sectional piece — just enter that piece's dimensions above. The checkbox adds manufacturing annotations specific to each piece type.
+            </div>
+            <div class="sectional-side" style="margin-bottom:6px;">
+              <span style="font-weight:600;font-size:12px;color:#0f172a;">This piece is:</span>
+              <label style="display:flex;align-items:center;gap:6px;"><input type="radio" name="sectPiece" id="sectMain" value="main" checked /> Main / long arm</label>
+              <label style="display:flex;align-items:center;gap:6px;"><input type="radio" name="sectPiece" id="sectShort" value="short" /> Short arm (chaise)</label>
+            </div>
+            <div class="sectional-side">
+              <span style="font-weight:600;font-size:12px;color:#0f172a;">Connecting side:</span>
+              <label style="display:flex;align-items:center;gap:6px;"><input type="radio" name="sideSelector" id="sideLeft" value="left" checked /> LEFT</label>
+              <label style="display:flex;align-items:center;gap:6px;"><input type="radio" name="sideSelector" id="sideRight" value="right" /> RIGHT</label>
+            </div>
+            <div id="sectionalNote" style="margin-top:8px;font-size:12px;background:#eff6ff;border-radius:8px;padding:8px 10px;color:#1d4ed8;border:1px solid #bfdbfe;"></div>
+            <div id="mainArmCutFields" style="margin-top:10px; display:none;">
+              <label class="lbl">Cut line from connecting end (in.) — where main arm cover meets short arm
+                <input id="cutLineDist" type="number" step="0.5" value="23" min="0">
+              </label>
+              <label class="lbl" style="margin-top:8px;">Overlap flap width (in.) — centered on cut line (0 = no flap)
+                <input id="flapWidth" type="number" step="0.5" value="6" min="0">
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="note" style="margin-top:8px;">Cover is split into LEFT + RIGHT panels with a center seam.</div>
+        <div id="err" class="note danger" style="display:none;"></div>
+      </div>
+    </div>
+
+    <div>
+      <div class="card" id="resultsCard">
+        <div class="title">Results</div>
+        <div id="results"></div>
+        <div class="title" style="margin-top:10px;">Material to Buy</div>
+        <div id="buy"></div>
+        <div class="note">Rounded mode rounds <b>up</b>: inches to whole numbers; yards to the next whole yard.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cut Diagram -->
+  <div class="card cut-diagram-card" style="margin-top:16px;">
+    <div class="title" id="cutDiagramTitle">Cut Diagram (to scale)</div>
+    <div id="cutlist" style="margin-bottom:12px;"></div>
+    <div class="diagramBox">
+      <svg id="diagram" viewBox="0 0 1200 920" preserveAspectRatio="xMidYMid meet" style="height:760px;"></svg>
+      <div class="legend">
+        <span class="chip" style="background:#eef2ff;"></span> Main piece
+        <span class="chip" style="background:#bfdbfe;"></span> Notch / flap zone
+        <span class="chip" style="background:#fef9c3; border-color:#ca8a04;"></span> Corner cutout (short piece)
+        <span style="color:#dc2626; font-weight:600;">Red = cut lines</span>
+        <span class="chip" style="background:#22c55e; border-radius:50%; border-color:#166534;"></span> Stud
+        <span class="chip" style="background:#db2777; border-radius:50%; border-color:#831843;"></span> Socket
+      </div>
+    </div>
+  </div>
+
+  <!-- Grommets | Snaps -->
+  <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px; margin-top:16px;">
+    <div class="card">
+      <div class="title">Grommet Placement</div>
+      <div id="grommets"></div>
+    </div>
+    <div class="card">
+      <div class="title">Snap Placement</div>
+      <div id="snapstraps"></div>
+    </div>
+  </div>
+
+  <!-- Assembly Diagram -->
+  <div class="card assembly-flat-card" style="margin-top:24px;">
+    <div class="title" id="assemblyDiagramTitle" style="font-size:18px;">Assembly Diagram — Top-Down View</div>
+    <div class="diagramBox">
+      <svg id="assemblyDiagramFlatFull" viewBox="0 0 1600 1100" preserveAspectRatio="xMidYMid meet" style="width:100%; height:auto; min-height:1300px;"></svg>
+      <div class="legend">
+        <span class="chip" style="background:#f0fdf4; border-color:#16a34a;"></span> Couch footprint zone
+        <span class="chip" style="background:#eef2ff;"></span> Drape zones
+        <span class="chip" style="background:#c7d2e8;"></span> Corner zones
+        <span style="color:#7c3aed; font-weight:600;">— —</span> Center seam
+        <span style="color:#94a3b8; font-weight:600;">- - -</span> Zone boundaries
+        <span class="chip" style="background:none; border:2px solid #b45309; border-radius:50%; width:10px; height:10px;"></span> Grommets
+        <span class="chip" style="background:#22c55e; border-color:#166534; border-radius:50%;"></span> Stud
+        <span class="chip" style="background:#db2777; border-color:#831843; border-radius:50%;"></span> Socket
+        <span class="chip" style="background:#0ea5e9; border-color:#0369a1; opacity:0.6; width:6px; height:12px; border-radius:6px 6px 0 0;"></span> Bungee tab (loop end points to ground; hem sewn end faces cushion)
+      </div>
+    </div>
+  </div>
+
+</div><!-- .wrap -->
+
+<script>
+function parseNum(id){const el=document.getElementById(id);const v=Number(el.value);return isFinite(v)?v:0;}
+function fmtExact(val){return isFinite(val)?(Math.round(val*100)/100).toFixed(2):'–';}
+function roundHalf(val){return Math.ceil(val*2)/2;}
+function _resolveMode(m){return m===true?'whole':m===false?'exact':m;}
+function fmtInch(val,roundMode){const m=_resolveMode(roundMode);if(m==='whole')return Math.ceil(val).toString();if(m==='half')return roundHalf(val).toString();return fmtExact(val);}
+function fmtYardsFromInches(inches,roundMode){const m=_resolveMode(roundMode);const y=inches/36;if(m==='whole')return Math.ceil(y).toString();if(m==='half')return roundHalf(y).toString();return fmtExact(y);}
+
+// ============================================================
+// drawDiagram
+// opts: { svgId, sectionalFlap:{boltIndex,frontExtDrop,notchW},
+//         sectionalSnaps:{boltIndex,numSnaps,isShortPiece} }
+// ============================================================
+function drawDiagram(params, opts){
+  opts = opts || {};
+  const svgId = opts.svgId || 'diagram';
+  const {B,W,WB,D,hem,roundMode,seam,sideDrop,frontExtDrop,
+         couch_panelLen,couch_panelW,couch_assembledW,couch_joinedUsableW,
+         couch_backInset,couch_taperLen,couch_frontStraight,
+         couch_extNeeded,couch_extEachCut,couch_extSeam,couch_extBoltsNeeded,couch_totalBolts,couch_extActualLen,
+         bottomMargin,frontDiagonalHoriz,frontDiagonalVert,frontDiagonalLen} = params;
+
+  const sideOff_cut = B-(couch_extSeam||1);
+  const halfBack_cut=WB/2+hem, halfMid_cut=couch_assembledW/2, halfFront_cut=(W+2*frontExtDrop)/2;
+  // Front-floor halfwidth = W/2 + bottomMargin (the cover continues to TAPER from halfFront
+  // at yPointB DOWN to this value at the front floor; matches the assembly diagram's diagonal).
+  const halfFloor_cut = W/2 + (bottomMargin||0);
+  const edgeC=[[0,halfBack_cut],[sideDrop,halfMid_cut],[sideDrop+couch_backInset,halfMid_cut],[sideDrop+couch_backInset+couch_taperLen,halfFront_cut],[couch_panelLen,halfFloor_cut]];
+  let extEntryY=null,extExitY=null;
+  for(let i=0;i<edgeC.length-1;i++){const[y1,h1]=edgeC[i],[y2,h2]=edgeC[i+1];const in1=h1>=sideOff_cut,in2=h2>=sideOff_cut;if(extEntryY===null){if(in1)extEntryY=y1;else if(in2){const t=(sideOff_cut-h1)/(h2-h1);extEntryY=y1+t*(y2-y1);}}if(extEntryY!==null){if(in2)extExitY=y2;else if(in1){const t=(sideOff_cut-h1)/(h2-h1);extExitY=y1+t*(y2-y1);break;}}}
+  const extActualLen=(extEntryY!==null&&extExitY!==null&&extExitY>extEntryY)?(extExitY-extEntryY):couch_panelLen;
+  const rIn=v=>roundMode==='whole'?Math.ceil(v):roundMode==='half'?roundHalf(v):Math.round(v*100)/100;
+  const svg=document.getElementById(svgId);
+  if(!svg)return;
+  while(svg.firstChild)svg.removeChild(svg.firstChild);
+  const VBW=svg.viewBox.baseVal.width,VBH=svg.viewBox.baseVal.height;
+  const pad=50;
+  const add=(t,a,p=svg)=>{const e=document.createElementNS('http://www.w3.org/2000/svg',t);for(const k in a)e.setAttribute(k,a[k]);p.appendChild(e);return e;};
+  const defs=add('defs',{});
+  const m=add('marker',{id:'arr_'+svgId,markerWidth:8,markerHeight:8,refX:4,refY:4,orient:'auto',viewBox:'0 0 8 8'},defs);
+  const mp=document.createElementNS('http://www.w3.org/2000/svg','path');
+  mp.setAttribute('d','M0,0 L8,4 L0,8 Z');mp.setAttribute('fill','#334155');m.appendChild(mp);
+  const arrow=(x1,y1,x2,y2)=>add('line',{x1,y1,x2,y2,stroke:'#334155','marker-start':'url(#arr_'+svgId+')','marker-end':'url(#arr_'+svgId+')'});
+
+  const extNeeded=!!couch_extNeeded;
+  const extW=couch_extEachCut||0;
+  const bothExtFitOneBolt=extNeeded&&(2*extW+(couch_extSeam||1))<=B;
+  const halfBack=WB/2+hem, halfMid=couch_assembledW/2, halfFront=(W+2*frontExtDrop)/2;
+  const taperLen=couch_taperLen, yPointB=sideDrop+couch_backInset+taperLen;
+
+  // Halfwidth in inches at cover-y x. This now mirrors the ASSEMBLY diagram's profile
+  // (5 zones, including the front-floor diagonal between yPointB and couch_panelLen).
+  const halfFloor = W/2 + (bottomMargin||0);
+  const frontFloorLen = Math.max(0, couch_panelLen - yPointB);
+  function panelHalfWidthAt(x){
+    if(x<=0)return halfBack;
+    if(x<=sideDrop)return halfBack+(halfMid-halfBack)*x/sideDrop;
+    if(x<=sideDrop+couch_backInset)return halfMid;
+    if(x<=yPointB)return halfMid-(halfMid-halfFront)*(x-sideDrop-couch_backInset)/taperLen;
+    if(x<=couch_panelLen && frontFloorLen>0)
+      return halfFront+(halfFloor-halfFront)*(x-yPointB)/frontFloorLen;
+    return halfFloor;
+  }
+  function clampedHalf(x){return Math.min(panelHalfWidthAt(x),B);}
+
+  // ── Sectional MAIN piece: the connecting-side half drapes STRAIGHT (no taper, no front-corner
+  //    diagonal) all the way to the front floor — matching the assembly diagram's mainArmStraight
+  //    logic. Identify which panel/extension is the straight one and pre-compute the straight
+  //    extension's entry point + length. (The straight extension runs to the front floor, unlike
+  //    the tapered free-side extension which ends where the front taper crosses back inside B.)
+  const mainStraight = !!(opts.sectionalSnaps && !opts.sectionalSnaps.isShortPiece && opts.sectionalSnaps.boltIndex != null);
+  const mainStraightBoltIndex = mainStraight ? opts.sectionalSnaps.boltIndex : -1;
+  const mainStraightExtIsLeft = (mainStraightBoltIndex === 0);   // bolt 0 = LEFT PANEL → LEFT EXTENSION
+  let connExtEntryY = 0;
+  if (halfBack < sideOff_cut && halfMid > halfBack) {
+    connExtEntryY = sideDrop * (sideOff_cut - halfBack) / (halfMid - halfBack);
+  }
+  const connExtLen = couch_panelLen - connExtEntryY;
+
+  // Extension cut shape: the extension carries only the cover material that exceeds the
+  // panel's inside-edge cutoff (sideOff_cut = B − seam). Its outer edge follows the cover's
+  // outer profile (so it inherits the back- and front-corner tapers), and its inner edge is
+  // a straight seam line. Returns a polygon in EXTENSION-LOCAL coordinates:
+  //   extX → distance along the length (0 at extEntryY, extActualLen at extExitY)
+  //   extY → distance across the width (0 = inner/seam edge, positive = outer floor edge)
+  function buildExtensionCutPolygon(entryY, exitY){
+    const len = exitY - entryY;
+    if (len <= 0) return [[0,0],[1,0],[1,1],[0,1]]; // degenerate fallback
+    const pts = [];
+    // Walk OUTER edge first, from entry down to exit (top→bottom).
+    // Vertices land at every cover zone-break that falls inside [entryY, exitY].
+    // Includes yPointB (front-corner taper start) AND couch_panelLen (front floor end),
+    // so the front-floor diagonal driven by bottomMargin shows up as its own taper edge.
+    const candidates = [entryY, sideDrop, sideDrop+couch_backInset, yPointB, couch_panelLen, exitY];
+    const ascending = [...new Set(candidates)].filter(y => y >= entryY && y <= exitY)
+                                               .sort((a,b)=>a-b);
+    for (const y of ascending) {
+      const w = Math.max(0, panelHalfWidthAt(y) - sideOff_cut);
+      pts.push([y - entryY, w]);
+    }
+    // Then walk INNER (seam) edge back from exit to entry — always at extY = 0.
+    pts.push([len, 0]);
+    pts.push([0, 0]);
+    return pts;
+  }
+  // Bounding-box width the extension piece actually needs (max outer-edge distance).
+  // The current couch_extEachCut is the cut-strip allowance including seam; the real
+  // polygon's max outer-y can differ. Use whichever is wider so the piece always fits.
+  function extPolyMaxWidth(poly){
+    return poly.reduce((m,[,y])=>Math.max(m,y),0);
+  }
+
+  // Straight-side PANEL outline (sectional main connecting bolt): widen halfBack→halfMid over the
+  // side drop, then hold that width constant straight down to the front floor. No back-inset/taper
+  // breaks and no front-corner diagonal — a clean 90° corner at the bottom, matching the assembly.
+  function buildStraightPanelOutline(){
+    const out=[];
+    out.push([0,0]);
+    out.push([0,clampedHalf(0)]);                          // halfBack at the back hem
+    if(halfBack<B && halfMid>B){
+      out.push([sideDrop*(B-halfBack)/(halfMid-halfBack), B]);   // edge meets bolt width mid side-drop
+    } else {
+      out.push([sideDrop, clampedHalf(sideDrop)]);         // reaches halfMid at end of the side drop
+    }
+    const sideW = clampedHalf(sideDrop);                   // constant straight half-width = min(halfMid,B)
+    out.push([couch_panelLen, sideW]);                     // hold straight to the floor
+    out.push([couch_panelLen, 0]);
+    return out;
+  }
+  // Straight-side EXTENSION cut polygon (sectional main connecting side): the outer profile is
+  // constant at halfMid, so the extension is a near-rectangle — it ramps from 0 up to its full
+  // width over the side drop, then runs straight to the front floor. Same vertex convention as
+  // buildExtensionCutPolygon (outer-edge vertices first, then the two inner-seam vertices).
+  function buildStraightExtensionCutPolygon(){
+    const outerW = Math.max(0, halfMid - sideOff_cut);
+    const len = couch_panelLen - connExtEntryY;
+    if(len<=0 || outerW<=0) return [[0,0],[1,0],[1,1],[0,1]];
+    const pts=[];
+    pts.push([0,0]);                                       // entry corner (outer width ~0)
+    if(sideDrop-connExtEntryY > 0.05) pts.push([sideDrop-connExtEntryY, outerW]); // full width at side-drop end
+    pts.push([len, outerW]);                               // front floor, full width
+    pts.push([len, 0]);                                    // inner seam, bottom
+    pts.push([0, 0]);                                      // inner seam, top
+    return pts;
+  }
+
+  const polyOutline=[];
+  polyOutline.push([0,0]);
+  polyOutline.push([0,clampedHalf(0)]);
+  if(halfBack<B&&halfMid>B){const xc=sideDrop*(B-halfBack)/(halfMid-halfBack);polyOutline.push([xc,B]);}
+  else{polyOutline.push([sideDrop,clampedHalf(sideDrop)]);}
+  polyOutline.push([sideDrop+couch_backInset,clampedHalf(sideDrop+couch_backInset)]);
+  if(halfMid>B&&halfFront<B){const xc=sideDrop+couch_backInset+taperLen*(halfMid-B)/(halfMid-halfFront);polyOutline.push([xc,B]);}
+  polyOutline.push([yPointB,clampedHalf(yPointB)]);
+  const _fCornerY=Math.min(W/2+(bottomMargin||0),clampedHalf(couch_panelLen));
+  polyOutline.push([couch_panelLen,_fCornerY]);
+  polyOutline.push([couch_panelLen,0]);
+
+  const x_back_cross=(halfBack<B&&halfMid>halfBack)?Math.min(sideDrop,sideDrop*(B-halfBack)/(halfMid-halfBack)):0;
+  const backScrapH=Math.max(0,B-halfBack);
+  const frontStripH=Math.max(0,B-halfFront);
+  const frontStripW=Math.max(0,couch_panelLen-yPointB);
+
+  function tryNestExtension(){
+    if(!extNeeded)return null;
+    const cands=[{w:extActualLen,h:extW},{w:extW,h:extActualLen}];
+    for(const c of cands){
+      if(c.w<=frontStripW&&c.h<=frontStripH)return{region:'front',w:c.w,h:c.h,x:yPointB,y:halfFront};
+      if(c.w>0&&c.h>0&&x_back_cross>0&&backScrapH>0&&(c.w/x_back_cross)+(c.h/backScrapH)<=1.0)return{region:'back',w:c.w,h:c.h,x:0,y:halfBack};
+    }return null;
+  }
+  const extNestPlacement=tryNestExtension();
+  const extensionsFromScrap=!!extNestPlacement;
+
+  const bolts=[];
+  bolts.push({label:'BOLT 1 (LEFT)',panel:{name:'LEFT PANEL',stroke:'#dc2626',fill:'#fca5a555'},insideEdge:'right',extInScrap:extensionsFromScrap?{name:'LEFT EXT',placement:extNestPlacement}:null});
+  bolts.push({label:'BOLT 2 (RIGHT)',panel:{name:'RIGHT PANEL',stroke:'#2563eb',fill:'#bfdbfe55'},insideEdge:'left',extInScrap:extensionsFromScrap?{name:'RIGHT EXT',placement:extNestPlacement}:null});
+  if(extNeeded&&!extensionsFromScrap){
+    const _leftStraight  = mainStraight && mainStraightExtIsLeft;
+    const _rightStraight = mainStraight && !mainStraightExtIsLeft;
+    const _leftExtLen  = _leftStraight  ? connExtLen : extActualLen;
+    const _rightExtLen = _rightStraight ? connExtLen : extActualLen;
+    if(bothExtFitOneBolt){bolts.push({label:'BOLT 3',extOnlyBolt:true,exts:[{name:'LEFT EXTENSION',len:_leftExtLen,wid:extW,yOffset:0,straight:_leftStraight},{name:'RIGHT EXTENSION',len:_rightExtLen,wid:extW,yOffset:extW,straight:_rightStraight}]});}
+    else{bolts.push({label:'BOLT 3',extOnlyBolt:true,exts:[{name:'LEFT EXTENSION',len:_leftExtLen,wid:extW,straight:_leftStraight}]});bolts.push({label:'BOLT 4',extOnlyBolt:true,exts:[{name:'RIGHT EXTENSION',len:_rightExtLen,wid:extW,straight:_rightStraight}]});}
+  }
+
+  const mainBolts=bolts.filter(b=>b.panel);
+  const extBolts=bolts.filter(b=>b.extOnlyBolt);
+  const nMain=mainBolts.length,nExt=extBolts.length;
+  const boltGap=28,rowGap=60;
+  const mainRowW_in=B*nMain,mainRowH_in=couch_panelLen;
+  // The connecting-side extension on a sectional main piece runs longer (straight to the floor),
+  // so the ext bolt has to be sized to the LONGER of the two extensions.
+  const layoutExtLen=(mainStraight&&extNeeded)?Math.max(extActualLen,connExtLen):extActualLen;
+  const extRowW_in=nExt>0?B*nExt:0,extRowH_in=nExt>0?layoutExtLen:0;
+  const layoutW_px=VBW-pad*2-80,layoutH_px=VBH-pad*2-70;
+  const scaleX=(layoutW_px-boltGap*(Math.max(nMain,nExt)-1))/Math.max(mainRowW_in,extRowW_in||1);
+  const scaleY=(layoutH_px-(nExt>0?rowGap:0))/(mainRowH_in+extRowH_in);
+  const sc=Math.min(scaleX,scaleY);
+  const boltWPx=B*sc, boltLenPx=couch_panelLen*sc, extLenPx=layoutExtLen*sc;
+  const mainRowTotalW=nMain*boltWPx+(nMain-1)*boltGap;
+  const mainRowStartX=(VBW-mainRowTotalW)/2, mainRowStartY=pad+20;
+  const extRowTotalW=nExt*boltWPx+Math.max(0,nExt-1)*boltGap;
+  const extRowStartX=(VBW-extRowTotalW)/2, extRowStartY=mainRowStartY+boltLenPx+rowGap;
+  for(let i=0;i<nMain;i++){mainBolts[i].originX=mainRowStartX+i*(boltWPx+boltGap);mainBolts[i].originY=mainRowStartY;}
+  for(let i=0;i<nExt;i++){extBolts[i].originX=extRowStartX+i*(boltWPx+boltGap);extBolts[i].originY=extRowStartY;}
+
+  for(let bi=0;bi<mainBolts.length;bi++){
+    const bolt=mainBolts[bi];
+    const ox=bolt.originX,oy=bolt.originY;
+    const boltLeft=ox,boltRight=ox+boltWPx,boltTop=oy,boltBot=oy+boltLenPx;
+    const bxy=(xLen,yWid)=>{const dx=(bolt.insideEdge==='left')?yWid:(B-yWid);return[ox+dx*sc,oy+xLen*sc];};
+
+    add('rect',{x:boltLeft,y:boltTop,width:boltWPx,height:boltLenPx,fill:'#f8fafc',stroke:'#94a3b8','stroke-width':1,'stroke-dasharray':'4,3'});
+    add('text',{x:ox+boltWPx/2,y:boltTop-8,'text-anchor':'middle','font-size':11,fill:'#475569','font-weight':'bold'}).textContent=bolt.label;
+    if(bi===0)add('text',{x:ox+boltWPx/2,y:boltTop-22,'text-anchor':'middle','font-size':10,fill:'#475569'}).textContent=`${rIn(B)}"`;
+    const lenArrowX=(bolt.insideEdge==='left')?boltRight+14:boltLeft-14;
+    arrow(lenArrowX,boltTop,lenArrowX,boltBot);
+    if(bi===0){add('text',{x:lenArrowX+(bolt.insideEdge==='left'?6:-6),y:oy+boltLenPx/2,'text-anchor':bolt.insideEdge==='left'?'start':'end','dominant-baseline':'middle','font-size':10,fill:'#475569',transform:`rotate(-90 ${lenArrowX+(bolt.insideEdge==='left'?6:-6)} ${oy+boltLenPx/2})`}).textContent=`Panel length: ${rIn(couch_panelLen)}`;}
+    add('text',{x:ox+boltWPx/2,y:boltTop-38,'text-anchor':'middle','font-size':9,fill:'#64748b','font-style':'italic'}).textContent='↑ back of couch ↑';
+    add('text',{x:ox+boltWPx/2,y:boltBot+14,'text-anchor':'middle','font-size':9,fill:'#64748b','font-style':'italic'}).textContent='↓ front of couch ↓';
+
+    // For the SHORT piece's CONNECTING bolt, the panel is an L-SHAPE (rectangle minus the front-outer
+    // corner cutout) — NOT the tapered shape with diagonal cuts. This matches the straight connecting
+    // edge shown in the assembly diagram. The OUTER bolt of the short piece keeps the normal tapered shape.
+    const isShortConnBolt = opts.sectionalSnaps?.isShortPiece && bi === opts.sectionalSnaps.boltIndex;
+    // For the MAIN piece's CUT bolt, the cut is a SLIT — a single straight vertical cut going from
+    // the bottom hem up through the front drape. No material is removed from the panel; both sides
+    // of the slit stay intact. The overlap flap is a SEPARATE piece of fabric (sewn behind the slit
+    // at install time), drawn elsewhere on the bolt.
+    const isMainCutBolt = opts.sectionalFlap && bi === opts.sectionalFlap.boltIndex && !opts.sectionalSnaps?.isShortPiece;
+    // For the MAIN piece's CONNECTING bolt, the panel outer edge is STRAIGHT (no taper, no
+    // front-corner diagonal) — the connecting side drapes flat down the short couch, just like
+    // the assembly diagram's mainArmStraight side. (This is the same bolt as isMainCutBolt.)
+    const isMainConnBolt = mainStraight && bi === mainStraightBoltIndex;
+    let polyOutlineToUse = polyOutline;
+    let connHalfWidth = 0, czT_yLen = 0;
+    if (isMainConnBolt) {
+      polyOutlineToUse = buildStraightPanelOutline();
+    } else if (isShortConnBolt) {
+      const connOverlap = opts.sectionalSnaps.connectingOverlap || 0;
+      connHalfWidth = Math.min(W/2 + connOverlap, B);
+      // czT_yLen: where the front of the couch footprint begins, matching the assembly diagram's
+      // furnTopY + furnD (the top of the corner cutout).
+      czT_yLen = sideDrop + (couch_backInset + couch_taperLen + D) / 2;
+      const cutoutInnerW = Math.max(0, connHalfWidth - connOverlap);  // = W/2 (the couch side)
+      polyOutlineToUse = [
+        [0, 0],
+        [0, connHalfWidth],
+        [czT_yLen, connHalfWidth],
+        [czT_yLen, cutoutInnerW],
+        [couch_panelLen, cutoutInnerW],
+        [couch_panelLen, 0],
+      ];
+    }
+
+    const polyPts=polyOutlineToUse.map(([xL,yW])=>bxy(xL,yW)).map(([x,y])=>`${x.toFixed(1)},${y.toFixed(1)}`).join(' ');
+    add('polygon',{points:polyPts,fill:bolt.panel.fill,stroke:'none'});
+
+    // Red cut lines
+    {const outerEdgePts=polyOutlineToUse.slice(1,polyOutlineToUse.length-1).map(([xL,yW])=>bxy(xL,yW));
+    if(outerEdgePts.length>=2){const cutD='M '+outerEdgePts.map(([x,y])=>`${x.toFixed(1)},${y.toFixed(1)}`).join(' L ');add('path',{d:cutD,fill:'none',stroke:'#dc2626','stroke-width':3});}
+    const s1=bxy(0,0),s2=bxy(couch_panelLen,0);
+    add('line',{x1:s1[0],y1:s1[1],x2:s2[0],y2:s2[1],stroke:bolt.panel.stroke,'stroke-width':1.5,'stroke-dasharray':'8,4'});}
+
+    const lmp=bxy(sideDrop+couch_backInset/2,B/2);
+    add('text',{x:lmp[0],y:lmp[1]-6,'text-anchor':'middle','font-size':15,fill:bolt.panel.stroke,'font-weight':'bold'}).textContent=bolt.panel.name;
+    add('text',{x:lmp[0],y:lmp[1]+14,'text-anchor':'middle','font-size':12,fill:bolt.panel.stroke}).textContent=`${rIn(couch_panelLen)}" × ${rIn(B)}"`;
+    add('text',{x:lmp[0],y:lmp[1]+30,'text-anchor':'middle','font-size':10,fill:'#dc2626','font-weight':'600'}).textContent='Red lines = cut edges';
+
+    // Scrap shading
+    const polySvg=polyOutlineToUse.map(([xL,yW])=>bxy(xL,yW));
+    const scrapPath=[`M ${boltLeft},${boltTop}`,`L ${boltRight},${boltTop}`,`L ${boltRight},${boltBot}`,`L ${boltLeft},${boltBot}`,`Z`,`M ${polySvg[0][0].toFixed(1)},${polySvg[0][1].toFixed(1)}`,...polySvg.slice(1).map(([x,y])=>`L ${x.toFixed(1)},${y.toFixed(1)}`),`Z`].join(' ');
+    add('path',{d:scrapPath,fill:'#cbd5e1','fill-rule':'evenodd',opacity:0.8,stroke:'none'});
+    if(backScrapH>4&&x_back_cross>8){const[lx,ly]=bxy(x_back_cross/3,halfBack+backScrapH*2/3);add('text',{x:lx,y:ly+3,'text-anchor':'middle','font-size':9,fill:'#475569','font-weight':'bold'}).textContent='SCRAP';}
+    if(frontStripH>4&&frontStripW>8){const[lx,ly]=bxy(yPointB+frontStripW/2,halfFront+frontStripH/2);add('text',{x:lx,y:ly+3,'text-anchor':'middle','font-size':9,fill:'#475569','font-weight':'bold'}).textContent='SCRAP';}
+
+    // Zone boundary dashed lines
+    {const zC='#64748b';
+    [{yLen:sideDrop},{yLen:sideDrop+couch_backInset},{yLen:sideDrop+couch_backInset+couch_taperLen}].forEach(z=>{
+      const zy=oy+z.yLen*sc;add('line',{x1:boltLeft,y1:zy,x2:boltRight,y2:zy,stroke:zC,'stroke-width':0.8,'stroke-dasharray':'6,4',opacity:0.75});});
+    const lx=(bolt.insideEdge==='left')?boltRight+5:boltLeft-5;
+    const la=(bolt.insideEdge==='left')?'start':'end';
+    [{y0:0,y1:sideDrop,lbl:`side drop  ${rIn(sideDrop)}"`},{y0:sideDrop,y1:sideDrop+couch_backInset,lbl:`back inset  ${rIn(couch_backInset)}"`},{y0:sideDrop+couch_backInset,y1:sideDrop+couch_backInset+couch_taperLen,lbl:couch_taperLen>0.5?`taper  ${rIn(couch_taperLen)}"`:''},{y0:sideDrop+couch_backInset+couch_taperLen,y1:couch_panelLen,lbl:`front  ${rIn(couch_frontStraight)}"`}]
+    .filter(z=>z.lbl&&(z.y1-z.y0)>0.5).forEach(z=>{const my=oy+(z.y0+z.y1)/2*sc;add('text',{x:lx,y:my,'text-anchor':la,'dominant-baseline':'middle','font-size':10,fill:zC,'font-weight':'600'}).textContent=z.lbl;});}
+
+    // Extension nesting
+    if(bolt.extInScrap){const p=bolt.extInScrap.placement;const c1=bxy(p.x,p.y),c2=bxy(p.x+p.w,p.y),c3=bxy(p.x+p.w,p.y+p.h),c4=bxy(p.x,p.y+p.h);const xs=[c1[0],c2[0],c3[0],c4[0]],ys=[c1[1],c2[1],c3[1],c4[1]];const exL=Math.min(...xs),exR=Math.max(...xs),exT=Math.min(...ys),exB=Math.max(...ys);add('rect',{x:exL,y:exT,width:exR-exL,height:exB-exT,fill:'#d8b4fe55',stroke:'#7c3aed','stroke-width':1.5,'stroke-dasharray':'5,3'});add('text',{x:(exL+exR)/2,y:(exT+exB)/2+3,'text-anchor':'middle','font-size':9,fill:'#7c3aed','font-weight':'bold'}).textContent=bolt.extInScrap.name;add('text',{x:(exL+exR)/2,y:(exT+exB)/2+14,'text-anchor':'middle','font-size':8,fill:'#7c3aed'}).textContent=`${rIn(p.w)}"×${rIn(p.h)}"`;}
+
+    // === SECTIONAL MAIN PIECE — slit + separate overlap flap piece ===
+    //   The cut is a SLIT: a single vertical red line going from the bottom hem straight UP
+    //   through the front drape. No material is removed; the panel polygon is unchanged. The
+    //   overlap flap is a SEPARATE piece of fabric (sewn behind the slit during installation),
+    //   drawn elsewhere on the bolt so the manufacturer cuts it from the same yardage.
+    if(isMainCutBolt){
+      const sf=opts.sectionalFlap;
+      const isLeftPanel=(bolt.insideEdge==='right');
+      // Slit position in yWid: cover-x = couch arm edge − cld → yWid = W/2 − cld
+      const cld = sf.cutLineDist || 0;
+      const slit_yWid = Math.max(0, W/2 - cld);
+      // Slit endpoints: from the bottom hem (couch_panelLen) UP to the front-rest fold (yPointB).
+      const [slitX_bot, slitY_bot] = bxy(couch_panelLen, slit_yWid);
+      const [slitX_top, slitY_top] = bxy(yPointB,        slit_yWid);
+      // The slit itself — single red line, with small perpendicular ticks at each end.
+      add('line',{x1:slitX_top, y1:slitY_top, x2:slitX_bot, y2:slitY_bot,
+        stroke:'#dc2626','stroke-width':2.5});
+      add('line',{x1:slitX_top-5, y1:slitY_top, x2:slitX_top+5, y2:slitY_top,
+        stroke:'#dc2626','stroke-width':1.5});
+      add('line',{x1:slitX_bot-5, y1:slitY_bot, x2:slitX_bot+5, y2:slitY_bot,
+        stroke:'#dc2626','stroke-width':1.5});
+      // Rotated "cut slit" label next to the line.
+      const lblY = (slitY_top + slitY_bot) / 2;
+      const lblX = isLeftPanel ? slitX_top + 8 : slitX_top - 8;
+      const lblAnchor = isLeftPanel ? 'start' : 'end';
+      add('text',{x:lblX, y:lblY, 'text-anchor':lblAnchor, 'font-size':10,
+        fill:'#dc2626','font-weight':'bold',
+        transform:`rotate(-90 ${lblX} ${lblY})`}).textContent=`cut slit · ${rIn(cld)}" from arm`;
+
+      // (Overlap flap drawing handled after BOTH bolt loops below — preferentially nested in
+      //  an extension bolt's empty space, falling back to main-bolt scrap.)
+    }
+
+    // === SHORT PIECE CORNER CUTOUT ANNOTATION ===
+    // Sits at the OUTER edge of the connecting bolt (at connHalfWidth, not halfFront), spanning from
+    // the front of the couch footprint (czT_yLen) down to the bottom hem — matches the assembly diagram.
+    if(opts.sectionalSnaps&&opts.sectionalSnaps.isShortPiece&&bi===opts.sectionalSnaps.boltIndex){
+      const ss=opts.sectionalSnaps;
+      const connOverlap = ss.connectingOverlap || 0;
+      const cutoutW = connOverlap;                                // matches the overlap strip width
+      const cutoutH = couch_panelLen - czT_yLen;                  // front of couch footprint → bottom hem
+      const isLeftPanel=(bolt.insideEdge==='right');
+      let co_x_start,co_x_end;
+      if(isLeftPanel){co_x_start=ox+(B-connHalfWidth)*sc;co_x_end=co_x_start+cutoutW*sc;}
+      else{co_x_end=ox+connHalfWidth*sc;co_x_start=co_x_end-cutoutW*sc;}
+      const co_y1=oy+czT_yLen*sc,co_y2=oy+couch_panelLen*sc;
+      const co_left=Math.min(co_x_start,co_x_end),co_w=Math.abs(co_x_end-co_x_start),co_h=cutoutH*sc;
+      add('rect',{x:co_left,y:co_y1,width:co_w,height:co_h,fill:'#fef9c3','fill-opacity':0.85,stroke:'#ca8a04','stroke-width':1.5,'stroke-dasharray':'4,3'});
+      add('text',{x:co_left+co_w/2,y:co_y1+co_h/2-6,'text-anchor':'middle','font-size':8,fill:'#92400e','font-weight':'bold'}).textContent='CORNER';
+      add('text',{x:co_left+co_w/2,y:co_y1+co_h/2+7,'text-anchor':'middle','font-size':8,fill:'#92400e','font-weight':'bold'}).textContent='CUTOUT';
+    }
+
+    // (Snap dots intentionally NOT drawn on the cut diagram — see the assembly diagram for snap
+    // placement. The cut diagram only shows material cuts: panel polygon, flap notch, corner cutout.)
+  }
+
+  // Extension-only bolts — draw each extension piece in its TRUE polygon shape so that
+  // the cut diagram matches what a cutting machine would actually produce.
+  for(let ei=0;ei<extBolts.length;ei++){
+    const bolt=extBolts[ei];
+    const ox=bolt.originX,oy=bolt.originY;
+    // Bolt rectangle (the raw material).
+    add('rect',{x:ox,y:oy,width:boltWPx,height:extLenPx,fill:'#f8fafc',stroke:'#94a3b8','stroke-width':1,'stroke-dasharray':'4,3'});
+    add('text',{x:ox+boltWPx/2,y:oy-8,'text-anchor':'middle','font-size':11,fill:'#475569','font-weight':'bold'}).textContent=bolt.label;
+
+    for(const ex of bolt.exts){
+      // Build this extension's true cut polygon. The connecting side of a sectional main piece is
+      // STRAIGHT, so its extension is a near-rectangle running to the front floor; every other
+      // extension follows the tapered cover profile.
+      const extPoly = ex.straight ? buildStraightExtensionCutPolygon()
+                                  : buildExtensionCutPolygon(extEntryY, extExitY);
+      const extPolyMaxW = extPolyMaxWidth(extPoly);
+      const exH=ex.len*sc;                                  // length in SVG px
+      const exW_px=ex.wid*sc;                                // allotted strip width in SVG px
+      const exX=ox+(ex.yOffset||0)*sc;                       // left edge of this extension's strip
+      // Decide which side of the strip is the seam (inner) edge.
+      //   LEFT EXTENSION  → seam on the RIGHT side of its strip (faces the LEFT PANEL to its right)
+      //   RIGHT EXTENSION → seam on the LEFT side of its strip
+      const isLeftExt = /LEFT/i.test(ex.name);
+      const seamOnRight = isLeftExt;
+      // Map extension-local (extX along length, extY across width) → SVG (x, y).
+      //   extX goes top-to-bottom along the bolt (y axis).
+      //   extY (0 = seam, positive = outer) goes either left or right depending on seamOnRight.
+      const mapPt = ([extLocalX, extLocalY]) => {
+        const svgY = oy + extLocalX * sc;
+        const svgX = seamOnRight ? (exX + exW_px - extLocalY * sc) : (exX + extLocalY * sc);
+        return [svgX, svgY];
+      };
+      const svgPts = extPoly.map(mapPt);
+      const polyAttr = svgPts.map(([x,y])=>`${x.toFixed(1)},${y.toFixed(1)}`).join(' ');
+      // Fill the piece (purple tint, same family as before).
+      add('polygon',{points:polyAttr,fill:'#d8b4fe55',stroke:'none'});
+      // Red cut lines along the OUTER edge ONLY (not the seam edge — that's where it sews to the panel).
+      //   In our polygon, vertices 0..N-3 trace the outer edge (top→bottom along length);
+      //   the last two vertices are (extLen,0) and (0,0) which form the inner seam edge.
+      const outerEdgeCount = extPoly.length - 2;
+      const outerPts = svgPts.slice(0, outerEdgeCount);
+      // Also include the two short end-edges that close the polygon (entry/exit "caps")
+      const cutPath = [
+        // start at outer end of inner seam (top): (0,0)
+        `M ${svgPts[svgPts.length-1][0].toFixed(1)},${svgPts[svgPts.length-1][1].toFixed(1)}`,
+        // run along outer profile from top→bottom
+        ...outerPts.map(([x,y])=>`L ${x.toFixed(1)},${y.toFixed(1)}`),
+        // then to (extLen, 0) — outer end at the bottom (closes the bottom cap)
+        `L ${svgPts[svgPts.length-2][0].toFixed(1)},${svgPts[svgPts.length-2][1].toFixed(1)}`,
+      ].join(' ');
+      add('path',{d:cutPath,fill:'none',stroke:'#dc2626','stroke-width':2.5});
+      // Seam edge (the inner edge that sews to the panel) — dashed purple, NOT a cut.
+      add('line',{
+        x1: svgPts[svgPts.length-2][0], y1: svgPts[svgPts.length-2][1],
+        x2: svgPts[svgPts.length-1][0], y2: svgPts[svgPts.length-1][1],
+        stroke:'#7c3aed','stroke-width':1.5,'stroke-dasharray':'8,4'
+      });
+      // Scrap shading: the part of the strip OUTSIDE the polygon.
+      const stripPath = [
+        `M ${exX},${oy}`,
+        `L ${exX+exW_px},${oy}`,
+        `L ${exX+exW_px},${oy+exH}`,
+        `L ${exX},${oy+exH}`,
+        `Z`,
+        `M ${svgPts[0][0].toFixed(1)},${svgPts[0][1].toFixed(1)}`,
+        ...svgPts.slice(1).map(([x,y])=>`L ${x.toFixed(1)},${y.toFixed(1)}`),
+        `Z`,
+      ].join(' ');
+      add('path',{d:stripPath,fill:'#cbd5e1','fill-rule':'evenodd',opacity:0.7,stroke:'none'});
+
+      // Labels (centered in strip)
+      add('text',{x:exX+exW_px/2,y:oy+exH/2-4,'text-anchor':'middle','font-size':12,fill:'#7c3aed','font-weight':'bold'})
+        .textContent=ex.name;
+      add('text',{x:exX+exW_px/2,y:oy+exH/2+12,'text-anchor':'middle','font-size':10,fill:'#7c3aed'})
+        .textContent=`${rIn(ex.len)}" × ${rIn(extPolyMaxW)}" max`;
+      add('text',{x:exX+exW_px/2,y:oy+exH/2+26,'text-anchor':'middle','font-size':9,fill:'#dc2626','font-weight':'600'})
+        .textContent='Red lines = cut edges';
+      add('text',{x:exX+exW_px/2,y:oy+exH/2+38,'text-anchor':'middle','font-size':9,fill:'#7c3aed','font-style':'italic'})
+        .textContent=seamOnRight?'← seam to panel':'seam to panel →';
+
+      // ── Vertex coordinate annotations so the manufacturer can plot every cut endpoint.
+      //    For each OUTER-edge vertex, label both: distance from the TOP of the piece and
+      //    width from the seam edge. Length labels sit JUST INSIDE the polygon along the
+      //    seam edge (avoids collisions with anything outside the strip — including the
+      //    overlap flap that lives in adjacent bolt space).
+      const dimColor = '#1e3a8a';                            // dark blue
+      const seamSvgX = seamOnRight ? (exX + exW_px) : exX;
+      // Length labels INSIDE polygon, just off the seam edge.
+      const lengthLabelDx = seamOnRight ? -4 : 4;
+      const lengthLabelAnchor = seamOnRight ? 'end' : 'start';
+      // Build a list of vertices to annotate, then drop length labels for vertices that fall
+      // within 3" of the previous one (avoids stacked "30" + 31"" pairs when back-inset is tiny).
+      // Each entry: { extLocalX, extLocalY, svgVy, svgVx, isEntryCorner, isExitCorner }
+      const vertList = [];
+      for (let vi = 0; vi < outerEdgeCount; vi++) {
+        const [extLocalX, extLocalY] = extPoly[vi];
+        const [svgVx, svgVy] = svgPts[vi];
+        vertList.push({extLocalX, extLocalY, svgVx, svgVy, isEntryCorner:(extLocalX<0.05 && extLocalY<0.05), isExitCorner:false});
+      }
+      // Exit point (bottom-seam corner — width 0)
+      const exitLocalX = extPoly[extPoly.length - 2][0];
+      const exitSvgY   = svgPts[svgPts.length - 2][1];
+      vertList.push({extLocalX:exitLocalX, extLocalY:0, svgVx:seamSvgX, svgVy:exitSvgY, isEntryCorner:false, isExitCorner:true});
+
+      let lastLabeledLen = -10;                              // ensure first vertex always gets labeled
+      let lastLabeledWidth = -1;                             // track width to dedupe identical-width labels
+      for (let vIdx = 0; vIdx < vertList.length; vIdx++) {
+        const v = vertList[vIdx];
+        // Tick + length label on the seam side
+        const showLength = (v.extLocalX - lastLabeledLen) > 3;
+        if (showLength) {
+          // Tick INSIDE polygon along the seam edge
+          add('line',{
+            x1: seamSvgX, y1: v.svgVy,
+            x2: seamSvgX + (seamOnRight ? -6 : 6), y2: v.svgVy,
+            stroke: dimColor, 'stroke-width': 1
+          });
+          add('text',{x: seamSvgX + lengthLabelDx, y: v.svgVy + 3,
+            'text-anchor': lengthLabelAnchor, 'font-size': 8,
+            fill: dimColor, 'font-weight': 'bold'})
+            .textContent = `${rIn(v.extLocalX)}"`;
+          lastLabeledLen = v.extLocalX;
+        }
+        // Width label — skip if:
+        //   - it's an entry/exit corner with width 0
+        //   - width is essentially zero
+        //   - same width as the previously labeled vertex (back-inset region has two
+        //     vertices at the same width — only label once)
+        const widthSame = Math.abs(v.extLocalY - lastLabeledWidth) < 0.3;
+        if (!v.isEntryCorner && !v.isExitCorner && v.extLocalY > 0.5 && !widthSame) {
+          const widthLabelDx = seamOnRight ? 4 : -4;          // toward seam (interior of polygon)
+          const widthLabelAnchor = seamOnRight ? 'start' : 'end';
+          // For vertices at the very TOP (vIdx 0) or very BOTTOM (last), put label BELOW the
+          // vertex so it stays inside the strip and doesn't collide with the bolt header.
+          const isTopOrBottom = (vIdx === 0) || (vIdx === vertList.length - 1);
+          const widthLabelDy = isTopOrBottom ? 10 : -4;
+          add('text',{x: v.svgVx + widthLabelDx, y: v.svgVy + widthLabelDy,
+            'text-anchor': widthLabelAnchor, 'font-size': 8,
+            fill: dimColor, 'font-weight': 'bold'})
+            .textContent = `${rIn(v.extLocalY)}" w`;
+          lastLabeledWidth = v.extLocalY;
+        }
+      }
+      // Compact legend at the BOTTOM of the strip (outside the polygon's lower vertices area)
+      add('text',{x:exX+exW_px/2, y:oy+exH+18,'text-anchor':'middle',
+        'font-size':8, fill:dimColor,'font-style':'italic'})
+        .textContent='blue: dist. from top · width from seam';
+    }
+  }
+
+  // === SEPARATE OVERLAP FLAP PIECE (sectional main piece only) ===
+  //   The flap is a different piece of fabric, sewn behind the slit at install time.
+  //   Preferred placement: empty space on an extension bolt (lots of room there).
+  //   Fallback placement: back- or front-scrap of the main cut bolt.
+  //   Last resort: a callout noting the flap needs to be cut from a spare bolt.
+  const flapNeeded = !!(opts.sectionalFlap && !opts.sectionalSnaps?.isShortPiece);
+  if (flapNeeded) {
+    const fw = opts.sectionalFlap.flapWidth || 0;
+    const fh = (couch_panelLen - yPointB) + 1;                // front-drape height + 1" hem
+    if (fw > 0 && fh > 0) {
+      let placed = false;
+      // 1) Try empty space on each extension bolt.
+      //    Use a 4" horizontal gap past the extension piece so the extension's blue length
+      //    labels (which sit just inside the polygon along the seam edge) don't collide.
+      const FLAP_GAP_IN = 4;
+      for (let ei = 0; ei < extBolts.length && !placed; ei++) {
+        const eBolt = extBolts[ei];
+        const usedWidth = eBolt.exts.reduce(
+          (sum, ex) => Math.max(sum, (ex.yOffset||0) + ex.wid), 0);
+        const emptyWidthIn = B - usedWidth - FLAP_GAP_IN;
+        if (emptyWidthIn >= fw && extActualLen >= fh + 4) {
+          const flXIn = usedWidth + FLAP_GAP_IN;
+          const flYIn = 2;                                     // 2" from top of bolt
+          const flLeft = eBolt.originX + flXIn * sc;
+          const flTop  = eBolt.originY + flYIn * sc;
+          const flW_px = fw * sc, flH_px = fh * sc;
+          const flRight = flLeft + flW_px, flBot = flTop + flH_px;
+          // Main flap rectangle — solid amber fill, RED cut-edge stroke (it's a real cut piece).
+          add('rect',{x:flLeft, y:flTop, width:flW_px, height:flH_px,
+            fill:'#fde68a','fill-opacity':0.85, stroke:'#dc2626','stroke-width':2.5});
+          // Hem strip at top (1" tall — sewn end faces the cushion-top).
+          const hemHpx = Math.min(sc, flH_px*0.3);
+          add('rect',{x:flLeft, y:flTop, width:flW_px, height:hemHpx,
+            fill:'#fbbf24','fill-opacity':0.7, stroke:'#d97706','stroke-width':1});
+          add('text',{x:(flLeft+flRight)/2, y:flTop + hemHpx/2 + 3,
+            'text-anchor':'middle','font-size':8, fill:'#92400e','font-weight':'bold'})
+            .textContent='1" hem';
+          // Body labels — stacked inside the flap body below the hem strip
+          const lblBaseY = flTop + hemHpx + 14;
+          add('text',{x:(flLeft+flRight)/2, y:lblBaseY,'text-anchor':'middle',
+            'font-size':11, fill:'#92400e','font-weight':'bold'}).textContent='OVERLAP FLAP';
+          add('text',{x:(flLeft+flRight)/2, y:lblBaseY+13,'text-anchor':'middle',
+            'font-size':10, fill:'#92400e'}).textContent=`${rIn(fw)}" × ${rIn(fh)}"`;
+          add('text',{x:(flLeft+flRight)/2, y:lblBaseY+26,'text-anchor':'middle',
+            'font-size':8, fill:'#a16207','font-style':'italic'}).textContent='separate piece';
+          add('text',{x:(flLeft+flRight)/2, y:lblBaseY+37,'text-anchor':'middle',
+            'font-size':8, fill:'#a16207','font-style':'italic'}).textContent='sew behind slit';
+          // "Red border = cut edges" — placed INSIDE the flap near the bottom so it doesn't
+          //   collide with anything outside the flap rectangle.
+          add('text',{x:(flLeft+flRight)/2, y:flBot - 6,'text-anchor':'middle',
+            'font-size':8, fill:'#dc2626','font-weight':'600'}).textContent='red = cut edges';
+          placed = true;
+        }
+      }
+      // 2) Fallback: main-bolt scrap (back triangle or front strip).
+      if (!placed) {
+        for (let bi = 0; bi < mainBolts.length && !placed; bi++) {
+          const mBolt = mainBolts[bi];
+          const mOx = mBolt.originX, mOy = mBolt.originY;
+          const bxyM = (xLen,yWid)=>{const dx=(mBolt.insideEdge==='left')?yWid:(B-yWid);return[mOx+dx*sc,mOy+xLen*sc];};
+          let flXIn, flYIn, fit = false;
+          if (backScrapH > fw + 2 && x_back_cross > fh + 4) {
+            flXIn = 2; flYIn = halfBack + (backScrapH - fw)/2; fit = true;
+          } else if (frontStripH > fw + 2 && frontStripW > fh + 4) {
+            flXIn = yPointB + 2; flYIn = halfFront + (frontStripH - fw)/2; fit = true;
+          }
+          if (fit) {
+            const [flC1x, flC1y] = bxyM(flXIn, flYIn);
+            const [flC2x, flC2y] = bxyM(flXIn + fh, flYIn + fw);
+            const flLeft = Math.min(flC1x, flC2x), flRight = Math.max(flC1x, flC2x);
+            const flTop  = Math.min(flC1y, flC2y), flBot   = Math.max(flC1y, flC2y);
+            add('rect',{x:flLeft, y:flTop, width:flRight-flLeft, height:flBot-flTop,
+              fill:'#fde68a','fill-opacity':0.85, stroke:'#dc2626','stroke-width':2.5});
+            add('text',{x:(flLeft+flRight)/2, y:(flTop+flBot)/2-4,'text-anchor':'middle',
+              'font-size':10, fill:'#92400e','font-weight':'bold'}).textContent='OVERLAP FLAP';
+            add('text',{x:(flLeft+flRight)/2, y:(flTop+flBot)/2+8,'text-anchor':'middle',
+              'font-size':9, fill:'#92400e'}).textContent=`${rIn(fw)}" × ${rIn(fh)}"`;
+            placed = true;
+          }
+        }
+      }
+      // 3) Last resort: callout under the bolt row.
+      if (!placed) {
+        const calloutY = (extBolts.length>0 ? extRowStartY+extLenPx : mainRowStartY+boltLenPx) + 50;
+        add('text',{x:VBW/2, y:calloutY,'text-anchor':'middle','font-size':11,
+          fill:'#a16207','font-weight':'bold'})
+          .textContent=`⚠ OVERLAP FLAP: cut a separate ${rIn(fw)}" × ${rIn(fh)}" piece from a spare bolt`;
+      }
+    }
+  }
+
+  const footerY=(extBolts.length>0?extRowStartY+extLenPx:mainRowStartY+boltLenPx)+30;
+  const sy=footerY-18;
+  const mainBoltsLen=couch_panelLen*2;
+  const extBoltsLen=(extNeeded&&!extensionsFromScrap)?(bothExtFitOneBolt?extActualLen:extActualLen*2):0;
+  const totalYards=(mainBoltsLen+extBoltsLen)/36;
+  const totalLineParts=[`2 × ${rIn(couch_panelLen)}" main`];
+  if(extNeeded&&!extensionsFromScrap)totalLineParts.push(bothExtFitOneBolt?`1 × ${rIn(extActualLen)}" ext bolt`:`2 × ${rIn(extActualLen)}" ext bolts`);
+  if(extNeeded&&extensionsFromScrap)totalLineParts.push('extensions from main-bolt scrap');
+  add('text',{x:VBW/2,y:sy+18,'text-anchor':'middle','font-size':12,fill:'#0f172a','font-weight':'bold'}).textContent=`Total: ${totalLineParts.join(' + ')} = ${rIn(mainBoltsLen+extBoltsLen)}" (${Math.ceil(totalYards*10)/10} yd)`;
+  if(extNeeded&&extensionsFromScrap){add('text',{x:VBW/2,y:sy+34,'text-anchor':'middle','font-size':10,fill:'#7c3aed','font-weight':'bold'}).textContent=`Both extensions (${rIn(extActualLen)}" × ${rIn(extW)}") fit in main-bolt scrap — no third bolt needed.`;}
+  else if(!extNeeded){add('text',{x:VBW/2,y:sy+34,'text-anchor':'middle','font-size':10,fill:'#475569'}).textContent=`No extensions — assembled width (${rIn(couch_assembledW)}") fits within 2×B − seam = ${rIn(couch_joinedUsableW)}"`;}
+}
+
+
+function updateCutList(params){
+  const{B,roundMode,seam,couch_panelLen,couch_panelW,couch_assembledW,couch_joinedUsableW,couch_backInset,couch_taperLen,couch_frontStraight,couch_frontInset,couch_frontFlapWidth,couch_frontFlapNeeded,couch_extNeeded,couch_extEachCut,couch_extBoltsNeeded,couch_totalBolts,couch_extActualLen,bottomMargin,frontDiagonalHoriz,frontDiagonalVert,frontDiagonalLen}=params;
+  const rm=roundMode;
+  const cutlist=document.getElementById('cutlist');if(!cutlist)return;
+  const rows=[];
+  const tn=`Outer front corner diagonal: ${fmtInch(frontDiagonalHoriz||0,rm)}" horiz × ${fmtInch(frontDiagonalVert||0,rm)}" vert. bottomMargin=${fmtInch(bottomMargin||0,rm)}".`;
+  rows.push(['Left panel',`${fmtInch(couch_panelLen,rm)}" × ${fmtInch(couch_panelW,rm)}" (full bolt)`,`Qty 1. ${tn}`]);
+  rows.push(['Right panel',`${fmtInch(couch_panelLen,rm)}" × ${fmtInch(couch_panelW,rm)}" (full bolt)`,`Qty 1 — mirrors left. Center seam ${fmtExact(seam)}" overlap. ${tn}`]);
+  if(couch_extNeeded){const _eL=couch_extActualLen||couch_panelLen;rows.push(['Left ext',`${fmtInch(couch_extEachCut,rm)}" × ${fmtInch(_eL,rm)}`,'Qty 1 — sewn to outer edge of left panel.']);rows.push(['Right ext',`${fmtInch(couch_extEachCut,rm)}" × ${fmtInch(_eL,rm)}`,'Qty 1 — sewn to outer edge of right panel.']);}
+  else{rows.push(['Extensions','Not required',`2 bolts (${B}"+${B}"−${fmtExact(seam)}" = ${fmtExact(couch_joinedUsableW)}") ≥ assembled width (${fmtExact(couch_assembledW)}").`]);}
+  rows.push(['Total',`${couch_totalBolts} bolt${couch_totalBolts===1?'':'s'} × ${fmtInch(couch_panelLen,rm)}"`,couch_extNeeded?`2 main + ${couch_extBoltsNeeded} ext bolt(s).`:`2 bolts.`]);
+  cutlist.innerHTML=rows.map((r,i)=>`<div class="row" style="${i?'border-top:1px dashed var(--muted);':''}"><span>${r[0]}</span><strong>${r[1]}</strong><span style="color:var(--sub)">${r[2]}</span></div>`).join('');
+}
+
+
+// ============================================================
+// drawAssemblyDiagramFlat — actual cover shape with sectional annotations
+// ============================================================
+function drawAssemblyDiagramFlat(params, svgId, vbw, vbh, sectOpts){
+  svgId = svgId || 'assemblyDiagramFlatFull';
+  vbw = vbw || 1200; vbh = vbh || 900;
+  sectOpts = sectOpts || {};
+  const {H,W,WB,D,F2A,BR,FC,B,AT2F,sideDrop,frontExtDrop,hem,seam,roundMode,
+         couch_panelLen,couch_assembledW,couch_backInset,couch_taperLen,couch_frontStraight,
+         couch_extNeeded,couch_extEachCut,couch_extSeam,couch_extActualLen,bottomMargin} = params;
+
+  const rIn = v => roundMode==='whole'?Math.ceil(v):roundMode==='half'?roundHalf(v):Math.round(v*100)/100;
+  const svg = document.getElementById(svgId);
+  if (!svg) return;
+  svg.setAttribute('viewBox',`0 0 ${vbw} ${vbh}`);
+  while(svg.firstChild) svg.removeChild(svg.firstChild);
+  const add=(t,a,p=svg)=>{const e=document.createElementNS('http://www.w3.org/2000/svg',t);for(const k in a)e.setAttribute(k,a[k]);p.appendChild(e);return e;};
+  const VBW=vbw,VBH=vbh,pad=100;
+  const mkrId='arr_'+svgId;
+  const defs=add('defs',{});
+  const mkr=add('marker',{id:mkrId,markerWidth:7,markerHeight:7,refX:3.5,refY:3.5,orient:'auto',viewBox:'0 0 7 7'},defs);
+  const tip=document.createElementNS('http://www.w3.org/2000/svg','path');
+  tip.setAttribute('d','M0,0 L7,3.5 L0,7 Z');tip.setAttribute('fill','#475569');mkr.appendChild(tip);
+  const dimLine=(x1,y1,x2,y2)=>add('line',{x1,y1,x2,y2,stroke:'#475569','stroke-width':1,'marker-start':`url(#${mkrId})`,'marker-end':`url(#${mkrId})`});
+  const dimMargin=130,totalDiagW=couch_assembledW+60,totalDiagH=couch_panelLen+60;
+  const sc=Math.min((VBW-pad*2-dimMargin*2)/totalDiagW,(VBH-pad*2-dimMargin*2)/totalDiagH);
+  const cx=VBW/2,drawTopY=pad+dimMargin,drawBotY=drawTopY+couch_panelLen*sc;
+  const yBackFloor=drawTopY,yBackrestTop=drawTopY+sideDrop*sc,yBackrestEnd=yBackrestTop+couch_backInset*sc,yPointB=yBackrestEnd+couch_taperLen*sc;
+  const halfBack=(WB/2+hem)*sc,halfMid=(couch_assembledW/2)*sc;
+  const frontWidthAfterCut_couch=W+2*frontExtDrop;
+  const halfFront=(frontWidthAfterCut_couch/2)*sc;
+  const frontDiagBottomPx=(W/2+(bottomMargin||0))*sc;
+  add('text',{x:cx,y:drawTopY-55,'text-anchor':'middle','font-size':15,fill:'#0f172a','font-weight':'bold','letter-spacing':'2'}).textContent='▲  BACK';
+
+  // Furniture dimensions — defined early so saLeftX/saRightX can use furnX
+  const furnColor='#94a3b8',furnW=W*sc,furnD=D*sc,furnX=cx-furnW/2;
+
+  // Sectional shape flags.
+  //   Short piece: connecting side is the opposite of `sectOpts.side` — straight at saLeftX/saRightX
+  //   (extends only `connectingOverlap` inches past the furniture edge).
+  //
+  //   Main piece (in sectional mode): connecting side matches `sectOpts.side`. It runs straight
+  //   from the back-corner cut down to the front hem at `cx ± halfMid` — same side-drop distance
+  //   as the non-sectional cover. No taper, no front-corner diagonal cut on that side, since the
+  //   cover doesn't need to wrap around an armrest there (the short couch sits flush against it).
+  //   The back-corner diagonal cut is preserved on both sides since the back outer corner is still
+  //   a real corner of the assembled couch.
+  // Short piece's connecting side is a STRAIGHT CUT (no taper, no diagonal cuts) at the couch
+  // footprint border. Any overlap material the installer wants will be added/trimmed by hand
+  // at the customer's site — the calculator does not compute or display an overlap.
+  const shortArmStraightLeft  = sectOpts.isShortPiece && sectOpts.side==='right';
+  const shortArmStraightRight = sectOpts.isShortPiece && sectOpts.side==='left';
+  const mainArmStraightRight  = sectOpts.isSectional && !sectOpts.isShortPiece && sectOpts.side==='right';
+  const mainArmStraightLeft   = sectOpts.isSectional && !sectOpts.isShortPiece && sectOpts.side==='left';
+  // The short piece's straight connecting side sits at the FULL side-drop distance from center
+  // (cx ± halfMid) — same place the cushion side drape would naturally end on a non-sectional
+  // cover. The "extra" material between the couch edge and this straight edge is the side drape
+  // that physically gets tucked under the main cover at the joint. It must be preserved.
+  // The installer will trim or fold this material by hand at the customer's site as needed.
+  const overlapPx = 0; // input removed; any overlap is handled manually
+  const saLeftX  = cx - halfMid;
+  const saRightX = cx + halfMid;
+  // For the short piece, the connecting side is straight at full drape from yBackFloor down to
+  // yPointB (the front fold). Then a RECTANGULAR notch is removed from the bottom-connecting
+  // corner: horizontally from the polygon's straight edge (saLeftX/saRightX) over to the joint
+  // position (furnX or furnX+furnW), and vertically the full front-drape height (yPointB→drawBotY).
+  // This represents: the SIDE drape rests on top of the main couch at the joint, and the FRONT
+  // drape is cut away at the joint so it doesn't extend past the main couch's front face.
+  const fabricPts = shortArmStraightLeft
+    ? [[saLeftX,yBackFloor],[cx+halfBack,yBackFloor],[cx+halfMid,yBackrestTop],[cx+halfMid,yBackrestEnd],[cx+halfFront,yPointB],[cx+frontDiagBottomPx,drawBotY],[furnX,drawBotY],[furnX,yPointB],[saLeftX,yPointB]]
+    : shortArmStraightRight
+    ? [[cx-halfBack,yBackFloor],[saRightX,yBackFloor],[saRightX,yPointB],[furnX+furnW,yPointB],[furnX+furnW,drawBotY],[cx-frontDiagBottomPx,drawBotY],[cx-halfFront,yPointB],[cx-halfMid,yBackrestEnd],[cx-halfMid,yBackrestTop]]
+    : mainArmStraightRight
+    ? [[cx-halfBack,yBackFloor],[cx+halfBack,yBackFloor],[cx+halfMid,yBackrestTop],[cx+halfMid,drawBotY],[cx-frontDiagBottomPx,drawBotY],[cx-halfFront,yPointB],[cx-halfMid,yBackrestEnd],[cx-halfMid,yBackrestTop]]
+    : mainArmStraightLeft
+    ? [[cx-halfBack,yBackFloor],[cx+halfBack,yBackFloor],[cx+halfMid,yBackrestTop],[cx+halfMid,yBackrestEnd],[cx+halfFront,yPointB],[cx+frontDiagBottomPx,drawBotY],[cx-halfMid,drawBotY],[cx-halfMid,yBackrestTop]]
+    : [[cx-halfBack,yBackFloor],[cx+halfBack,yBackFloor],[cx+halfMid,yBackrestTop],[cx+halfMid,yBackrestEnd],[cx+halfFront,yPointB],[cx+frontDiagBottomPx,drawBotY],[cx-frontDiagBottomPx,drawBotY],[cx-halfFront,yPointB],[cx-halfMid,yBackrestEnd],[cx-halfMid,yBackrestTop]];
+
+  add('polygon',{points:fabricPts.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' '),fill:'#eef2ff',stroke:'#0f172a','stroke-width':2});
+  const furnTopY=yBackrestTop+(yPointB-yBackrestTop-furnD)/2;
+  // Couch footprint zone — light-green fill with green dashed outline (matches table-set cover style)
+  add('rect',{x:furnX,y:furnTopY,width:furnW,height:furnD,fill:'#f0fdf4',stroke:'#16a34a','stroke-width':1.5,'stroke-dasharray':'6,4',rx:2});
+  add('text',{x:cx,y:furnTopY+furnD/2-4,'text-anchor':'middle','font-size':10,fill:'#166534','font-weight':'bold'}).textContent='COUCH';
+  add('text',{x:cx,y:furnTopY+furnD/2+12,'text-anchor':'middle','font-size':10,fill:'#166534'}).textContent=`${rIn(W)}" × ${rIn(D)}"`;
+
+  // Fabric half-width (px) at any diagram y — tapered normal shape
+  const fhwPx=y=>{
+    if(y<=yBackFloor)return halfBack;
+    if(y<=yBackrestTop)return halfBack+(halfMid-halfBack)*(y-yBackFloor)/(yBackrestTop-yBackFloor);
+    if(y<=yBackrestEnd)return halfMid;
+    if(y<=yPointB)return halfMid+(halfFront-halfMid)*(y-yBackrestEnd)/(yPointB-yBackrestEnd);
+    if(y<=drawBotY)return halfFront+(frontDiagBottomPx-halfFront)*(y-yPointB)/(drawBotY-yPointB);
+    return frontDiagBottomPx;
+  };
+  // Straight-side overrides for the fabric edge function. The short arm uses its overlap-trimmed
+  // straight edge (saLeftX/saRightX). The main arm uses halfMid (no taper, no front diagonal cut).
+  const leftEdgePx  = shortArmStraightLeft  ? (()=>(cx-saLeftX))
+                    : mainArmStraightLeft   ? (()=>halfMid)
+                    : fhwPx;
+  const rightEdgePx = shortArmStraightRight ? (()=>(saRightX-cx))
+                    : mainArmStraightRight  ? (()=>halfMid)
+                    : fhwPx;
+
+  // Straight-line drape zone grid
+  const zl=(x1,y1,x2,y2)=>add('line',{x1,y1,x2,y2,stroke:furnColor,'stroke-width':1.5,'stroke-dasharray':'6,4'});
+  zl(furnX,       yBackFloor,    furnX,       furnTopY);
+  zl(furnX,       furnTopY+furnD, furnX,      drawBotY);
+  zl(furnX+furnW, yBackFloor,    furnX+furnW, furnTopY);
+  zl(furnX+furnW, furnTopY+furnD, furnX+furnW, drawBotY);
+  zl(cx-leftEdgePx(furnTopY),       furnTopY,    furnX,       furnTopY);
+  zl(furnX+furnW, furnTopY,    cx+rightEdgePx(furnTopY),       furnTopY);
+  zl(cx-leftEdgePx(furnTopY+furnD), furnTopY+furnD, furnX,    furnTopY+furnD);
+  zl(furnX+furnW, furnTopY+furnD, cx+rightEdgePx(furnTopY+furnD), furnTopY+furnD);
+  const seamColor='#9333ea',seamSW=2.5,seamDash='8,3';
+  add('line',{x1:cx,y1:yBackFloor,x2:cx,y2:drawBotY,stroke:seamColor,'stroke-width':seamSW,'stroke-dasharray':seamDash});
+  const seamLabY=(yBackrestEnd+yPointB)/2;
+  add('text',{x:cx+8,y:seamLabY,'font-size':10,fill:seamColor,'font-weight':'bold'}).textContent=`center seam — ${rIn(seam)}" overlap`;
+  if(couch_extNeeded){
+    const sideOff=B-(couch_extSeam||1),sideOffPx=sideOff*sc;
+    const edge=[[yBackFloor,WB/2+hem],[yBackrestTop,couch_assembledW/2],[yBackrestEnd,couch_assembledW/2],[yPointB,frontWidthAfterCut_couch/2],[drawBotY,frontWidthAfterCut_couch/2]];
+    let entryY=null,exitY=null;
+    for(let i=0;i<edge.length-1;i++){const[y1,h1]=edge[i],[y2,h2]=edge[i+1];const in1=h1>=sideOff,in2=h2>=sideOff;if(entryY===null&&!in1&&in2){const t=(sideOff-h1)/(h2-h1);entryY=y1+t*(y2-y1);}else if(entryY===null&&in1&&i===0){entryY=y1;}if(entryY!==null&&in2)exitY=y2;if(entryY!==null&&in1&&!in2){const t=(sideOff-h1)/(h2-h1);exitY=y1+t*(y2-y1);break;}}
+    if(entryY!==null&&exitY!==null&&exitY>entryY){add('line',{x1:cx-sideOffPx,y1:entryY,x2:cx-sideOffPx,y2:exitY,stroke:seamColor,'stroke-width':seamSW,'stroke-dasharray':seamDash});add('line',{x1:cx+sideOffPx,y1:entryY,x2:cx+sideOffPx,y2:exitY,stroke:seamColor,'stroke-width':seamSW,'stroke-dasharray':seamDash});add('text',{x:cx+sideOffPx+6,y:(entryY+exitY)/2,'font-size':10,fill:seamColor,'font-weight':'bold'}).textContent=`ext seam — ${rIn(couch_extEachCut)}" strip`;}
+  }
+  const cutColor='#dc2626',cutSW=2;
+  // Only draw the front-corner diagonal cut on sides that are NOT straight.
+  // (Short arm's free outer side has it; its connecting side doesn't. Main arm's outer side has it;
+  // its connecting side doesn't either — it just drapes along the short couch flat.)
+  if(!shortArmStraightLeft  && !mainArmStraightLeft)  add('line',{x1:cx-halfFront,y1:yPointB,x2:cx-frontDiagBottomPx,y2:drawBotY,stroke:cutColor,'stroke-width':cutSW});
+  if(!shortArmStraightRight && !mainArmStraightRight) add('line',{x1:cx+halfFront,y1:yPointB,x2:cx+frontDiagBottomPx,y2:drawBotY,stroke:cutColor,'stroke-width':cutSW});
+  const gromColor='#b45309',gromInsetIn=sideDrop/3,gromFrontHorizFromCenter=Math.max(2,W/2-5),gromBackHorizFromCenter=Math.max(2,WB/2-5);
+  const gromYBack=yBackFloor+gromInsetIn*sc,gromYFront=drawBotY-gromInsetIn*sc;
+  const gBL=[cx-gromBackHorizFromCenter*sc,gromYBack],gBR=[cx+gromBackHorizFromCenter*sc,gromYBack],gFL=[cx-gromFrontHorizFromCenter*sc,gromYFront],gFR=[cx+gromFrontHorizFromCenter*sc,gromYFront];
+  // Sectional rule: the CONNECTING side drops its FRONT grommet but KEEPS a back grommet + back
+  // bungee tab, so a short "joint bungee" can secure the back corner where the two pieces meet. The
+  // OUTER side keeps both grommets + its own back tab and runs the usual front-to-back bungee.
+  //   Main piece : connecting side = sectOpts.side; its connecting back grommet stays at the standard
+  //                back-corner position.
+  //   Short piece: connecting side = OPPOSITE of sectOpts.side; its connecting back grommet is the
+  //                JOINT grommet, relocated to 5" inboard of the connecting (straight) edge.
+  let connSide = null;
+  if (sectOpts.isSectional) {
+    connSide = sectOpts.isShortPiece ? (sectOpts.side==='right'?'left':'right') : sectOpts.side;
+  }
+  const isShort = !!sectOpts.isShortPiece;
+  const leftIsConn  = connSide==='left';
+  const rightIsConn = connSide==='right';
+  const outerSide   = connSide ? (connSide==='right'?'left':'right') : null;
+  const jointInsetIn = 5;                                  // joint grommet: 5" in from the joint (couch edge)
+  // Back grommet position per side — relocated to the joint position on the short piece's connecting
+  // side. The joint is where the pieces actually meet = the couch footprint edge (furnX), where the
+  // connecting snaps sit — NOT the straight drape edge. So measure the 5" inboard from furnX.
+  const gBL_back = (leftIsConn  && isShort) ? [furnX + jointInsetIn*sc, gromYBack] : gBL;
+  const gBR_back = (rightIsConn && isShort) ? [furnX + furnW - jointInsetIn*sc, gromYBack] : gBR;
+  const gromsToDraw=[];
+  gromsToDraw.push(gBL_back);                              // left back grommet (always present)
+  if(!leftIsConn)  gromsToDraw.push(gFL);                 // left front grommet only on a non-connecting side
+  gromsToDraw.push(gBR_back);                              // right back grommet (always present)
+  if(!rightIsConn) gromsToDraw.push(gFR);                 // right front grommet only on a non-connecting side
+  for(const[gx,gy]of gromsToDraw){add('circle',{cx:gx,cy:gy,r:6,fill:'none',stroke:gromColor,'stroke-width':2.5});add('circle',{cx:gx,cy:gy,r:2,fill:gromColor});}
+  const tk=4,gc='#92400e',gf=9;
+  const gDimH=(xa,xb,y,label,above)=>{add('line',{x1:xa,y1:y,x2:xb,y2:y,stroke:gc,'stroke-width':1});add('line',{x1:xa,y1:y-tk,x2:xa,y2:y+tk,stroke:gc,'stroke-width':1});add('line',{x1:xb,y1:y-tk,x2:xb,y2:y+tk,stroke:gc,'stroke-width':1});add('text',{x:(xa+xb)/2,y:above?y-4:y+10,'text-anchor':'middle','font-size':gf,fill:gc,'font-weight':'bold'}).textContent=label;};
+  const gDimV=(x,ya,yb,label,rightSide)=>{add('line',{x1:x,y1:ya,x2:x,y2:yb,stroke:gc,'stroke-width':1});add('line',{x1:x-tk,y1:ya,x2:x+tk,y2:ya,stroke:gc,'stroke-width':1});add('line',{x1:x-tk,y1:yb,x2:x+tk,y2:yb,stroke:gc,'stroke-width':1});add('text',{x:rightSide?x+5:x-5,y:(ya+yb)/2+4,'text-anchor':rightSide?'start':'end','font-size':gf,fill:gc,'font-weight':'bold'}).textContent=label;};
+  const gLabel=(g,txt,rightSide)=>add('text',{x:g[0]+(rightSide?10:-10),y:g[1]+4,'text-anchor':rightSide?'start':'end','font-size':gf,fill:gc,'font-weight':'bold'}).textContent=txt;
+  if(!sectOpts.isSectional){
+    // Symmetric cover: label the LEFT side G1 (back) / G2 (front); the right mirrors it.
+    gLabel(gBL,'G1',false); gLabel(gFL,'G2',false);
+    gDimV(gBL[0]-14,yBackFloor,gBL[1],`${rIn(gromInsetIn)}"`,false);
+    gDimH(cx,gBL[0],gBL[1]-12,`${rIn(gromBackHorizFromCenter)}" from center`,true);
+    gDimV(gFL[0]-14,gFL[1],drawBotY,`${rIn(gromInsetIn)}"`,false);
+    gDimH(cx,gFL[0],gFL[1]+14,`${rIn(gromFrontHorizFromCenter)}" from center`,false);
+  } else {
+    const outRight = outerSide==='right';
+    const gOB = outRight?gBR:gBL;                 // outer back
+    const gOF = outRight?gFR:gFL;                 // outer front
+    const gCB = leftIsConn?gBL_back:gBR_back;     // connecting back (the joint grommet on the short piece)
+    // Outer side: G1 back, G2 front — full dims.
+    gLabel(gOB,'G1',outRight); gLabel(gOF,'G2',outRight);
+    gDimV(outRight?gOB[0]+14:gOB[0]-14,yBackFloor,gOB[1],`${rIn(gromInsetIn)}"`,outRight);
+    gDimH(cx,gOB[0],gOB[1]-12,`${rIn(gromBackHorizFromCenter)}" from center`,true);
+    gDimV(outRight?gOF[0]+14:gOF[0]-14,gOF[1],drawBotY,`${rIn(gromInsetIn)}"`,outRight);
+    gDimH(cx,gOF[0],gOF[1]+14,`${rIn(gromFrontHorizFromCenter)}" from center`,false);
+    // Connecting-side back grommet: G3 (joint grommet on the short piece).
+    gLabel(gCB,'G3',rightIsConn);
+    gDimV(rightIsConn?gCB[0]+14:gCB[0]-14,yBackFloor,gCB[1],`${rIn(gromInsetIn)}"`,rightIsConn);
+    if(isShort){
+      const edgeX = leftIsConn ? furnX : (furnX+furnW);
+      gDimH(edgeX,gCB[0],gCB[1]-12,`${jointInsetIn}" from joint edge`,true);
+    } else {
+      gDimH(cx,gCB[0],gCB[1]-12,`${rIn(gromBackHorizFromCenter)}" from center`,true);
+    }
+  }
+  // Snap color convention: MALE = green (stud), FEMALE = teal (socket).
+  // For each back-corner pair, one half is a stud and one is a socket so they mate when the corner folds.
+  const STUD_FILL='#22c55e', STUD_STROKE='#166534';
+  const SOCKET_FILL='#db2777', SOCKET_STROKE='#831843';
+  // ── Corner snaps: TWO dots per corner (stud and socket halves of the snap pair)
+  //
+  // Each back corner of the cover is bounded by two dotted couch-footprint lines:
+  //   - SIDE dotted line  (vertical, at x = furnX±W/2): from yBackFloor down to furnTopY
+  //   - BACK dotted line  (horizontal, at y = furnTopY): from furnX±W/2 out to cover edge
+  // These two lines meet at the couch's back corner (furnX±W/2, furnTopY).
+  //
+  // The corner piece is the fabric region INSIDE these two dotted lines and bounded
+  // by the diagonal cut + back hem on the outer side.
+  //
+  // Each snap half is placed 2" perpendicular IN from one of the two dotted lines,
+  // at the midpoint of that line in the corner region:
+  //
+  //   Snap A — references the SIDE dotted line (vertical):
+  //     • x: 2" perpendicular into the corner piece (away from the couch side)
+  //     • y: halfway down the side dotted line  → (yBackFloor + furnTopY) / 2
+  //
+  //   Snap B — references the BACK dotted line (horizontal):
+  //     • y: 2" perpendicular into the corner piece (up from the couch back)
+  //     • x: halfway along the back dotted line in the corner region
+  //          → midpoint between (furnX±W/2) and the cover's outer edge at furnTopY
+  //
+  // When the corner piece folds inward (on the bias, along the diagonal of the
+  // corner rectangle), Snap A and Snap B meet and mate — holding the corner flat.
+  //
+  const snapInIn = 2;                                   // inches perpendicular in from the dotted line
+  const snapInPx = snapInIn * sc;
+  const snapAY   = (yBackFloor + furnTopY) / 2;         // midpoint of SIDE dotted line (vertical)
+
+  // Cover's outer edge x-coordinate at y = furnTopY (right of couch footprint)
+  // — accounts for short-arm trimmed straight edge if applicable.
+  const coverEdgeR_atFurnTopY = cx + rightEdgePx(furnTopY);
+  const coverEdgeL_atFurnTopY = cx - leftEdgePx(furnTopY);
+
+  // Right back corner
+  const snapR_A_x = (furnX + furnW) + snapInPx;        // 2" right of side dotted line
+  const snapR_A_y = snapAY;                             // halfway down side line
+  const snapR_B_x = ((furnX + furnW) + coverEdgeR_atFurnTopY) / 2;  // midpoint of back line
+  const snapR_B_y = furnTopY - snapInPx;                // 2" above back dotted line
+
+  // Left back corner (mirror)
+  const snapL_A_x = furnX - snapInPx;
+  const snapL_A_y = snapAY;
+  const snapL_B_x = (furnX + coverEdgeL_atFurnTopY) / 2;
+  const snapL_B_y = furnTopY - snapInPx;
+
+  // Suppression for short arm pieces (no snap on the connecting/cut side)
+  const suppressLeft  = sectOpts.isSectional && sectOpts.isShortPiece && sectOpts.side==='right';
+  const suppressRight = sectOpts.isSectional && sectOpts.isShortPiece && sectOpts.side==='left';
+
+  const _sr = 5;
+  // Convention: Snap A (side-line reference) = MALE stud; Snap B (back-line reference) = FEMALE socket.
+  // When the corner piece folds inward on the bias, the stud and socket meet and mate.
+  if (!suppressRight) {
+    add('circle',{cx:snapR_A_x, cy:snapR_A_y, r:_sr, fill:STUD_FILL,   stroke:STUD_STROKE,  'stroke-width':1.5});
+    add('circle',{cx:snapR_B_x, cy:snapR_B_y, r:_sr, fill:SOCKET_FILL, stroke:SOCKET_STROKE,'stroke-width':1.5});
+  }
+  if (!suppressLeft) {
+    add('circle',{cx:snapL_A_x, cy:snapL_A_y, r:_sr, fill:STUD_FILL,   stroke:STUD_STROKE,  'stroke-width':1.5});
+    add('circle',{cx:snapL_B_x, cy:snapL_B_y, r:_sr, fill:SOCKET_FILL, stroke:SOCKET_STROKE,'stroke-width':1.5});
+  }
+
+  // Snap dimension annotations — show the 2" perpendicular and the midpoint
+  // distance for each snap. Drawn on the right corner by default; mirror if
+  // the right corner is suppressed.
+  const sc2 = '#16a34a';
+  const sDimH = (xa,xb,y,label,above) => {
+    add('line',{x1:xa,y1:y,x2:xb,y2:y,stroke:sc2,'stroke-width':1});
+    add('line',{x1:xa,y1:y-tk,x2:xa,y2:y+tk,stroke:sc2,'stroke-width':1});
+    add('line',{x1:xb,y1:y-tk,x2:xb,y2:y+tk,stroke:sc2,'stroke-width':1});
+    add('text',{x:(xa+xb)/2,y:above?y-4:y+10,'text-anchor':'middle','font-size':9,fill:sc2,'font-weight':'bold'}).textContent=label;
+  };
+  const sDimV = (x,ya,yb,label,right) => {
+    add('line',{x1:x,y1:ya,x2:x,y2:yb,stroke:sc2,'stroke-width':1});
+    add('line',{x1:x-tk,y1:ya,x2:x+tk,y2:ya,stroke:sc2,'stroke-width':1});
+    add('line',{x1:x-tk,y1:yb,x2:x+tk,y2:yb,stroke:sc2,'stroke-width':1});
+    add('text',{x:right?x+5:x-5,y:(ya+yb)/2+4,'text-anchor':right?'start':'end','font-size':9,fill:sc2,'font-weight':'bold'}).textContent=label;
+  };
+  if (!suppressRight) {
+    // Snap A dims: 2" perpendicular from side dotted line + halfway-down distance from back hem
+    sDimH(furnX + furnW, snapR_A_x, snapR_A_y - 10, `${snapInIn}"`, true);
+    sDimV(snapR_A_x + 10, yBackFloor, snapR_A_y, `${rIn((snapR_A_y - yBackFloor)/sc)}"`, true);
+    // Snap B dims: 2" perpendicular from back dotted line + midpoint distance from couch corner
+    sDimV(snapR_B_x + 10, furnTopY, snapR_B_y, `${snapInIn}"`, true);
+    sDimH(furnX + furnW, snapR_B_x, snapR_B_y - 10, `${rIn((snapR_B_x - (furnX+furnW))/sc)}"`, true);
+  } else if (!suppressLeft) {
+    sDimH(snapL_A_x, furnX, snapL_A_y - 10, `${snapInIn}"`, true);
+    sDimV(snapL_A_x - 10, yBackFloor, snapL_A_y, `${rIn((snapL_A_y - yBackFloor)/sc)}"`, false);
+    sDimV(snapL_B_x - 10, furnTopY, snapL_B_y, `${snapInIn}"`, false);
+    sDimH(snapL_B_x, furnX, snapL_B_y - 10, `${rIn((furnX - snapL_B_x)/sc)}"`, true);
+  }
+  // ── Bungee tabs — oriented strips with HEM at the cushion-top end and LOOP at the ground end.
+  // Physical: a strip of fabric folded into a loop and hemmed (sewn) to the cover. The bungee
+  // threads through the loop. Orientation matters: the hem is "above" the loop (closer to the
+  // cushion top), and the loop points "toward the ground" (toward the back-hem when the cover
+  // is on the couch).
+  //
+  // Flat layout for the BACK: yBackFloor (top of diagram) = back hem = closest to ground when worn.
+  // So in the SVG, the LOOP end of the tab is drawn TOWARD smaller y (up in the diagram)
+  // and the HEM end is drawn TOWARD larger y (down toward yBackrestTop / cushion top).
+  const tabC='#0ea5e9', tabBorder='#0369a1';
+  const tabW = 14;                                  // width of tab body
+  const tabBodyH = 18;                              // length from loop to hem
+  const tabHemY = yBackrestTop - 2*sc;              // hem is 2" into back drape from the fold
+  const tabLoopY = tabHemY - tabBodyH;              // loop is tabBodyH px above hem (toward yBackFloor)
+  const tabLX = cx - gromBackHorizFromCenter*sc;
+  const tabRX = cx + gromBackHorizFromCenter*sc;
+  // Every side with a back grommet also gets a back bungee tab, aligned with that grommet. On the
+  // short piece's connecting side the back grommet is the relocated joint grommet, so its tab moves
+  // with it. The outer-side tab routes the front-to-back bungee; the connecting-side tab routes the
+  // short joint bungee that secures the back corner of the seam.
+  const tabLXpos = gBL_back[0];
+  const tabRXpos = gBR_back[0];
+  for (const tx of [tabLXpos, tabRXpos]) {
+    // Tab body — straight sides + rounded loop end at top
+    const arcR = tabW/2;
+    add('path', {
+      d:`M ${tx-tabW/2} ${tabHemY}
+         L ${tx-tabW/2} ${tabLoopY+arcR}
+         Q ${tx-tabW/2} ${tabLoopY-1} ${tx} ${tabLoopY-1}
+         Q ${tx+tabW/2} ${tabLoopY-1} ${tx+tabW/2} ${tabLoopY+arcR}
+         L ${tx+tabW/2} ${tabHemY} Z`,
+      fill:tabC, 'fill-opacity':0.6, stroke:tabBorder,'stroke-width':1.2
+    });
+    // Loop opening — horizontal slot showing where the bungee threads through
+    add('ellipse', {cx:tx, cy:tabLoopY+arcR-1, rx:tabW/2-3, ry:1.8,
+      fill:'#ffffff', stroke:tabBorder,'stroke-width':1});
+    // Hem line — thicker line at the sewn (cushion-top) end
+    add('line', {x1:tx-tabW/2-3, y1:tabHemY, x2:tx+tabW/2+3, y2:tabHemY,
+      stroke:tabBorder,'stroke-width':2});
+    // Stitch ticks just below the hem line
+    for (let i = 0; i < 3; i++) {
+      const sxStart = tx - tabW/2 + (i*tabW/3) + tabW/6;
+      add('line', {x1:sxStart-1.5, y1:tabHemY+2, x2:sxStart+1.5, y2:tabHemY+2,
+        stroke:tabBorder,'stroke-width':1});
+    }
+  }
+  // Fully label the OUTER tab (loop / hem / BT + dimensions); on a non-sectional cover that's the
+  // left tab. The connecting-side tab gets a compact "BT" label below.
+  const btTabX = !sectOpts.isSectional ? tabLXpos : (outerSide==='right'?tabRXpos:tabLXpos);
+  const btSide = (!sectOpts.isSectional) ? -1 : (outerSide==='right'?1:-1);
+  const tabLabelX = btTabX + btSide*(tabW/2 + 6);
+  const tabLabelAnchor = btSide>0 ? 'start' : 'end';
+  add('text',{x:tabLabelX, y:tabLoopY+3,'text-anchor':tabLabelAnchor,
+    'font-size':8, fill:tabBorder,'font-style':'italic'}).textContent='loop';
+  add('text',{x:tabLabelX, y:tabHemY+3,'text-anchor':tabLabelAnchor,
+    'font-size':8, fill:tabBorder,'font-style':'italic'}).textContent='hem';
+  add('text',{x:tabLabelX, y:(tabHemY+tabLoopY)/2+4,'text-anchor':tabLabelAnchor,
+    'font-size':10, fill:tabBorder,'font-weight':'bold'}).textContent='BT';
+  // Compact label for the connecting-side tab (sectional only).
+  if(sectOpts.isSectional){
+    const connTabX = rightIsConn?tabRXpos:tabLXpos;
+    add('text',{x:connTabX + (rightIsConn?1:-1)*(tabW/2+6), y:(tabHemY+tabLoopY)/2+4,
+      'text-anchor':rightIsConn?'start':'end','font-size':10,fill:tabBorder,'font-weight':'bold'}).textContent='BT';
+  }
+
+  // ── Bungee tab dimension annotations (so manufacturer can plot positions) — on the OUTER tab.
+  //    Show: (1) horizontal distance from center seam (cx) to tab center,
+  //          (2) vertical 2" offset from back fold line (yBackrestTop) to tab hem,
+  //          (3) vertical total distance from back hem (yBackFloor) to tab hem.
+  const btDimC = tabBorder;
+  // (1) Horizontal: cx → kept tab, drawn above the tabs near the back hem
+  const btDimY = Math.max(yBackFloor + 14, tabLoopY - 14);
+  add('line',{x1:cx,y1:btDimY,x2:btTabX,y2:btDimY,stroke:btDimC,'stroke-width':1});
+  add('line',{x1:cx,y1:btDimY-3,x2:cx,y2:btDimY+3,stroke:btDimC,'stroke-width':1});
+  add('line',{x1:btTabX,y1:btDimY-3,x2:btTabX,y2:btDimY+3,stroke:btDimC,'stroke-width':1});
+  add('text',{x:(cx+btTabX)/2,y:btDimY-3,'text-anchor':'middle',
+    'font-size':9,fill:btDimC,'font-weight':'bold'})
+    .textContent=`${rIn(gromBackHorizFromCenter)}" from center seam`;
+  // (2) Vertical 2" tag: from yBackrestTop (fold line) up to tabHemY, on the toward-center side of the tab
+  const btDimX2 = btTabX - btSide*(tabW/2 + 6);
+  add('line',{x1:btDimX2,y1:tabHemY,x2:btDimX2,y2:yBackrestTop,stroke:btDimC,'stroke-width':1});
+  add('line',{x1:btDimX2-3,y1:tabHemY,x2:btDimX2+3,y2:tabHemY,stroke:btDimC,'stroke-width':1});
+  add('line',{x1:btDimX2-3,y1:yBackrestTop,x2:btDimX2+3,y2:yBackrestTop,stroke:btDimC,'stroke-width':1});
+  add('text',{x:btDimX2-btSide*4,y:(tabHemY+yBackrestTop)/2+3,'text-anchor':btSide>0?'end':'start',
+    'font-size':8,fill:btDimC,'font-weight':'bold'}).textContent=`2" from fold`;
+  // (3) Vertical total: from yBackFloor (back hem) down to tabHemY, outside the tab labels
+  const btDimX3 = tabLabelX + btSide*28;
+  const btHemToHemIn = rIn((tabHemY - yBackFloor)/sc);
+  add('line',{x1:btDimX3,y1:yBackFloor,x2:btDimX3,y2:tabHemY,stroke:btDimC,'stroke-width':1});
+  add('line',{x1:btDimX3-3,y1:yBackFloor,x2:btDimX3+3,y2:yBackFloor,stroke:btDimC,'stroke-width':1});
+  add('line',{x1:btDimX3-3,y1:tabHemY,x2:btDimX3+3,y2:tabHemY,stroke:btDimC,'stroke-width':1});
+  add('text',{x:btDimX3+btSide*4,y:(yBackFloor+tabHemY)/2+3,'text-anchor':btSide>0?'start':'end',
+    'font-size':8,fill:btDimC,'font-weight':'bold'}).textContent=`${btHemToHemIn}" from back hem`;
+
+  // ── Short arm: the polygon shape already has the rectangular notch removed from the
+  //    front-connecting corner. Add a label inside the notch area so it reads as a "cut corner".
+  if(sectOpts.isSectional && sectOpts.isShortPiece){
+    const cutOnLeft = sectOpts.side==='right';
+    // Label sits in the center of the removed-notch area
+    const notchCx = cutOnLeft ? (saLeftX + furnX) / 2 : (furnX + furnW + saRightX) / 2;
+    const notchCy = (yPointB + drawBotY) / 2;
+    add('text',{x:notchCx, y:notchCy-4,'text-anchor':'middle',
+      'font-size':10, fill:'#dc2626','font-weight':'bold'}).textContent='CUT CORNER';
+    add('text',{x:notchCx, y:notchCy+9,'text-anchor':'middle',
+      'font-size':8, fill:'#b91c1c'}).textContent='front drape cut away';
+
+    // ── Connecting snaps: a CENTER-OUT vertical row sitting 1" INSIDE the short couch's footprint
+    //    (just past the joint edge). The center socket sits at the middle of the cushion depth; the
+    //    matching pairs step out by the fixed spacing. This mirrors the main piece's center-out
+    //    studs, so aligning the two center snaps lines the whole row up 1:1.
+    const csSnapX  = cutOnLeft
+      ? furnX + 1*sc            // 1" inside the couch footprint, past the left joint edge
+      : furnX + furnW - 1*sc;   // 1" inside the couch footprint, past the right joint edge
+    const csCenterY = furnTopY + furnD/2;                     // center of the cushion depth
+    const eachSideS = sectOpts.connSnapEachSide || 1;
+    const csSpacingIn = sectOpts.connSnapSpacing || 6;
+    const csStepPx  = csSpacingIn * sc;
+    const numCsSnaps = 1 + 2*eachSideS;
+    // Short piece carries FEMALE (socket) halves — mates with the main piece's studs
+    const snapC2 = SOCKET_FILL, snapS2 = SOCKET_STROKE;
+    for(let k=-eachSideS; k<=eachSideS; k++){
+      add('circle',{cx:csSnapX, cy:csCenterY + k*csStepPx, r:5,
+        fill:snapC2, stroke:snapS2, 'stroke-width':1.5});
+    }
+    // Rotated label to the outside of the drape zone
+    const csLabelX = cutOnLeft ? saLeftX - 10 : saRightX + 10;
+    const csAnchor = cutOnLeft ? 'end' : 'start';
+    add('text',{x:csLabelX, y:csCenterY, 'text-anchor':csAnchor,
+      'dominant-baseline':'middle','font-size':9,fill:snapS2,'font-weight':'bold',
+      transform:`rotate(-90 ${csLabelX} ${csCenterY})`})
+      .textContent=`${numCsSnaps} connecting snaps (socket) · center-out, ${csSpacingIn}" apart`;
+    // Horizontal 1" dimension marker from the couch edge to the snap column
+    const csJointX = cutOnLeft ? furnX : (furnX + furnW);
+    const csDimY = csCenterY - eachSideS*csStepPx - 12;
+    add('line',{x1:csJointX,y1:csDimY,x2:csSnapX,y2:csDimY,stroke:snapS2,'stroke-width':1});
+    add('line',{x1:csJointX,y1:csDimY-3,x2:csJointX,y2:csDimY+3,stroke:snapS2,'stroke-width':1});
+    add('line',{x1:csSnapX,y1:csDimY-3,x2:csSnapX,y2:csDimY+3,stroke:snapS2,'stroke-width':1});
+    add('text',{x:(csJointX+csSnapX)/2,y:csDimY-3,'text-anchor':'middle',
+      'font-size':8,fill:snapS2,'font-weight':'bold'}).textContent=`1"`;
+    // Center marker
+    add('line',{x1:csSnapX-9,y1:csCenterY,x2:csSnapX+9,y2:csCenterY,stroke:snapS2,'stroke-width':1,'stroke-dasharray':'2,2'});
+    add('text',{x:csSnapX + (cutOnLeft?12:-12),y:csCenterY+3,'text-anchor':cutOnLeft?'start':'end',
+      'font-size':8,fill:snapS2,'font-weight':'bold'}).textContent='center';
+    // Vertical dim: center → front edge of footprint (= half the cushion depth)
+    const csFrontY = furnTopY + furnD;
+    const csCenterDimX = cutOnLeft ? saLeftX - 22 : saRightX + 22;
+    add('line',{x1:csCenterDimX,y1:csCenterY,x2:csCenterDimX,y2:csFrontY,stroke:snapS2,'stroke-width':1});
+    add('line',{x1:csCenterDimX-3,y1:csCenterY,x2:csCenterDimX+3,y2:csCenterY,stroke:snapS2,'stroke-width':1});
+    add('line',{x1:csCenterDimX-3,y1:csFrontY,x2:csCenterDimX+3,y2:csFrontY,stroke:snapS2,'stroke-width':1});
+    add('text',{x:csCenterDimX + (cutOnLeft?-4:4),y:(csCenterY+csFrontY)/2+3,'text-anchor':cutOnLeft?'end':'start',
+      'font-size':8,fill:snapS2,'font-weight':'bold'}).textContent=`${rIn(D/2)}" from front`;
+    // Spacing label between center and the next snap
+    {const cy1=csCenterY, cy2=csCenterY+csStepPx, dx=cutOnLeft?csSnapX+16:csSnapX-16, an=cutOnLeft?'start':'end';
+     add('line',{x1:dx,y1:cy1,x2:dx,y2:cy2,stroke:snapS2,'stroke-width':1});
+     add('line',{x1:dx-3,y1:cy1,x2:dx+3,y2:cy1,stroke:snapS2,'stroke-width':1});
+     add('line',{x1:dx-3,y1:cy2,x2:dx+3,y2:cy2,stroke:snapS2,'stroke-width':1});
+     add('text',{x:dx + (cutOnLeft?4:-4),y:(cy1+cy2)/2+3,'text-anchor':an,'font-size':8,fill:snapS2,'font-weight':'bold'}).textContent=`${csSpacingIn}"`;}
+
+    // ════════════════════════════════════════════════════════════════════════════
+    // SECTIONAL JOINT DETAIL — right-side callout box (short piece). Mirrors the main
+    // piece's box so the short piece gets the same legend of where everything goes.
+    // ════════════════════════════════════════════════════════════════════════════
+    {
+      const boxW = 250;
+      const boxX = VBW - boxW - 20;
+      const boxY = Math.max(drawTopY + 20, yPointB - 70);
+      const padX = 12, padY = 10;
+      let lineY = boxY + padY + 14;
+      const lineH = 14, subH = 11;
+      const titleColor = '#0f172a', sectionColor = '#475569';
+      const txt = (s, opts={}) => add('text', Object.assign({x: boxX + padX, y: lineY, 'font-size': 10, fill: '#334155'}, opts)).textContent = s;
+      add('rect',{x:boxX,y:boxY,width:boxW,height:0,fill:'#ffffff',stroke:'#cbd5e1','stroke-width':1.2,rx:6,id:'jointDetailBoxShort_'+svgId});
+      txt(`SECTIONAL JOINT — ${cutOnLeft?'LEFT':'RIGHT'} SIDE`, {'font-size':11, fill:titleColor, 'font-weight':'bold', 'letter-spacing':'0.5'});
+      lineY += lineH + 4;
+      add('line',{x1:boxX+padX,y1:lineY-8,x2:boxX+boxW-padX,y2:lineY-8,stroke:'#e2e8f0','stroke-width':1});
+      const section = (swatchColor, swatchStroke, headerText) => {
+        const sy = lineY - 8;
+        add('rect',{x:boxX+padX,y:sy-4,width:14,height:9,fill:swatchColor,stroke:swatchStroke,'stroke-width':1});
+        add('text',{x:boxX+padX+20,y:lineY,'font-size':10,fill:sectionColor,'font-weight':'bold'}).textContent = headerText;
+        lineY += lineH;
+      };
+      const detail = (s) => { add('text',{x:boxX+padX+10,y:lineY,'font-size':9,fill:'#475569'}).textContent = '• ' + s; lineY += subH; };
+      // 1. CONNECTING SNAPS (socket)
+      section(SOCKET_FILL, SOCKET_STROKE, 'CONNECTING SNAPS (socket)');
+      detail(`${numCsSnaps} sockets, 1" inside footprint`);
+      detail(`center socket ${rIn(D/2)}" from front (mid-depth)`);
+      detail(`pairs stepped ${csSpacingIn}" out from center`);
+      detail(`aligns 1:1 with the main piece's studs`);
+      lineY += 4;
+      // 2. JOINT GROMMET
+      section('#ffffff', gromColor, 'JOINT GROMMET (G3)');
+      detail(`${jointInsetIn}" in from the joint edge`);
+      detail(`back inset, with bungee tab`);
+      detail(`joint bungee → main back grommet`);
+      lineY += 4;
+      // 3. CUT CORNER
+      section('#fee2e2', '#dc2626', 'CUT CORNER');
+      detail(`front drape cut away`);
+      detail(`at the inner front corner`);
+      // Close the box
+      const boxBot = lineY + padY - subH + 4;
+      const boxRect = document.getElementById('jointDetailBoxShort_'+svgId);
+      if (boxRect) boxRect.setAttribute('height', boxBot - boxY);
+    }
+
+    // (No mating sockets on the short piece. The main piece's overlap flap has no outer-edge
+    //  snaps to mate with — it hangs free over the joint and is held by its own weight.)
+  }
+
+  // ── Sectional main arm: cut line through front drape only
+  if(sectOpts.isSectional && !sectOpts.isShortPiece && sectOpts.cutLineDist > 0){
+    const cld = sectOpts.cutLineDist;
+    const side = sectOpts.side;
+    const clColor = '#f97316'; // orange
+
+    // Reference point = arm edge of the couch (end of the couch, not end of the material)
+    const couchEdgeX = side==='right' ? cx + furnW/2 : cx - furnW/2;
+
+    // Cut line is cld inches inward from the couch arm edge
+    const cutLineX = side==='right' ? couchEdgeX - cld*sc : couchEdgeX + cld*sc;
+
+    // Cut line spans the front drape only: from yPointB (front fold line) down to drawBotY (floor)
+    add('line',{x1:cutLineX,y1:yPointB,x2:cutLineX,y2:drawBotY,
+      stroke:clColor,'stroke-width':2.5,'stroke-dasharray':'10,4'});
+
+    // Small reference tick at the couch arm edge on the fold line
+    add('line',{x1:couchEdgeX,y1:yPointB-8,x2:couchEdgeX,y2:yPointB+8,
+      stroke:clColor,'stroke-width':1.5});
+
+    // Dimension bracket at the fold line — just the bracket + ticks, no inline label.
+    //   Numeric detail lives in the right-side "SECTIONAL JOINT DETAIL" callout box.
+    const [xa,xb] = side==='right' ? [cutLineX,couchEdgeX] : [couchEdgeX,cutLineX];
+    const dimY = yPointB - 14;
+    add('line',{x1:xa,y1:dimY,x2:xb,y2:dimY,stroke:clColor,'stroke-width':1});
+    add('line',{x1:xa,y1:dimY-4,x2:xa,y2:dimY+4,stroke:clColor,'stroke-width':1});
+    add('line',{x1:xb,y1:dimY-4,x2:xb,y2:dimY+4,stroke:clColor,'stroke-width':1});
+
+    // Rotated label along the cut line
+    const midY = (yPointB + drawBotY) / 2;
+    const lblX = side==='right' ? cutLineX - 10 : cutLineX + 10;
+    add('text',{x:lblX,y:midY,'text-anchor':'middle','font-size':10,fill:clColor,'font-weight':'bold',
+      transform:`rotate(-90 ${lblX} ${midY})`})
+      .textContent='cut line';
+
+    // Connecting snaps: a CENTER-OUT row along the seat edge (front border of the footprint, 1" in).
+    // The center snap sits at the midpoint of the cut-line→arm overlap; matching pairs step out by the
+    // fixed spacing. The short piece mirrors this same center-out scheme, so the two rows line up when
+    // the installer aligns the center snaps — regardless of the pieces' different spans.
+    const snapRowY = furnTopY + furnD + 1*sc;
+    const snapCenterX = (cutLineX + couchEdgeX) / 2;          // midpoint of the cut-line→arm overlap
+    const eachSide = sectOpts.connSnapEachSide || 1;
+    const snapSpacing = sectOpts.connSnapSpacing || 6;
+    const snapStepPx = snapSpacing * sc;
+    const numConnSnaps = 1 + 2*eachSide;
+    const snapC = STUD_FILL, snapS = STUD_STROKE;
+    for(let k=-eachSide; k<=eachSide; k++){
+      add('circle',{cx:snapCenterX + k*snapStepPx, cy:snapRowY, r:5, fill:snapC, stroke:snapS,'stroke-width':1.5});
+    }
+    // 1" perpendicular tick (snap row sits 1" in front of the footprint front edge)
+    const dimSnapX = side==='right' ? snapCenterX + eachSide*snapStepPx + 16 : snapCenterX - eachSide*snapStepPx - 16;
+    add('line',{x1:dimSnapX,y1:furnTopY+furnD,x2:dimSnapX,y2:snapRowY,stroke:snapS,'stroke-width':1});
+    add('line',{x1:dimSnapX-3,y1:furnTopY+furnD,x2:dimSnapX+3,y2:furnTopY+furnD,stroke:snapS,'stroke-width':1});
+    add('line',{x1:dimSnapX-3,y1:snapRowY,x2:dimSnapX+3,y2:snapRowY,stroke:snapS,'stroke-width':1});
+    add('text',{x:dimSnapX + (side==='right' ? 5 : -5),y:(furnTopY+furnD+snapRowY)/2+3,
+      'text-anchor':side==='right'?'start':'end','font-size':8,fill:snapS,'font-weight':'bold'}).textContent=`1"`;
+    // Center marker
+    add('line',{x1:snapCenterX,y1:snapRowY-9,x2:snapCenterX,y2:snapRowY+9,stroke:snapS,'stroke-width':1,'stroke-dasharray':'2,2'});
+    add('text',{x:snapCenterX,y:snapRowY+20,'text-anchor':'middle','font-size':8,fill:snapS,'font-weight':'bold'}).textContent='center';
+    // Spacing label between the center snap and the next snap
+    {const a=snapCenterX, b=snapCenterX+snapStepPx, my=snapRowY-13;
+     add('line',{x1:a,y1:my,x2:b,y2:my,stroke:snapS,'stroke-width':1});
+     add('line',{x1:a,y1:my-3,x2:a,y2:my+3,stroke:snapS,'stroke-width':1});
+     add('line',{x1:b,y1:my-3,x2:b,y2:my+3,stroke:snapS,'stroke-width':1});
+     add('text',{x:(a+b)/2,y:my-3,'text-anchor':'middle','font-size':8,fill:snapS,'font-weight':'bold'}).textContent=`${snapSpacing}"`;}
+    const spacingIn = snapSpacing;
+    const centerFromCutIn = Math.round((cld/2)*10)/10;
+
+    // ── Overlap flap: a separate strip centered on the cut line. It is sewn (hemmed) to the main
+    //    cover along its TOP edge and its INNER edge (the side toward the main cover body); the cut
+    //    line runs down its MIDDLE; the OUTER edge — toward the joint / short couch — hangs FREE so
+    //    it flaps open over the seam.
+    if(sectOpts.flapWidth > 0){
+      const fw = sectOpts.flapWidth;
+      const hemIn = 1; // 1" sewn allowance
+      const flapLeft  = cutLineX - (fw/2)*sc;
+      const flapRight = cutLineX + (fw/2)*sc;
+      const flapTop   = yPointB - hemIn*sc;   // 1" above fold line
+      const flapBot   = drawBotY;
+      const flapHtIn  = (drawBotY - yPointB)/sc + hemIn;
+      const flapC = '#fde68a', flapBorder = '#d97706', flapText = '#92400e';
+      const hemC = '#fbbf24', stitchC = '#7c2d12';
+      // Inner (sewn) edge faces the main cover body; for side=right that's the LEFT edge. The outer
+      // (free) edge faces the joint / short couch on the `side` direction.
+      const sewnLeft = (side==='right');
+      const sewnEdgeX = sewnLeft ? flapLeft  : flapRight;
+      const freeEdgeX = sewnLeft ? flapRight : flapLeft;
+      const vHemW = hemIn*sc;
+
+      // Flap body
+      add('rect',{x:flapLeft,y:flapTop,width:fw*sc,height:flapBot-flapTop,
+        fill:flapC,opacity:0.55,stroke:flapBorder,'stroke-width':1.5,'stroke-dasharray':'5,3'});
+      // Hem band along the TOP (sewn at the front fold)
+      add('rect',{x:flapLeft,y:flapTop,width:fw*sc,height:vHemW,
+        fill:hemC,opacity:0.6,stroke:flapBorder,'stroke-width':1});
+      // Hem band along the INNER (sewn) edge — vertical, full height
+      add('rect',{x:sewnLeft?sewnEdgeX:sewnEdgeX-vHemW,y:flapTop,width:vHemW,height:flapBot-flapTop,
+        fill:hemC,opacity:0.6,stroke:flapBorder,'stroke-width':1});
+      // Stitch ticks down the sewn edge and across the top so both read as sewn-down.
+      const stitchVX = sewnLeft ? sewnEdgeX+vHemW/2 : sewnEdgeX-vHemW/2;
+      for(let syy=flapTop+vHemW+6; syy<flapBot-3; syy+=12){
+        add('line',{x1:stitchVX-1.5,y1:syy,x2:stitchVX+1.5,y2:syy,stroke:stitchC,'stroke-width':1});
+      }
+      for(let sxx=flapLeft+6; sxx<flapRight-3; sxx+=12){
+        add('line',{x1:sxx,y1:flapTop+vHemW/2-1.5,x2:sxx,y2:flapTop+vHemW/2+1.5,stroke:stitchC,'stroke-width':1});
+      }
+      // "hem — sewn to cover" along the inner edge (rotated)
+      const hemLblX = sewnLeft ? sewnEdgeX-4 : sewnEdgeX+4;
+      add('text',{x:hemLblX,y:(flapTop+flapBot)/2,'text-anchor':sewnLeft?'end':'start',
+        'font-size':9,fill:flapText,'font-weight':'bold',
+        transform:`rotate(-90 ${hemLblX} ${(flapTop+flapBot)/2})`}).textContent='hem — sewn to cover';
+      // "free — flaps open" along the outer edge (rotated)
+      const freeLblX = sewnLeft ? freeEdgeX+4 : freeEdgeX-4;
+      add('text',{x:freeLblX,y:(flapTop+flapBot)/2,'text-anchor':sewnLeft?'start':'end',
+        'font-size':9,fill:flapText,'font-style':'italic',
+        transform:`rotate(-90 ${freeLblX} ${(flapTop+flapBot)/2})`}).textContent='free — flaps open';
+
+      // Title below the flap
+      const flapTitleY = flapBot + 14;
+      add('text',{x:(flapLeft+flapRight)/2,y:flapTitleY,
+        'text-anchor':'middle','font-size':11,fill:flapText,'font-weight':'bold'})
+        .textContent='overlap flap';
+    }
+
+    // ════════════════════════════════════════════════════════════════════════════
+    // SECTIONAL JOINT DETAIL — right-side callout box.
+    //   All numerical detail for the cut line, connecting snaps, overlap flap,
+    //   hem, and sew line lives here so the diagram itself stays uncluttered.
+    // ════════════════════════════════════════════════════════════════════════════
+    {
+      const boxW = 250;
+      // Sit the box at the right edge of the SVG (VBW=1600), well clear of the
+      // rotated "Panel length" text at cx+halfMid+88.
+      const boxX = VBW - boxW - 20;
+      // Vertically: center over the joint area (yPointB) but keep top below
+      // the back-floor dim and bottom above the FRONT label.
+      const boxY = Math.max(drawTopY + 20, yPointB - 70);
+      const padX = 12, padY = 10;
+      let lineY = boxY + padY + 14;                  // running cursor for content
+      const lineH = 14;
+      const subH  = 11;
+      const titleColor = '#0f172a';
+      const sectionColor = '#475569';
+      const txt = (s, opts={}) => add('text', Object.assign({
+        x: boxX + padX, y: lineY, 'font-size': 10, fill: '#334155'
+      }, opts)).textContent = s;
+      // Outline + drop-shadow-ish backing
+      add('rect',{x:boxX+3,y:boxY+3,width:boxW,height:1,fill:'none'}); // anchor
+      add('rect',{x:boxX,y:boxY,width:boxW,height:0,fill:'#ffffff',stroke:'#cbd5e1',
+        'stroke-width':1.2,rx:6,id:'jointDetailBox_'+svgId});
+      // Title
+      txt(`SECTIONAL JOINT — ${side==='right'?'RIGHT':'LEFT'} SIDE`, {
+        'font-size':11, fill:titleColor, 'font-weight':'bold', 'letter-spacing':'0.5'
+      });
+      lineY += lineH + 4;
+      // Divider
+      add('line',{x1:boxX+padX,y1:lineY-8,x2:boxX+boxW-padX,y2:lineY-8,
+        stroke:'#e2e8f0','stroke-width':1});
+
+      // Helper: section header with a color swatch
+      const section = (swatchColor, swatchStroke, headerText, isDashed) => {
+        const sy = lineY - 8;
+        if (isDashed) {
+          add('line',{x1:boxX+padX,y1:sy,x2:boxX+padX+14,y2:sy,
+            stroke:swatchStroke,'stroke-width':2,'stroke-dasharray':'4,2'});
+        } else {
+          add('rect',{x:boxX+padX,y:sy-4,width:14,height:9,
+            fill:swatchColor,stroke:swatchStroke,'stroke-width':1});
+        }
+        add('text',{x:boxX+padX+20,y:lineY,'font-size':10,fill:sectionColor,'font-weight':'bold'})
+          .textContent = headerText;
+        lineY += lineH;
+      };
+      const detail = (s) => {
+        add('text',{x:boxX+padX+10,y:lineY,'font-size':9,fill:'#475569'})
+          .textContent = '• ' + s;
+        lineY += subH;
+      };
+
+      // 1. CUT LINE (orange dashed)
+      section('#f97316','#f97316','CUT LINE',true);
+      detail(`${rIn(cld)}" from couch arm edge`);
+      lineY += 4;
+
+      // 2. CONNECTING SNAPS (green stud)
+      section(STUD_FILL, STUD_STROKE, 'CONNECTING SNAPS (stud)', false);
+      detail(`${numConnSnaps} studs, 1" below footprint`);
+      detail(`center stud ${centerFromCutIn}" from the cut line`);
+      detail(`pairs stepped ${spacingIn}" out from center`);
+      detail(`aligns 1:1 with short piece (center-out)`);
+      lineY += 4;
+
+      // 3. OVERLAP FLAP (only if drawn)
+      if (sectOpts.flapWidth > 0) {
+        const fw_in = sectOpts.flapWidth;
+        const flapHt_in = (drawBotY - yPointB)/sc + 1;
+        const sewnEdgeName = (side==='right') ? 'left' : 'right';
+        const freeEdgeName = (side==='right') ? 'right' : 'left';
+        section('#fde68a','#d97706','OVERLAP FLAP',false);
+        detail(`${rIn(fw_in)}" wide × ${rIn(flapHt_in)}" tall`);
+        detail(`cut line runs down the middle`);
+        detail(`sewn at top + ${sewnEdgeName} edge (hem)`);
+        detail(`${freeEdgeName} edge flaps open over joint`);
+      }
+
+      // Close the box: compute its final height and patch the rect
+      const boxBot = lineY + padY - subH + 4;
+      const boxRect = document.getElementById('jointDetailBox_'+svgId);
+      if (boxRect) boxRect.setAttribute('height', boxBot - boxY);
+    }
+  }
+
+  const dOff=70,wDimY=drawTopY-dOff+10;
+  dimLine(cx-halfMid,wDimY,cx+halfMid,wDimY);
+  add('text',{x:cx,y:wDimY-8,'text-anchor':'middle','font-size':14,fill:'#0f172a','font-weight':'bold'}).textContent=`Assembled width: ${rIn(couch_assembledW)}"`;
+  const lenDimX=cx+halfMid+dOff;
+  dimLine(lenDimX,drawTopY,lenDimX,drawBotY);
+  add('text',{x:lenDimX+18,y:(drawTopY+drawBotY)/2,'text-anchor':'middle','font-size':14,fill:'#0f172a','font-weight':'bold',transform:`rotate(-90 ${lenDimX+18} ${(drawTopY+drawBotY)/2})`}).textContent=`Panel length: ${rIn(couch_panelLen)}"`;
+  // Left side sub-dimensions — two columns so labels don't pile up
+  const sdc='#64748b',sdf=11,lx1=cx-halfMid-dOff,lx2=lx1-26;
+  const tick=(x1,y1,x2,y2)=>add('line',{x1,y1,x2,y2,stroke:sdc,'stroke-width':1});
+  // back drop segment (usually the longest — label on lx1)
+  dimLine(lx1,yBackFloor,lx1,yBackrestTop);tick(lx1-6,yBackFloor,lx1+6,yBackFloor);tick(lx1-6,yBackrestTop,lx1+6,yBackrestTop);
+  add('text',{x:lx2-4,y:(yBackFloor+yBackrestTop)/2,'text-anchor':'middle','font-size':sdf,fill:sdc,transform:`rotate(-90 ${lx2-4} ${(yBackFloor+yBackrestTop)/2})`}).textContent=`${rIn(sideDrop)}" back drop`;
+  // back inset (short — label only if long enough)
+  dimLine(lx1,yBackrestTop,lx1,yBackrestEnd);tick(lx1-6,yBackrestEnd,lx1+6,yBackrestEnd);
+  if((yBackrestEnd-yBackrestTop)>20)add('text',{x:lx2-4,y:(yBackrestTop+yBackrestEnd)/2,'text-anchor':'middle','font-size':sdf,fill:sdc,transform:`rotate(-90 ${lx2-4} ${(yBackrestTop+yBackrestEnd)/2})`}).textContent=`${rIn(couch_backInset)}" inset`;
+  // diagonal/taper
+  dimLine(lx1,yBackrestEnd,lx1,yPointB);tick(lx1-6,yPointB,lx1+6,yPointB);
+  if((yPointB-yBackrestEnd)>20)add('text',{x:lx2-4,y:(yBackrestEnd+yPointB)/2,'text-anchor':'middle','font-size':sdf,fill:sdc,transform:`rotate(-90 ${lx2-4} ${(yBackrestEnd+yPointB)/2})`}).textContent=`${rIn(couch_taperLen)}" taper`;
+  // front straight
+  dimLine(lx1,yPointB,lx1,drawBotY);tick(lx1-6,drawBotY,lx1+6,drawBotY);
+  if((drawBotY-yPointB)>20)add('text',{x:lx2-4,y:(yPointB+drawBotY)/2,'text-anchor':'middle','font-size':sdf,fill:sdc,transform:`rotate(-90 ${lx2-4} ${(yPointB+drawBotY)/2})`}).textContent=`${rIn(couch_frontStraight)}" front`;
+  // Back floor width (above the shape)
+  const bwY=drawTopY-30;dimLine(cx-halfBack,bwY,cx+halfBack,bwY);tick(cx-halfBack,bwY-6,cx-halfBack,bwY+6);tick(cx+halfBack,bwY-6,cx+halfBack,bwY+6);
+  add('text',{x:cx,y:bwY-8,'text-anchor':'middle','font-size':sdf,fill:sdc}).textContent=`${rIn(WB+2*hem)}" back width`;
+  // Front floor width (below the shape) + FRONT label
+  const ffY=drawBotY+30;dimLine(cx-frontDiagBottomPx,ffY,cx+frontDiagBottomPx,ffY);
+  add('text',{x:cx,y:ffY+18,'text-anchor':'middle','font-size':14,fill:'#0f172a','font-weight':'bold'}).textContent=`Front floor width: ${rIn(W+2*(bottomMargin||0))}"`;
+  add('text',{x:cx,y:ffY+42,'text-anchor':'middle','font-size':15,fill:'#0f172a','font-weight':'bold','letter-spacing':'2'}).textContent='▼  FRONT';
+
+  // ── Width-at-key-vertex annotations so the manufacturer can plot every polygon corner.
+  //    These slate-colored markers run along the right-hand side of the diagram, between
+  //    the polygon edge and the right-side panel-length dimension column.
+  const wvc = '#475569';                                  // slate-700
+  const wvLabelDx = 6;                                    // offset for the inline label
+  const wvDimW = (y, halfW, label) => {
+    // Skinny horizontal width marker centered on cx at height y, with tick marks at the polygon edge
+    add('line',{x1:cx-halfW,y1:y,x2:cx+halfW,y2:y,stroke:wvc,'stroke-width':0.8,'stroke-dasharray':'3,2',opacity:0.7});
+    add('line',{x1:cx-halfW,y1:y-4,x2:cx-halfW,y2:y+4,stroke:wvc,'stroke-width':1});
+    add('line',{x1:cx+halfW,y1:y-4,x2:cx+halfW,y2:y+4,stroke:wvc,'stroke-width':1});
+    add('text',{x:cx+halfW+wvLabelDx,y:y+3,'text-anchor':'start',
+      'font-size':9,fill:wvc,'font-weight':'bold'}).textContent=label;
+  };
+  // Width at yBackrestTop / yBackrestEnd = couch_assembledW (= 2*halfMid). Label once at midpoint.
+  const yBackrestMid = (yBackrestTop + yBackrestEnd) / 2;
+  wvDimW(yBackrestMid, halfMid, `${rIn(couch_assembledW)}" wide (mid)`);
+  // Width at yPointB = 2*halfFront (after front-corner cut). This is the END of the front-corner taper.
+  wvDimW(yPointB, halfFront, `${rIn(halfFront*2/sc)}" wide (taper end)`);
+}
+
+
+// ============================================================
+// compute
+// ============================================================
+function compute(){
+  try{
+    const roundMode=document.getElementById('roundMode').value;
+    const rounded=roundMode;
+    const B=parseNum('B'),W=parseNum('W'),WB=parseNum('WB'),H=parseNum('H'),D=parseNum('D');
+    const F2A=parseNum('F2A'),F2BS=parseNum('F2BS'),BR=parseNum('BR'),FC=parseNum('FC');
+    const hem=parseNum('hem'),seam=parseNum('seam'),bottomMargin=parseNum('bottomMargin');
+    const isSectional=document.getElementById('isSectional').checked;
+    const sectPieceEl=document.querySelector('input[name="sectPiece"]:checked');
+    const sectPiece=sectPieceEl?sectPieceEl.value:'main';
+    const isShortPiece=(sectPiece==='short');
+    const sideEl=document.querySelector('input[name="sideSelector"]:checked');
+    const sideSelector=sideEl?sideEl.value:'right';
+    const cutLineDist=parseNum('cutLineDist');
+    const flapWidth=parseNum('flapWidth');
+    const connectingOverlap=0; // input removed; handled manually at install
+    const snapStrapsOpt=false;
+
+    const AT2F=Math.sqrt(Math.max(0,H-F2A)**2+Math.max(0,D-BR)**2);
+    const sideDrop=H-FC;
+    const frontExtDrop=F2A-FC;
+    const ML=WB+2*sideDrop;
+    const totalFB=hem+BR+AT2F+frontExtDrop;
+    const backDrop=H-FC;
+    const MW=WB+2*(H-FC);
+    const backInset=hem+BR;
+    const frontInset=F2A-FC;
+    const taperZoneLength=Math.max(0,B-frontInset-backInset);
+    const frontWidthAfterCut=W+2*frontExtDrop;
+    const markFromSideEdge=Math.max(0,(ML-frontWidthAfterCut)/2);
+    const markFromCenter=frontWidthAfterCut/2;
+    const backPieceTopWidth=ML+seam,backPieceBottomWidth=WB+2*hem;
+    const backPieceHeight=H-FC,backPieceLength=backPieceTopWidth,backPieceWidth=backPieceHeight;
+    const splitBackCenterSeam=seam,splitBackHalfTop=backPieceTopWidth/2+splitBackCenterSeam;
+    const splitBackHalfBot=backPieceBottomWidth/2+splitBackCenterSeam;
+    const splitBackNestedWidth=splitBackHalfTop+splitBackHalfBot;
+    const splitBackTaper=splitBackHalfTop-splitBackHalfBot;
+    const splitBackMinOffset=splitBackNestedWidth<=B?0:splitBackTaper>0?(splitBackNestedWidth-B)*backPieceHeight/splitBackTaper:Infinity;
+    const splitBackFits=isFinite(splitBackMinOffset);
+    const splitBackBoltLength=splitBackFits?backPieceHeight+splitBackMinOffset:backPieceLength;
+    const splitBackSavings=backPieceLength-splitBackBoltLength;
+    const frontFlapNeeded=totalFB>B,frontFlapShortage=frontFlapNeeded?totalFB-B:0;
+    const frontFlapWidth=frontFlapNeeded?frontFlapShortage+hem:0,flapExtension=frontFlapNeeded?frontExtDrop:0;
+    const frontFlapLength=frontFlapNeeded?frontWidthAfterCut:0;
+    const sideEase=0,sidePanelsNeeded=false,sideEach=0,addWidth=0,sidePanelLength=0,setbackFromFront=0;
+    const diagSpan=taperZoneLength,diagCrossDist=0,ML_eff=totalFB;
+    let useSplitFlap=false,splitHalfLength=0,splitSavings=0,splitCenterSeam=0.5,splitTotalLength=0,splitNestingNote='';
+    let useWasteNesting=false,wasteNestIsSplit=false,wasteNestOrientation='',wasteNestPieceW=0,wasteNestPieceH=0,wasteNestSavings=0;
+    const wasteTriBase=markFromSideEdge,wasteTriHeight=taperZoneLength;
+    const wasteTriHyp=Math.sqrt(wasteTriBase**2+wasteTriHeight**2),wasteTriAlt=wasteTriBase>0?wasteTriBase*wasteTriHeight/wasteTriHyp:0;
+    const wasteRectW=markFromSideEdge,wasteRectH=frontInset,wasteNestDiagonal=false,wasteNestDiagAngle=0,wasteNestDiagOffset=0;
+    let useSplitBack=splitBackFits&&splitBackSavings>1;
+    let nestingNote='',nestingStrategy='',totalLength=0;
+
+    const couch_backInset=hem+BR,couch_frontInset=frontExtDrop;
+    const couch_totalFB=hem+BR+AT2F+frontExtDrop;
+    const couch_frontFlapShortage=Math.max(0,couch_totalFB-B);
+    const couch_frontFlapNeeded=couch_frontFlapShortage>0;
+    const couch_frontFlapWidth=couch_frontFlapNeeded?couch_frontFlapShortage+hem:0;
+    const couch_taperLen=Math.max(0,B-couch_backInset-couch_frontInset);
+    const couch_frontStraight=couch_frontInset+couch_frontFlapWidth;
+    const couch_panelLen=sideDrop+couch_backInset+couch_taperLen+couch_frontStraight;
+    const couch_assembledW=WB+2*sideDrop;
+    const couch_panelW=B;
+    const couch_joinedUsableW=2*couch_panelW-seam;
+    const couch_extNeeded=couch_assembledW>couch_joinedUsableW;
+    const couch_extDeficit=Math.max(0,couch_assembledW-couch_joinedUsableW);
+    const couch_extSeam=1;
+    const couch_extEachCut=couch_extDeficit/2+couch_extSeam;
+    const couch_bolts_yards_each=couch_panelLen/36;
+    let couch_extActualLen=couch_panelLen;
+    if(couch_extNeeded){
+      const _sideOff=B-(couch_extSeam||1),_halfBack=WB/2+hem,_halfMid=couch_assembledW/2,_halfFront=(W+2*frontExtDrop)/2;
+      const _edge=[[0,_halfBack],[sideDrop,_halfMid],[sideDrop+couch_backInset,_halfMid],[sideDrop+couch_backInset+couch_taperLen,_halfFront],[couch_panelLen,_halfFront]];
+      let _entry=null,_exit=null;
+      for(let i=0;i<_edge.length-1;i++){const[y1,h1]=_edge[i],[y2,h2]=_edge[i+1];const in1=h1>=_sideOff,in2=h2>=_sideOff;if(_entry===null){if(in1)_entry=y1;else if(in2){const t=(_sideOff-h1)/(h2-h1);_entry=y1+t*(y2-y1);}}if(_entry!==null){if(in2)_exit=y2;else if(in1){const t=(_sideOff-h1)/(h2-h1);_exit=y1+t*(y2-y1);break;}}}
+      if(_entry!==null&&_exit!==null&&_exit>_entry)couch_extActualLen=_exit-_entry;
+    }
+    const frontDiagonalHoriz=Math.max(0,frontExtDrop-bottomMargin),frontDiagonalVert=couch_frontStraight;
+    const frontDiagonalLen=Math.sqrt(frontDiagonalHoriz**2+frontDiagonalVert**2);
+    let couch_extensionsFitInScrap=false;
+    if(couch_extNeeded){
+      const _hb=WB/2+hem,_hm=couch_assembledW/2,_hf=(W+2*frontExtDrop)/2,_yPB=sideDrop+couch_backInset+couch_taperLen;
+      const _xCross=(_hb<B&&_hm>_hb)?Math.min(sideDrop,sideDrop*(B-_hb)/(_hm-_hb)):0;
+      const _bSH=Math.max(0,B-_hb),_fSH=Math.max(0,B-_hf),_fSW=Math.max(0,couch_panelLen-_yPB);
+      const _cands=[{w:couch_extActualLen,h:couch_extEachCut},{w:couch_extEachCut,h:couch_extActualLen}];
+      for(const c of _cands){if(c.w<=_fSW&&c.h<=_fSH){couch_extensionsFitInScrap=true;break;}if(c.w>0&&c.h>0&&_xCross>0&&_bSH>0&&(c.w/_xCross)+(c.h/_bSH)<=1){couch_extensionsFitInScrap=true;break;}}
+    }
+    const couch_extBoltsNeeded=(couch_extNeeded&&!couch_extensionsFitInScrap)?(2*couch_extEachCut<=B?1:2):0;
+    const couch_totalBolts=2+couch_extBoltsNeeded;
+    const couch_total_inches=couch_totalBolts*couch_panelLen;
+    const couch_total_yards=couch_total_inches/36;
+    totalLength=couch_total_inches;
+    if(couch_extensionsFitInScrap)nestingNote=`2 bolts × ${fmtExact(couch_panelLen)}" = ${fmtExact(couch_total_inches)}". Extensions from scrap.`;
+    else if(couch_extNeeded)nestingNote=`${couch_totalBolts} bolts × ${fmtExact(couch_panelLen)}" = ${fmtExact(couch_total_inches)}".`;
+    else nestingNote=`2 bolts × ${fmtExact(couch_panelLen)}" = ${fmtExact(couch_total_inches)}".`;
+
+    // Connecting snaps are placed CENTER-OUT: a center snap at the middle of each piece's connection,
+    // then symmetric pairs stepped out by a fixed spacing. Both pieces share the same center + spacing,
+    // so they line up by aligning their center snaps (the differing 23" vs 37" spans no longer matter).
+    // The count is capped by the narrower connection (the main's cut-line distance) so both mate 1:1.
+    const SNAP_SPACING_IN = 6;
+    const connSnapEachSide = isSectional ? Math.max(1, Math.floor((cutLineDist/2) / SNAP_SPACING_IN)) : 0;
+    const numSnapsSect = isSectional ? (1 + 2*connSnapEachSide) : 0;   // center + symmetric pairs
+    const connSpacingIn = SNAP_SPACING_IN;
+    // The short piece's connecting side is the OPPOSITE of the main's (sideSelector).
+    const shortConnSide = sideSelector==='right' ? 'left' : 'right';
+
+    // Results
+    const rows=[
+      ['Diagonal drape (AT2F)',`${fmtInch(AT2F,rounded)}"`],
+      ['Side drop (H − FC)',`${fmtInch(sideDrop,rounded)}"`],
+      ['Front ext drop (F2A − FC)',`${fmtInch(frontExtDrop,rounded)}"`],
+      ['Panel length',`${fmtInch(couch_panelLen,rounded)}"`],
+      ['Assembled width',`${fmtInch(couch_assembledW,rounded)}"`],
+      ['Extensions needed',couch_extNeeded?`Yes — ${fmtInch(couch_extEachCut,rounded)}" each`:'No'],
+    ];
+    const results=document.getElementById('results');
+    results.innerHTML='';
+    rows.forEach(([label,value],i)=>{const div=document.createElement('div');div.className='row';div.style.display='block';div.style.padding='8px 0';if(i>0)div.style.borderTop='1px dashed var(--muted)';div.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;"><span>${label}</span><strong>${value}</strong></div>`;results.appendChild(div);});
+
+    const buy=document.getElementById('buy');buy.innerHTML='';
+    // Always show the round-up "yards to buy" (you can't buy a partial yard of fabric)
+    // alongside the actual decimal yardage, regardless of the rounding-mode dropdown.
+    const yardsActual = totalLength / 36;
+    const yardsBuy    = Math.ceil(yardsActual);
+    const inchesActualStr = fmtExact(totalLength);
+    const inchesRoundedStr = Math.ceil(totalLength);
+    const bRows=[
+      ['Total bolt length',`${inchesRoundedStr}" <span style="color:var(--sub);font-weight:normal;font-size:12px;">(actual: ${inchesActualStr}")</span>`],
+      ['Yards to buy',`${yardsBuy} yd <span style="color:var(--sub);font-weight:normal;font-size:12px;">(actual: ${fmtExact(yardsActual)} yd)</span>`],
+    ];
+    bRows.forEach(([label,value],i)=>{const div=document.createElement('div');div.className='row';div.style.display='block';div.style.padding='8px 0';if(i>0)div.style.borderTop='1px dashed var(--muted)';div.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;"><span>${label}</span><strong>${value}</strong></div>`;buy.appendChild(div);});
+
+    const bungeeLen=Math.ceil(couch_panelLen+6);
+    let gromHTML;
+    if(isSectional){
+      // Connecting side carries no grommets, no bungee, no bungee tab. Outer side keeps both
+      // grommets + one front-to-back bungee. Main connects on sideSelector; short on the opposite.
+      const connSide = isShortPiece ? (sideSelector==='right'?'left':'right') : sideSelector;
+      const outerSide = (connSide==='right'?'left':'right');
+      const connBackDesc = isShortPiece ? `joint grommet 5" in from the seam` : `back grommet`;
+      gromHTML=`<div class='row'><span>Total grommets</span><strong>3 — G1 ${outerSide} back, G2 ${outerSide} front, G3 ${connSide} back</strong></div>`
+        +`<div class='row'><span>Connecting side</span><strong>${connSide} — back grommet + tab only (no front grommet)</strong></div>`
+        +`<div class='row'><span>Bungee length</span><strong>1 × ${bungeeLen}" (outer side) + 1 short joint bungee</strong></div>`
+        +`<div class='note' style='margin-top:6px;'>Grommets sit ⅓ of side drop up from each floor edge — see assembly diagram. The <strong>${outerSide}</strong> (outer) side runs the usual front-to-back bungee: front grommet up through the back bungee tab to the back grommet. The <strong>${connSide}</strong> (connecting) side has no front grommet, but keeps a ${connBackDesc} and a back bungee tab so a short joint bungee can hook across the seam to the other piece's back grommet, securing the back corner. Joint-bungee length is set on-site (depends on the as-built gap). Includes ~6" slack for hooks.</div>`;
+    } else {
+      gromHTML=`<div class='row'><span>Total grommets</span><strong>4 — G1 back-left, G2 back-right, G3 front-left, G4 front-right</strong></div><div class='row'><span>Bungee length</span><strong>2 pieces × ${bungeeLen}"</strong></div><div class='note' style='margin-top:6px;'>Grommets sit ⅓ of side drop up from each floor edge — see assembly diagram. One bungee per long side: threads from the front grommet up through the side, through the back bungee tab, and hooks at the back grommet. Includes ~6" slack for hooks.</div>`;
+    }
+    document.getElementById('grommets').innerHTML=gromHTML;
+
+    // Snap straps text
+    // Account for sectional short-arm side suppression (one back corner is omitted).
+    const backCornerSets = (isSectional && isShortPiece) ? 1 : 2;
+    let snapText=`<div class='row'><span>Snap sets per corner</span><strong>1 set (1 stud + 1 socket)</strong></div><div class='row'><span>Total snap sets / total pieces</span><strong>${backCornerSets} sets / ${backCornerSets*2} pieces</strong></div><div class='note' style='margin-top:6px;'>Each snap is one mating pair — one <strong style='color:#166534'>stud (green dot)</strong> and one <strong style='color:#831843'>socket (magenta dot)</strong> that press together. The stud is placed 2" in from the side dotted line and the socket 2" in from the back dotted line; when the back corner folds inward on the bias they meet and mate, holding the corner flat.</div>`;
+    if(isSectional){
+      const connectSide=sideSelector==='left'?'left':'right';
+      if(!isShortPiece){
+        snapText+=`<div class='row' style='border-top:1px dashed var(--muted);margin-top:6px;'><span>Sectional connecting snaps</span><strong>${numSnapsSect} <span style='color:#166534'>studs</span> on ${connectSide} arm end</strong></div><div class='note'>A center stud at the midpoint of the ${fmtExact(cutLineDist)}" overlap, plus pairs stepped ${connSpacingIn}" out, 1" below the footprint. Main piece always carries the <strong style='color:#166534'>stud halves</strong>; short piece carries the matching <strong style='color:#831843'>socket halves</strong> — both placed center-out so the rows line up when the center snaps are aligned.</div>`;
+        snapText+=`<div class='row' style='border-top:1px dashed var(--muted);margin-top:6px;'><span>Overlap flap attachment</span><strong>Sewn 1" from inner edge — no outer snaps</strong></div><div class='note'>The overlap flap is permanently sewn to the main cover along a line 1" in from its inner edge. Its outer edge hangs free over the joint with the short piece. The flap's own weight + draping directs water down and away — nothing to install on-site at the joint. If the customer reports the flap lifting in wind, snaps can be added during a follow-up visit once the as-built alignment can be marked directly.</div>`;
+      } else {
+        snapText+=`<div class='row' style='border-top:1px dashed var(--muted);margin-top:6px;'><span>Sectional connecting snaps</span><strong>${numSnapsSect} <span style='color:#831843'>sockets</span> on the ${shortConnSide} (connecting) side</strong></div><div class='note'>A center socket at the middle of the cushion depth, plus pairs stepped ${connSpacingIn}" out, 1" inside the footprint from the joint. Placed center-out to match the main piece's studs 1:1 — align the two center snaps and the rest follow. The back corner snap is <strong>excluded</strong> on the ${shortConnSide} (connecting) side.</div>`;
+        snapText+=`<div class='row' style='border-top:1px dashed var(--muted);margin-top:6px;'><span>Overlap flap mating</span><strong>None — flap hangs free</strong></div><div class='note'>The main piece's overlap flap has no outer-edge snaps, so no mating sockets are installed on the short piece. The flap simply drapes over the joint, held by gravity. Nothing to mark or install during fitting.</div>`;
+      }
+    }
+    document.getElementById('snapstraps').innerHTML=snapText;
+
+    // Update titles
+    document.getElementById('cutDiagramTitle').textContent=isSectional?(isShortPiece?'Short Arm — Cut Diagram (to scale)':'Main Arm — Cut Diagram (to scale)'):'Cut Diagram (to scale)';
+    document.getElementById('assemblyDiagramTitle').textContent=isSectional?(isShortPiece?'Short Arm — Assembly Diagram (Top-Down)':'Main Arm — Assembly Diagram (Top-Down)'):'Assembly Diagram — Top-Down View';
+
+    // Update sectional note
+    if(isSectional){
+      const noteEl=document.getElementById('sectionalNote');
+      if(!isShortPiece){
+        noteEl.innerHTML=`<strong>Main piece annotations:</strong> Notch cut at the inner front ${sideSelector} corner. Overlap flap is sewn to the main cover 1" in from its inner edge; its outer edge hangs free over the joint (no outer snaps). ${numSnapsSect} connecting snaps along the ${sideSelector} arm edge.`;
+      } else {
+        noteEl.innerHTML=`<strong>Short piece annotations:</strong> Corner cutout at the inner front ${shortConnSide} corner + ${numSnapsSect} connecting snaps (sockets) 1" inside the footprint on the ${shortConnSide} (connecting) side. No flap-mating sockets — the main piece's flap hangs free over the joint. The back corner snap is <strong>omitted</strong> on the ${shortConnSide} side.`;
+      }
+    }
+
+    // Build payload
+    const payload={B,ML,MW,W,WB,BR,D,AT2F,H,F2A,F2BS,FC,hem,seam,
+      sidePanelsNeeded,sideEach,addWidth,sidePanelLength,setbackFromFront,
+      backDrop,frontExtDrop,frontWidth:frontWidthAfterCut,frontWidthAfterCut,confirmCoverageWidth:totalFB,backWidth:ML,
+      startCutFromCenterLine:markFromCenter,totalLength,nestingStrategy,rounded,roundMode,diagCrossDist,
+      diagSpan,ML_eff,totalFB,sideDrop,sideEase,flapExtension,
+      markFromSideEdge,markFromCenter,backInset,frontInset,taperZoneLength,
+      backPieceTopWidth,backPieceBottomWidth,backPieceHeight,backPieceLength,backPieceWidth,
+      frontFlapNeeded,frontFlapWidth,frontFlapLength,
+      useSplitFlap,splitHalfLength,splitSavings,splitCenterSeam,
+      useWasteNesting,wasteNestIsSplit,wasteNestOrientation,wasteNestPieceW,wasteNestPieceH,
+      wasteTriBase,wasteTriHeight,wasteTriHyp,wasteTriAlt,wasteNestSavings,
+      wasteRectW,wasteRectH,wasteNestDiagonal,wasteNestDiagAngle,wasteNestDiagOffset,
+      useSplitBack,splitBackHalfTop,splitBackHalfBot,splitBackBoltLength,
+      splitBackMinOffset,splitBackNestedWidth,splitBackSavings,splitBackCenterSeam,
+      couch_panelLen,couch_panelW,couch_assembledW,couch_joinedUsableW,
+      couch_backInset,couch_taperLen,couch_frontStraight,couch_frontInset,couch_frontFlapWidth,couch_frontFlapNeeded,
+      couch_extNeeded,couch_extEachCut,couch_extSeam,couch_extBoltsNeeded,couch_totalBolts,couch_extActualLen,
+      couch_total_inches,couch_total_yards,
+      bottomMargin,frontDiagonalHoriz,frontDiagonalVert,frontDiagonalLen,snapStrapsOpt};
+
+    // Sectional diagram opts
+    // boltIndex picks which bolt receives the connecting-side annotations.
+    //   - Main piece: connecting side = same side as the short arm
+    //                 (sideSelector='right' → main connects on its right → bolt 1)
+    //   - Short piece: connecting side = OPPOSITE of main
+    //                 (sideSelector='right' → short connects on its left → bolt 0)
+    let diagramOpts={svgId:'diagram'};
+    if(isSectional){
+      if(!isShortPiece){
+        const boltIndex=sideSelector==='left'?0:1;
+        // cutLineDist + side let the cut diagram cut a real notch from the panel polygon
+        // (matching the assembly diagram), and flapWidth lets it draw the overlap flap as a
+        // separate cut piece elsewhere on the bolt.
+        diagramOpts.sectionalFlap={boltIndex,frontExtDrop,notchW:D,cutLineDist,side:sideSelector,flapWidth};
+        diagramOpts.sectionalSnaps={boltIndex,numSnaps:numSnapsSect,isShortPiece:false};
+      } else {
+        const boltIndex=sideSelector==='left'?1:0;
+        diagramOpts.sectionalSnaps={boltIndex,numSnaps:numSnapsSect,isShortPiece:true,frontExtDrop,connectingOverlap};
+      }
+    }
+
+    // Assembly diagram opts
+    const assemblyOpts=isSectional?{isSectional:true,isShortPiece,side:sideSelector,numSnaps:numSnapsSect,cutLineDist:(!isShortPiece?cutLineDist:0),flapWidth:(!isShortPiece?flapWidth:0),mainArmCutDist:cutLineDist,connectingOverlap,connSnapEachSide,connSnapSpacing:SNAP_SPACING_IN}:{};
+
+    const diagramErrors=[];
+    try{drawDiagram(payload,diagramOpts);}catch(e){diagramErrors.push('Cut diagram: '+e.message);console.error(e);}
+    try{updateCutList(payload);}catch(e){diagramErrors.push('Cut list: '+e.message);console.error(e);}
+    try{drawAssemblyDiagramFlat(payload,'assemblyDiagramFlatFull',1600,1100,assemblyOpts);}catch(e){diagramErrors.push('Assembly diagram: '+e.message);console.error(e);}
+
+    const errEl=document.getElementById('err');
+    if(diagramErrors.length>0){errEl.style.display='block';errEl.innerHTML='<strong>Diagram errors:</strong><br/>'+diagramErrors.join('<br/>');}
+    else{errEl.style.display='none';}
+  }catch(e){
+    const err=document.getElementById('err');
+    err.style.display='block';err.textContent='Error: '+e.message;console.error('compute() error:',e);
+  }
+}
+
+
+function saveInputs(){
+  const fields=['B','W','WB','H','D','F2A','F2BS','BR','FC','hem','seam','bottomMargin','cutLineDist','flapWidth'];
+  const values={};
+  fields.forEach(f=>{const el=document.getElementById(f);if(el)values[f]=el.value;});
+  values.roundMode=document.getElementById('roundMode').value;
+  values.isSectional=document.getElementById('isSectional').checked;
+  const pieceEl=document.querySelector('input[name="sectPiece"]:checked');
+  values.sectPiece=pieceEl?pieceEl.value:'main';
+  const sideEl=document.querySelector('input[name="sideSelector"]:checked');
+  values.sideSelector=sideEl?sideEl.value:'right';
+  localStorage.setItem('snapBackV4Inputs',JSON.stringify(values));
+}
+
+function loadSavedInputs(){
+  try{
+    const saved=localStorage.getItem('snapBackV4Inputs');
+    if(saved){
+      const values=JSON.parse(saved);
+      Object.entries(values).forEach(([field,value])=>{
+        if(field==='roundMode'){document.getElementById('roundMode').value=value;}
+        else if(field==='isSectional'){document.getElementById('isSectional').checked=!!value;document.getElementById('sectionalFields').style.display=value?'':'none';}
+        else if(field==='sectPiece'){const el=document.getElementById(value==='short'?'sectShort':'sectMain');if(el)el.checked=true;}
+        else if(field==='sideSelector'){const el=document.getElementById(value==='left'?'sideLeft':'sideRight');if(el)el.checked=true;}
+        else{const el=document.getElementById(field);if(el)el.value=value;}
+      });
+      return true;
+    }
+  }catch(e){console.error('Error loading saved inputs:',e);}
+  return false;
+}
+
+function loadFromURL(){
+  const params=new URLSearchParams(window.location.search);
+  const fields=['B','W','WB','H','D','F2A','F2BS','BR','FC','hem','seam'];
+  let loaded=false;
+  fields.forEach(f=>{const v=params.get(f);if(v!==null){const el=document.getElementById(f);if(el){el.value=v;loaded=true;}}});
+  return loaded;
+}
+
+function wire(){
+  const wasLoadedFromURL=loadFromURL();
+  if(wasLoadedFromURL)saveInputs();
+  else loadSavedInputs();
+
+  const inputsCard=document.getElementById('inputsCard');
+  ['input','change','keyup'].forEach(ev=>{inputsCard.addEventListener(ev,()=>{compute();saveInputs();});});
+  document.getElementById('roundMode').addEventListener('change',()=>{saveInputs();compute();});
+  document.getElementById('recalc').addEventListener('click',compute);
+  document.getElementById('resetBtn').addEventListener('click',()=>{
+    const defaults={B:54,W:84,WB:84,H:25,D:33,F2A:22,F2BS:13,BR:4,FC:3,hem:1,seam:1.5,bottomMargin:8};
+    Object.entries(defaults).forEach(([id,val])=>{const el=document.getElementById(id);if(el)el.value=val;});
+    document.getElementById('roundMode').value='whole';
+    document.getElementById('isSectional').checked=false;
+    document.getElementById('sectionalFields').style.display='none';
+    document.getElementById('sectMain').checked=true;
+    document.getElementById('sideLeft').checked=true;
+    compute();saveInputs();
+  });
+
+  document.getElementById('isSectional').addEventListener('change',function(){
+    document.getElementById('sectionalFields').style.display=this.checked?'':'none';
+    updateMainArmFields();
+    compute();saveInputs();
+  });
+
+  function updateMainArmFields(){
+    const isSect=document.getElementById('isSectional').checked;
+    const isMain=document.getElementById('sectMain').checked;
+    document.getElementById('mainArmCutFields').style.display=(isSect&&isMain)?'':'none';
+  }
+  document.querySelectorAll('input[name="sectPiece"]').forEach(el=>{
+    el.addEventListener('change',()=>{updateMainArmFields();compute();saveInputs();});
+  });
+  updateMainArmFields();
+
+  compute();
+}
+
+document.addEventListener('DOMContentLoaded',wire);
+</script>
+</body>
+</html>

@@ -33,33 +33,29 @@
     .wrap { max-width: 100%; }
     h1 { font-size: 18px; margin: 0 0 8px; }
     .controls { display: none; }
-    .card { padding: 8px; margin-bottom: 8px; page-break-inside: avoid; }
-    .grid { gap: 8px; }
-    .title { font-size: 13px; margin-bottom: 4px; font-weight: 600; }
-    .row { padding: 3px 0; font-size: 11px; }
-    .note { font-size: 9px; margin-top: 4px; }
-    svg { height: 260px; page-break-inside: avoid; }
-    .diagramBox { page-break-inside: avoid; }
-    .legend { font-size: 9px; gap: 8px; }
+    .card { padding: 6px 10px; margin-bottom: 6px; box-shadow: none; border-radius: 6px; }
+    .title { font-size: 12px; margin-bottom: 4px; font-weight: 600; }
+    .grid { gap: 6px; }
+    .row { padding: 3px 0; font-size: 10.5px; }
+    .note { font-size: 10px; margin-top: 4px; }
+    .legend { font-size: 10px; gap: 6px; margin-top: 4px; }
+    .chip { width: 10px; height: 10px; }
     input[type="number"] { font-size: 10px; padding: 3px 5px; }
     label.lbl { font-size: 9px; }
     .inputs { gap: 5px; }
     .danger { font-size: 9px; }
-    ol, ul { margin: 0; padding-left: 16px; line-height: 1.5; font-size: 11px; }
-    ol li ul { margin-top: 2px; padding-left: 16px; font-size: 10px; }
-    div[style*="grid-template-columns: 1.3fr 0.7fr"] {
-      display: grid !important;
-      grid-template-columns: 1.4fr 0.6fr !important;
-      gap: 10px !important;
-      page-break-inside: avoid;
-    }
-    /* Assembly flat diagram: own landscape page at the end */
-    .assembly-flat-card { page: landscape; page-break-before: always; page-break-inside: avoid !important; page-break-after: avoid; }
-    .assembly-flat-card .diagramBox { page-break-inside: avoid !important; }
-    .assembly-flat-card svg { min-height: 0 !important; height: auto !important; width: 100%; max-height: 6.5in; }
+    ol, ul { margin: 0; padding-left: 16px; line-height: 1.4; font-size: 10px; }
+    svg { min-height: 0 !important; }
+    /* Cut and Assembly diagrams: each on its own page, sized to fit a landscape Letter page */
+    .cut-diagram-card { page-break-before: always; page-break-inside: avoid; }
+    .cut-diagram-card svg { height: 6.8in !important; width: 100% !important; max-width: 100%; display: block; }
+    .assembly-flat-card { page-break-before: always; page-break-inside: avoid; padding: 6px 10px; }
+    .assembly-flat-card .title { font-size: 11px; margin-bottom: 2px; }
+    .assembly-flat-card .legend { font-size: 9px; gap: 5px; margin-top: 2px; }
+    .assembly-flat-card svg { height: 6.8in !important; width: 100% !important; max-width: 100%; display: block; }
   }
 
-  @page landscape { size: landscape; }
+  @page { size: 11in 8.5in; margin: 0.4in; }
 </style>
 </head>
 <body>
@@ -92,7 +88,7 @@
             <label class="lbl">W (Chaise width)<input id="W" type="number" value="24" step="1" /></label>
             <label class="lbl">D (Chaise length, head-to-foot)<input id="D" type="number" value="72" step="1" /></label>
             <label class="lbl">H (Height — frame top to floor, <strong>no cushion</strong>)<input id="H" type="number" value="18" step="1" /></label>
-            <label class="lbl">FC + Wave Allowance<input id="FC" type="number" value="4" step="1" /></label>
+            <label class="lbl">FC (Floor clearance)<input id="FC" type="number" value="4" step="1" /></label>
             <label class="lbl">CC (Corner cut inset — blank = auto)<input id="CC" type="number" value="" step="0.5" placeholder="auto (H − FC)" /></label>
             <label class="lbl">Cushion Thickness (optional — 0 if no cushion)<input id="CT" type="number" value="" step="0.5" placeholder="0" /></label>
             <!-- Legacy inputs (unused in chaise calc — hidden but kept so legacy code refs don't break) -->
@@ -133,7 +129,7 @@
     </div>
 
     <!-- Cut Diagram — full width -->
-    <div class="card" style="margin-top:16px;">
+    <div class="card cut-diagram-card" style="margin-top:16px;">
       <div class="title">Cut Diagram (to scale)</div>
       <div class="diagramBox">
         <svg id="diagram" viewBox="0 0 1200 560" preserveAspectRatio="xMidYMid meet" style="height:480px;"></svg>
@@ -166,42 +162,6 @@
       </div>
     </div>
 
-    <!-- Assembly Instructions — full width -->
-    <div style="margin-top:16px;">
-      <div class="card">
-        <div class="title">Assembly Instructions</div>
-        <ol style="margin:0; padding-left:20px; line-height:1.8; font-size:13px;">
-          <li><strong style="color:#1e40af;">Cut</strong> a single rectangular panel from the bolt:
-            <ul style="margin-top:4px; padding-left:20px;">
-              <li>Length = D + 2×(H − FC) — the chaise depth plus a side drop at each end</li>
-              <li>Width  = W + 2×(H − FC) — the chaise width plus a side drop on each side</li>
-              <li>Trim the bolt down to the cover width (no full-bolt-width pieces, no seams)</li>
-            </ul>
-          </li>
-          <li>Draw the wavy pattern around all four outer edges and <strong style="color:#1e40af;">cut</strong>:
-            <ul style="margin-top:4px; padding-left:20px;">
-              <li>The wave scoops inward from the straight edge (1.5" deep × 13" per cycle)</li>
-              <li>Round the four corners with a smooth transition so the waves flow continuously around the cover</li>
-            </ul>
-          </li>
-          <li><strong style="color:#b45309;">Install grommets</strong> at the four corner positions:
-            <ul style="margin-top:4px; padding-left:20px;">
-              <li>5" in from the back/front edge of the chaise (toward the chaise center)</li>
-              <li>5" outside the chaise's side edges (in the side overhang)</li>
-            </ul>
-          </li>
-          <li><strong style="color:#059669;">Install corner snaps</strong> (one pair per corner, 4 pairs total):
-            <ul style="margin-top:4px; padding-left:20px;">
-              <li>At each of the four corners, a mating snap pair closes the diagonal fold. Each snap half sits 2" inside the chaise fold line and halfway between the outer fabric edge and the chaise edge.</li>
-              <li>See the Snap Placement card for exact measurements based on your chaise dimensions.</li>
-            </ul>
-          </li>
-          <li><strong>Install</strong> the cover with the chaise lying flat. Run a bungee through each corner grommet, pull it underneath the chaise, and cinch so the excess fabric wraps tight against the underside. Press-close the corner snaps.</li>
-          <li>Add fabric glue to any thread ends and Scotch Guard the perimeter.</li>
-        </ol>
-      </div>
-    </div>
-
     <!-- Assembly Diagram — Flat Layout (LAST PAGE, landscape in print) -->
     <div class="card assembly-flat-card" style="margin-top:24px;">
       <div class="title" style="font-size:18px;">Assembly Diagram — Flat Layout (Full Size)</div>
@@ -213,22 +173,8 @@
           <span class="chip" style="background:#c4b5fd;"></span> Seam overlap
           <span style="color:var(--sub); font-size:11px;">— — Diagonal cut line (inset: back zone → front zone)</span>
           <span class="chip" style="background:none; border:2px solid #b45309; border-radius:50%; width:10px; height:10px;"></span> <span style="font-size:11px;">Grommets (brass)</span>
-          <span class="chip" style="background:#059669;"></span> <span style="font-size:11px;">Snap positions</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- Assembly Diagram — Wavy Edge Layout -->
-    <div class="card assembly-flat-card" style="margin-top:24px;">
-      <div class="title" style="font-size:18px;">Assembly Diagram — Wavy Edge Layout</div>
-      <div class="diagramBox">
-        <svg id="assemblyWavyEdge" viewBox="0 0 1200 900" preserveAspectRatio="xMidYMid meet" style="width:100%; height:auto; min-height:700px;"></svg>
-        <div class="legend">
-          <span class="chip" style="background:#fca5a5;"></span> Main piece + front flap
-          <span class="chip" style="background:#93c5fd;"></span> Back piece (trapezoid)
-          <span style="color:#059669; font-weight:600;">Green wavy line = cut with wavy pattern</span>
-          <span style="color:#7c3aed; font-weight:600;">Purple straight line = seam (no wave)</span>
-          <span style="font-size:11px;">Wave: 1.5" tall × 13" per cycle</span>
+          <span class="chip" style="background:#22c55e; border:1.5px solid #166534;"></span> <span style="font-size:11px;">Snap stud</span>
+          <span class="chip" style="background:#db2777; border:1.5px solid #831843;"></span> <span style="font-size:11px;">Snap socket</span>
         </div>
       </div>
     </div>
@@ -903,18 +849,19 @@ function drawAssemblyDiagramSide(params){
   // === SNAP POSITION MARKERS on back piece ===
   // Snaps at ⅓ and ⅔ down from backrest top (seam line) to FC
   {
+    const STUD_FILL='#22c55e', STUD_STROKE='#166534', SOCKET_FILL='#db2777', SOCKET_STROKE='#831843';
     const bpH = params.backPieceHeight || (H - FC);
     const snap1Y = backrestTop - bpH / 3;   // ⅓ down from top
     const snap2Y = backrestTop - bpH * 2 / 3;  // ⅔ down from top
     const snapX = tx(-BR);
-    // Snap 1
-    add('circle',{cx:snapX, cy:ty(snap1Y), r:5, fill:'#059669', stroke:'#fff', 'stroke-width':2});
-    add('text',{x:snapX - 10, y:ty(snap1Y) + 4, 'text-anchor':'end', 'font-size':9, fill:'#059669', 'font-weight':'bold'}).textContent=`Snap 1`;
-    add('text',{x:snapX - 10, y:ty(snap1Y) + 14, 'text-anchor':'end', 'font-size':8, fill:'#059669'}).textContent=`⅓ down (${rIn(bpH/3)}")`;
-    // Snap 2
-    add('circle',{cx:snapX, cy:ty(snap2Y), r:5, fill:'#059669', stroke:'#fff', 'stroke-width':2});
-    add('text',{x:snapX - 10, y:ty(snap2Y) + 4, 'text-anchor':'end', 'font-size':9, fill:'#059669', 'font-weight':'bold'}).textContent=`Snap 2`;
-    add('text',{x:snapX - 10, y:ty(snap2Y) + 14, 'text-anchor':'end', 'font-size':8, fill:'#059669'}).textContent=`⅔ down (${rIn(bpH*2/3)}")`;
+    // Snap 1 — stud (first half of pair)
+    add('circle',{cx:snapX, cy:ty(snap1Y), r:5, fill:STUD_FILL, stroke:STUD_STROKE, 'stroke-width':2});
+    add('text',{x:snapX - 10, y:ty(snap1Y) + 4, 'text-anchor':'end', 'font-size':9, fill:STUD_STROKE, 'font-weight':'bold'}).textContent=`Snap 1`;
+    add('text',{x:snapX - 10, y:ty(snap1Y) + 14, 'text-anchor':'end', 'font-size':8, fill:STUD_STROKE}).textContent=`⅓ down (${rIn(bpH/3)}")`;
+    // Snap 2 — socket (second half of pair)
+    add('circle',{cx:snapX, cy:ty(snap2Y), r:5, fill:SOCKET_FILL, stroke:SOCKET_STROKE, 'stroke-width':2});
+    add('text',{x:snapX - 10, y:ty(snap2Y) + 4, 'text-anchor':'end', 'font-size':9, fill:SOCKET_STROKE, 'font-weight':'bold'}).textContent=`Snap 2`;
+    add('text',{x:snapX - 10, y:ty(snap2Y) + 14, 'text-anchor':'end', 'font-size':8, fill:SOCKET_STROKE}).textContent=`⅔ down (${rIn(bpH*2/3)}")`;
   }
 
   add('line',{x1:tx(-BR)-60, y1:ty(0), x2:tx(-BR)-60, y2:ty(H), stroke:'#475569', 'stroke-width':1, 'marker-start':'url(#arrS)', 'marker-end':'url(#arrS)'});
@@ -1127,6 +1074,7 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
   // (Snap markers removed for chaise lounge — no snaps used.)
   const snapInfo_couch = [];
   if (false) {
+    const STUD_FILL='#22c55e', STUD_STROKE='#166534', SOCKET_FILL='#db2777', SOCKET_STROKE='#831843';
     const mainSnapInset = 4;
     const backSnapFromFold = 4;
     const fullExt_couch = (couch_assembledW - (WB + 2*hem)) / 2;  // half of (mid − back) trapezoid extension
@@ -1143,19 +1091,20 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
       const bpDistFromCenter = WB/2 + actualFromFold;
       const bpLeftX = cx - bpDistFromCenter * sc;
       const bpRightX = cx + bpDistFromCenter * sc;
-      add('circle',{cx:bpLeftX, cy:bpSnapY, r:8, fill:'#059669', stroke:'#fff', 'stroke-width':2.5});
+      // Back piece (short piece) carries the SOCKETS — main piece carries the studs (mating zone convention)
+      add('circle',{cx:bpLeftX, cy:bpSnapY, r:8, fill:SOCKET_FILL, stroke:SOCKET_STROKE, 'stroke-width':2.5});
       add('text',{x:bpLeftX, y:bpSnapY+4, 'text-anchor':'middle', 'font-size':9, fill:'#fff', 'font-weight':'bold'}).textContent=snap.label;
-      add('circle',{cx:bpRightX, cy:bpSnapY, r:8, fill:'#059669', stroke:'#fff', 'stroke-width':2.5});
+      add('circle',{cx:bpRightX, cy:bpSnapY, r:8, fill:SOCKET_FILL, stroke:SOCKET_STROKE, 'stroke-width':2.5});
       add('text',{x:bpRightX, y:bpSnapY+4, 'text-anchor':'middle', 'font-size':9, fill:'#fff', 'font-weight':'bold'}).textContent=snap.label;
 
-      // Main piece snap (just past the plateau into the main body)
+      // Main piece snap (just past the plateau into the main body) — STUDS
       const mainDistFromCenter = W/2 + sideDrop * snap.frac;
       const mainSnapY = yBackrestEnd + mainSnapInset * sc;
       const mainLeftX = cx - mainDistFromCenter * sc;
       const mainRightX = cx + mainDistFromCenter * sc;
-      add('circle',{cx:mainLeftX, cy:mainSnapY, r:8, fill:'#059669', stroke:'#dc2626', 'stroke-width':2.5});
+      add('circle',{cx:mainLeftX, cy:mainSnapY, r:8, fill:STUD_FILL, stroke:STUD_STROKE, 'stroke-width':2.5});
       add('text',{x:mainLeftX, y:mainSnapY+4, 'text-anchor':'middle', 'font-size':9, fill:'#fff', 'font-weight':'bold'}).textContent=snap.label;
-      add('circle',{cx:mainRightX, cy:mainSnapY, r:8, fill:'#059669', stroke:'#dc2626', 'stroke-width':2.5});
+      add('circle',{cx:mainRightX, cy:mainSnapY, r:8, fill:STUD_FILL, stroke:STUD_STROKE, 'stroke-width':2.5});
       add('text',{x:mainRightX, y:mainSnapY+4, 'text-anchor':'middle', 'font-size':9, fill:'#fff', 'font-weight':'bold'}).textContent=snap.label;
 
       // Connecting dashed lines
@@ -1255,29 +1204,30 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
     const chaiseRightX = cx + (W / 2) * sc;
     const chaiseTopY   = chaiseY;
     const chaiseBotY   = chaiseY + chaiseD_px;
-    const snapColor = '#059669';
-    const dSnap = (x, y) => add('circle',{cx:x, cy:y, r:6, fill:snapColor, stroke:'#fff', 'stroke-width':2});
+    const STUD_FILL='#22c55e', STUD_STROKE='#166534', SOCKET_FILL='#db2777', SOCKET_STROKE='#831843';
+    const dStud   = (x, y) => add('circle',{cx:x, cy:y, r:6, fill:STUD_FILL,   stroke:STUD_STROKE,   'stroke-width':2});
+    const dSocket = (x, y) => add('circle',{cx:x, cy:y, r:6, fill:SOCKET_FILL, stroke:SOCKET_STROKE, 'stroke-width':2});
 
     // For each corner, TWO snaps forming the mating pair:
-    //   - "top/bot" snap: on the back/front drop, 2" inside the chaise LEFT/RIGHT
-    //     fold line, halfway from the back/front outer fabric edge to the chaise
-    //   - "side" snap: on the left/right drop, halfway along from back/front outer
-    //     fabric edge, 2" inside the chaise TOP/BOT fold line
+    //   - "top/bot" snap (drawn first): STUD — on the back/front drop, 2" inside the chaise
+    //     LEFT/RIGHT fold line, halfway from the back/front outer fabric edge to the chaise
+    //   - "side" snap (drawn second): SOCKET — on the left/right drop, halfway along from
+    //     back/front outer fabric edge, 2" inside the chaise TOP/BOT fold line
     // The two halves fold together (across the diagonal cut at the corner) and
     // mate at a single 3D point when the cover is installed.
 
     // TL corner — outer fabric at (cx - halfMid, yBackFloor), chaise at (chaiseLeftX, chaiseTopY)
-    dSnap(chaiseLeftX - insetPx, yBackFloor + perpPx);  // back-drop half: 2" inside LEFT fold
-    dSnap(cx - halfBack + perpPx, chaiseTopY - insetPx); // side-drop half: 2" inside TOP fold
+    dStud  (chaiseLeftX - insetPx, yBackFloor + perpPx);   // back-drop half (STUD): 2" inside LEFT fold
+    dSocket(cx - halfBack + perpPx, chaiseTopY - insetPx); // side-drop half (SOCKET): 2" inside TOP fold
     // TR corner
-    dSnap(chaiseRightX + insetPx, yBackFloor + perpPx);
-    dSnap(cx + halfBack - perpPx, chaiseTopY - insetPx);
+    dStud  (chaiseRightX + insetPx, yBackFloor + perpPx);
+    dSocket(cx + halfBack - perpPx, chaiseTopY - insetPx);
     // BR corner
-    dSnap(chaiseRightX + insetPx, drawBotY - perpPx);
-    dSnap(cx + halfBack - perpPx, chaiseBotY + insetPx);
+    dStud  (chaiseRightX + insetPx, drawBotY - perpPx);
+    dSocket(cx + halfBack - perpPx, chaiseBotY + insetPx);
     // BL corner
-    dSnap(chaiseLeftX - insetPx, drawBotY - perpPx);
-    dSnap(cx - halfBack + perpPx, chaiseBotY + insetPx);
+    dStud  (chaiseLeftX - insetPx, drawBotY - perpPx);
+    dSocket(cx - halfBack + perpPx, chaiseBotY + insetPx);
 
     // Snap-pair callout — placed on the RIGHT side, BELOW the back-grommet
     // callout with enough vertical padding that the two don't collide.
@@ -1294,11 +1244,11 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
     // Compacted to 3 lines so this block fits between the back- and
     // front-grommet callouts without overlapping the front-grommet text.
     add('text',{x:snapLabelX, y:snapLabelY, 'text-anchor':'start', 'font-size':10,
-      fill:snapColor, 'font-weight':'bold'}).textContent=`Corner snap pairs (4 pairs · 1 per corner)`;
+      fill:STUD_STROKE, 'font-weight':'bold'}).textContent=`Corner snap pairs (4 pairs · 1 stud + 1 socket per corner)`;
     add('text',{x:snapLabelX, y:snapLabelY + 13, 'text-anchor':'start', 'font-size':9,
-      fill:snapColor}).textContent=`Along fold: ${rIn(alongDim)}"  (side drop − 2 = 2" inside fold)`;
+      fill:STUD_STROKE}).textContent=`Along fold: ${rIn(alongDim)}"  (side drop − 2 = 2" inside fold)`;
     add('text',{x:snapLabelX, y:snapLabelY + 25, 'text-anchor':'start', 'font-size':9,
-      fill:snapColor}).textContent=`Perp to fold: ${rIn(perpDim)}"  (side drop ÷ 2 = halfway)`;
+      fill:STUD_STROKE}).textContent=`Perp to fold: ${rIn(perpDim)}"  (side drop ÷ 2 = halfway)`;
   }
 
   // === CHAISE CORNER GROMMETS (4 total — one per corner) ===
@@ -1547,6 +1497,7 @@ function _drawAssemblyDiagramFlat_chair_legacy(params, svgId, vbw, vbh){
   // Main piece snaps: 4" inward from the diagonal cut edge, at ⅓ and ⅔ down the side drop
   // When assembled, the extension folds around the corner and these snap pairs meet.
   {
+    const STUD_FILL='#22c55e', STUD_STROKE='#166534', SOCKET_FILL='#db2777', SOCKET_STROKE='#831843';
     const mainSnapInset = 4;  // 4" from the fold/corner on main piece
     const backSnapFromFold = 4;  // 4" past WB/2 fold line on back piece
     const fullExt = (backPieceTopWidth - backPieceBottomWidth) / 2;
@@ -1558,7 +1509,7 @@ function _drawAssemblyDiagramFlat_chair_legacy(params, svgId, vbw, vbh){
     for (const snap of snapFracs) {
       const downFromSeam = backPieceHeight * snap.frac;
 
-      // --- BACK PIECE snaps (solid green) ---
+      // --- BACK PIECE snaps — SOCKETS (short / opposite piece carries sockets) ---
       const bpSnapY = mainTopY - downFromSeam * sc;
       const extAtHeight = fullExt * (1 - snap.frac);
       const maxFromFold = extAtHeight - 1;
@@ -1566,19 +1517,19 @@ function _drawAssemblyDiagramFlat_chair_legacy(params, svgId, vbw, vbh){
       const bpSnapDistFromCenter = WB / 2 + actualFromFold;
       const bpLeftSnapX = cx - bpSnapDistFromCenter * sc;
       const bpRightSnapX = cx + bpSnapDistFromCenter * sc;
-      add('circle',{cx:bpLeftSnapX, cy:bpSnapY, r:8, fill:'#059669', stroke:'#fff', 'stroke-width':2.5});
+      add('circle',{cx:bpLeftSnapX, cy:bpSnapY, r:8, fill:SOCKET_FILL, stroke:SOCKET_STROKE, 'stroke-width':2.5});
       add('text',{x:bpLeftSnapX, y:bpSnapY + 4, 'text-anchor':'middle', 'font-size':9, fill:'#fff', 'font-weight':'bold'}).textContent=snap.label;
-      add('circle',{cx:bpRightSnapX, cy:bpSnapY, r:8, fill:'#059669', stroke:'#fff', 'stroke-width':2.5});
+      add('circle',{cx:bpRightSnapX, cy:bpSnapY, r:8, fill:SOCKET_FILL, stroke:SOCKET_STROKE, 'stroke-width':2.5});
       add('text',{x:bpRightSnapX, y:bpSnapY + 4, 'text-anchor':'middle', 'font-size':9, fill:'#fff', 'font-weight':'bold'}).textContent=snap.label;
 
-      // --- MAIN PIECE snaps (green with red border) ---
+      // --- MAIN PIECE snaps — STUDS (main piece carries the studs) ---
       const mainSnapDistFromCenter = W / 2 + sideDrop * snap.frac;
       const mainSnapY = mainTopY + mainSnapInset * sc;
       const mainLeftSnapX = cx - mainSnapDistFromCenter * sc;
       const mainRightSnapX = cx + mainSnapDistFromCenter * sc;
-      add('circle',{cx:mainLeftSnapX, cy:mainSnapY, r:8, fill:'#059669', stroke:'#dc2626', 'stroke-width':2.5});
+      add('circle',{cx:mainLeftSnapX, cy:mainSnapY, r:8, fill:STUD_FILL, stroke:STUD_STROKE, 'stroke-width':2.5});
       add('text',{x:mainLeftSnapX, y:mainSnapY + 4, 'text-anchor':'middle', 'font-size':9, fill:'#fff', 'font-weight':'bold'}).textContent=snap.label;
-      add('circle',{cx:mainRightSnapX, cy:mainSnapY, r:8, fill:'#059669', stroke:'#dc2626', 'stroke-width':2.5});
+      add('circle',{cx:mainRightSnapX, cy:mainSnapY, r:8, fill:STUD_FILL, stroke:STUD_STROKE, 'stroke-width':2.5});
       add('text',{x:mainRightSnapX, y:mainSnapY + 4, 'text-anchor':'middle', 'font-size':9, fill:'#fff', 'font-weight':'bold'}).textContent=snap.label;
 
       // --- Dashed lines connecting snap pairs ---
@@ -1608,13 +1559,13 @@ function _drawAssemblyDiagramFlat_chair_legacy(params, svgId, vbw, vbh){
     const keyH = legendH - 14;
     const colW = keyTotalW / 2;
     // Background box spanning the whole width
-    add('rect',{x:keyX, y:keyY, width:keyTotalW, height:keyH, rx:6, fill:'#f0fdf4', stroke:'#059669', 'stroke-width':1.5});
-    // Header row: title + legend
-    add('text',{x:keyX + 10, y:keyY + 14, 'font-size':11, fill:'#059669', 'font-weight':'bold'}).textContent='SNAP PLACEMENT';
-    add('circle',{cx:keyX + 130, cy:keyY + 11, r:5, fill:'#059669', stroke:'#fff', 'stroke-width':2});
-    add('text',{x:keyX + 140, y:keyY + 14, 'font-size':9, fill:'#334155'}).textContent='= on back piece';
-    add('circle',{cx:keyX + 240, cy:keyY + 11, r:5, fill:'#059669', stroke:'#dc2626', 'stroke-width':2});
-    add('text',{x:keyX + 250, y:keyY + 14, 'font-size':9, fill:'#334155'}).textContent='= on main piece';
+    add('rect',{x:keyX, y:keyY, width:keyTotalW, height:keyH, rx:6, fill:'#f0fdf4', stroke:'#166534', 'stroke-width':1.5});
+    // Header row: title + legend (stud on main, socket on back)
+    add('text',{x:keyX + 10, y:keyY + 14, 'font-size':11, fill:'#166534', 'font-weight':'bold'}).textContent='SNAP PLACEMENT';
+    add('circle',{cx:keyX + 130, cy:keyY + 11, r:5, fill:SOCKET_FILL, stroke:SOCKET_STROKE, 'stroke-width':2});
+    add('text',{x:keyX + 140, y:keyY + 14, 'font-size':9, fill:'#334155'}).textContent='= socket (on back piece)';
+    add('circle',{cx:keyX + 260, cy:keyY + 11, r:5, fill:STUD_FILL, stroke:STUD_STROKE, 'stroke-width':2});
+    add('text',{x:keyX + 270, y:keyY + 14, 'font-size':9, fill:'#334155'}).textContent='= stud (on main piece)';
     // Vertical divider between columns
     add('line',{x1:keyX + colW, y1:keyY + 22, x2:keyX + colW, y2:keyY + keyH - 6,
       stroke:'#86efac', 'stroke-width':1});
@@ -1622,7 +1573,7 @@ function _drawAssemblyDiagramFlat_chair_legacy(params, svgId, vbw, vbh){
     function drawSnapBlock(snap, colIdx){
       const x0 = keyX + colIdx * colW + 12;
       let row = keyY + 38;
-      add('text',{x:x0, y:row, 'font-size':11, fill:'#059669', 'font-weight':'bold'}).textContent=`${snap.label} (${snap.fracLabel} down from seam)`;
+      add('text',{x:x0, y:row, 'font-size':11, fill:'#166534', 'font-weight':'bold'}).textContent=`${snap.label} (${snap.fracLabel} down from seam)`;
       row += 16;
       add('text',{x:x0, y:row, 'font-size':10, fill:'#334155'}).textContent=`Back: ${rIn(snap.downFromSeam)}" down, ${rIn(snap.fromCenter)}" from center`;
       row += 12;
@@ -1846,12 +1797,6 @@ function _drawAssemblyDiagramFlat_chair_legacy(params, svgId, vbw, vbh){
     add('circle',{cx:gromBackRightX, cy:gromBackY, r:gromR, fill:'none', stroke:gromColor, 'stroke-width':2.5});
     add('circle',{cx:gromBackRightX, cy:gromBackY, r:1.5, fill:gromColor});
 
-    // --- Bungee lines connecting front (main piece) to back (back piece) ---
-    add('line',{x1:gromBackLeftX, y1:gromBackY, x2:gromFrontLeftX, y2:gromFrontY,
-      stroke:gromColor, 'stroke-width':1, 'stroke-dasharray':'6,4', opacity:0.5});
-    add('line',{x1:gromBackRightX, y1:gromBackY, x2:gromFrontRightX, y2:gromFrontY,
-      stroke:gromColor, 'stroke-width':1, 'stroke-dasharray':'6,4', opacity:0.5});
-
     // Labels
     add('text',{x:gromBackLeftX, y:gromBackY - 9, 'text-anchor':'middle', 'font-size':7, fill:gromColor, 'font-weight':'bold'}).textContent='G';
     add('text',{x:gromFrontLeftX, y:gromFrontY - 9, 'text-anchor':'middle', 'font-size':7, fill:gromColor, 'font-weight':'bold'}).textContent='G';
@@ -1885,401 +1830,6 @@ function _drawAssemblyDiagramFlat_chair_legacy(params, svgId, vbw, vbh){
   add('text',{x:cx, y:mainBotY + (frontFlapNeeded ? (frontFlapWidth * sc) + 16 : 16), 'text-anchor':'middle', 'font-size':10, fill:'#475569', 'font-weight':'bold'}).textContent='↓ FRONT (in front of couch) ↓';
 }
 
-// === WAVY PATH HELPER ===
-// Generates an SVG path 'd' attribute for a sine wave along a line segment.
-// The wave cuts INWARD only: peaks sit at the original edge, troughs scoop inward.
-// amplitude = depth of scoop in inches; wavelength = one full cycle in inches.
-// inwardNDir: +1 or -1 to control which side is "inward" (into the material).
-function wavyPathD(x1, y1, x2, y2, amplitude, wavelength, sc, inwardNDir) {
-  const dx = x2 - x1, dy = y2 - y1;
-  const len = Math.sqrt(dx * dx + dy * dy);
-  if (len < 1) return `M${x1},${y1}L${x2},${y2}`;
-  // Unit tangent and inward normal
-  const ux = dx / len, uy = dy / len;
-  const dir = inwardNDir || 1;
-  const nx = -uy * dir, ny = ux * dir;
-  const depthPx = amplitude * sc;
-  const wavePx = wavelength * sc;
-  const steps = Math.max(Math.ceil(len / 1.5), 80);
-  let d = `M${x1.toFixed(1)},${y1.toFixed(1)}`;
-  for (let i = 1; i <= steps; i++) {
-    const t = i / steps;
-    const bx = x1 + dx * t;
-    const by = y1 + dy * t;
-    // (cos - 1)/2 ranges from -1 (trough) to 0 (peak at edge)
-    const wave = (Math.cos(2 * Math.PI * (len * t) / wavePx) - 1) / 2 * depthPx;
-    d += `L${(bx + nx * wave).toFixed(1)},${(by + ny * wave).toFixed(1)}`;
-  }
-  return d;
-}
-
-// Returns array of {x, y} points along a wavy edge, with amplitude tapering to zero
-// over taperPx pixels at the start and end so corners blend smoothly.
-function wavyEdgePoints(x1, y1, x2, y2, depthPx, wavePx, dir, taperPx) {
-  const dx = x2 - x1, dy = y2 - y1;
-  const len = Math.sqrt(dx * dx + dy * dy);
-  if (len < 1) return [{x: x1, y: y1}];
-  const ux = dx / len, uy = dy / len;
-  const nx = -uy * dir, ny = ux * dir;
-  const steps = Math.max(Math.ceil(len / 1.5), 80);
-  const pts = [];
-  for (let i = 0; i <= steps; i++) {
-    const t = i / steps;
-    const dist = len * t;
-    const bx = x1 + dx * t, by = y1 + dy * t;
-    let amp = depthPx;
-    if (taperPx > 0) {
-      if (dist < taperPx) amp *= dist / taperPx;
-      if (len - dist < taperPx) amp *= (len - dist) / taperPx;
-    }
-    const wave = (Math.cos(2 * Math.PI * dist / wavePx) - 1) / 2 * amp;
-    pts.push({x: bx + nx * wave, y: by + ny * wave});
-  }
-  return pts;
-}
-
-// Build a single SVG path 'd' string from an array of edge-point arrays.
-// Between edges, a small quadratic bezier rounds the corner through the actual corner point.
-function buildWavyPerimeterPath(edgePointArrays, cornerPts, closed) {
-  let d = '';
-  for (let e = 0; e < edgePointArrays.length; e++) {
-    const pts = edgePointArrays[e];
-    for (let i = 0; i < pts.length; i++) {
-      const p = pts[i];
-      if (e === 0 && i === 0) d += `M${p.x.toFixed(1)},${p.y.toFixed(1)}`;
-      else d += `L${p.x.toFixed(1)},${p.y.toFixed(1)}`;
-    }
-    // Round corner to next edge
-    if (e < edgePointArrays.length - 1 && cornerPts && cornerPts[e]) {
-      const cp = cornerPts[e]; // the actual geometric corner point
-      const nextStart = edgePointArrays[e + 1][0];
-      d += `Q${cp.x.toFixed(1)},${cp.y.toFixed(1)} ${nextStart.x.toFixed(1)},${nextStart.y.toFixed(1)}`;
-      // Skip the first point of next edge since the Q already lands on it
-      edgePointArrays[e + 1] = edgePointArrays[e + 1].slice(1);
-    }
-  }
-  if (closed) {
-    // Round last corner back to start
-    if (cornerPts && cornerPts[edgePointArrays.length - 1]) {
-      const cp = cornerPts[edgePointArrays.length - 1];
-      const firstPt = edgePointArrays[0][0] || {x: 0, y: 0};
-      d += `Q${cp.x.toFixed(1)},${cp.y.toFixed(1)} ${firstPt.x.toFixed(1)},${firstPt.y.toFixed(1)}`;
-    }
-    d += 'Z';
-  }
-  return d;
-}
-
-// === WAVY EDGE ASSEMBLY DIAGRAM (chaise lounge — single rectangle, all 4 edges wavy) ===
-function drawWavyEdgeDiagram(params) {
-  const {H, W, WB, D, FC, B, sideDrop, cornerCut, roundMode, hem} = params;
-  const _cc = (cornerCut && cornerCut > 0) ? cornerCut : sideDrop;
-  const rIn = v => roundMode === 'whole' ? Math.ceil(v) : roundMode === 'half' ? roundHalf(v) : Math.round(v*100)/100;
-  const svg = document.getElementById('assemblyWavyEdge');
-  if (!svg) return;
-  const VBW = 1200, VBH = 900;
-  svg.setAttribute('viewBox', `0 0 ${VBW} ${VBH}`);
-  while (svg.firstChild) svg.removeChild(svg.firstChild);
-  const add = (t,a,p=svg)=>{const e=document.createElementNS('http://www.w3.org/2000/svg',t); for(const k in a) e.setAttribute(k,a[k]); p.appendChild(e); return e;};
-
-  const pad = 60;
-  const waveAmp = 1.5;   // inches
-  const waveLen = 13;    // inches per full cycle
-
-  // Chaise rectangle: panel length D + 2*sideDrop, assembled width W + 2*sideDrop.
-  const panelLen = D + 2 * sideDrop;
-  const panelW   = W + 2 * sideDrop;
-  const sc = Math.min((VBW - pad*2) / panelW, (VBH - pad*2 - 60) / panelLen);
-  const cx = VBW / 2;
-  const rectW = panelW * sc;
-  const rectH = panelLen * sc;
-  const rectX = cx - rectW / 2;
-  const rectY = pad + 10;
-  const xL = rectX, xR = rectX + rectW;
-  const yT = rectY, yB = rectY + rectH;
-
-  // Chamfered corner cut: outer _cc×_cc triangle removed from each corner
-  const chamPx = _cc * sc;
-  // Octagon (chamfered rectangle) fill
-  const octPts = [
-    [xL + chamPx, yT], [xR - chamPx, yT],
-    [xR, yT + chamPx], [xR, yB - chamPx],
-    [xR - chamPx, yB], [xL + chamPx, yB],
-    [xL, yB - chamPx], [xL, yT + chamPx]
-  ].map(p=>p.join(',')).join(' ');
-  add('polygon',{points:octPts, fill:'#bfdbfe', 'fill-opacity':0.4, stroke:'#1e40af', 'stroke-width':1, 'stroke-dasharray':'4,3'});
-  // Show the cut-off triangles faintly
-  const triStyle = {fill:'#fee2e2', 'fill-opacity':0.5, stroke:'#dc2626', 'stroke-width':1, 'stroke-dasharray':'3,3'};
-  add('polygon',{points:`${xL},${yT} ${xL+chamPx},${yT} ${xL},${yT+chamPx}`, ...triStyle});
-  add('polygon',{points:`${xR},${yT} ${xR-chamPx},${yT} ${xR},${yT+chamPx}`, ...triStyle});
-  add('polygon',{points:`${xR},${yB} ${xR-chamPx},${yB} ${xR},${yB-chamPx}`, ...triStyle});
-  add('polygon',{points:`${xL},${yB} ${xL+chamPx},${yB} ${xL},${yB-chamPx}`, ...triStyle});
-  add('text',{x:xL + chamPx/2 + 4, y:yT + chamPx/2 + 4, 'font-size':9, fill:'#dc2626'}).textContent='cut';
-
-  // Dotted chaise outline (top-down)
-  const chW = W * sc, chH = D * sc;
-  const chX = cx - chW/2, chY = yT + sideDrop * sc;
-  add('rect',{x:chX, y:chY, width:chW, height:chH, fill:'none', stroke:'#0891b2', 'stroke-width':2, 'stroke-dasharray':'6,4'});
-  add('text',{x:cx, y:chY + chH/2, 'text-anchor':'middle', 'font-size':12, fill:'#0891b2', 'font-weight':'bold'}).textContent=`CHAISE ${rIn(W)}" × ${rIn(D)}"`;
-
-  // Wavy edges — all 4 sides scoop inward, with rounded corners.
-  const wClr = '#059669';
-  const wStroke = 2.5;
-  const depthPx = waveAmp * sc;
-  const wavePx  = waveLen * sc;
-  const taperPx = 4 * sc;
-  const cornerTrans = 13;
-  const cornerPx = Math.max(chamPx, Math.min(cornerTrans * sc, rectW * 0.4, rectH * 0.4));
-
-  // Edges generated so each starts/ends at the cornerPx inset from the actual corner.
-  const top    = wavyEdgePoints(xL + cornerPx, yT, xR - cornerPx, yT, depthPx, wavePx,  1, taperPx);
-  const right  = wavyEdgePoints(xR, yT + cornerPx, xR, yB - cornerPx, depthPx, wavePx, -1, taperPx);
-  const bottom = wavyEdgePoints(xR - cornerPx, yB, xL + cornerPx, yB, depthPx, wavePx, -1, taperPx);
-  const left   = wavyEdgePoints(xL, yB - cornerPx, xL, yT + cornerPx, depthPx, wavePx,  1, taperPx);
-
-  let d = `M${top[0].x.toFixed(1)},${top[0].y.toFixed(1)}`;
-  for (let i = 1; i < top.length; i++) d += `L${top[i].x.toFixed(1)},${top[i].y.toFixed(1)}`;
-  d += `Q${xR.toFixed(1)},${yT.toFixed(1)} ${right[0].x.toFixed(1)},${right[0].y.toFixed(1)}`;
-  for (let i = 1; i < right.length; i++) d += `L${right[i].x.toFixed(1)},${right[i].y.toFixed(1)}`;
-  d += `Q${xR.toFixed(1)},${yB.toFixed(1)} ${bottom[0].x.toFixed(1)},${bottom[0].y.toFixed(1)}`;
-  for (let i = 1; i < bottom.length; i++) d += `L${bottom[i].x.toFixed(1)},${bottom[i].y.toFixed(1)}`;
-  d += `Q${xL.toFixed(1)},${yB.toFixed(1)} ${left[0].x.toFixed(1)},${left[0].y.toFixed(1)}`;
-  for (let i = 1; i < left.length; i++) d += `L${left[i].x.toFixed(1)},${left[i].y.toFixed(1)}`;
-  d += `Q${xL.toFixed(1)},${yT.toFixed(1)} ${top[0].x.toFixed(1)},${top[0].y.toFixed(1)} Z`;
-  add('path',{d:d, fill:'none', stroke:wClr, 'stroke-width':wStroke});
-
-  // Dimension labels
-  add('text',{x:cx, y:yT - 10, 'text-anchor':'middle', 'font-size':12, fill:'#0f172a', 'font-weight':'bold'}).textContent=`${rIn(panelW)}" wide`;
-  add('text',{x:xL - 10, y:cx*0+(yT+yB)/2, 'text-anchor':'middle', 'font-size':12, fill:'#0f172a', 'font-weight':'bold',
-    transform:`rotate(-90 ${xL-10} ${(yT+yB)/2})`}).textContent=`${rIn(panelLen)}" long`;
-
-  // Direction labels
-  add('text',{x:cx, y:yT - 28, 'text-anchor':'middle', 'font-size':11, fill:'#475569', 'font-weight':'bold'}).textContent='↑ BACK (head of chaise) ↑';
-  add('text',{x:cx, y:yB + 22, 'text-anchor':'middle', 'font-size':11, fill:'#475569', 'font-weight':'bold'}).textContent='↓ FRONT (foot of chaise) ↓';
-
-  // Wave spec key
-  const keyX = VBW - pad - 220, keyY = pad;
-  add('rect',{x:keyX, y:keyY, width:220, height:96, rx:6, fill:'#f0fdf4', stroke:'#059669', 'stroke-width':1.5});
-  add('text',{x:keyX + 110, y:keyY + 18, 'text-anchor':'middle', 'font-size':12, fill:'#059669', 'font-weight':'bold'}).textContent='WAVY EDGE SPEC';
-  add('text',{x:keyX + 10, y:keyY + 38, 'font-size':10, fill:'#334155'}).textContent=`Wave depth: ${waveAmp}" (scoops inward)`;
-  add('text',{x:keyX + 10, y:keyY + 54, 'font-size':10, fill:'#334155'}).textContent=`Full wave cycle: ${waveLen}"`;
-  add('text',{x:keyX + 10, y:keyY + 72, 'font-size':10, fill:'#334155'}).textContent=`All 4 edges wavy — no seams.`;
-  add('text',{x:keyX + 10, y:keyY + 88, 'font-size':9, fill:'#dc2626'}).textContent=`Chamfer corner cut: ${rIn(_cc)}" × ${rIn(_cc)}"${(cornerCut && cornerCut>0 && Math.abs(cornerCut-sideDrop)>0.01) ? ' (CC override)' : ''}`;
-}
-function _legacy_drawWavyEdgeDiagram_unused() {
-  const waveAmp_legacy = 1.5;
-
-  // --- Layout (same as main flat diagram) ---
-  const extraBack = backPieceHeight;
-  const extraFront = frontFlapNeeded ? frontFlapWidth : 0;
-  const totalDiagH = B + extraBack + extraFront + 20;
-  const totalDiagW = ML + 40;
-  const scX = (VBW - pad*2) / totalDiagW;
-  const scY = (VBH - pad*2) / totalDiagH;
-  const sc = Math.min(scX, scY);
-  const cx = VBW / 2;
-  const backPieceTopY = pad + 10;
-  const mainTopY = backPieceTopY + extraBack * sc;
-  const mainBotY = mainTopY + B * sc;
-  const mainW = ML * sc;
-  const mainH = B * sc;
-  const mainX = cx - mainW / 2;
-  const halfFWpx = (frontWidthAfterCut || W) / 2 * sc;
-  const trimPx = (markFromSideEdge || 0) * sc;
-  const bkInPx = (backInset || 0) * sc;
-  const frInPx = (frontInset || 0) * sc;
-  const ffH = frontFlapNeeded ? frontFlapWidth * sc : 0;
-  const frontBottomY = mainBotY + ffH;
-  const backInsetY = mainTopY + bkInPx;
-  const frontInsetY = mainBotY - frInPx;
-  const topLeftX = mainX;
-  const topRightX = mainX + mainW;
-  const frontLeftX = mainX + trimPx;
-  const frontRightX = mainX + mainW - trimPx;
-
-  // Back piece
-  const bpPhysH = backPieceHeight * sc;
-  const bpTopW = backPieceTopWidth * sc;
-  const bpBotW = backPieceBottomWidth * sc;
-  const bpTopY = mainTopY - bpPhysH;
-
-  // --- Draw filled shapes (light, so wavy lines stand out) ---
-  // Main piece + front flap
-  const shapePts = [
-    `${topLeftX},${mainTopY}`, `${topRightX},${mainTopY}`,
-    `${topRightX},${backInsetY}`, `${frontRightX},${frontInsetY}`,
-    `${frontRightX},${frontBottomY}`, `${frontLeftX},${frontBottomY}`,
-    `${frontLeftX},${frontInsetY}`, `${topLeftX},${backInsetY}`
-  ].join(' ');
-  add('polygon', {points: shapePts, fill: '#fca5a5', stroke: 'none', opacity: 0.5});
-
-  // Back piece trapezoid
-  const bpTrapPts = [
-    `${cx - bpTopW/2},${mainTopY}`, `${cx + bpTopW/2},${mainTopY}`,
-    `${cx + bpBotW/2},${bpTopY}`, `${cx - bpBotW/2},${bpTopY}`
-  ].join(' ');
-  add('polygon', {points: bpTrapPts, fill: '#93c5fd', stroke: 'none', opacity: 0.4});
-
-  // --- SEAM EDGES (straight, purple) — where pieces join ---
-  // Seam: main piece top edge (where back piece attaches)
-  add('line', {x1: topLeftX, y1: mainTopY, x2: topRightX, y2: mainTopY,
-    stroke: '#7c3aed', 'stroke-width': 2.5});
-  add('text', {x: cx, y: mainTopY + 14, 'text-anchor': 'middle', 'font-size': 10,
-    fill: '#7c3aed', 'font-weight': 'bold'}).textContent = 'SEAM — straight (no wave)';
-
-  // Seam: back piece bottom edge (same line, back piece side)
-  // (already drawn above)
-
-  // Seam: front flap junction (if exists)
-  if (frontFlapNeeded) {
-    add('line', {x1: frontLeftX, y1: mainBotY, x2: frontRightX, y2: mainBotY,
-      stroke: '#7c3aed', 'stroke-width': 2.5});
-    add('text', {x: cx, y: mainBotY - 6, 'text-anchor': 'middle', 'font-size': 9,
-      fill: '#7c3aed', 'font-weight': 'bold'}).textContent = 'SEAM — straight';
-  }
-
-  // --- WAVY OUTER EDGES (green, waves scoop INWARD into the material) ---
-  // Uses single continuous paths per piece with amplitude tapering at corners
-  // so transitions are smooth instead of pointy.
-  const wClr = '#059669';
-  const wStroke = 2.5;
-  const depthPx = waveAmp * sc;
-  const wavePx = waveLen * sc;
-  const taperPx = 4 * sc; // taper amplitude over 4" near corners
-  const cornerTrans = 13; // inches — front corner transition zone
-  const cornerPx = cornerTrans * sc;
-
-  // == MAIN PIECE — single continuous path ==
-  // Clockwise from top-left: seam(straight) → right back → right diag → right front →
-  // right corner curve → bottom → left corner curve → left front → left diag → left back
-  {
-    const cornerStopY = frontBottomY - cornerPx;
-    // Edge point arrays (with tapering at corners)
-    const rightBack = wavyEdgePoints(topRightX, mainTopY, topRightX, backInsetY, depthPx, wavePx, -1, taperPx);
-    const rightDiag = wavyEdgePoints(topRightX, backInsetY, frontRightX, frontInsetY, depthPx, wavePx, -1, taperPx);
-    const rightFront = wavyEdgePoints(frontRightX, frontInsetY, frontRightX, cornerStopY, depthPx, wavePx, -1, taperPx);
-    const bottom = wavyEdgePoints(frontLeftX + cornerPx, frontBottomY, frontRightX - cornerPx, frontBottomY, depthPx, wavePx, 1, taperPx);
-    const leftFront = wavyEdgePoints(frontLeftX, cornerStopY, frontLeftX, frontInsetY, depthPx, wavePx, -1, taperPx);
-    const leftDiag = wavyEdgePoints(frontLeftX, frontInsetY, topLeftX, backInsetY, depthPx, wavePx, -1, taperPx);
-    const leftBack = wavyEdgePoints(topLeftX, backInsetY, topLeftX, mainTopY, depthPx, wavePx, -1, taperPx);
-
-    // Build path: straight seam along top, then wavy edges with rounded corners
-    let d = `M${topLeftX.toFixed(1)},${mainTopY.toFixed(1)}`;
-    d += `L${topRightX.toFixed(1)},${mainTopY.toFixed(1)}`; // straight seam
-
-    // Right back zone
-    for (const p of rightBack) d += `L${p.x.toFixed(1)},${p.y.toFixed(1)}`;
-    // Round corner → right diagonal (corner at topRightX, backInsetY)
-    d += `Q${topRightX.toFixed(1)},${backInsetY.toFixed(1)} ${rightDiag[0].x.toFixed(1)},${rightDiag[0].y.toFixed(1)}`;
-    for (let i = 1; i < rightDiag.length; i++) d += `L${rightDiag[i].x.toFixed(1)},${rightDiag[i].y.toFixed(1)}`;
-    // Round corner → right front zone (corner at frontRightX, frontInsetY)
-    d += `Q${frontRightX.toFixed(1)},${frontInsetY.toFixed(1)} ${rightFront[0].x.toFixed(1)},${rightFront[0].y.toFixed(1)}`;
-    for (let i = 1; i < rightFront.length; i++) d += `L${rightFront[i].x.toFixed(1)},${rightFront[i].y.toFixed(1)}`;
-
-    // Right front corner curve (sweeps inward, cutting off corner)
-    const rfl = rightFront[rightFront.length - 1];
-    d += `C${(frontRightX - cornerPx * 0.15).toFixed(1)},${(cornerStopY + cornerPx * 0.55).toFixed(1)} ` +
-         `${(frontRightX - cornerPx * 0.55).toFixed(1)},${(frontBottomY - cornerPx * 0.15).toFixed(1)} ` +
-         `${(frontRightX - cornerPx).toFixed(1)},${frontBottomY.toFixed(1)}`;
-
-    // Bottom edge (right to left, reversed so we go clockwise; points were generated L→R)
-    for (let i = bottom.length - 1; i >= 0; i--) d += `L${bottom[i].x.toFixed(1)},${bottom[i].y.toFixed(1)}`;
-
-    // Left front corner curve
-    d += `C${(frontLeftX + cornerPx * 0.55).toFixed(1)},${(frontBottomY - cornerPx * 0.15).toFixed(1)} ` +
-         `${(frontLeftX + cornerPx * 0.15).toFixed(1)},${(cornerStopY + cornerPx * 0.55).toFixed(1)} ` +
-         `${frontLeftX.toFixed(1)},${cornerStopY.toFixed(1)}`;
-
-    // Left front zone (going upward: cornerStopY → frontInsetY)
-    for (const p of leftFront) d += `L${p.x.toFixed(1)},${p.y.toFixed(1)}`;
-    // Round corner → left diagonal (corner at frontLeftX, frontInsetY)
-    d += `Q${frontLeftX.toFixed(1)},${frontInsetY.toFixed(1)} ${leftDiag[0].x.toFixed(1)},${leftDiag[0].y.toFixed(1)}`;
-    for (let i = 1; i < leftDiag.length; i++) d += `L${leftDiag[i].x.toFixed(1)},${leftDiag[i].y.toFixed(1)}`;
-    // Round corner → left back zone (corner at topLeftX, backInsetY)
-    d += `Q${topLeftX.toFixed(1)},${backInsetY.toFixed(1)} ${leftBack[0].x.toFixed(1)},${leftBack[0].y.toFixed(1)}`;
-    for (let i = 1; i < leftBack.length; i++) d += `L${leftBack[i].x.toFixed(1)},${leftBack[i].y.toFixed(1)}`;
-
-    d += 'Z';
-    add('path', {d: d, fill: 'none', stroke: wClr, 'stroke-width': wStroke});
-
-    // Corner labels
-    add('text', {x: frontLeftX + cornerPx * 0.55, y: frontBottomY - cornerPx * 0.3, 'text-anchor': 'middle',
-      'font-size': 9, fill: '#dc2626', 'font-weight': 'bold'}).textContent = `${cornerTrans}" corner`;
-    add('text', {x: frontRightX - cornerPx * 0.55, y: frontBottomY - cornerPx * 0.3, 'text-anchor': 'middle',
-      'font-size': 9, fill: '#dc2626', 'font-weight': 'bold'}).textContent = `${cornerTrans}" corner`;
-  }
-
-  // == BACK PIECE — single continuous path ==
-  // Clockwise from bottom-left: seam(straight) → right diag → top edge → left diag
-  {
-    const rightDiag = wavyEdgePoints(cx + bpTopW/2, mainTopY, cx + bpBotW/2, bpTopY, depthPx, wavePx, -1, taperPx);
-    const topEdge = wavyEdgePoints(cx + bpBotW/2, bpTopY, cx - bpBotW/2, bpTopY, depthPx, wavePx, 1, taperPx);
-    const leftDiag = wavyEdgePoints(cx - bpBotW/2, bpTopY, cx - bpTopW/2, mainTopY, depthPx, wavePx, 1, taperPx);
-
-    let d = `M${(cx - bpTopW/2).toFixed(1)},${mainTopY.toFixed(1)}`;
-    d += `L${(cx + bpTopW/2).toFixed(1)},${mainTopY.toFixed(1)}`; // straight seam
-
-    // Right diagonal (going up from seam to narrow top)
-    for (const p of rightDiag) d += `L${p.x.toFixed(1)},${p.y.toFixed(1)}`;
-    // Round corner at top-right
-    d += `Q${(cx + bpBotW/2).toFixed(1)},${bpTopY.toFixed(1)} ${topEdge[0].x.toFixed(1)},${topEdge[0].y.toFixed(1)}`;
-    for (let i = 1; i < topEdge.length; i++) d += `L${topEdge[i].x.toFixed(1)},${topEdge[i].y.toFixed(1)}`;
-    // Round corner at top-left
-    d += `Q${(cx - bpBotW/2).toFixed(1)},${bpTopY.toFixed(1)} ${leftDiag[0].x.toFixed(1)},${leftDiag[0].y.toFixed(1)}`;
-    for (let i = 1; i < leftDiag.length; i++) d += `L${leftDiag[i].x.toFixed(1)},${leftDiag[i].y.toFixed(1)}`;
-
-    d += 'Z';
-    add('path', {d: d, fill: 'none', stroke: wClr, 'stroke-width': wStroke});
-  }
-
-  // --- LABELS ---
-  // Main piece
-  add('text', {x: cx, y: mainTopY + mainH/2 - 10, 'text-anchor': 'middle', 'font-size': 14,
-    fill: '#991b1b', 'font-weight': 'bold'}).textContent = 'MAIN PIECE';
-  add('text', {x: cx, y: mainTopY + mainH/2 + 8, 'text-anchor': 'middle', 'font-size': 11,
-    fill: '#991b1b'}).textContent = `${rIn(ML)}" × ${rIn(B)}"`;
-  // Back piece
-  add('text', {x: cx, y: bpTopY + bpPhysH/2 - 8, 'text-anchor': 'middle', 'font-size': 12,
-    fill: '#1e40af', 'font-weight': 'bold'}).textContent = 'BACK PIECE';
-  add('text', {x: cx, y: bpTopY + bpPhysH/2 + 8, 'text-anchor': 'middle', 'font-size': 10,
-    fill: '#1e40af'}).textContent = `${rIn(backPieceTopWidth)}" top / ${rIn(backPieceBottomWidth)}" bottom`;
-  // Front flap
-  if (frontFlapNeeded) {
-    const flapCY = (mainBotY + frontBottomY) / 2;
-    add('text', {x: cx, y: flapCY, 'text-anchor': 'middle', 'font-size': 11,
-      fill: '#92400e', 'font-weight': 'bold'}).textContent = 'FRONT FLAP';
-  }
-
-  // --- WAVE SPEC KEY (top-right corner) ---
-  const keyX = VBW - pad - 220, keyY = pad;
-  add('rect', {x: keyX, y: keyY, width: 220, height: 130, rx: 6, fill: '#f0fdf4', stroke: '#059669', 'stroke-width': 1.5});
-  add('text', {x: keyX + 110, y: keyY + 18, 'text-anchor': 'middle', 'font-size': 12, fill: '#059669', 'font-weight': 'bold'}).textContent = 'WAVY EDGE SPEC';
-  add('text', {x: keyX + 10, y: keyY + 38, 'font-size': 10, fill: '#334155'}).textContent = `Wave depth: ${waveAmp}" (scoops inward from edge)`;
-  add('text', {x: keyX + 10, y: keyY + 54, 'font-size': 10, fill: '#334155'}).textContent = `Full wave cycle: ${waveLen}"`;
-  // Mini wave preview (inward-only: peaks at top line, troughs scoop down)
-  const previewBaseY = keyY + 72;
-  add('line', {x1: keyX + 10, y1: previewBaseY, x2: keyX + 210, y2: previewBaseY,
-    stroke: '#cbd5e1', 'stroke-width': 1, 'stroke-dasharray': '4,3'});
-  add('text', {x: keyX + 212, y: previewBaseY + 3, 'font-size': 7, fill: '#94a3b8'}).textContent = 'edge';
-  let previewD = `M${keyX + 10},${previewBaseY}`;
-  for (let i = 1; i <= 60; i++) {
-    const px = keyX + 10 + (i / 60) * 200;
-    const py = previewBaseY - (Math.cos(2 * Math.PI * (i / 60) * 2.5) - 1) / 2 * 10;
-    previewD += `L${px.toFixed(1)},${py.toFixed(1)}`;
-  }
-  add('path', {d: previewD, fill: 'none', stroke: wClr, 'stroke-width': 2});
-  // Corner scoop info
-  add('line', {x1: keyX + 10, y1: keyY + 90, x2: keyX + 210, y2: keyY + 90,
-    stroke: '#e2e8f0', 'stroke-width': 1});
-  add('text', {x: keyX + 10, y: keyY + 106, 'font-size': 10, fill: '#dc2626', 'font-weight': 'bold'}).textContent = `Front corner transition: ${cornerTrans}"`;
-  add('text', {x: keyX + 10, y: keyY + 120, 'font-size': 9, fill: '#334155'}).textContent = 'Wave curves inward, cutting off corner';
-
-  // --- DIRECTION LABELS ---
-  add('text', {x: cx, y: mainTopY - bpPhysH - 16, 'text-anchor': 'middle', 'font-size': 10,
-    fill: '#475569', 'font-weight': 'bold'}).textContent = '↑ BACK (behind couch) ↑';
-  add('text', {x: cx, y: frontBottomY + 16, 'text-anchor': 'middle', 'font-size': 10,
-    fill: '#475569', 'font-weight': 'bold'}).textContent = '↓ FRONT (in front of couch) ↓';
-}
 
 function compute(){
   try{
@@ -2411,7 +1961,7 @@ function compute(){
     // Back inset zone (0 to backInset from back): full ML width, no cut
     // Taper zone (backInset to B-frontInset): diagonal taper
     // Front inset zone (B-frontInset to B): constant frontWidthAfterCut
-    // This gives uniform FC+wave clearance along the entire side of the chair.
+    // This gives uniform FC clearance along the entire side of the chair.
     const confirmCoverageWidth = totalFB;  // width at armrest level (front-to-back)
     const backWidth = ML;  // widest point (at back, full ML)
     const frontWidth = frontWidthAfterCut;  // at front, after diagonal
@@ -2755,7 +2305,7 @@ function compute(){
 
     const results = document.getElementById('results');
     results.innerHTML = '';
-    rows.forEach(([label, value, calc], i)=>{
+    rows.forEach(([label, value], i)=>{
       const isWarning = label.startsWith('⚠️');
       const div = document.createElement('div');
       div.className = 'row';
@@ -2773,7 +2323,6 @@ function compute(){
         <div style="display:flex;justify-content:space-between;align-items:center;">
           <span>${label}</span><strong>${value}</strong>
         </div>
-        ${calc ? `<div style="font-size:11px;color:var(--sub);margin-top:4px;">${calc}</div>` : ''}
       `;
       results.appendChild(div);
     });
@@ -2790,7 +2339,7 @@ function compute(){
       ['Yards (exact)', `${fmtExact(exactYards)} yd`,
         `${fmtExact(totalLength)} ÷ 36 = ${fmtExact(exactYards)} yards (no rounding)`],
     ];
-    bRows.forEach(([label, value, calc], i)=>{
+    bRows.forEach(([label, value], i)=>{
       const div = document.createElement('div');
       div.className = 'row';
       div.style.display = 'block';
@@ -2800,7 +2349,6 @@ function compute(){
         <div style="display:flex;justify-content:space-between;align-items:center;">
           <span>${label}</span><strong>${value}</strong>
         </div>
-        ${calc ? `<div style="font-size:11px;color:var(--sub);margin-top:4px;">${calc}</div>` : ''}
       `;
       buy.appendChild(div);
     });
@@ -2822,40 +2370,10 @@ function compute(){
     const chaiseBungeeLen = W + 2 * chaiseGromSideOut;                  // 34" — runs side-to-side under the chaise
     const grommetsSection = document.getElementById('grommets');
     if (grommetsSection) grommetsSection.innerHTML = `
-      <div class="row" style="display:block; padding:8px 0; background:#eff6ff;">
-        <div style="display:flex;justify-content:space-between;align-items:center;">
-          <span><strong>Corner grommets</strong></span><strong style="color:#2563eb;">4 total (1 per corner)</strong>
-        </div>
-        <div style="font-size:11px;color:var(--sub);margin-top:4px;">
-          Positioned relative to the chaise outline (not the cover edge).
-        </div>
-      </div>
-      <div class="row" style="display:block; padding:8px 0; border-top:1px dashed var(--muted);">
-        <div style="display:flex;justify-content:space-between;align-items:center;">
-          <span>Distance from center (left/right)</span><strong>±${fmtExact(chaiseGromHorizFromCenter)} in</strong>
-        </div>
-        <div style="font-size:11px;color:var(--sub);margin-top:4px;">
-          W ÷ 2 + ${chaiseGromSideOut} = ${W} ÷ 2 + ${chaiseGromSideOut} = ${fmtExact(chaiseGromHorizFromCenter)}"
-          &nbsp;(${chaiseGromSideOut}" outside each side edge of the chaise)
-        </div>
-      </div>
-      <div class="row" style="display:block; padding:8px 0; border-top:1px dashed var(--muted);">
-        <div style="display:flex;justify-content:space-between;align-items:center;">
-          <span>Distance in from head/foot of chaise</span><strong>${fmtExact(chaiseGromEndIn)} in</strong>
-        </div>
-        <div style="font-size:11px;color:var(--sub);margin-top:4px;">
-          Measured inward from the chaise's back/front edge — sits in the side overhang.
-        </div>
-      </div>
-
-      <div class="row" style="display:block; padding:8px 0; border-top:2px solid var(--muted); margin-top:8px;">
-        <div style="display:flex;justify-content:space-between;align-items:center;">
-          <span>Bungees</span><strong>2 pieces × ${fmtExact(chaiseBungeeLen)} in</strong>
-        </div>
-        <div style="font-size:11px;color:var(--sub);margin-top:4px;">
-          One bungee runs side-to-side at the head, one at the foot — through the two grommets, underneath the chaise, and cinched against the underside.<br/>
-          Length = W + 2×${chaiseGromSideOut} = ${W} + ${2*chaiseGromSideOut} = ${fmtExact(chaiseBungeeLen)}"
-        </div>
+      <div class='row'><span>Total grommets</span><strong>4 — 1 per corner</strong></div>
+      <div class='row'><span>Bungee length</span><strong>2 pieces × ${fmtInch(chaiseBungeeLen, rounded)}"</strong></div>
+      <div class='note' style='margin-top:6px;'>
+        One bungee runs side-to-side at the head, one at the foot — through the two grommets, underneath the chaise, and cinched against the underside.
       </div>
     `;
 
@@ -2877,34 +2395,14 @@ function compute(){
 
     const snapStrapsSection = document.getElementById('snapstraps');
     snapStrapsSection.innerHTML = `
-      <div class="row" style="display:block; padding:8px 0; background:#ecfdf5;">
-        <div style="display:flex;justify-content:space-between;align-items:center;">
-          <span><strong>Corner snaps</strong></span><strong style="color:#059669;">1 pair per corner (4 pairs total)</strong>
-        </div>
-        <div style="font-size:11px;color:var(--sub);margin-top:4px;">
-          Each corner of the chaise cover has a diagonal cut that removes the outer triangle of the corner square. When the two adjacent side drops fold together at 45°, a mating pair of snaps closes the corner cleanly — aesthetic, keeps the excess material tucked inside.
-        </div>
-      </div>
-
-      <div class="row" style="display:block; padding:8px 0; border-top:2px solid #059669; background:#f0fdf4;">
-        <div style="display:flex;justify-content:space-between;align-items:center;">
-          <span><strong>Snap position (per snap half)</strong></span><strong style="color:#059669;">${fmtExact(snapAlongInches)}" × ${fmtExact(snapPerpInches)}"</strong>
-        </div>
-        <div style="font-size:11px;color:var(--sub);margin-top:4px;">
-          Measured from the outer fabric corner of each corner square:
-          <br/><strong>Along the chaise edge (fold-line direction):</strong> ${fmtExact(snapAlongInches)}" = side drop − 2 = (H − FC) − 2 = ${fmtExact(sideDrop)} − 2 = ${fmtExact(snapAlongInches)}" (= 2" inside the chaise fold line).
-          <br/><strong>Perpendicular (outer edge toward chaise):</strong> ${fmtExact(snapPerpInches)}" = side drop / 2 = ${fmtExact(sideDrop)} / 2 = ${fmtExact(snapPerpInches)}" (= halfway between outer fabric edge and chaise edge).
-          <br/>Each corner has two such halves — one on each adjacent flap — that mirror across the diagonal cut and mate when folded.
-        </div>
-      </div>
-
-      <div class="row" style="display:block; padding:8px 0; border-top:1px dashed var(--muted);">
-        <div style="display:flex;justify-content:space-between;align-items:center;">
-          <span>Installation note</span><strong>Male on one half, female on the mirror half</strong>
-        </div>
-        <div style="font-size:11px;color:var(--sub);margin-top:4px;">
-          When the two flaps fold together at 45° (after the diagonal cut is sewn), the two halves meet at a single 3D point. Press-close to finish the corner.
-        </div>
+      <div class='row'><span>Snap sets per corner</span><strong>1 set (1 stud + 1 socket)</strong></div>
+      <div class='row'><span>Total snap sets / total pieces</span><strong>4 sets / 8 pieces</strong></div>
+      <div class='row'><span>Snap position (per snap half)</span><strong>${fmtInch(snapAlongInches, rounded)}" × ${fmtInch(snapPerpInches, rounded)}"</strong></div>
+      <div class='note' style='margin-top:6px;'>
+        Each snap is one mating pair —
+        one <strong style='color:#166534'>stud (green dot)</strong>
+        and one <strong style='color:#831843'>socket (magenta dot)</strong>
+        that press together. When the two adjacent side drops fold together at 45° across the diagonal corner cut, the mating pair closes the corner cleanly.
       </div>
     `;
 
@@ -2932,7 +2430,7 @@ function compute(){
         <div style="font-size:12px;color:var(--text);margin-top:4px;">
           The main piece is a rectangle: <strong>${fmtInch(ML, rounded)}"</strong> wide × <strong>${fmtInch(B, rounded)}"</strong> deep.
           The diagonal tapers the side drops to match the chair profile — wider at the tall back, narrower at the lower armrests.
-          This gives <strong>uniform ${fmtInch(FC, rounded)}" clearance/wave</strong> along the entire side.<br/><br/>
+          This gives <strong>uniform ${fmtInch(FC, rounded)}" clearance</strong> along the entire side.<br/><br/>
           The diagonal is <strong>inset from both ends</strong> — it only tapers in the middle zone:<br/>
           • <strong>Back zone</strong> (first ${fmtInch(backInset, rounded)}" from back edge): full ML width — seam attachment zone (hem + BR).<br/>
           • <strong>Taper zone</strong> (middle ${fmtInch(taperZoneLength, rounded)}"): diagonal tapers from ML to front width.<br/>
@@ -3012,7 +2510,7 @@ function compute(){
         <div style="font-size:11px;color:var(--sub);margin-top:4px;">
           ${CT > 0
             ? `(H + cushion) − ${FC_CUSHION}" = (${H} + ${fmtExact(CT)}) − ${FC_CUSHION} = ${fmtExact(sideDrop)}" — sized for ${FC_CUSHION}" floor clearance with cushion.`
-            : `H − FC = ${H} − ${FC} = ${fmtExact(sideDrop)}" — the total drop from frame top to floor (minus clearance/wave) on each side.`}
+            : `H − FC = ${H} − ${FC} = ${fmtExact(sideDrop)}" — the total drop from frame top to floor (minus clearance) on each side.`}
         </div>
       </div>
       <div class="row" style="display:block; padding:8px 0; border-top:1px solid #22c55e; background:#ecfdf5;">
@@ -3164,7 +2662,6 @@ function compute(){
     try { drawDiagram(payload); } catch(e) { diagramErrors.push('Cut diagram: ' + e.message); console.error('drawDiagram error:', e); }
     try { updateCutList(payload); } catch(e) { diagramErrors.push('Cut list: ' + e.message); console.error('updateCutList error:', e); }
     try { drawAssemblyDiagramFlat(payload, 'assemblyDiagramFlatFull', 1200, 900); } catch(e) { diagramErrors.push('Flat diagram: ' + e.message); console.error('drawAssemblyDiagramFlat error:', e); }
-    try { drawWavyEdgeDiagram(payload); } catch(e) { diagramErrors.push('Wavy edge diagram: ' + e.message); console.error('drawWavyEdgeDiagram error:', e); }
 
     const exp = document.getElementById('exportPng');
     if (exp && !exp._wired){ exp._wired = true; exp.addEventListener('click', exportDiagramPNG); }
