@@ -80,7 +80,7 @@ const productTypes = {
   'chaise-lounge': 'Chaise Lounge',
   'chaise-lounges': 'Chaise Lounge',  // Support both singular and plural URLs
   'ottomans': 'Ottomans',
-  'tables': 'Tables / Sets',
+  'tables': 'Tables & Grills',
   'table-sets': 'Table Sets'
 };
 
@@ -112,6 +112,7 @@ export default function ProductPage() {
   const [isCustomOrder, setIsCustomOrder] = useState(false);
   const [showAddedToast, setShowAddedToast] = useState(false);
   const [isTableSet, setIsTableSet] = useState(false);
+  const [isGrillIsland, setIsGrillIsland] = useState(false);
 
   const addToCart = useCartStore((state) => state.addToCart);
   const updateItem = useCartStore((state) => state.updateItem);
@@ -398,23 +399,41 @@ export default function ProductPage() {
           </div>
         )}
 
-        {/* Table set checkbox + measurement note */}
+        {/* Table set / grill island checkboxes + measurement notes */}
         {productType === 'tables' && (
-          <div className="mt-4">
-            <label className="flex items-center gap-3 cursor-pointer select-none">
-              <input
-                type="checkbox"
-                checked={isTableSet}
-                onChange={(e) => setIsTableSet(e.target.checked)}
-                className="h-5 w-5 rounded border-gray-300 text-brand-teal focus:ring-brand-teal"
-              />
-              <span className="text-sm font-medium text-gray-800">This is a table set (table with chairs)</span>
-            </label>
-            {isTableSet && (
-              <div className="mt-3 bg-amber-50 border border-amber-200 rounded-lg px-5 py-3 text-sm text-amber-800">
-                <strong>Measuring a table set:</strong> Take your measurements with the chairs pushed in under the table. Measure the width and depth to the <strong>outside edges of the chairs</strong> (not just the table), and for height use the <strong>chairs or the table — whichever is taller</strong>.
-              </div>
-            )}
+          <div className="mt-4 space-y-3">
+            <div>
+              <label className="flex items-center gap-3 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={isTableSet}
+                  onChange={(e) => setIsTableSet(e.target.checked)}
+                  className="h-5 w-5 rounded border-gray-300 text-brand-teal focus:ring-brand-teal"
+                />
+                <span className="text-sm font-medium text-gray-800">This is a table set (table with chairs)</span>
+              </label>
+              {isTableSet && (
+                <div className="mt-3 bg-amber-50 border border-amber-200 rounded-lg px-5 py-3 text-sm text-amber-800">
+                  <strong>Measuring a table set:</strong> Take your measurements with the chairs pushed in under the table. Measure the width and depth to the <strong>outside edges of the chairs</strong> (not just the table), and for height use the <strong>chairs or the table — whichever is taller</strong>.
+                </div>
+              )}
+            </div>
+            <div>
+              <label className="flex items-center gap-3 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={isGrillIsland}
+                  onChange={(e) => setIsGrillIsland(e.target.checked)}
+                  className="h-5 w-5 rounded border-gray-300 text-brand-teal focus:ring-brand-teal"
+                />
+                <span className="text-sm font-medium text-gray-800">This is a grill island</span>
+              </label>
+              {isGrillIsland && (
+                <div className="mt-3 bg-amber-50 border border-amber-200 rounded-lg px-5 py-3 text-sm text-amber-800">
+                  <strong>Measuring a grill island:</strong> Measure the <strong>island itself</strong> (the counter/base) for length, depth, and height. Then take an <strong>additional height measurement for the grill</strong> wherever it (or its raised lid) sits above the island surface, so the cover clears it.
+                </div>
+              )}
+            </div>
           </div>
         )}
 
@@ -723,6 +742,7 @@ const getGalleryImages = (productType: string, selectedColor?: string) => {
     'tables': [
       { src: '/images/Tables/tableset-lakefront.jpg', alt: 'Table Set Cover - Lakefront View' },
       { src: '/images/Tables/river-view.jpg', alt: 'Table Set Cover - River View' },
+      { src: '/images/Tables/grill-island.jpg', alt: 'Grill Island Cover - Waterfront Deck' },
       { src: '/images/Tables/table1.jpg', alt: 'Wine Table with Castaway Cover' },
       { src: '/images/Tables/table3.jpg', alt: 'Table with Castaway Cover' },
       { src: '/images/Tables/table4.jpg', alt: 'Table Cover - Scalloped Edge on Patio' },
