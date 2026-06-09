@@ -740,14 +740,17 @@ const getGalleryImages = (productType: string, selectedColor?: string) => {
       { src: '/images/Ottomans/ottoman4.jpg', alt: 'Ottoman Cover - Gray Outdoor View' }
     ],
     'tables': [
+      // Lakefront tan table set
       { src: '/images/Tables/tableset-lakefront.jpg', alt: 'Table Set Cover - Lakefront View' },
-      { src: '/images/Tables/river-view.jpg', alt: 'Table Set Cover - River View' },
-      { src: '/images/Tables/grill-island.jpg', alt: 'Grill Island Cover - Waterfront Deck' },
-      { src: '/images/Tables/table1.jpg', alt: 'Wine Table with Castaway Cover' },
-      { src: '/images/Tables/table3.jpg', alt: 'Table with Castaway Cover' },
-      { src: '/images/Tables/table4.jpg', alt: 'Table Cover - Scalloped Edge on Patio' },
+      { src: '/images/Tablesets/tableset5.jpg', alt: 'Table Set - Additional View' },
       { src: '/images/Tablesets/tableset6.jpg', alt: 'Table Set Cover - Winter Snow Protection' },
-      { src: '/images/Tablesets/tableset5.jpg', alt: 'Table Set - Additional View' }
+      { src: '/images/Tables/table3.jpg', alt: 'Table Set Cover - Handle Detail' },
+      // Bayfront grill island
+      { src: '/images/Tables/grill-island.jpg', alt: 'Grill Island Cover - Waterfront Deck' },
+      { src: '/images/Tables/river-view.jpg', alt: 'Table Set Cover - River View' },
+      // Individual tables
+      { src: '/images/Tables/table1.jpg', alt: 'Wine Table with Castaway Cover' },
+      { src: '/images/Tables/table4.jpg', alt: 'Table Cover - Scalloped Edge on Patio' }
     ],
     'table-sets': [
       { src: '/images/Tablesets/tableset6.jpg', alt: 'Table Set Cover - Winter Snow Protection' },
