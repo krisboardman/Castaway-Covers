@@ -5,7 +5,7 @@ import Image from 'next/image';
 
 const slides = [
   {
-    image: '/images/hero/hero1-v2.webp',
+    image: '/images/hero/hero1-v3.webp',
     title: '',
     subtitle: ''
   },

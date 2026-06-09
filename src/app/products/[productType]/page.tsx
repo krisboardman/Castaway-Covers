@@ -722,6 +722,7 @@ const getGalleryImages = (productType: string, selectedColor?: string) => {
     ],
     'tables': [
       { src: '/images/Tables/tableset-lakefront.jpg', alt: 'Table Set Cover - Lakefront View' },
+      { src: '/images/Tables/river-view.jpg', alt: 'Table Set Cover - River View' },
       { src: '/images/Tables/table1.jpg', alt: 'Wine Table with Castaway Cover' },
       { src: '/images/Tables/table3.jpg', alt: 'Table with Castaway Cover' },
       { src: '/images/Tables/table4.jpg', alt: 'Table Cover - Scalloped Edge on Patio' },
