@@ -4,6 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useCartStore } from '@/store/cartStore';
 import { useEffect, useState } from 'react';
+import SocialLinks from '@/components/SocialLinks';
 
 export default function Header() {
   const [mounted, setMounted] = useState(false);
@@ -55,6 +56,11 @@ export default function Header() {
             >
               Design My Cover
             </Link>
+            <SocialLinks
+              className="gap-3 pl-2 border-l border-gray-200"
+              iconClassName="w-5 h-5"
+              linkClassName="text-gray-500 hover:text-brand-teal"
+            />
           </nav>
 
           {/* Mobile: cart + hamburger */}
@@ -122,6 +128,10 @@ export default function Header() {
             >
               Design My Cover
             </Link>
+            <SocialLinks
+              iconClassName="w-6 h-6"
+              linkClassName="text-gray-600 hover:text-brand-teal"
+            />
           </nav>
         )}
       </div>
