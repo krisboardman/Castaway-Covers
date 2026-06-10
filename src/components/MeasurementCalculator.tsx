@@ -22,6 +22,7 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { getShopifyClient, findVariantBySKU, clearProductCache } from '@/lib/shopify-client';
+import { MEASUREMENT_PROMO_ACTIVE } from '@/config/site';
 
 interface MeasurementCalculatorProps {
   productType: string;
@@ -768,7 +769,11 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
         <div className="flex-1 text-sm">
           <p className="font-semibold text-brand-teal-dark">Not sure how to measure?</p>
           <p className="text-gray-700">
-            We offer an in-home measurement service — $75, credited toward your cover purchase of $400+.{' '}
+            We offer an in-home measurement service — {MEASUREMENT_PROMO_ACTIVE ? (
+              <><span className="line-through text-gray-400">$75</span> <span className="font-semibold text-green-700">free during our current promotion</span> (Rumson, Fair Haven &amp; local area)</>
+            ) : (
+              <>$75, credited toward your cover purchase of $400+</>
+            )}.{' '}
             <a href="/measurement-service" className="underline font-semibold text-brand-teal hover:text-brand-teal-dark">Learn more</a>
           </p>
         </div>

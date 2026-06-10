@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { MEASUREMENT_PROMO_ACTIVE } from '@/config/site';
 
 export async function POST(request: Request) {
   try {
@@ -31,8 +32,9 @@ export async function POST(request: Request) {
       ================================
       Next Steps:
       1. Verify address is within 10-mile radius
-      2. Send Shopify payment link ($75)
-      3. Schedule appointment after payment received
+      ${MEASUREMENT_PROMO_ACTIVE
+        ? '2. Measurement is FREE during current promotion — no payment link needed\n      3. Schedule appointment'
+        : '2. Send Shopify payment link ($75)\n      3. Schedule appointment after payment received'}
     `;
 
     // For now, we'll use a simple email service

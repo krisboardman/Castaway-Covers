@@ -1,6 +1,8 @@
 import Link from "next/link";
 import Image from "next/image";
 import { generateMetadata as generateMeta } from "@/lib/metadata";
+import MeasurementPromoBadge from "@/components/MeasurementPromoBadge";
+import { MEASUREMENT_PROMO_ACTIVE } from "@/config/site";
 
 export const metadata = generateMeta('design');
 
@@ -131,7 +133,14 @@ export default function DesignPage() {
                   </div>
                 </div>
                 <div className="flex flex-col items-center md:items-end">
-                  <span className="text-2xl font-bold text-gray-900 mb-2">$75</span>
+                  {MEASUREMENT_PROMO_ACTIVE ? (
+                    <span className="mb-2 flex items-center gap-2">
+                      <span className="text-xl font-bold text-gray-400 line-through">$75</span>
+                      <span className="text-2xl font-bold text-green-700">FREE</span>
+                    </span>
+                  ) : (
+                    <span className="text-2xl font-bold text-gray-900 mb-2">$75</span>
+                  )}
                   <span className="bg-yellow-600 text-white px-6 py-2 rounded-full font-semibold hover:bg-yellow-700 transition-colors inline-flex items-center">
                     Book Now
                     <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -140,6 +149,11 @@ export default function DesignPage() {
                   </span>
                 </div>
               </div>
+              {MEASUREMENT_PROMO_ACTIVE && (
+                <div className="mt-4 flex justify-center md:justify-end">
+                  <MeasurementPromoBadge />
+                </div>
+              )}
             </div>
           </Link>
         </div>

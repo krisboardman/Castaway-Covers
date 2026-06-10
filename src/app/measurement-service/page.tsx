@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import MeasurementPromoBadge from '@/components/MeasurementPromoBadge';
+import { MEASUREMENT_PROMO_ACTIVE } from '@/config/site';
 
 export default function MeasurementServicePage() {
   const [isNearRumson, setIsNearRumson] = useState<boolean | null>(null);
@@ -136,6 +138,11 @@ export default function MeasurementServicePage() {
                 ⚠️ You may be outside our 10-mile service area - we'll verify your address
               </div>
             )}
+            {MEASUREMENT_PROMO_ACTIVE && (
+              <div className="mt-4 flex justify-center">
+                <MeasurementPromoBadge />
+              </div>
+            )}
           </div>
 
           {/* Service Details */}
@@ -151,7 +158,11 @@ export default function MeasurementServicePage() {
               <li className="flex">
                 <span className="flex-shrink-0 w-8 h-8 bg-[#2C8B80] text-white rounded-full flex items-center justify-center font-semibold mr-3">2</span>
                 <div>
-                  <strong>Pay Service Fee</strong> - $75 invoice sent to your email after booking
+                  <strong>Pay Service Fee</strong> - {MEASUREMENT_PROMO_ACTIVE ? (
+                    <><span className="line-through text-gray-400">$75</span> <span className="font-semibold text-green-700">Free during our current promotion</span></>
+                  ) : (
+                    <>$75 invoice sent to your email after booking</>
+                  )}
                 </div>
               </li>
               <li className="flex">
@@ -169,7 +180,11 @@ export default function MeasurementServicePage() {
             </ol>
             <div className="mt-4 p-3 bg-blue-50 rounded-md">
               <p className="text-sm text-blue-800">
-                <strong>💡 Tip:</strong> The $75 service fee can be credited toward your cover purchase of $400 or more
+                {MEASUREMENT_PROMO_ACTIVE ? (
+                  <><strong>💡 Tip:</strong> Your in-home measurement is currently <strong>free</strong> — no service fee during our promotion.</>
+                ) : (
+                  <><strong>💡 Tip:</strong> The $75 service fee can be credited toward your cover purchase of $400 or more</>
+                )}
               </p>
             </div>
           </div>
@@ -183,8 +198,13 @@ export default function MeasurementServicePage() {
                   Request Submitted Successfully!
                 </h2>
                 <p className="text-gray-700 mb-6">
-                  Thank you! We'll contact you within 24 hours to confirm your appointment
-                  and send a $75 invoice to your email. Your booking is secured once payment is received.
+                  {MEASUREMENT_PROMO_ACTIVE ? (
+                    <>Thank you! We&apos;ll contact you within 24 hours to confirm your appointment.
+                    Your in-home measurement is <strong>free during our current promotion</strong> — no payment needed.</>
+                  ) : (
+                    <>Thank you! We&apos;ll contact you within 24 hours to confirm your appointment
+                    and send a $75 invoice to your email. Your booking is secured once payment is received.</>
+                  )}
                 </p>
                 <button
                   onClick={() => setShowSuccess(false)}

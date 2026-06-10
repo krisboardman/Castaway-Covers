@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+import { MEASUREMENT_PROMO_ACTIVE } from '@/config/site';
 
 // SEO metadata for all pages
 export const pageMetadata = {
@@ -19,7 +20,9 @@ export const pageMetadata = {
   },
   measurement: {
     title: 'Professional Measurement Service | Castaway Covers',
-    description: 'Get perfectly fitted covers with our professional measurement service. Available within 10 miles of Rumson, NJ. Only $75 for complete measurement.',
+    description: MEASUREMENT_PROMO_ACTIVE
+      ? 'Get perfectly fitted covers with our professional measurement service. Available within 10 miles of Rumson, NJ. FREE in-home measurements & estimates during our current promotion (Rumson, Fair Haven & local area).'
+      : 'Get perfectly fitted covers with our professional measurement service. Available within 10 miles of Rumson, NJ. Only $75 for complete measurement.',
     keywords: 'furniture measurement service, custom fitting, professional measurement, Rumson NJ',
   },
   contact: {
