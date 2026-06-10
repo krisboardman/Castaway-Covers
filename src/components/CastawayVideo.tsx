@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 
 // Path constant so we only reference the video once src is requested.
-const VIDEO_SRC = '/castaway-video-optimized.mp4';
+const VIDEO_SRC = '/chair-video-optimized.mp4';
 
 export default function CastawayVideo() {
   const containerRef = useRef<HTMLDivElement>(null);
