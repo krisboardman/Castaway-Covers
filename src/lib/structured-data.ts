@@ -34,6 +34,10 @@ export function getOrganizationSchema() {
       "contactType": "customer service"
     },
     "priceRange": "$$",
+    "sameAs": [
+      "https://www.instagram.com/castaway_covers/",
+      "https://www.facebook.com/CastawayCovers"
+    ],
     "openingHoursSpecification": {
       "@type": "OpeningHoursSpecification",
       "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
