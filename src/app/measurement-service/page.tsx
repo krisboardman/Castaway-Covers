@@ -17,6 +17,7 @@ export default function MeasurementServicePage() {
     city: '',
     zipCode: '',
     furnitureTypes: [] as string[],
+    otherFurniture: '',
     preferredDate: '',
     preferredTime: '',
     notes: ''
@@ -75,7 +76,9 @@ export default function MeasurementServicePage() {
           email: formData.email,
           phone: formData.phone,
           address: `${formData.address}, ${formData.city}, NJ ${formData.zipCode}`,
-          furnitureTypes: formData.furnitureTypes.join(', '),
+          furnitureTypes: formData.furnitureTypes
+            .map(t => t === 'Other' ? `Other: ${formData.otherFurniture}` : t)
+            .join(', '),
           preferredDate: formData.preferredDate || 'Not specified',
           preferredTime: formData.preferredTime || 'Not specified',
           notes: formData.notes || 'None',
@@ -96,6 +99,7 @@ export default function MeasurementServicePage() {
           city: '',
           zipCode: '',
           furnitureTypes: [],
+          otherFurniture: '',
           preferredDate: '',
           preferredTime: '',
           notes: ''
@@ -113,7 +117,8 @@ export default function MeasurementServicePage() {
     'Sofas/Loveseats',
     'Chaise Lounges',
     'Tables',
-    'Ottomans'
+    'Ottomans',
+    'Other'
   ];
 
   return (
@@ -315,7 +320,12 @@ export default function MeasurementServicePage() {
                         if (e.target.checked) {
                           setFormData({...formData, furnitureTypes: [...formData.furnitureTypes, option]});
                         } else {
-                          setFormData({...formData, furnitureTypes: formData.furnitureTypes.filter(t => t !== option)});
+                          setFormData({
+                            ...formData,
+                            furnitureTypes: formData.furnitureTypes.filter(t => t !== option),
+                            // Clear the free-text field if "Other" is unchecked
+                            ...(option === 'Other' ? { otherFurniture: '' } : {})
+                          });
                         }
                       }}
                       className="mr-3 h-4 w-4 text-[#2C8B80] border-gray-300 rounded focus:ring-[#2C8B80]"
@@ -323,6 +333,16 @@ export default function MeasurementServicePage() {
                     <span className="text-gray-700">{option}</span>
                   </label>
                 ))}
+                {formData.furnitureTypes.includes('Other') && (
+                  <input
+                    type="text"
+                    required
+                    value={formData.otherFurniture}
+                    onChange={(e) => setFormData({...formData, otherFurniture: e.target.value})}
+                    className="ml-7 mt-1 w-full max-w-md px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#2C8B80]"
+                    placeholder="What type of furniture? (e.g., porch swing, fire pit, bar cart)"
+                  />
+                )}
               </div>
             </div>
 
