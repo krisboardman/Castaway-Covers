@@ -221,20 +221,23 @@ For an L-shape sectional with a main piece and a short piece:
   (rectangle minus the front-outer corner cutout) — NOT the tapered shape with
   diagonal cuts. The straight edge matches the assembly diagram's straight
   connecting edge.
-- **Connecting side drops only its FRONT grommet; it keeps a back grommet + a
-  back bungee tab.** A full front-to-back bungee is too long, so the bungee runs
-  front-to-back on the **outer (free) side only** (front grommet → back tab →
-  back grommet, as normal). The connecting side instead gets a short **joint
-  bungee** that hooks across the seam, from this piece's connecting back grommet
-  to the OTHER piece's back grommet, securing the back corner of the joint. So
-  each sectional piece = **3 grommets + 2 back bungee tabs + 1 front-to-back
-  bungee** (plus it shares the joint bungee). Joint-bungee length is set on-site
-  (it depends on the as-built gap), not computed.
+- **Connecting side drops only its standard FRONT grommet; it keeps a back
+  grommet + a back bungee tab, and gains a FRONT JOINT grommet (G4).** A full
+  front-to-back bungee is too long, so the bungee runs front-to-back on the
+  **outer (free) side only** (front grommet → back tab → back grommet, as
+  normal). The connecting side instead gets two short **joint bungees** that
+  hook across the seam: a **back joint bungee** from this piece's connecting
+  back grommet to the OTHER piece's back grommet, and a **front joint bungee**
+  from this piece's G4 to the OTHER piece's G4, holding the two pieces together
+  at both ends of the joint. So each sectional piece = **4 grommets + 2 back
+  bungee tabs + 1 front-to-back bungee** (plus it shares the two joint
+  bungees). Joint-bungee lengths are set on-site (they depend on the as-built
+  gap), not computed.
   - **Outer side** (= opposite the connecting side): back grommet + front
     grommet + back tab, at the standard positions. Labels **G1** (back),
     **G2** (front), with full dimension lines.
-  - **Connecting side**: back grommet + back tab, **no front grommet**.
-    Labelled **G3**.
+  - **Connecting side**: back grommet + back tab, **no standard front
+    grommet**. Labelled **G3**.
     - **Main piece**: connecting back grommet stays at the standard back-corner
       position (`gromBackHorizFromCenter` from center).
     - **Short piece**: connecting back grommet is the **JOINT grommet**,
@@ -244,6 +247,16 @@ For an L-shape sectional with a main piece and a short piece:
       tab moves with it. Dimension it as `5" from joint edge`, not from center.
       (The drape edge `saLeftX`/`saRightX` is much further out than `furnX`; the
       grommet belongs near where the two couches actually meet.)
+  - **Front joint grommet (G4)** — one per piece, at the standard front inset
+    (1/3 side drop up from the floor edge), no tab. Drawn on the assembly
+    diagram only, never the cut diagram.
+    - **Main piece**: inboard of the cut line, **5" clear of the overlap
+      flap's sewn hem edge** (= `flapWidth/2 + 5"` from the cut line; just
+      5" from the cut line if there's no flap). Dimension it as
+      `X" from cut line`.
+    - **Short piece**: **5" inboard of the joint edge** (`furnX + 5"` or
+      `furnX + furnW − 5"`) — vertically aligned with its G3 joint grommet.
+      Dimension it as `5" from joint edge`.
   - Connecting side for the main = `sideSelector`; for the short = the opposite.
 - **Mating snaps**: main carries studs, short carries sockets
   (see "Multi-snap zones" above).
@@ -278,6 +291,7 @@ For an L-shape sectional with a main piece and a short piece:
 |---|---|
 | Corner snap (each half) | 2" in perpendicular from the dotted reference line, centered along it |
 | Grommet | 5" from the nearest corner, 1/3 or 2/3 of the drape depth in from the hem |
+| Front joint grommet (G4, sectional) | main: flap-width/2 + 5" inboard of the cut line; short: 5" in from the joint edge — both at the standard front inset |
 | Overlap flap sew line | 1" in from the inner edge of the flap |
 | Overlap flap outer edge | hangs free — no snaps (see Sectional rules) |
 | Bungee tab hem | 2" into the back drape from the back fold line |

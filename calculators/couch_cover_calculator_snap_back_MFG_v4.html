@@ -945,8 +945,9 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh, sectOpts){
   const gromColor='#b45309',gromInsetIn=sideDrop/3,gromFrontHorizFromCenter=Math.max(2,W/2-5),gromBackHorizFromCenter=Math.max(2,WB/2-5);
   const gromYBack=yBackFloor+gromInsetIn*sc,gromYFront=drawBotY-gromInsetIn*sc;
   const gBL=[cx-gromBackHorizFromCenter*sc,gromYBack],gBR=[cx+gromBackHorizFromCenter*sc,gromYBack],gFL=[cx-gromFrontHorizFromCenter*sc,gromYFront],gFR=[cx+gromFrontHorizFromCenter*sc,gromYFront];
-  // Sectional rule: the CONNECTING side drops its FRONT grommet but KEEPS a back grommet + back
-  // bungee tab, so a short "joint bungee" can secure the back corner where the two pieces meet. The
+  // Sectional rule: the CONNECTING side drops its standard FRONT grommet but KEEPS a back grommet
+  // + back bungee tab, so a short "joint bungee" can secure the back corner where the two pieces
+  // meet. It gains a FRONT JOINT grommet (G4, computed below) for a matching front joint bungee. The
   // OUTER side keeps both grommets + its own back tab and runs the usual front-to-back bungee.
   //   Main piece : connecting side = sectOpts.side; its connecting back grommet stays at the standard
   //                back-corner position.
@@ -966,11 +967,33 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh, sectOpts){
   // connecting snaps sit — NOT the straight drape edge. So measure the 5" inboard from furnX.
   const gBL_back = (leftIsConn  && isShort) ? [furnX + jointInsetIn*sc, gromYBack] : gBL;
   const gBR_back = (rightIsConn && isShort) ? [furnX + furnW - jointInsetIn*sc, gromYBack] : gBR;
+  // FRONT JOINT grommet (G4) — one per sectional piece, near where the two pieces meet at the
+  // FRONT, so a short front joint bungee can hook the pieces together (mirrors the back joint
+  // bungee at G3). Standard front inset (1/3 side drop up from the floor edge).
+  //   Main piece : inboard of the cut line, 5" clear of the overlap flap's sewn hem edge
+  //                (= flapWidth/2 + 5" from the cut line).
+  //   Short piece: 5" inboard of the joint edge (furnX) — same x as its back joint grommet.
+  let gFJ=null, gFJrefX=null, gFJdim='';
+  if (sectOpts.isSectional) {
+    if (isShort) {
+      gFJ    = [leftIsConn ? furnX + jointInsetIn*sc : furnX + furnW - jointInsetIn*sc, gromYFront];
+      gFJrefX= leftIsConn ? furnX : furnX + furnW;
+      gFJdim = `${jointInsetIn}" from joint edge`;
+    } else if (sectOpts.cutLineDist > 0) {
+      const armX = rightIsConn ? cx + furnW/2 : cx - furnW/2;                 // couch arm edge
+      const cutX = rightIsConn ? armX - sectOpts.cutLineDist*sc : armX + sectOpts.cutLineDist*sc;
+      const fjOffIn = (sectOpts.flapWidth>0 ? sectOpts.flapWidth/2 : 0) + jointInsetIn;
+      gFJ    = [rightIsConn ? cutX - fjOffIn*sc : cutX + fjOffIn*sc, gromYFront];
+      gFJrefX= cutX;
+      gFJdim = `${rIn(fjOffIn)}" from cut line`;
+    }
+  }
   const gromsToDraw=[];
   gromsToDraw.push(gBL_back);                              // left back grommet (always present)
   if(!leftIsConn)  gromsToDraw.push(gFL);                 // left front grommet only on a non-connecting side
   gromsToDraw.push(gBR_back);                              // right back grommet (always present)
   if(!rightIsConn) gromsToDraw.push(gFR);                 // right front grommet only on a non-connecting side
+  if(gFJ) gromsToDraw.push(gFJ);                           // front joint grommet (sectional only)
   for(const[gx,gy]of gromsToDraw){add('circle',{cx:gx,cy:gy,r:6,fill:'none',stroke:gromColor,'stroke-width':2.5});add('circle',{cx:gx,cy:gy,r:2,fill:gromColor});}
   const tk=4,gc='#92400e',gf=9;
   const gDimH=(xa,xb,y,label,above)=>{add('line',{x1:xa,y1:y,x2:xb,y2:y,stroke:gc,'stroke-width':1});add('line',{x1:xa,y1:y-tk,x2:xa,y2:y+tk,stroke:gc,'stroke-width':1});add('line',{x1:xb,y1:y-tk,x2:xb,y2:y+tk,stroke:gc,'stroke-width':1});add('text',{x:(xa+xb)/2,y:above?y-4:y+10,'text-anchor':'middle','font-size':gf,fill:gc,'font-weight':'bold'}).textContent=label;};
@@ -1002,6 +1025,12 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh, sectOpts){
       gDimH(edgeX,gCB[0],gCB[1]-12,`${jointInsetIn}" from joint edge`,true);
     } else {
       gDimH(cx,gCB[0],gCB[1]-12,`${rIn(gromBackHorizFromCenter)}" from center`,true);
+    }
+    // Front joint grommet: G4 — label + dims on the inboard side (away from the joint).
+    if(gFJ){
+      gLabel(gFJ,'G4',!rightIsConn);
+      gDimV(rightIsConn?gFJ[0]-14:gFJ[0]+14,gFJ[1],drawBotY,`${rIn(gromInsetIn)}"`,!rightIsConn);
+      gDimH(gFJrefX,gFJ[0],gFJ[1]+14,gFJdim,false);
     }
   }
   // Snap color convention: MALE = green (stud), FEMALE = teal (socket).
@@ -1288,11 +1317,11 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh, sectOpts){
       detail(`pairs stepped ${csSpacingIn}" out from center`);
       detail(`aligns 1:1 with the main piece's studs`);
       lineY += 4;
-      // 2. JOINT GROMMET
-      section('#ffffff', gromColor, 'JOINT GROMMET (G3)');
-      detail(`${jointInsetIn}" in from the joint edge`);
-      detail(`back inset, with bungee tab`);
-      detail(`joint bungee → main back grommet`);
+      // 2. JOINT GROMMETS
+      section('#ffffff', gromColor, 'JOINT GROMMETS (G3 + G4)');
+      detail(`both ${jointInsetIn}" in from the joint edge`);
+      detail(`G3 back (with bungee tab), G4 front`);
+      detail(`joint bungees → main G3 (back) + G4 (front)`);
       lineY += 4;
       // 3. CUT CORNER
       section('#fee2e2', '#dc2626', 'CUT CORNER');
@@ -1500,7 +1529,14 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh, sectOpts){
       detail(`aligns 1:1 with short piece (center-out)`);
       lineY += 4;
 
-      // 3. OVERLAP FLAP (only if drawn)
+      // 3. FRONT JOINT GROMMET (G4)
+      section('#ffffff', gromColor, 'FRONT JOINT GROMMET (G4)', false);
+      detail(`${rIn((sectOpts.flapWidth>0?sectOpts.flapWidth/2:0)+jointInsetIn)}" inboard of the cut line`);
+      if(sectOpts.flapWidth>0) detail(`5" clear of the flap's sewn hem edge`);
+      detail(`front joint bungee → short piece G4`);
+      lineY += 4;
+
+      // 4. OVERLAP FLAP (only if drawn)
       if (sectOpts.flapWidth > 0) {
         const fw_in = sectOpts.flapWidth;
         const flapHt_in = (drawBotY - yPointB)/sc + 1;
@@ -1715,10 +1751,13 @@ function compute(){
       const connSide = isShortPiece ? (sideSelector==='right'?'left':'right') : sideSelector;
       const outerSide = (connSide==='right'?'left':'right');
       const connBackDesc = isShortPiece ? `joint grommet 5" in from the seam` : `back grommet`;
-      gromHTML=`<div class='row'><span>Total grommets</span><strong>3 — G1 ${outerSide} back, G2 ${outerSide} front, G3 ${connSide} back</strong></div>`
-        +`<div class='row'><span>Connecting side</span><strong>${connSide} — back grommet + tab only (no front grommet)</strong></div>`
-        +`<div class='row'><span>Bungee length</span><strong>1 × ${bungeeLen}" (outer side) + 1 short joint bungee</strong></div>`
-        +`<div class='note' style='margin-top:6px;'>Grommets sit ⅓ of side drop up from each floor edge — see assembly diagram. The <strong>${outerSide}</strong> (outer) side runs the usual front-to-back bungee: front grommet up through the back bungee tab to the back grommet. The <strong>${connSide}</strong> (connecting) side has no front grommet, but keeps a ${connBackDesc} and a back bungee tab so a short joint bungee can hook across the seam to the other piece's back grommet, securing the back corner. Joint-bungee length is set on-site (depends on the as-built gap). Includes ~6" slack for hooks.</div>`;
+      const g4Desc = isShortPiece
+        ? `5" in from the joint edge`
+        : `${fmtInch((flapWidth>0?flapWidth/2:0)+5,rounded)}" inboard of the cut line${flapWidth>0?` (5" clear of the flap's sewn hem)`:``}`;
+      gromHTML=`<div class='row'><span>Total grommets</span><strong>4 — G1 ${outerSide} back, G2 ${outerSide} front, G3 ${connSide} back, G4 front joint</strong></div>`
+        +`<div class='row'><span>Connecting side</span><strong>${connSide} — back grommet + tab, front joint grommet (no standard front grommet)</strong></div>`
+        +`<div class='row'><span>Bungee length</span><strong>1 × ${bungeeLen}" (outer side) + 2 short joint bungees (back + front)</strong></div>`
+        +`<div class='note' style='margin-top:6px;'>Grommets sit ⅓ of side drop up from each floor edge — see assembly diagram. The <strong>${outerSide}</strong> (outer) side runs the usual front-to-back bungee: front grommet up through the back bungee tab to the back grommet. The <strong>${connSide}</strong> (connecting) side has no standard front grommet, but keeps a ${connBackDesc} and a back bungee tab so a short joint bungee can hook across the seam to the other piece's back grommet, securing the back corner. The <strong>front joint grommet (G4)</strong> — ${g4Desc} — mates with the other piece's G4: a second short joint bungee hooks the two together to hold the front of the joint. Joint-bungee lengths are set on-site (they depend on the as-built gap). Includes ~6" slack for hooks.</div>`;
     } else {
       gromHTML=`<div class='row'><span>Total grommets</span><strong>4 — G1 back-left, G2 back-right, G3 front-left, G4 front-right</strong></div><div class='row'><span>Bungee length</span><strong>2 pieces × ${bungeeLen}"</strong></div><div class='note' style='margin-top:6px;'>Grommets sit ⅓ of side drop up from each floor edge — see assembly diagram. One bungee per long side: threads from the front grommet up through the side, through the back bungee tab, and hooks at the back grommet. Includes ~6" slack for hooks.</div>`;
     }
