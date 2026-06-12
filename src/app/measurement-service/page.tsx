@@ -114,9 +114,10 @@ export default function MeasurementServicePage() {
 
   const furnitureOptions = [
     'Chairs/Recliners',
-    'Sofas/Loveseats',
+    'Sofas, Loveseats, Sectionals',
     'Chaise Lounges',
-    'Tables',
+    'Tables/Table Sets',
+    'Grills/Grill Islands',
     'Ottomans',
     'Other'
   ];
@@ -340,7 +341,7 @@ export default function MeasurementServicePage() {
                     value={formData.otherFurniture}
                     onChange={(e) => setFormData({...formData, otherFurniture: e.target.value})}
                     className="ml-7 mt-1 w-full max-w-md px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#2C8B80]"
-                    placeholder="What type of furniture? (e.g., porch swing, fire pit, bar cart)"
+                    placeholder="What type of furniture? (e.g., fire pit, bar)"
                   />
                 )}
               </div>
