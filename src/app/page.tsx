@@ -6,6 +6,7 @@ import HeroCarousel from "@/components/HeroCarousel";
 import StormVideo from "@/components/StormVideo";
 import CastawayVideo from "@/components/CastawayVideo";
 import ColorShowcase from "@/components/ColorShowcase";
+import MeasurementCTA from "@/components/MeasurementCTA";
 
 export const metadata = generateMeta('home');
 
@@ -18,14 +19,6 @@ export default function Home() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
       />
-      {/* Local Service Banner */}
-      <div className="bg-[#2C8B80] text-white py-2 px-4 text-center">
-        <p className="text-sm md:text-base">
-          📍 <span className="font-semibold">Within Monmouth County?</span> We offer professional in-home measurement service. 
-          <Link href="/measurement-service" className="underline ml-2 hover:text-yellow-200">Learn More</Link>
-        </p>
-      </div>
-
       {/* Hero Section with 3-Panel Story */}
       <section className="relative pt-4 pb-3 px-4 bg-gradient-to-b from-white to-[#FAF5ED]/30">
         <div className="max-w-7xl mx-auto">
@@ -51,6 +44,13 @@ export default function Home() {
               Design My Cover
             </Link>
           </div>
+        </div>
+      </section>
+
+      {/* In-Home Measurement Service CTA */}
+      <section className="py-6 px-4">
+        <div className="max-w-7xl mx-auto">
+          <MeasurementCTA />
         </div>
       </section>
 

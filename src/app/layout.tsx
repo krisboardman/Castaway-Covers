@@ -4,6 +4,7 @@ import { Poppins, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import MeasurementBanner from "@/components/MeasurementBanner";
 import { CartProvider } from "@/providers/cart-provider";
 
 const poppins = Poppins({
@@ -71,6 +72,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${poppins.className} antialiased`}>
         <CartProvider>
+          <MeasurementBanner />
           <Header />
           <main className="bg-gradient-to-b from-white via-[#FAF5ED] to-[#F5E6D3]/40">
             {children}

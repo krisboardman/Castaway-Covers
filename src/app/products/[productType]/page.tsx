@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Image from 'next/image';
 import MeasurementCalculator from '@/components/MeasurementCalculator';
+import MeasurementCTA from '@/components/MeasurementCTA';
 import AddOnOptions from '@/components/AddOnOptions';
 import ColorSelector from '@/components/ColorSelector';
 import ShopifyBuyButton from '@/components/ShopifyBuyButton';
@@ -436,6 +437,9 @@ export default function ProductPage() {
             </div>
           </div>
         )}
+
+        {/* In-Home Measurement Service CTA — right where measuring begins */}
+        <MeasurementCTA className="mt-8" />
 
         {/* Measurement Diagrams and Calculator Side by Side */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
