@@ -41,7 +41,7 @@
       <div class="card" id="inputsCard">
         <div class="title">Inputs</div>
         <div class="inputs">
-          <label class="lbl">Bolt width (B)<input id="B" type="number" step="1" value="54"></label>
+          <label class="lbl">Bolt width (B)<input id="B" type="number" step="0.25" value="55.25"></label>
           <label class="lbl">Table length L (long side)<input id="L" type="number" step="1" value="60"></label>
           <label class="lbl">Table width W (short side)<input id="W" type="number" step="1" value="36"></label>
           <label class="lbl">Table height H (top of table to floor)<input id="H" type="number" step="0.5" value="30"></label>
@@ -519,7 +519,7 @@ function wire(){
   document.getElementById('H').addEventListener('input',()=>{applyStyleDrop();compute();});
   document.getElementById('recalc').addEventListener('click',compute);
   document.getElementById('reset').addEventListener('click',()=>{
-    const d={B:54,L:60,W:36,H:30,drop:10};
+    const d={B:55.25,L:60,W:36,H:30,drop:10};
     for(const k in d) document.getElementById(k).value=d[k];
     document.getElementById('style').value='tablecloth';
     document.getElementById('round').checked=true; compute();

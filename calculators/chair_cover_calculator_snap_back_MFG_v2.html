@@ -82,7 +82,7 @@
         <div class="card" id="inputsCard">
           <div class="title">Inputs</div>
           <div class="inputs">
-            <label class="lbl">B (Bolt width - Fabric size)<input id="B" type="number" value="54" step="0.1" /></label>
+            <label class="lbl">B (Bolt width - Fabric size)<input id="B" type="number" value="55.25" step="0.25" /></label>
             <label class="lbl">W (Chair width arm-to-arm)<input id="W" type="number" value="36" step="1" /></label>
             <label class="lbl">WB (Back width)<input id="WB" type="number" value="25" step="1" /></label>
             <label class="lbl">H (Height)<input id="H" type="number" value="39" step="1" /></label>
@@ -1737,7 +1737,7 @@ function wire(){
 
   document.getElementById('recalc').addEventListener('click', compute);
   document.getElementById('resetBtn').addEventListener('click', ()=>{
-    const defaults = {B:54, W:36, WB:25, H:39, D:30, F2A:26, F2BS:18, BR:4, FC:3, hem:1, seam:1.5};
+    const defaults = {B:55.25, W:36, WB:25, H:39, D:30, F2A:26, F2BS:18, BR:4, FC:3, hem:0, seam:1.5};
     Object.entries(defaults).forEach(([id,val])=>{ const el=document.getElementById(id); if(el) el.value=val; });
     document.getElementById('roundMode').value = 'whole';
     compute();

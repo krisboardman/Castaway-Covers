@@ -44,7 +44,7 @@
       <div class="card" id="inputsCard">
         <div class="title">Inputs &mdash; Island Footprint</div>
         <div class="inputs">
-          <label class="lbl">Bolt width (B)<input id="B" type="number" step="1" value="54"></label>
+          <label class="lbl">Bolt width (B)<input id="B" type="number" step="0.25" value="55.25"></label>
           <label class="lbl">Island length L (long axis)<input id="L" type="number" step="1" value="100"></label>
           <label class="lbl">Front counter depth D_front<input id="Dfront" type="number" step="1" value="30"></label>
           <label class="lbl">Bar back depth D_bar (0 if none)<input id="Dbar" type="number" step="1" value="10"></label>
@@ -933,7 +933,7 @@ function drawAssemblyDiagram(p) {
 
 const STORAGE_KEY = 'grillIslandCalc_v1';
 const ALL_FIELDS = ['B','L','Dfront','Dbar','Hstep','Htop','frontDrape','sideDrape','backDrape','slack','seamOverlap','splitDir','round','tableLeft','tableRight'];
-const DEFAULTS = {B:54, L:100, Dfront:30, Dbar:10, Hstep:6, Htop:16, frontDrape:24, sideDrape:24, backDrape:4, slack:4, seamOverlap:1.5, splitDir:'auto', round:true, tableLeft:0, tableRight:0};
+const DEFAULTS = {B:55.25, L:100, Dfront:30, Dbar:10, Hstep:6, Htop:16, frontDrape:24, sideDrape:24, backDrape:4, slack:4, seamOverlap:1.5, splitDir:'auto', round:true, tableLeft:0, tableRight:0};
 
 function saveToStorage(){
   const saved={};

@@ -41,7 +41,7 @@
       <div class="card" id="inputsCard">
         <div class="title">Inputs</div>
         <div class="inputs">
-          <label class="lbl">Bolt width (B)<input id="B" type="number" step="1" value="54"></label>
+          <label class="lbl">Bolt width (B)<input id="B" type="number" step="0.25" value="55.25"></label>
           <label class="lbl">Ottoman length L (long side)<input id="L" type="number" step="1" value="36"></label>
           <label class="lbl">Ottoman width W (short side)<input id="W" type="number" step="1" value="36"></label>
           <label class="lbl">Ottoman height H (top of ottoman to floor — <strong>include the cushion if present</strong>)<input id="H" type="number" step="0.5" value="20"></label>
@@ -512,7 +512,7 @@ function wire(){
   const inputsCard=document.getElementById('inputsCard'); ['input','change','keyup'].forEach(ev=>inputsCard.addEventListener(ev,compute));
   document.getElementById('recalc').addEventListener('click',compute);
   document.getElementById('reset').addEventListener('click',()=>{
-    const d={B:54,L:36,W:24,H:16,FC:3};
+    const d={B:55.25,L:36,W:24,H:16,FC:3};
     for(const k in d) document.getElementById(k).value=d[k];
     document.getElementById('round').checked=true; compute();
   });
