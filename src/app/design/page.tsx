@@ -43,7 +43,7 @@ export default function DesignPage() {
       name: "Measurement Service",
       href: "/measurement-service",
       image: "",
-      description: "In-home professional measuring — Monmouth County",
+      description: "We measure for you — in-home (Monmouth County) or virtual, anywhere",
       isMeasurement: true
     }
   ];
@@ -74,7 +74,7 @@ export default function DesignPage() {
               )}
               {type.isMeasurement && (
                 <div className="absolute top-4 right-4 z-10 bg-yellow-500 text-gray-900 px-3 py-1 rounded-full text-sm font-semibold">
-                  Local Service
+                  Local or Virtual
                 </div>
               )}
               <div className="bg-white rounded-xl overflow-hidden border-2 border-gray-100 hover:border-[#2C8B80] transition-all duration-300 transform hover:-translate-y-1 hover:shadow-xl h-full">
@@ -123,11 +123,11 @@ export default function DesignPage() {
                     <div className="flex items-center gap-3 mb-2">
                       <h3 className="text-2xl font-bold text-gray-900">Professional Measurement Service</h3>
                       <span className="bg-yellow-500 text-gray-900 px-3 py-1 rounded-full text-sm font-semibold">
-                        Local Service
+                        Local or Virtual
                       </span>
                     </div>
                     <p className="text-gray-700">
-                      <span className="font-semibold">Within Monmouth County</span> •
+                      <span className="font-semibold">In-home in Monmouth County, or virtual anywhere</span> •
                       We&apos;ll measure your furniture and create your perfect custom order
                     </p>
                   </div>

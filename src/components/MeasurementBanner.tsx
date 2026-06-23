@@ -15,9 +15,9 @@ export default function MeasurementBanner() {
         <p className="text-sm md:text-base">
           📍{' '}
           <span className="font-semibold">
-            {MEASUREMENT_PROMO_ACTIVE ? 'Free In-Home Measure & Quote' : 'In-Home Measure & Quote'}
+            {MEASUREMENT_PROMO_ACTIVE ? 'Free Measure & Quote' : 'Measure & Quote'}
           </span>
-          <span className="hidden md:inline text-white/90"> — we measure for you. Monmouth County, NJ.</span>
+          <span className="hidden md:inline text-white/90"> — we measure for you. In-home (Monmouth County) or virtual, anywhere.</span>
         </p>
         <span className="inline-flex items-center bg-white text-brand-teal text-sm font-semibold px-4 py-1 rounded-full shadow-sm whitespace-nowrap">
           Schedule Now

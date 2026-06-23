@@ -13,20 +13,20 @@ export default function MeasurementCTA({ className = '' }: { className?: string 
           <div className="text-center sm:text-left">
             <h2 className="text-xl sm:text-2xl font-bold text-white mb-2">
               {MEASUREMENT_PROMO_ACTIVE
-                ? 'Free In-Home Measure & Quote'
-                : 'In-Home Measure & Quote'}
+                ? 'Free Measure & Quote'
+                : 'Measure & Quote'}
             </h2>
             <p className="text-white/90 text-sm sm:text-base">
-              Skip the tape measure — we come to you, measure your furniture, and
-              quote your covers on the spot.
+              Skip the guesswork — we measure your furniture and quote your covers
+              for you. In-home in Monmouth County, NJ, or by guided video call
+              anywhere.
               {MEASUREMENT_PROMO_ACTIVE && (
                 <>
                   {' '}
                   <span className="line-through text-white/60">$75</span>{' '}
                   <span className="font-semibold">Free during our current promotion.</span>
                 </>
-              )}{' '}
-              Serving Monmouth County, NJ.
+              )}
             </p>
           </div>
           <Link
