@@ -21,9 +21,9 @@ export const pageMetadata = {
   measurement: {
     title: 'Professional Measurement Service | Castaway Covers',
     description: MEASUREMENT_PROMO_ACTIVE
-      ? 'Get perfectly fitted covers with our professional measurement service. Available within 10 miles of Rumson, NJ. FREE in-home measurements & estimates during our current promotion (Rumson, Fair Haven & local area).'
-      : 'Get perfectly fitted covers with our professional measurement service. Available within 10 miles of Rumson, NJ. Only $75 for complete measurement.',
-    keywords: 'furniture measurement service, custom fitting, professional measurement, Rumson NJ',
+      ? 'Get perfectly fitted covers with our professional measurement service. In-home in Monmouth County, NJ, or virtual guided video call anywhere. FREE measurements & estimates during our current promotion.'
+      : 'Get perfectly fitted covers with our professional measurement service. In-home in Monmouth County, NJ, or virtual guided video call anywhere. Only $75 for complete measurement.',
+    keywords: 'furniture measurement service, virtual measurement, custom fitting, professional measurement, Rumson NJ',
   },
   contact: {
     title: 'Contact Us | Castaway Covers',

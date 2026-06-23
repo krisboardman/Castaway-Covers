@@ -5,10 +5,14 @@ import Link from 'next/link';
 import MeasurementPromoBadge from '@/components/MeasurementPromoBadge';
 import { MEASUREMENT_PROMO_ACTIVE } from '@/config/site';
 
+type ServiceType = 'in-home' | 'virtual';
+
 export default function MeasurementServicePage() {
+  const [serviceType, setServiceType] = useState<ServiceType>('in-home');
   const [isNearRumson, setIsNearRumson] = useState<boolean | null>(null);
   const [checkingLocation, setCheckingLocation] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const isVirtual = serviceType === 'virtual';
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -72,17 +76,22 @@ export default function MeasurementServicePage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
+          serviceType: isVirtual ? 'Virtual (video call)' : 'In-Home',
           name: formData.name,
           email: formData.email,
           phone: formData.phone,
-          address: `${formData.address}, ${formData.city}, NJ ${formData.zipCode}`,
+          address: isVirtual
+            ? `${formData.city}, ${formData.zipCode}`
+            : `${formData.address}, ${formData.city}, NJ ${formData.zipCode}`,
           furnitureTypes: formData.furnitureTypes
             .map(t => t === 'Other' ? `Other: ${formData.otherFurniture}` : t)
             .join(', '),
           preferredDate: formData.preferredDate || 'Not specified',
           preferredTime: formData.preferredTime || 'Not specified',
           notes: formData.notes || 'None',
-          _subject: 'New Measurement Service Request',
+          _subject: isVirtual
+            ? 'New Virtual Measurement Request'
+            : 'New In-Home Measurement Request',
         }),
       });
 
@@ -134,14 +143,21 @@ export default function MeasurementServicePage() {
             <p className="text-lg text-gray-600 mb-2">
               Let us take the guesswork out of ordering your custom covers
             </p>
-            {isNearRumson === true && (
+            {!isVirtual && isNearRumson === true && (
               <div className="inline-block bg-green-50 text-green-800 px-4 py-2 rounded-full text-sm font-semibold mt-2">
-                ✓ Great news! You're in our service area
+                ✓ Great news! You're in our in-home service area
               </div>
             )}
-            {isNearRumson === false && (
-              <div className="inline-block bg-yellow-50 text-yellow-800 px-4 py-2 rounded-full text-sm font-semibold mt-2">
-                ⚠️ You may be outside our 10-mile service area - we'll verify your address
+            {!isVirtual && isNearRumson === false && (
+              <div className="mt-2 inline-block bg-yellow-50 text-yellow-800 px-4 py-2 rounded-full text-sm font-semibold">
+                ⚠️ You may be outside our in-home service area —{' '}
+                <button
+                  type="button"
+                  onClick={() => setServiceType('virtual')}
+                  className="underline hover:text-yellow-900"
+                >
+                  book a virtual measurement instead
+                </button>
               </div>
             )}
             {MEASUREMENT_PROMO_ACTIVE && (
@@ -149,6 +165,47 @@ export default function MeasurementServicePage() {
                 <MeasurementPromoBadge />
               </div>
             )}
+          </div>
+
+          {/* Service Type Toggle */}
+          <div className="mb-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setServiceType('in-home')}
+                className={`text-left rounded-lg border-2 p-4 transition-colors ${
+                  !isVirtual
+                    ? 'border-[#2C8B80] bg-[#2C8B80]/5'
+                    : 'border-gray-200 hover:border-gray-300'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="font-semibold text-gray-900">🏠 In-Home</span>
+                  {!isVirtual && <span className="text-[#2C8B80] text-sm font-semibold">Selected</span>}
+                </div>
+                <p className="text-sm text-gray-600 mt-1">
+                  We come to you. Monmouth County, NJ.
+                </p>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setServiceType('virtual')}
+                className={`text-left rounded-lg border-2 p-4 transition-colors ${
+                  isVirtual
+                    ? 'border-[#2C8B80] bg-[#2C8B80]/5'
+                    : 'border-gray-200 hover:border-gray-300'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="font-semibold text-gray-900">💻 Virtual</span>
+                  {isVirtual && <span className="text-[#2C8B80] text-sm font-semibold">Selected</span>}
+                </div>
+                <p className="text-sm text-gray-600 mt-1">
+                  Guided video call. Available anywhere.
+                </p>
+              </button>
+            </div>
           </div>
 
           {/* Service Details */}
@@ -174,7 +231,11 @@ export default function MeasurementServicePage() {
               <li className="flex">
                 <span className="flex-shrink-0 w-8 h-8 bg-[#2C8B80] text-white rounded-full flex items-center justify-center font-semibold mr-3">3</span>
                 <div>
-                  <strong>We Visit Your Home</strong> - Professional measurement of all furniture
+                  {isVirtual ? (
+                    <><strong>We Meet on a Video Call</strong> - We guide you through measuring each piece, step by step</>
+                  ) : (
+                    <><strong>We Visit Your Home</strong> - Professional measurement of all furniture</>
+                  )}
                 </div>
               </li>
               <li className="flex">
@@ -187,7 +248,7 @@ export default function MeasurementServicePage() {
             <div className="mt-4 p-3 bg-blue-50 rounded-md">
               <p className="text-sm text-blue-800">
                 {MEASUREMENT_PROMO_ACTIVE ? (
-                  <><strong>💡 Tip:</strong> Your in-home measurement is currently <strong>free</strong> — no service fee during our promotion.</>
+                  <><strong>💡 Tip:</strong> Your {isVirtual ? 'virtual' : 'in-home'} measurement is currently <strong>free</strong> — no service fee during our promotion. {isVirtual && 'You’ll just need a tape measure and a phone or laptop.'}</>
                 ) : (
                   <><strong>💡 Tip:</strong> The $75 service fee can be credited toward your cover purchase of $400 or more</>
                 )}
@@ -205,8 +266,9 @@ export default function MeasurementServicePage() {
                 </h2>
                 <p className="text-gray-700 mb-6">
                   {MEASUREMENT_PROMO_ACTIVE ? (
-                    <>Thank you! We&apos;ll contact you within 24 hours to confirm your appointment.
-                    Your in-home measurement is <strong>free during our current promotion</strong> — no payment needed.</>
+                    <>Thank you! We&apos;ll contact you within 24 hours to confirm your {isVirtual ? 'video call' : 'appointment'}
+                    {isVirtual && ' and send a meeting link'}.
+                    Your {isVirtual ? 'virtual' : 'in-home'} measurement is <strong>free during our current promotion</strong> — no payment needed.</>
                   ) : (
                     <>Thank you! We&apos;ll contact you within 24 hours to confirm your appointment
                     and send a $75 invoice to your email. Your booking is secured once payment is received.</>
@@ -263,19 +325,21 @@ export default function MeasurementServicePage() {
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Street Address *
-              </label>
-              <input
-                type="text"
-                required
-                value={formData.address}
-                onChange={(e) => setFormData({...formData, address: e.target.value})}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#2C8B80]"
-                placeholder="123 Main Street"
-              />
-            </div>
+            {!isVirtual && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Street Address *
+                </label>
+                <input
+                  type="text"
+                  required={!isVirtual}
+                  value={formData.address}
+                  onChange={(e) => setFormData({...formData, address: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#2C8B80]"
+                  placeholder="123 Main Street"
+                />
+              </div>
+            )}
 
             <div className="grid grid-cols-2 gap-6">
               <div>
@@ -362,7 +426,7 @@ export default function MeasurementServicePage() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Preferred Time
+                  Preferred Time{isVirtual && ' (Eastern Time)'}
                 </label>
                 <select
                   value={formData.preferredTime}
@@ -373,6 +437,7 @@ export default function MeasurementServicePage() {
                   <option value="morning">Morning (9am-12pm)</option>
                   <option value="afternoon">Afternoon (12pm-3pm)</option>
                   <option value="late-afternoon">Late Afternoon (3pm-6pm)</option>
+                  {isVirtual && <option value="evening">Evening (6pm-8pm)</option>}
                 </select>
               </div>
             </div>
@@ -396,7 +461,7 @@ export default function MeasurementServicePage() {
                 disabled={formData.furnitureTypes.length === 0}
                 className="flex-1 bg-[#2C8B80] text-white px-6 py-3 rounded-md hover:bg-[#1F6259] transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
               >
-                Book Measurement Service
+                {isVirtual ? 'Book Virtual Measurement' : 'Book In-Home Measurement'}
               </button>
               <Link
                 href="/design"
@@ -410,11 +475,34 @@ export default function MeasurementServicePage() {
 
           {/* Service Area Note */}
           <div className="mt-8 p-4 bg-gray-50 rounded-lg">
-            <p className="text-sm text-gray-600 text-center">
-              <strong>Service Area:</strong> We provide in-home measurement service within Monmouth County, NJ.
-              This includes Rumson, Fair Haven, Little Silver, Red Bank, Shrewsbury, Sea Bright, Monmouth Beach,
-              Long Branch, Middletown, and surrounding areas.
-            </p>
+            {isVirtual ? (
+              <p className="text-sm text-gray-600 text-center">
+                <strong>Available anywhere:</strong> Our virtual measurement service is done over a guided
+                video call, so you can book it no matter where you live. All you need is a tape measure and
+                a phone or laptop. Prefer us to handle it in person?{' '}
+                <button
+                  type="button"
+                  onClick={() => setServiceType('in-home')}
+                  className="text-[#2C8B80] underline hover:text-[#1F6259]"
+                >
+                  Switch to in-home service
+                </button>{' '}
+                (Monmouth County, NJ).
+              </p>
+            ) : (
+              <p className="text-sm text-gray-600 text-center">
+                <strong>Service Area:</strong> We provide in-home measurement service within Monmouth County, NJ.
+                This includes Rumson, Fair Haven, Little Silver, Red Bank, Shrewsbury, Sea Bright, Monmouth Beach,
+                Long Branch, Middletown, and surrounding areas. Outside the area?{' '}
+                <button
+                  type="button"
+                  onClick={() => setServiceType('virtual')}
+                  className="text-[#2C8B80] underline hover:text-[#1F6259]"
+                >
+                  Book a virtual measurement instead
+                </button>.
+              </p>
+            )}
           </div>
         </div>
       </div>
