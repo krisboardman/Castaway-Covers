@@ -94,6 +94,8 @@
 
 </div>
 
+<!-- Shared yardage math (single source of truth, also used by the website). -->
+<script src="shared/cover-math.js"></script>
 <script>
 function n(id){const v=Number(document.getElementById(id).value);return isFinite(v)?v:0;}
 function nOpt(id){const el=document.getElementById(id);if(!el||el.value===''||el.value==null)return null;const v=Number(el.value);return isFinite(v)?v:null;}
@@ -154,6 +156,10 @@ function compute(){
     stripLength = W + 2 * stripWidth;
     totalBoltLen = ML + stripLength;
   }
+  // Single source of truth: bolt length / yards come from the shared module
+  // (cover-math.js) — the same ottomanCover() the website uses — so they can't
+  // drift. The locals above still drive the cut diagram and mirror this value.
+  totalBoltLen = CoverMath.ottomanCover({ length: L, width: W, height: H, bolt: B, fc: FC }).totalLength;
   const fitsBolt = (MD <= B);
 
   const r=v=>fin(v,rounded);

@@ -357,5 +357,48 @@
     };
   }
 
-  return { CONST: CONST, ceilYards: ceilYards, drapeFor: drapeFor, tableCover: tableCover, chairCover: chairCover, sofaCover: sofaCover };
+  /**
+   * Ottoman cover yardage (port of ottoman_cover_calculator_MFG.html).
+   * Always drops straight to the floor (drop = height − floor clearance).
+   * Single panel if it fits the bolt; otherwise a main panel + two
+   * chamfer-trimmed side strips. (Distinct from tableCover's multi-strip layout.)
+   *
+   * @param {Object} p  length(L, long side), width(W, short side), height,
+   *                    plus optional bolt / fc overrides.
+   * @returns {Object} { yards, totalLength, ML, MD, drop, layout, bolt }
+   */
+  function ottomanCover(p) {
+    p = p || {};
+    var L = Math.max(0, Number(p.length) || 0);
+    var W = Math.max(0, Number(p.width)  || 0);
+    var H = Math.max(0, Number(p.height) || 0);
+    var B  = (p.bolt != null) ? Number(p.bolt) : CONST.BOLT_WIDTH;
+    var FC = (p.fc != null)   ? Number(p.fc)   : CONST.FLOOR_CLEARANCE;
+
+    var drop = Math.max(0, H - FC);
+    var ML = Math.max(0, L + 2 * drop); // along the bolt (long side)
+    var MD = Math.max(0, W + 2 * drop); // across the bolt (short side)
+
+    var layout, totalBoltLen;
+    if (MD <= B) {
+      layout = 'single';
+      totalBoltLen = ML;
+    } else {
+      layout = 'main+strips';
+      var stripWidth = (MD - B) / 2;
+      var stripLength = W + 2 * stripWidth;
+      totalBoltLen = ML + stripLength;
+    }
+
+    return {
+      yards: ceilYards(totalBoltLen),
+      totalLength: totalBoltLen, ML: ML, MD: MD, drop: drop,
+      layout: layout, bolt: B, fitsBolt: MD <= B,
+    };
+  }
+
+  return {
+    CONST: CONST, ceilYards: ceilYards, drapeFor: drapeFor,
+    tableCover: tableCover, chairCover: chairCover, sofaCover: sofaCover, ottomanCover: ottomanCover,
+  };
 }));

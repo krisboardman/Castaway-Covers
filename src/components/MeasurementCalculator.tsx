@@ -378,29 +378,11 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
     // bolt length, plus two trapezoidal side strips that are shortened by the
     // chamfered corners. Strip max length = W + 2*stripWidth, where
     // stripWidth = (MD - 54)/2. Total bolt length needed = ML + (W + 2*stripWidth).
+    // Ottomans — delegated to the shared single-source module. Always drops to
+    // the floor; single panel or main panel + side strips.
     if (productType === 'ottomans') {
       if (!width || !length || !height) return 0;
-
-      const BOLT_WIDTH = CoverMath.CONST.BOLT_WIDTH;   // shared 55.25" bolt (single source)
-      const FC = 3; // floor clearance (matches MFG calc default)
-
-      const drop = Math.max(0, height - FC);
-      const ML = Math.max(0, length + 2 * drop);
-      const MD = Math.max(0, width  + 2 * drop);
-
-      let totalBoltLength: number;
-      if (MD <= BOLT_WIDTH) {
-        // Single-piece: cover fits across the bolt as one panel.
-        totalBoltLength = ML;
-      } else {
-        // Main panel + two side strips. Strips are trimmed by the chamfer.
-        const stripWidth = (MD - BOLT_WIDTH) / 2;
-        const stripLength = width + 2 * stripWidth; // max strip length (at the inner edge)
-        totalBoltLength = ML + stripLength;
-      }
-
-      const yardsNeeded = totalBoltLength / 36;
-      return Math.ceil(yardsNeeded);
+      return CoverMath.ottomanCover({ length, width, height }).yards;
     }
 
     // Calculation for tables / table sets — delegated to the shared
