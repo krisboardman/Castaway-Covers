@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Image from 'next/image';
+import Link from 'next/link';
 import MeasurementCalculator from '@/components/MeasurementCalculator';
 import MeasurementCTA from '@/components/MeasurementCTA';
 import AddOnOptions from '@/components/AddOnOptions';
