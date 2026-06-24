@@ -1,17 +1,17 @@
 /*
  * print.css — shared print styles for the standalone cover calculators.
  *
- * Goal: when a calculator is printed, the CUT / ASSEMBLY DIAGRAM dominates the
- * page (that's what the manufacturer needs for cuts, grommets, and snaps).
- * Link this from each calculator's <head>:
+ * Goal: when a calculator is printed, the CUT / ASSEMBLY DIAGRAM fills the page
+ * width (that's what the manufacturer needs for cuts, grommets, and snaps).
+ * Link this LAST in each calculator's <head> (after the inline <style>):
  *   <link rel="stylesheet" href="shared/print.css">
  *
- * These are intentionally low-specificity rules so a calculator with its own
- * tuned @media print block (e.g. the chair v2) still overrides them.
+ * Linking it last means these rules win on equal specificity, so they override
+ * any per-file height caps that were letterboxing the diagram.
  */
 
-/* Landscape Letter — the diagrams are wider than they are tall. */
-@page { size: 11in 8.5in; margin: 0.4in; }
+/* Landscape — the diagrams are wider than they are tall. */
+@page { size: landscape; margin: 0.4in; }
 
 @media print {
   body { margin: 0 !important; padding: 0 !important; }
@@ -21,18 +21,22 @@
   .controls, .sub, button { display: none !important; }
   .card { box-shadow: none !important; }
 
-  /* Diagrams fill the printable width and most of the page height.
-     viewBox + preserveAspectRatio keep them to scale. !important overrides the
-     small on-screen inline heights (e.g. style="height:480px"). */
+  /* Diagrams fill the printable WIDTH; height follows the SVG's aspect ratio.
+     The `.card svg` selector matches per-file rules like `.assembly-flat-card svg`
+     in specificity, so (linked last) it overrides their fixed heights that were
+     shrinking the drawing. No fixed/capped height — that's what caused the
+     letterboxing. min-height:0 kills inline min-heights (e.g. min-height:900px). */
+  .card svg,
+  .diagramBox svg,
   svg {
     width: 100% !important;
     height: auto !important;
+    max-width: 100% !important;
     min-height: 0 !important;
-    max-height: 7.2in !important;
     display: block;
     page-break-inside: avoid;
   }
 
-  /* Keep each diagram and its legend together on a page. */
+  /* Keep each diagram and its legend together. */
   .diagramBox { page-break-inside: avoid; }
 }
