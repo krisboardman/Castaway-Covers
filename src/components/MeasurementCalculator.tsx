@@ -32,6 +32,9 @@ interface MeasurementCalculatorProps {
   productType: string;
   onCalculate: (sku: string, variantId: string, price: number, yards: number, angle: number, measurements: any) => void;
   initialMeasurements?: any;
+  // Tables page only: 'table' | 'set' | 'grill'. Only a 'set' has chair seats,
+  // so the "Over the seats" drape is hidden otherwise.
+  coverType?: 'table' | 'set' | 'grill';
 }
 
 interface BaseMeasurements {
@@ -211,7 +214,7 @@ const productConfigs = {
   }
 };
 
-const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productType, onCalculate, initialMeasurements }) => {
+const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productType, onCalculate, initialMeasurements, coverType }) => {
   const [measurements, setMeasurements] = useState<any>(initialMeasurements || {
     length: 0,
     width: 0,
@@ -235,6 +238,18 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
   const [tableSeatHeight, setTableSeatHeight] = useState<number>(0);
 
   const config = productConfigs[productType as keyof typeof productConfigs] || productConfigs['sofas-loveseats'];
+
+  // Only a table set has chair seats, so the "Over the seats" drape only applies
+  // to a set. (coverType is passed on the tables page; when absent — e.g. the
+  // table-sets product type — treat it as a set so the option still shows.)
+  const showSeatsDrape = coverType !== 'table' && coverType !== 'grill';
+
+  // If the seats drape no longer applies but was selected, fall back to tabletop.
+  useEffect(() => {
+    if (!showSeatsDrape && tableDropMode === 'seats') {
+      setTableDropMode('tabletop');
+    }
+  }, [showSeatsDrape, tableDropMode]);
 
   // "Over the seats" needs the floor-to-seat measurement before we can calculate.
   const needsSeatHeight = (productType === 'tables' || productType === 'table-sets') && tableDropMode === 'seats';
@@ -856,19 +871,21 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
               <strong>Tabletop only</strong> — 10″ side drop; table legs (and chairs) left exposed
             </span>
           </label>
-          <label className="flex items-start gap-2 mb-2 cursor-pointer">
-            <input
-              type="radio"
-              name="tableDropMode"
-              value="seats"
-              checked={tableDropMode === 'seats'}
-              onChange={() => setTableDropMode('seats')}
-              className="mt-1"
-            />
-            <span className="text-sm text-gray-700">
-              <strong>Over the seats</strong> — hangs about 5″ below the chair seats; covers the table and seats but not the legs
-            </span>
-          </label>
+          {showSeatsDrape && (
+            <label className="flex items-start gap-2 mb-2 cursor-pointer">
+              <input
+                type="radio"
+                name="tableDropMode"
+                value="seats"
+                checked={tableDropMode === 'seats'}
+                onChange={() => setTableDropMode('seats')}
+                className="mt-1"
+              />
+              <span className="text-sm text-gray-700">
+                <strong>Over the seats</strong> — hangs about 5″ below the chair seats; covers the table and seats but not the legs
+              </span>
+            </label>
+          )}
           <label className="flex items-start gap-2 cursor-pointer">
             <input
               type="radio"

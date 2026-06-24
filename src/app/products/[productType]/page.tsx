@@ -112,8 +112,10 @@ export default function ProductPage() {
   const [measurementConfirmed, setMeasurementConfirmed] = useState(false);
   const [isCustomOrder, setIsCustomOrder] = useState(false);
   const [showAddedToast, setShowAddedToast] = useState(false);
-  const [isTableSet, setIsTableSet] = useState(false);
-  const [isGrillIsland, setIsGrillIsland] = useState(false);
+  // What's being covered (tables page only): a plain table, a table set with
+  // chairs, or a grill island. Mutually exclusive — drives the measuring note
+  // and whether the "Over the seats" drape applies.
+  const [coverType, setCoverType] = useState<'table' | 'set' | 'grill'>('table');
 
   const addToCart = useCartStore((state) => state.addToCart);
   const updateItem = useCartStore((state) => state.updateItem);
@@ -401,39 +403,45 @@ export default function ProductPage() {
           </div>
         )}
 
-        {/* Table set / grill island checkboxes + measurement notes */}
+        {/* What are you covering? (mutually exclusive) + measuring note */}
         {productType === 'tables' && (
-          <div className="mt-4 space-y-3">
-            <div>
-              <label className="flex items-center gap-3 cursor-pointer select-none">
-                <input
-                  type="checkbox"
-                  checked={isTableSet}
-                  onChange={(e) => setIsTableSet(e.target.checked)}
-                  className="h-5 w-5 rounded border-gray-300 text-brand-teal focus:ring-brand-teal"
-                />
-                <span className="text-sm font-medium text-gray-800">This is a table set (table with chairs)</span>
-              </label>
-              {isTableSet && (
-                <div className="mt-3 bg-amber-50 border border-amber-200 rounded-lg px-5 py-3 text-sm text-amber-800">
-                  <strong>Measuring a table set:</strong> Take your measurements with the chairs pushed in under the table. Measure the width and depth to the <strong>outside edges of the chairs</strong> (not just the table), and for height use the <strong>chairs or the table — whichever is taller</strong>.
-                </div>
-              )}
+          <div className="mt-4">
+            <p className="text-sm font-medium text-gray-800 mb-2">What are you covering?</p>
+            <div className="flex flex-wrap gap-2">
+              {([
+                { value: 'table', label: 'Table' },
+                { value: 'set', label: 'Table set (with chairs)' },
+                { value: 'grill', label: 'Grill island' },
+              ] as const).map((opt) => (
+                <label
+                  key={opt.value}
+                  className={`flex items-center gap-2 cursor-pointer select-none rounded-lg border-2 px-4 py-2 text-sm font-medium transition-colors ${
+                    coverType === opt.value
+                      ? 'border-brand-teal bg-brand-teal/5 text-gray-900'
+                      : 'border-gray-200 text-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="coverType"
+                    value={opt.value}
+                    checked={coverType === opt.value}
+                    onChange={() => setCoverType(opt.value)}
+                    className="h-4 w-4 text-brand-teal border-gray-300 focus:ring-brand-teal"
+                  />
+                  {opt.label}
+                </label>
+              ))}
             </div>
-            <div>
-              <label className="flex items-center gap-3 cursor-pointer select-none">
-                <input
-                  type="checkbox"
-                  checked={isGrillIsland}
-                  onChange={(e) => setIsGrillIsland(e.target.checked)}
-                  className="h-5 w-5 rounded border-gray-300 text-brand-teal focus:ring-brand-teal"
-                />
-                <span className="text-sm font-medium text-gray-800">This is a grill island</span>
-              </label>
-              {isGrillIsland && (
-                <div className="mt-3 bg-amber-50 border border-amber-200 rounded-lg px-5 py-3 text-sm text-amber-800">
-                  <strong>Measuring a grill island:</strong> Measure the width, length, and height the same way you would a table — but for height, <strong>measure to the top of the grill</strong> (or its raised lid) so the cover clears it.
-                </div>
+            <div className="mt-3 bg-amber-50 border border-amber-200 rounded-lg px-5 py-3 text-sm text-amber-800">
+              {coverType === 'table' && (
+                <><strong>Measuring a table:</strong> Measure the width and length to the table edges, and the height from the floor to the tabletop.</>
+              )}
+              {coverType === 'set' && (
+                <><strong>Measuring a table set:</strong> Take your measurements with the chairs pushed in under the table. Measure the width and length to the <strong>outside edges of the chairs</strong> (not just the table), and for height use the <strong>chairs or the table — whichever is taller</strong>.</>
+              )}
+              {coverType === 'grill' && (
+                <><strong>Measuring a grill island:</strong> Measure the width and length to the outer edges, and for height <strong>measure to the top of the grill</strong> (or its raised lid) so the cover clears it.</>
               )}
             </div>
           </div>
@@ -454,6 +462,7 @@ export default function ProductPage() {
           <div>
             <MeasurementCalculator
               productType={productType}
+              coverType={coverType}
               onCalculate={(sku, variantId, price, yardsNeeded, calculatedAngle, allMeasurements) => {
                 setCoverSKU(sku);
                 setCoverVariantId(variantId);
