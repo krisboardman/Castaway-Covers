@@ -36,21 +36,32 @@ check('set 96x54x36 over-seats (seat 17)',CoverMath.tableCover({ length: 96, wid
 check('set 96x54x36 full',                CoverMath.tableCover({ length: 96, width: 54, height: 36, dropMode: 'full' }).yards,                10);
 check('big set 120x60x38 full (4 strips)', CoverMath.tableCover({ length: 120, width: 60, height: 38, dropMode: 'full' }).yards,            15);
 
+console.log('\nChair cover — golden yardage cases (v2 split-back/split-flap/waste-nesting):');
+check('recliner 30x32x40 arm24 br4 wb28', CoverMath.chairCover({ width: 30, depth: 32, height: 40, armrestHeight: 24, backrestDepth: 4, backWidth: 28 }).yards, 6);
+check('dining 20x22x36 arm18 br3 wb18',    CoverMath.chairCover({ width: 20, depth: 22, height: 36, armrestHeight: 18, backrestDepth: 3, backWidth: 18 }).yards, 4);
+check('lounge 34x38x34 arm20 br6 wb30',    CoverMath.chairCover({ width: 34, depth: 38, height: 34, armrestHeight: 20, backrestDepth: 6, backWidth: 30 }).yards, 6);
+check('wide 40x30x42 arm26 br5 wb36',      CoverMath.chairCover({ width: 40, depth: 30, height: 42, armrestHeight: 26, backrestDepth: 5, backWidth: 36 }).yards, 7);
+
 console.log('\nCanonical constants:');
 check('bolt width', CoverMath.CONST.BOLT_WIDTH, 55.25);
+check('chair hem', CoverMath.CONST.CHAIR_HEM, 0);
+check('chair bottom margin', CoverMath.CONST.CHAIR_BOTTOM_MARGIN, 8);
 check('tabletop drop', CoverMath.CONST.TABLE_DROP, 10);
 check('below-seat drop', CoverMath.CONST.BELOW_SEAT, 5);
 check('floor clearance', CoverMath.CONST.FLOOR_CLEARANCE, 3);
 
-console.log('\nWiring — both callers must use the shared module:');
+console.log('\nWiring — callers must use the shared module:');
 const html  = fs.readFileSync(path.join(__dirname, 'calculators', 'table_cover_calculator_MFG.html'), 'utf8');
+const chairHtml = fs.readFileSync(path.join(__dirname, 'calculators', 'chair_cover_calculator_snap_back_MFG_v2.html'), 'utf8');
 const react = fs.readFileSync(path.join(__dirname, 'src', 'components', 'MeasurementCalculator.tsx'), 'utf8');
-// The standalone table tool shares the bolt/drape CONSTANTS (the thing that
-// drifted before); the website uses the full multi-strip tableCover().
-check('standalone HTML loads + uses CoverMath',
+check('standalone table HTML loads + uses CoverMath',
   /shared\/cover-math\.js/.test(html) && /CoverMath\.(drapeFor|CONST|tableCover)/.test(html), true);
-check('website imports + uses CoverMath.tableCover',
+check('standalone chair HTML loads + uses CoverMath',
+  /shared\/cover-math\.js/.test(chairHtml) && /CoverMath\.(chairCover|CONST)/.test(chairHtml), true);
+check('website uses CoverMath.tableCover',
   /cover-math\.js/.test(react) && /CoverMath\.tableCover/.test(react), true);
+check('website uses CoverMath.chairCover',
+  /CoverMath\.chairCover/.test(react), true);
 
 if (failures) {
   console.log(`\n${failures} check(s) FAILED.`);

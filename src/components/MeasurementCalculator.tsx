@@ -340,135 +340,20 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
       return Math.ceil(totalBoltLength / 36);
     }
 
-    // Calculation for chairs/recliners — matches chair_cover_calculator_snap_back_MFG.html.
-    // Main piece (ML × B, side-to-side) + trapezoidal back piece + optional front flap.
-    // Considers full-trapezoid (Strategy A) and split-back nested (Strategy B), takes the
-    // smaller bolt length, and nests the front flap alongside the back piece when it fits.
+    // Chairs/recliners — delegated to the shared single-source module
+    // (calculators/shared/cover-math.js), which ports the v2 standalone calculator
+    // (split-back + split-flap + waste-nesting). Same math as the website and the
+    // standalone calculator, so they can't drift.
     if (productType === 'chairs-recliners') {
       if (!width || !length || !height || !backrestDepth || !armrestHeight) return 0;
-
-      // Constants — match MFG calculator defaults
-      const B = 54;        // bolt width
-      const FC = 3;        // floor clearance + wave allowance (matches MFG calc)
-      const hem = 1;       // hem allowance
-      const seam = 1.5;    // seam overlap
-      const sideEase = 0;
-
-      const W = width;
-      const D = length;            // depth (front-to-back)
-      const H = height;
-      const BR = backrestDepth;
-      const F2A = armrestHeight;
-      // Back width: prefer measured backWidth; fall back to full width if not provided
-      const WB = (measurements.backWidth && measurements.backWidth > 0) ? measurements.backWidth : W;
-
-      // AT2F: diagonal drape from front edge of backrest top to front of seat
-      const AT2F = Math.sqrt(Math.max(0, H - F2A) ** 2 + Math.max(0, D - BR) ** 2);
-
-      const sideDrop = H - FC;
-      const frontExtDrop = F2A - FC;
-
-      // Main piece: ML wraps side-to-side over the chair
-      const ML = WB + 2 * sideDrop;
-
-      // Front-to-back coverage required (across the bolt)
-      const totalFB = hem + BR + AT2F + frontExtDrop;
-
-      // Back piece (trapezoid): top = ML (matches main piece), bottom = WB+2*hem, height = H-FC
-      const backPieceTopWidth = ML;
-      const backPieceBottomWidth = WB + 2 * hem;
-      const backPieceHeight = H - FC;
-      const backPieceLength = backPieceTopWidth;   // along bolt
-      const backPieceWidth = backPieceHeight;      // across bolt
-
-      // Front flap (if bolt can't cover full front-to-back)
-      const frontFlapNeeded = totalFB > B;
-      const frontFlapShortage = frontFlapNeeded ? totalFB - B : 0;
-      const frontFlapWidth = frontFlapNeeded ? frontFlapShortage + hem : 0;
-      const frontWidthAfterCut = W + 2 * frontExtDrop + 2 * sideEase;
-      const frontFlapLength = frontFlapNeeded ? frontWidthAfterCut : 0;
-
-      // --- Strategy A: full trapezoid back piece ---
-      let totalA = ML + backPieceLength;
-      if (frontFlapNeeded) {
-        if (backPieceWidth + frontFlapWidth <= B) {
-          // Flap nests alongside back piece across the bolt
-          totalA = ML + Math.max(backPieceLength, frontFlapLength);
-        } else {
-          totalA = ML + backPieceLength + frontFlapLength;
-        }
-      }
-
-      // --- Strategy B: split-back nested (cut trapezoid in half, rotate one 180°) ---
-      const splitBackCenterSeam = seam;
-      const splitBackHalfTop = backPieceTopWidth / 2 + splitBackCenterSeam;
-      const splitBackHalfBot = backPieceBottomWidth / 2 + splitBackCenterSeam;
-      const splitBackNestedWidth = splitBackHalfTop + splitBackHalfBot;
-      const splitBackTaper = splitBackHalfTop - splitBackHalfBot;
-      const splitBackMinOffset = splitBackNestedWidth <= B ? 0
-        : splitBackTaper > 0 ? (splitBackNestedWidth - B) * backPieceHeight / splitBackTaper : Infinity;
-      const splitBackFits = isFinite(splitBackMinOffset);
-      const splitBackBoltLength = splitBackFits ? backPieceHeight + splitBackMinOffset : backPieceLength;
-      const splitBackSavings = backPieceLength - splitBackBoltLength;
-
-      let totalB = Infinity;
-      if (splitBackFits && splitBackSavings > 1) {
-        totalB = ML + splitBackBoltLength;
-        if (frontFlapNeeded) {
-          if (splitBackNestedWidth + frontFlapWidth <= B) {
-            totalB = ML + Math.max(splitBackBoltLength, frontFlapLength);
-          } else {
-            totalB = ML + splitBackBoltLength + frontFlapLength;
-          }
-        }
-      }
-
-      // --- Strategy C: waste-nesting (cut front flap from main-piece diagonal trim waste) ---
-      // The chair's main piece has a diagonal A→B trim cut on each side, producing
-      // waste in two regions per side:
-      //   1. Triangle in the taper zone — base = markFromSideEdge, height = taperZoneLength
-      //   2. Rectangle in the front zone — markFromSideEdge × frontInset (the larger area)
-      // If the front flap (full or split halves) fits in the combined waste, we
-      // don't need an extra bolt for the flap — totalLength stays at ML + backPieceLength.
-      // Mirrors the waste-nesting logic in chair_cover_calculator_snap_back_MFG.html.
-      let totalC = Infinity;
-      if (frontFlapNeeded) {
-        const backInset = hem + BR;
-        const frontInset = frontExtDrop;
-        const taperZoneLength = Math.max(0, B - frontInset - backInset);
-        const frontWidthAfterCut = W + 2 * frontExtDrop + 2 * sideEase;
-        const markFromSideEdge = Math.max(0, (ML - frontWidthAfterCut) / 2);
-        const wasteRectW = markFromSideEdge;
-        const wasteRectH = frontInset;
-        const wasteTriBase = markFromSideEdge;
-        const wasteTriHeight = taperZoneLength;
-
-        const fitsInCombinedWaste = (w: number, h: number): boolean => {
-          if (w > wasteRectW) return false;
-          if (h <= wasteRectH) return true;
-          const triPortion = h - wasteRectH;
-          if (triPortion > wasteTriHeight) return false;
-          const availAtTop = wasteTriHeight > 0
-            ? wasteTriBase * (wasteTriHeight - triPortion) / wasteTriHeight
-            : 0;
-          return availAtTop >= w;
-        };
-
-        // Try the full flap in either orientation, then split halves.
-        const splitHalfLength = Math.ceil(frontFlapLength / 2) + 0.5;
-        const fullFitsA = fitsInCombinedWaste(frontFlapLength, frontFlapWidth);
-        const fullFitsB = fitsInCombinedWaste(frontFlapWidth, frontFlapLength);
-        const halfFitsA = fitsInCombinedWaste(splitHalfLength, frontFlapWidth);
-        const halfFitsB = fitsInCombinedWaste(frontFlapWidth, splitHalfLength);
-
-        if (fullFitsA || fullFitsB || halfFitsA || halfFitsB) {
-          // Flap (or its halves) fit in waste → no extra bolt length for the flap.
-          totalC = ML + backPieceLength;
-        }
-      }
-
-      const totalLength = Math.min(totalA, totalB, totalC);
-      return Math.ceil(totalLength / 36);
+      return CoverMath.chairCover({
+        width,
+        depth: length,            // our internal "length" is the chair's front-to-back depth
+        height,
+        armrestHeight,
+        backrestDepth,
+        backWidth: (measurements.backWidth && measurements.backWidth > 0) ? measurements.backWidth : width,
+      }).yards;
     }
 
     // Calculation for sofas/loveseats — matches couch_cover_calculator_snap_back_MFG.html.

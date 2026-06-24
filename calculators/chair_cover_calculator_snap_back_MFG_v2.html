@@ -163,6 +163,8 @@
 
   </div>
 
+<!-- Shared yardage math (single source of truth, also used by the website). -->
+<script src="shared/cover-math.js"></script>
 <script>
 function parseNum(id){
   const el = document.getElementById(id);
@@ -1286,6 +1288,16 @@ function compute(){
         }
       }
     }
+
+    // === SINGLE SOURCE OF TRUTH ===
+    // The bolt length / yards come from the shared module (cover-math.js) — the
+    // exact same chairCover() the website uses, so the two can never drift. The
+    // local variables above (strategy flags, piece dimensions) still drive the
+    // cut diagram; they mirror what chairCover computes.
+    totalLength = CoverMath.chairCover({
+      width: W, depth: D, height: H, armrestHeight: F2A, backrestDepth: BR, backWidth: WB,
+      bolt: B, fc: FC, hem: hem, seam: seam, bottomMargin: bottomMargin
+    }).totalLength;
 
     // === DISPLAY RESULTS ===
     const rows = [

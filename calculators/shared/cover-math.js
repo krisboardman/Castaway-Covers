@@ -35,6 +35,10 @@
     BELOW_SEAT: 5,        // "over the seats" drop past the seat bottom (in) —
                           // covers the weave cut (~2-3") and leaves clearance
     SEAM_OVERLAP: 1.5,    // fabric consumed per join seam (in)
+    // Chair-cover constants (match chair_cover_calculator_snap_back_MFG_v2.html):
+    CHAIR_HEM: 0,         // hem allowance (in)
+    CHAIR_BOTTOM_MARGIN: 8, // front-flap bottom margin (in)
+    CHAIR_SPLIT_FLAP_SEAM: 0.5, // per-half center join for a split front flap (in)
   };
 
   function ceilYards(inches) { return Math.ceil(inches / 36); }
@@ -104,5 +108,153 @@
     };
   }
 
-  return { CONST: CONST, ceilYards: ceilYards, drapeFor: drapeFor, tableCover: tableCover };
+  /**
+   * Chair / recliner snap-back cover yardage.
+   * Faithful port of chair_cover_calculator_snap_back_MFG_v2.html — main side-to-side
+   * panel + trapezoidal back piece, with split-back, split-flap, and waste-nesting
+   * optimizations; returns the minimum bolt length found.
+   *
+   * @param {Object} p
+   * @param {number} p.width          W  — overall width (arm to arm).
+   * @param {number} p.depth          D  — front-to-back depth.
+   * @param {number} p.height         H  — floor to top of backrest.
+   * @param {number} p.armrestHeight  F2A — floor to top of armrest.
+   * @param {number} p.backrestDepth  BR — backrest thickness at the top.
+   * @param {number} [p.backWidth]    WB — back-panel width (defaults to width).
+   * @param {number} [p.bolt]         Bolt width (in). Defaults to CONST.BOLT_WIDTH.
+   * @param {number} [p.fc]           Floor clearance (in). Defaults to CONST.FLOOR_CLEARANCE.
+   * @param {number} [p.hem]          Hem allowance (in). Defaults to CONST.CHAIR_HEM.
+   * @param {number} [p.seam]         Seam allowance (in). Defaults to CONST.SEAM_OVERLAP.
+   * @param {number} [p.bottomMargin] Front-flap bottom margin (in). Defaults to CONST.CHAIR_BOTTOM_MARGIN.
+   * @returns {Object} { yards, totalLength, ML, totalFB, frontFlapNeeded,
+   *                      useSplitBack, useSplitFlap, useWasteNesting, nestingStrategy }
+   */
+  function chairCover(p) {
+    p = p || {};
+    var W   = Math.max(0, Number(p.width)  || 0);
+    var D   = Math.max(0, Number(p.depth)  || 0);
+    var H   = Math.max(0, Number(p.height) || 0);
+    var F2A = Math.max(0, Number(p.armrestHeight) || 0);
+    var BR  = Math.max(0, Number(p.backrestDepth) || 0);
+    var WB  = (p.backWidth != null && Number(p.backWidth) > 0) ? Number(p.backWidth) : W;
+    var B   = (p.bolt != null)         ? Number(p.bolt)         : CONST.BOLT_WIDTH;
+    var FC  = (p.fc != null)           ? Number(p.fc)           : CONST.FLOOR_CLEARANCE;
+    var hem = (p.hem != null)          ? Number(p.hem)          : CONST.CHAIR_HEM;
+    var seam = (p.seam != null)        ? Number(p.seam)         : CONST.SEAM_OVERLAP;
+    var bottomMargin = (p.bottomMargin != null) ? Number(p.bottomMargin) : CONST.CHAIR_BOTTOM_MARGIN;
+    var sideEase = 0, waveAllowance = 0;
+
+    // Main piece (side-to-side wrap)
+    var AT2F = Math.sqrt(Math.max(0, H - F2A) * Math.max(0, H - F2A) + Math.max(0, D - BR) * Math.max(0, D - BR));
+    var sideDrop = H - FC;
+    var frontExtDrop = F2A - FC;
+    var ML = WB + 2 * sideDrop;
+    var totalFB = hem + BR + AT2F + frontExtDrop;
+
+    var backInset = hem + BR;
+    var frontInset = F2A - FC;
+    var taperZoneLength = Math.max(0, B - frontInset - backInset);
+    var frontWidthAfterCut = W + 2 * frontExtDrop + 2 * sideEase;
+    var markFromSideEdge = Math.max(0, (ML - frontWidthAfterCut) / 2);
+
+    // Back piece (trapezoid)
+    var backPieceTopWidth = ML;
+    var backPieceBottomWidth = WB + 2 * hem;
+    var backPieceHeight = H - FC;
+    var backPieceLength = backPieceTopWidth; // along bolt
+    var backPieceWidth = backPieceHeight;    // across bolt
+
+    // Split-back nesting
+    var splitBackHalfTop = backPieceTopWidth / 2 + seam;
+    var splitBackHalfBot = backPieceBottomWidth / 2 + seam;
+    var splitBackNestedWidth = splitBackHalfTop + splitBackHalfBot;
+    var splitBackTaper = splitBackHalfTop - splitBackHalfBot;
+    var splitBackMinOffset = splitBackNestedWidth <= B ? 0
+      : splitBackTaper > 0 ? (splitBackNestedWidth - B) * backPieceHeight / splitBackTaper : Infinity;
+    var splitBackFits = isFinite(splitBackMinOffset);
+    var splitBackBoltLength = splitBackFits ? backPieceHeight + splitBackMinOffset : backPieceLength;
+    var splitBackSavings = backPieceLength - splitBackBoltLength;
+
+    // Front flap (trapezoid)
+    var frontFlapNeeded = totalFB > B;
+    var frontFlapShortage = frontFlapNeeded ? totalFB - B : 0;
+    var frontFlapWidth = frontFlapNeeded ? frontFlapShortage + hem : 0;
+    var flapTopWidth = frontFlapNeeded ? Math.max(W, W + 2 * (F2A - FC) - 2 * waveAllowance) : 0;
+    var frontFlapLength = frontFlapNeeded ? flapTopWidth : 0;
+
+    // Strategy A — full trapezoid back piece
+    var totalA = ML + backPieceLength;
+    if (frontFlapNeeded) {
+      if (backPieceWidth + frontFlapWidth <= B) totalA = ML + Math.max(backPieceLength, frontFlapLength);
+      else totalA = ML + backPieceLength + frontFlapLength;
+    }
+
+    // Strategy B — split-back nested
+    var totalB = Infinity;
+    if (splitBackFits && splitBackSavings > 1) {
+      totalB = ML + splitBackBoltLength;
+      if (frontFlapNeeded) {
+        if (splitBackNestedWidth + frontFlapWidth <= B) totalB = ML + Math.max(splitBackBoltLength, frontFlapLength);
+        else totalB = ML + splitBackBoltLength + frontFlapLength;
+      }
+    }
+
+    var totalLength, nestingStrategy, useSplitBack;
+    if (totalA <= totalB) { totalLength = totalA; useSplitBack = false; nestingStrategy = 'full-back'; }
+    else { totalLength = totalB; useSplitBack = true; nestingStrategy = 'split-back'; }
+
+    // Split front flap
+    var useSplitFlap = false, splitSavings = 0, splitHalfLength = 0;
+    if (frontFlapNeeded) {
+      splitHalfLength = Math.ceil(frontFlapLength / 2) + CONST.CHAIR_SPLIT_FLAP_SEAM;
+      var bothHalvesFit = backPieceWidth + 2 * frontFlapWidth <= B;
+      var oneHalfFits = backPieceWidth + frontFlapWidth <= B;
+      var splitTotalLength;
+      if (bothHalvesFit) splitTotalLength = ML + Math.max(backPieceLength, splitHalfLength);
+      else if (oneHalfFits) splitTotalLength = ML + Math.max(backPieceLength, splitHalfLength) + splitHalfLength;
+      else splitTotalLength = ML + backPieceLength + 2 * splitHalfLength;
+      splitSavings = totalLength - splitTotalLength;
+      if (splitSavings > 0.5) { useSplitFlap = true; totalLength = splitTotalLength; nestingStrategy = 'split-flap'; }
+    }
+
+    // Waste nesting (alternative to split-flap)
+    var useWasteNesting = false;
+    if (frontFlapNeeded) {
+      var preSplitTotalLength = useSplitFlap ? (totalLength + splitSavings) : totalLength;
+      var wasteRectW = markFromSideEdge, wasteRectH = frontInset;
+      var wasteTriBase = markFromSideEdge, wasteTriHeight = taperZoneLength;
+      var fitsInCombinedWaste = function (w, h) {
+        if (w > wasteRectW) return false;
+        if (h <= wasteRectH) return true;
+        var triPortion = h - wasteRectH;
+        if (triPortion > wasteTriHeight) return false;
+        var availAtTop = wasteTriHeight > 0 ? wasteTriBase * (wasteTriHeight - triPortion) / wasteTriHeight : 0;
+        return availAtTop >= w;
+      };
+      var fullFitsA = fitsInCombinedWaste(frontFlapLength, frontFlapWidth);
+      var fullFitsB = fitsInCombinedWaste(frontFlapWidth, frontFlapLength);
+      var halfFitsA = fitsInCombinedWaste(splitHalfLength, frontFlapWidth);
+      var halfFitsB = fitsInCombinedWaste(frontFlapWidth, splitHalfLength);
+      var wasteTotalLength = ML + backPieceLength;
+      if (fullFitsA || fullFitsB) {
+        if (preSplitTotalLength - wasteTotalLength >= 0) {
+          useWasteNesting = true; useSplitFlap = false; totalLength = wasteTotalLength; nestingStrategy = 'waste-nested';
+        }
+      } else if (halfFitsA || halfFitsB) {
+        if (preSplitTotalLength - wasteTotalLength >= 0) {
+          useWasteNesting = true; useSplitFlap = true; totalLength = wasteTotalLength; nestingStrategy = 'waste-nested-split';
+        }
+      }
+    }
+
+    return {
+      yards: ceilYards(totalLength),
+      totalLength: totalLength, ML: ML, totalFB: totalFB, bolt: B,
+      frontFlapNeeded: frontFlapNeeded, useSplitBack: useSplitBack,
+      useSplitFlap: useSplitFlap, useWasteNesting: useWasteNesting,
+      nestingStrategy: nestingStrategy,
+    };
+  }
+
+  return { CONST: CONST, ceilYards: ceilYards, drapeFor: drapeFor, tableCover: tableCover, chairCover: chairCover };
 }));
