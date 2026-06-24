@@ -59,6 +59,30 @@
 - Security headers (X-Frame-Options, X-Content-Type-Options, X-XSS-Protection) are set
 - TypeScript build errors are currently ignored (`ignoreBuildErrors: true` in next.config.mjs)
 
+### Calculator Math — Single Source of Truth (READ BEFORE TOUCHING ANY CALCULATOR)
+
+The cover **yardage math must live in exactly one place**: `calculators/shared/cover-math.js`.
+Both the standalone HTML calculators in `calculators/` and the website calculator
+(`src/components/MeasurementCalculator.tsx`) consume that same file. This exists because
+the two used to have separate copies of the math and silently drifted apart (e.g. a 54" vs
+55.25" bolt width that quietly changed prices).
+
+Rules — follow these for ANY calculator work, including new calculators or a "version 2":
+
+- **Never inline calculation math** in an HTML calculator or in the React component. Put it in
+  `cover-math.js` (constants at the top, one function per product type) and call it from both sides.
+- A new/renamed calculator (e.g. `*_v2.html`) must `<script src="shared/cover-math.js">` and call
+  `CoverMath.*`, and the website must import the same file. Don't fork the formula.
+- After changing any formula or constant, add/update a golden case in `check-calculators.js` so the
+  change is intentional, and **redeploy** — the website only picks up `cover-math.js` changes on the
+  next Vercel build (the standalone HTML updates live).
+- `npm run check-calculators` is the guardrail and **runs automatically on every build** (`prebuild`
+  in `package.json`). If it fails, the deploy fails. If you add a new calculator file, point the
+  wiring check in `check-calculators.js` at it.
+
+**Migration status:** Tables/table-sets are unified on the shared module. Chairs, sofas, chaise, and
+ottomans still have two copies and can still drift until they're migrated the same way.
+
 ### Framework
 
 The `docs/framework/` directory contains durable reference docs.

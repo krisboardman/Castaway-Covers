@@ -23,6 +23,10 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { getShopifyClient, findVariantBySKU, clearProductCache } from '@/lib/shopify-client';
 import { MEASUREMENT_PROMO_ACTIVE } from '@/config/site';
+// Single source of truth for yardage math, shared with the standalone HTML
+// calculators in /calculators. Pilot scope: tables/table-sets.
+// @ts-ignore — plain JS module, no type declarations.
+import CoverMath from '../../calculators/shared/cover-math.js';
 
 interface MeasurementCalculatorProps {
   productType: string;
@@ -611,31 +615,17 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
       return Math.ceil(yardsNeeded);
     }
 
-    // Calculation for tables / table sets — matches table_cover_calculator_MFG.html.
-    // Uses fixed 10" drop and a two-piece front-to-back layout when the cover
-    // width exceeds the bolt.
+    // Calculation for tables / table sets — delegated to the shared
+    // single-source module (calculators/shared/cover-math.js) so the website
+    // and table_cover_calculator_MFG.html always produce identical results.
     if (productType === 'tables' || productType === 'table-sets') {
       if (!width || !length || !height) return 0;
-
-      const BOLT_WIDTH = 54;
-      const TABLE_DROP = 10;
-      const FC = 3;
-
-      const drop = tableCoverStyle === 'full'
-        ? Math.max(0, height - FC)
-        : TABLE_DROP;
-      const ML = Math.max(0, length + 2 * drop);
-      const MD = Math.max(0, width  + 2 * drop);
-
-      let totalBoltLength: number;
-      if (MD <= BOLT_WIDTH) {
-        totalBoltLength = ML;
-      } else {
-        totalBoltLength = 2 * MD;
-      }
-
-      const yardsNeeded = totalBoltLength / 36;
-      return Math.ceil(yardsNeeded);
+      return CoverMath.tableCover({
+        length,
+        width,
+        height,
+        style: tableCoverStyle, // 'tablecloth' | 'full'
+      }).yards;
     }
     
     return 0;

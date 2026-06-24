@@ -100,6 +100,8 @@
 
 </div>
 
+<!-- Shared yardage math (single source of truth, also used by the website). -->
+<script src="shared/cover-math.js"></script>
 <script>
 function n(id){const v=Number(document.getElementById(id).value);return isFinite(v)?v:0;}
 function nOpt(id){const el=document.getElementById(id);if(!el||el.value===''||el.value==null)return null;const v=Number(el.value);return isFinite(v)?v:null;}
@@ -110,11 +112,13 @@ function compute(){
   const rounded=document.getElementById('round').checked;
   const B=n('B'), L=n('L'), W=n('W'), drop=n('drop');
 
-  // Long side L, short side W. Cover panel:
-  //   ML (along the bolt) = L + 2*drop  — runs along the long side
-  //   MD (across)         = W + 2*drop  — runs across the short side
-  const ML = Math.max(0, L + 2*drop);
-  const MD = Math.max(0, W + 2*drop);
+  // Long side L, short side W. Cover panel math now comes from the shared
+  // single-source module (calculators/shared/cover-math.js) so this calculator
+  // and the website always agree. We still pass the user's overridable bolt
+  // width (B) and drop so this tool behaves exactly as before.
+  const _t = CoverMath.tableCover({ length: L, width: W, height: n('H'), drop: drop, bolt: B });
+  const ML = _t.ML;   // along the bolt = L + 2*drop
+  const MD = _t.MD;   // across the bolt = W + 2*drop
 
   // One mating pair of snaps per corner (2 snaps per corner, 8 total on the
   // cover). The snaps are aesthetic — they give a clean corner — so a single
@@ -145,22 +149,14 @@ function compute(){
   //   that run front-to-back (each piece is MD long along the bolt), joined by a
   //   single seam down the long centerline of the cover. Each piece is
   //   (ML + seamOverlap)/2 wide (across the bolt width).
-  const seamOverlap = 1.5; // total fabric consumed by the joining seam (1.5")
-  let layout, pieceCount, pieceL, pieceW, totalBoltLen;
-  if (MD <= B) {
-    layout = 'single';
-    pieceCount = 1;
-    pieceL = ML;       // along the bolt length
-    pieceW = MD;       // across the bolt width
-    totalBoltLen = ML;
-  } else {
-    layout = 'two-piece';
-    pieceCount = 2;
-    pieceL = MD;                    // each piece runs front-to-back along bolt
-    pieceW = (ML + seamOverlap) / 2; // across bolt width
-    totalBoltLen = 2 * MD;
-  }
-  const fitsBolt = (layout === 'single') ? (MD <= B) : (pieceW <= B);
+  // Layout / bolt-fit — also from the shared module (see _t above).
+  const seamOverlap = CoverMath.CONST.SEAM_OVERLAP; // joining-seam allowance
+  const layout = _t.layout;
+  const pieceCount = _t.pieceCount;
+  const pieceL = _t.pieceL;        // along the bolt length
+  const pieceW = _t.pieceW;        // across the bolt width
+  const totalBoltLen = _t.totalBoltLen;
+  const fitsBolt = _t.fitsBolt;
 
   const r=v=>fin(v,rounded);
 
