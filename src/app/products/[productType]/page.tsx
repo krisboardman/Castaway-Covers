@@ -721,11 +721,11 @@ const getGalleryImages = (productType: string, selectedColor?: string) => {
       { src: '/images/Chairs-Recliners/chair1.jpg', alt: 'Chair Cover - Front View' },
       { src: '/images/Chairs-Recliners/chair3.jpg', alt: 'Chair Cover - Side View' },
       { src: '/images/Chairs-Recliners/chair7.jpg', alt: 'Chair Cover - Outdoor View' },
-      { src: '/images/Chairs-Recliners/liz-before.jpg', alt: 'Patio chairs before Castaway Covers', badge: 'Before' },
-      { src: '/images/Chairs-Recliners/liz-after.jpg', alt: 'Same patio chairs protected with Castaway Covers', badge: 'After' },
+      { src: '/images/Chairs-Recliners/chair7.5.jpg', alt: 'Patio chairs before Castaway Covers', badge: 'Before' },
+      { src: '/images/Chairs-Recliners/chair7.6.jpg', alt: 'Same patio chairs protected with Castaway Covers', badge: 'After' },
       { src: '/images/Chairs-Recliners/chair8.jpg', alt: 'Chair Cover - Built-In Bungee Storage' },
-      { src: '/images/Chairs-Recliners/kb-before.jpg', alt: 'Wicker chair before Castaway Cover', badge: 'Before' },
-      { src: '/images/Chairs-Recliners/kb-after.jpg', alt: 'Same wicker chair protected with Castaway Cover', badge: 'After' }
+      { src: '/images/Chairs-Recliners/chair8.5.jpg', alt: 'Wicker chair before Castaway Cover', badge: 'Before' },
+      { src: '/images/Chairs-Recliners/chair8.6.jpg', alt: 'Same wicker chair protected with Castaway Cover', badge: 'After' }
     ],
     'sofas-loveseats': [
       { src: '/images/Sofas-Loveseats/sofa1.jpg', alt: 'Sofa with Castaway Cover' },
@@ -747,10 +747,10 @@ const getGalleryImages = (productType: string, selectedColor?: string) => {
       { src: '/images/Ottomans/ottoman4.jpg', alt: 'Ottoman Cover - Gray Outdoor View' }
     ],
     'tables': [
-      // Lakefront tan table set
-      { src: '/images/Tables/tableset-lakefront.jpg', alt: 'Table set protected with Castaway Cover - Lakefront View', badge: 'After' },
+      // Lakefront teak table set — before, then covered in summer & winter
       { src: '/images/Tablesets/tableset5.jpg', alt: 'Teak table set before a Castaway Cover', badge: 'Before' },
-      { src: '/images/Tablesets/tableset6.jpg', alt: 'Table set protected with Castaway Cover - Winter Snow Protection', badge: 'After' },
+      { src: '/images/Tables/tableset-lakefront.jpg', alt: 'Same table set protected with a Castaway Cover - Summer', badge: 'After' },
+      { src: '/images/Tablesets/tableset6.jpg', alt: 'Same table set protected with a Castaway Cover - Winter', badge: 'After' },
       // Bayfront grill island
       { src: '/images/Tables/grill-before.jpg', alt: 'Stone grill island before a Castaway Cover', badge: 'Before' },
       { src: '/images/Tables/grill-island.jpg', alt: 'Same grill island protected with Castaway Cover - Waterfront Deck', badge: 'After' },
