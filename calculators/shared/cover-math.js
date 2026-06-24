@@ -39,6 +39,9 @@
     CHAIR_HEM: 0,         // hem allowance (in)
     CHAIR_BOTTOM_MARGIN: 8, // front-flap bottom margin (in)
     CHAIR_SPLIT_FLAP_SEAM: 0.5, // per-half center join for a split front flap (in)
+    // Chaise-cover constants:
+    CHAISE_FC_CUSHION: 4,   // floor clearance when a cushion is on (in)
+    CHAISE_EXT_SEAM: 1,     // seam allowance for split-and-sew side extensions (in)
   };
 
   function ceilYards(inches) { return Math.ceil(inches / 36); }
@@ -397,8 +400,55 @@
     };
   }
 
+  /**
+   * Chaise-lounge cover yardage (clean draped-rectangle model — matches the
+   * standalone's assembly diagram). Uniform cushion-aware side drop on all four
+   * sides; single panel if it fits the bolt, otherwise a main panel + two
+   * split-and-sew side extensions (each cut as two half-strips).
+   *
+   * @param {Object} p  length(L, head-to-foot), width(W), height(frame top to floor),
+   *                    cushionThickness(CT, optional), plus optional bolt override.
+   * @returns {Object} { yards, totalLength, ML, MD, sideDrop, layout, bolt }
+   */
+  function chaiseCover(p) {
+    p = p || {};
+    var L  = Math.max(0, Number(p.length) || 0);
+    var W  = Math.max(0, Number(p.width)  || 0);
+    var H  = Math.max(0, Number(p.height) || 0);
+    var CT = Math.max(0, Number(p.cushionThickness) || 0);
+    var B  = (p.bolt != null) ? Number(p.bolt) : CONST.BOLT_WIDTH;
+
+    // Cushion-aware side drop: size for frame+cushion with 4" clearance when a
+    // cushion is on, or frame-only with 3" clearance when there isn't one.
+    var effectiveHeight = CT > 0 ? H + CT : H;
+    var effectiveFC = CT > 0 ? CONST.CHAISE_FC_CUSHION : CONST.FLOOR_CLEARANCE;
+    var sideDrop = Math.max(0, effectiveHeight - effectiveFC);
+
+    var ML = L + 2 * sideDrop; // along the bolt (head-to-foot)
+    var MD = W + 2 * sideDrop; // across the bolt
+
+    var layout, totalBoltLen;
+    if (MD <= B) {
+      layout = 'single';
+      totalBoltLen = ML;
+    } else {
+      layout = 'main+extensions';
+      // Overflow split into 2 side extensions, each cut as 2 half-strips
+      // (4 half-strips total) nested across the bolt right after the main panel.
+      var extCutW = (MD - B) / 2 + CONST.CHAISE_EXT_SEAM;
+      totalBoltLen = ML + 4 * extCutW;
+    }
+
+    return {
+      yards: ceilYards(totalBoltLen),
+      totalLength: totalBoltLen, ML: ML, MD: MD, sideDrop: sideDrop,
+      layout: layout, bolt: B, fitsBolt: MD <= B,
+    };
+  }
+
   return {
     CONST: CONST, ceilYards: ceilYards, drapeFor: drapeFor,
-    tableCover: tableCover, chairCover: chairCover, sofaCover: sofaCover, ottomanCover: ottomanCover,
+    tableCover: tableCover, chairCover: chairCover, sofaCover: sofaCover,
+    ottomanCover: ottomanCover, chaiseCover: chaiseCover,
   };
 }));

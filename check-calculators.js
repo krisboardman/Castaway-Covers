@@ -54,6 +54,12 @@ check('medium 30x24x18', CoverMath.ottomanCover({ length: 30, width: 24, height:
 check('wide 48x40x20',   CoverMath.ottomanCover({ length: 48, width: 40, height: 20 }).yards, 4);
 check('big 60x50x16',    CoverMath.ottomanCover({ length: 60, width: 50, height: 16 }).yards, 5);
 
+console.log('\nChaise lounge — golden yardage cases (cushion-aware; single or main+extensions):');
+check('no-cushion 75x28x16',   CoverMath.chaiseCover({ length: 75, width: 28, height: 16, cushionThickness: 0 }).yards, 3);
+check('cushion 75x28x16 ct3',  CoverMath.chaiseCover({ length: 75, width: 28, height: 16, cushionThickness: 3 }).yards, 4);
+check('wide 80x40x18 ct4',     CoverMath.chaiseCover({ length: 80, width: 40, height: 18, cushionThickness: 4 }).yards, 5);
+check('narrow 60x22x14',       CoverMath.chaiseCover({ length: 60, width: 22, height: 14, cushionThickness: 0 }).yards, 3);
+
 console.log('\nCanonical constants:');
 check('bolt width', CoverMath.CONST.BOLT_WIDTH, 55.25);
 check('chair hem', CoverMath.CONST.CHAIR_HEM, 0);
@@ -67,6 +73,7 @@ const html  = fs.readFileSync(path.join(__dirname, 'calculators', 'table_cover_c
 const chairHtml = fs.readFileSync(path.join(__dirname, 'calculators', 'chair_cover_calculator_snap_back_MFG_v2.html'), 'utf8');
 const couchHtml = fs.readFileSync(path.join(__dirname, 'calculators', 'couch_cover_calculator_snap_back_MFG_v4.html'), 'utf8');
 const ottomanHtml = fs.readFileSync(path.join(__dirname, 'calculators', 'ottoman_cover_calculator_MFG.html'), 'utf8');
+const chaiseHtml = fs.readFileSync(path.join(__dirname, 'calculators', 'chaise_lounge_cover_calculator_MFG.html'), 'utf8');
 const react = fs.readFileSync(path.join(__dirname, 'src', 'components', 'MeasurementCalculator.tsx'), 'utf8');
 check('standalone table HTML loads + uses CoverMath',
   /shared\/cover-math\.js/.test(html) && /CoverMath\.(drapeFor|CONST|tableCover)/.test(html), true);
@@ -76,6 +83,8 @@ check('standalone couch HTML loads + uses CoverMath',
   /shared\/cover-math\.js/.test(couchHtml) && /CoverMath\.(sofaCover|CONST)/.test(couchHtml), true);
 check('standalone ottoman HTML loads + uses CoverMath',
   /shared\/cover-math\.js/.test(ottomanHtml) && /CoverMath\.(ottomanCover|CONST)/.test(ottomanHtml), true);
+check('standalone chaise HTML loads + uses CoverMath',
+  /shared\/cover-math\.js/.test(chaiseHtml) && /CoverMath\.(chaiseCover|CONST)/.test(chaiseHtml), true);
 check('website uses CoverMath.tableCover',
   /cover-math\.js/.test(react) && /CoverMath\.tableCover/.test(react), true);
 check('website uses CoverMath.chairCover',
@@ -84,6 +93,8 @@ check('website uses CoverMath.sofaCover',
   /CoverMath\.sofaCover/.test(react), true);
 check('website uses CoverMath.ottomanCover',
   /CoverMath\.ottomanCover/.test(react), true);
+check('website uses CoverMath.chaiseCover',
+  /CoverMath\.chaiseCover/.test(react), true);
 
 if (failures) {
   console.log(`\n${failures} check(s) FAILED.`);

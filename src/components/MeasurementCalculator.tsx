@@ -307,37 +307,16 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
     const { width, length, height, backrestDepth, armrestHeight } = measurements;
 
     // Chaise lounge — clean rectangle + chamfered corners, mirrors chaise_lounge_cover_calculator_MFG.html
-    if (productType === 'chaise-lounge') {
+    // Chaise lounges — delegated to the shared single-source module. Cushion-aware
+    // draped rectangle; single panel or main panel + split side extensions.
+    if (productType === 'chaise-lounge' || productType === 'chaise-lounges') {
       if (!width || !length || !height) return 0;
-      const BOLT_WIDTH = CoverMath.CONST.BOLT_WIDTH;   // shared 55.25" bolt (single source)
-      const CT = measurements.cushionThickness || 0;
-      const FC_CUSHION = 4;    // floor clearance when cushion is on
-      const FC_NO_CUSHION = 3; // floor clearance when no cushion
-      const centerSeam = 1;    // seam allowance for split-and-sew joins
-
-      // Cushion-aware side drop: size cover for frame+cushion with 4" clearance,
-      // or frame-only with 3" clearance when no cushion.
-      const effectiveHeight = CT > 0 ? height + CT : height;
-      const effectiveFC = CT > 0 ? FC_CUSHION : FC_NO_CUSHION;
-      const sideDrop = Math.max(0, effectiveHeight - effectiveFC);
-
-      const ML = length + 2 * sideDrop;  // along bolt (head-to-foot)
-      const MD = width + 2 * sideDrop;   // across bolt
-
-      let totalBoltLength: number;
-      if (MD <= BOLT_WIDTH) {
-        // Width fits in bolt — single panel, no extensions needed
-        totalBoltLength = ML;
-      } else {
-        // Width exceeds bolt — split-and-sew side extensions.
-        // Each extension = 2 half-strips cut ACROSS the bolt width, sewn at center.
-        // extCutW = raw overshoot per side + center seam allowance.
-        // 4 half-strips total, all from the same bolt right after the main panel.
-        const extCutW = (MD - BOLT_WIDTH) / 2 + centerSeam;
-        const extBoltPull = 4 * extCutW;
-        totalBoltLength = ML + extBoltPull;
-      }
-      return Math.ceil(totalBoltLength / 36);
+      return CoverMath.chaiseCover({
+        length,
+        width,
+        height,
+        cushionThickness: measurements.cushionThickness || 0,
+      }).yards;
     }
 
     // Chairs/recliners — delegated to the shared single-source module

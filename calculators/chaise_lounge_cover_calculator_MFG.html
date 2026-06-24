@@ -182,6 +182,9 @@
 
   </div>
 
+<!-- Shared yardage math (single source of truth, also used by the website). -->
+<script src="shared/cover-math.js"></script>
+<script src="shared/fit-diagrams.js"></script>
 <script>
 function parseNum(id){
   const el = document.getElementById(id);
@@ -2224,8 +2227,11 @@ function compute(){
       chaise_layoutNote = `Cover width (${fmtExact(chaise_MD)}") exceeds bolt (${B}") by ${fmtExact(chaise_MD - B)}". Extensions: 4 half-strips @ ${fmtExact(chaise_extCutW)}" wide, cut across bolt, sewn at center. Bolt pull: ${fmtExact(chaise_ML)}" panel + ${fmtExact(chaise_extBoltPull)}" strips = ${fmtExact(chaise_totalBoltLen)}" total.`;
     }
 
-    // Override totalLength used by Material to Buy
-    totalLength = chaise_totalBoltLen;
+    // Override totalLength used by Material to Buy.
+    // Single source of truth: the bolt length / yards come from the shared module
+    // (cover-math.js) — the same chaiseCover() the website uses — so they can't
+    // drift. (chaise_totalBoltLen above mirrors this value.)
+    totalLength = CoverMath.chaiseCover({ length: D, width: W, height: H, cushionThickness: CT, bolt: B }).totalLength;
     nestingNote = chaise_layoutNote;
     // Legacy aliases the rest of the file may reference
     const couch_panelLen   = chaise_ML;
