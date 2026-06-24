@@ -309,7 +309,7 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
     // Chaise lounge — clean rectangle + chamfered corners, mirrors chaise_lounge_cover_calculator_MFG.html
     if (productType === 'chaise-lounge') {
       if (!width || !length || !height) return 0;
-      const BOLT_WIDTH = 56;   // chaise uses 56" bolt (full bolt width)
+      const BOLT_WIDTH = CoverMath.CONST.BOLT_WIDTH;   // shared 55.25" bolt (single source)
       const CT = measurements.cushionThickness || 0;
       const FC_CUSHION = 4;    // floor clearance when cushion is on
       const FC_NO_CUSHION = 3; // floor clearance when no cushion
@@ -365,7 +365,7 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
       if (!width || !length || !height || !backrestDepth || !armrestHeight) return 0;
 
       // Constants — match MFG calc defaults
-      const B = 54;        // bolt width
+      const B = CoverMath.CONST.BOLT_WIDTH;        // shared 55.25" bolt (single source)
       const FC = 3;        // floor clearance + wave allowance
       const hem = 1;       // hem allowance
       const seam = 1.5;    // center snap-seam overlap
@@ -502,7 +502,7 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
     if (productType === 'ottomans') {
       if (!width || !length || !height) return 0;
 
-      const BOLT_WIDTH = 54;
+      const BOLT_WIDTH = CoverMath.CONST.BOLT_WIDTH;   // shared 55.25" bolt (single source)
       const FC = 3; // floor clearance (matches MFG calc default)
 
       const drop = Math.max(0, height - FC);
