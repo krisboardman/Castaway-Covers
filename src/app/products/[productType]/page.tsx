@@ -728,9 +728,8 @@ const getGalleryImages = (productType: string, selectedColor?: string) => {
       { src: '/images/Chairs-Recliners/chair8.6.jpg', alt: 'Same wicker chair protected with Castaway Cover', badge: 'After' }
     ],
     'sofas-loveseats': [
-      { src: '/images/Sofas-Loveseats/sofa1.jpg', alt: 'Sofa with Castaway Cover' },
-      { src: '/images/Sofas-Loveseats/sofa4.jpg', alt: 'Sofa Cover - Bungee & Handle Detail' },
-      { src: '/images/Sofas-Loveseats/sofa5-v2.jpg', alt: 'Sofa Cover - Additional View' },
+      { src: '/images/Sofas-Loveseats/sofa4.jpg', alt: 'Wicker sofa before a Castaway Cover', badge: 'Before' },
+      { src: '/images/Sofas-Loveseats/sofa1.jpg', alt: 'Same wicker sofa protected with a Castaway Cover', badge: 'After' },
       { src: '/images/Sofas-Loveseats/sofa6.jpg', alt: 'Loveseat Cover in Blue - Outdoor View' },
       { src: '/images/Sofas-Loveseats/sofa7.jpg', alt: 'Sofa Cover - Built-In Bungee Storage' }
     ],
