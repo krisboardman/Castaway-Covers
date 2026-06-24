@@ -384,6 +384,7 @@ export default function ProductPage() {
         <MainProductImage
           productType={productType}
           selectedIndex={selectedImageIndex}
+          onImageSelect={setSelectedImageIndex}
           selectedColor={selectedColor}
         />
         <ProductGallery
@@ -772,14 +773,34 @@ const getGalleryImages = (productType: string, selectedColor?: string) => {
 };
 
 // Main Product Image Component
-const MainProductImage = ({ productType, selectedIndex, selectedColor }: { productType: string; selectedIndex: number; selectedColor?: string }) => {
+const MainProductImage = ({ productType, selectedIndex, onImageSelect, selectedColor }: { productType: string; selectedIndex: number; onImageSelect?: (index: number) => void; selectedColor?: string }) => {
   const images = getGalleryImages(productType, selectedColor);
+  const total = images.length;
   const selectedImage = images[selectedIndex] || images[0];
 
   const badge = (selectedImage as { badge?: string }).badge;
 
+  const goTo = (index: number) => {
+    if (!onImageSelect || total === 0) return;
+    onImageSelect((index + total) % total);
+  };
+
+  // Mobile swipe support
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
+  const handleTouchStart = (e: React.TouchEvent) => setTouchStartX(e.touches[0].clientX);
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX === null) return;
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    if (Math.abs(dx) > 40) goTo(selectedIndex + (dx < 0 ? 1 : -1));
+    setTouchStartX(null);
+  };
+
   return (
-    <div className="relative h-[300px] md:h-[400px] lg:h-[500px] bg-gray-100 rounded-lg overflow-hidden">
+    <div
+      className="relative h-[300px] md:h-[400px] lg:h-[500px] bg-gray-100 rounded-lg overflow-hidden select-none"
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+    >
       {badge && (
         <span
           className={`absolute top-3 left-3 z-10 px-3 py-1 rounded-full text-xs md:text-sm font-semibold shadow-md ${
@@ -797,6 +818,34 @@ const MainProductImage = ({ productType, selectedIndex, selectedColor }: { produ
         sizes="(max-width: 768px) 100vw, 80vw"
         priority
       />
+
+      {total > 1 && onImageSelect && (
+        <>
+          <button
+            type="button"
+            aria-label="Previous image"
+            onClick={() => goTo(selectedIndex - 1)}
+            className="absolute left-2 top-1/2 -translate-y-1/2 z-10 w-10 h-10 flex items-center justify-center rounded-full bg-white/80 hover:bg-white text-gray-800 shadow-md backdrop-blur-sm transition-colors"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          <button
+            type="button"
+            aria-label="Next image"
+            onClick={() => goTo(selectedIndex + 1)}
+            className="absolute right-2 top-1/2 -translate-y-1/2 z-10 w-10 h-10 flex items-center justify-center rounded-full bg-white/80 hover:bg-white text-gray-800 shadow-md backdrop-blur-sm transition-colors"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+          <span className="absolute bottom-3 right-3 z-10 px-2.5 py-1 rounded-full bg-gray-900/70 text-white text-xs font-medium">
+            {selectedIndex + 1} / {total}
+          </span>
+        </>
+      )}
     </div>
   );
 };
