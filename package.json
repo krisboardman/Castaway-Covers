@@ -8,6 +8,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "check-orphans": "node check-orphans.js",
     "dev:next": "next dev",
     "build:next": "next build",
     "shopify:list": "node shopify-helpers.js list",

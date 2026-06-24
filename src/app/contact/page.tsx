@@ -163,6 +163,12 @@ export default function ContactPage() {
                   <h3 className="font-semibold text-gray-900 mb-1">Email</h3>
                   <p className="text-gray-700">support@castawaycovers.com</p>
                 </div>
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-1">Text or Call</h3>
+                  <p className="text-gray-700">
+                    <a href="tel:+17326390162" className="hover:text-brand-teal transition-colors">732-639-0162</a>
+                  </p>
+                </div>
               </div>
 
               <div className="mt-6 p-4 bg-blue-50 rounded-md">

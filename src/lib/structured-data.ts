@@ -31,6 +31,7 @@ export function getOrganizationSchema() {
     "contactPoint": {
       "@type": "ContactPoint",
       "email": "support@castawaycovers.com",
+      "telephone": "+1-732-639-0162",
       "contactType": "customer service"
     },
     "priceRange": "$$",

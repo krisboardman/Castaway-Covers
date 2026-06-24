@@ -78,6 +78,10 @@ export default function Footer() {
             <p className="text-gray-300">
               <span className="font-medium text-white">Email:</span> support@castawaycovers.com
             </p>
+            <p className="text-gray-300 mt-2">
+              <span className="font-medium text-white">Text or call:</span>{' '}
+              <a href="tel:+17326390162" className="hover:text-white transition-colors">732-639-0162</a>
+            </p>
 
             <h3 className="text-lg font-semibold mt-6 mb-3 text-white">Follow Us</h3>
             <SocialLinks linkClassName="text-gray-300 hover:text-white" />

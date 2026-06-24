@@ -17,8 +17,8 @@ export default function MeasurementCTA({ className = '' }: { className?: string 
                 : 'Measure & Quote'}
             </h2>
             <p className="text-white/90 text-sm sm:text-base">
-              Skip the guesswork — we measure your furniture and quote your covers
-              for you. In-home in Monmouth County, NJ, or by guided video call
+              Skip the guesswork — we measure your furniture and quote your
+              custom covers for you. In-home in Monmouth County, NJ, or by guided video call
               anywhere.
               {MEASUREMENT_PROMO_ACTIVE && (
                 <>
