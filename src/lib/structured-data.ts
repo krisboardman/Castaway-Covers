@@ -84,7 +84,7 @@ const productData: { [key: string]: { name: string; description: string; image: 
   'chairs-recliners': {
     name: 'Custom Chair & Recliner Covers',
     description: 'Premium custom-fit covers for outdoor chairs and recliners. Marine-grade vinyl, waterproof, UV-resistant with reinforced grommets and bungee cord system.',
-    image: 'https://castawaycovers.com/images/Chairs-Recliners/chair4.jpg',
+    image: 'https://castawaycovers.com/images/Chairs-Recliners/chair8.jpg',
     category: 'Outdoor Furniture Covers',
     price: '90',
   },

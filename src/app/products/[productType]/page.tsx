@@ -718,11 +718,13 @@ const getGalleryImages = (productType: string, selectedColor?: string) => {
   const galleryImages = {
     'chairs-recliners': [
       { src: '/images/Chairs-Recliners/chair1.jpg', alt: 'Chair Cover - Front View' },
-      { src: '/images/Chairs-Recliners/chair2-v2.jpg', alt: 'Chair Cover - Back View' },
       { src: '/images/Chairs-Recliners/chair3.jpg', alt: 'Chair Cover - Side View' },
-      { src: '/images/Chairs-Recliners/chair4.jpg', alt: 'Patio Chair with Snap Cover' },
       { src: '/images/Chairs-Recliners/chair7.jpg', alt: 'Chair Cover - Outdoor View' },
-      { src: '/images/Chairs-Recliners/chair8.jpg', alt: 'Chair Cover - Built-In Bungee Storage' }
+      { src: '/images/Chairs-Recliners/liz-before.jpg', alt: 'Patio chairs before Castaway Covers', badge: 'Before' },
+      { src: '/images/Chairs-Recliners/liz-after.jpg', alt: 'Same patio chairs protected with Castaway Covers', badge: 'After' },
+      { src: '/images/Chairs-Recliners/chair8.jpg', alt: 'Chair Cover - Built-In Bungee Storage' },
+      { src: '/images/Chairs-Recliners/kb-before.jpg', alt: 'Wicker chair before Castaway Cover', badge: 'Before' },
+      { src: '/images/Chairs-Recliners/kb-after.jpg', alt: 'Same wicker chair protected with Castaway Cover', badge: 'After' }
     ],
     'sofas-loveseats': [
       { src: '/images/Sofas-Loveseats/sofa1.jpg', alt: 'Sofa with Castaway Cover' },
@@ -774,8 +776,19 @@ const MainProductImage = ({ productType, selectedIndex, selectedColor }: { produ
   const images = getGalleryImages(productType, selectedColor);
   const selectedImage = images[selectedIndex] || images[0];
 
+  const badge = (selectedImage as { badge?: string }).badge;
+
   return (
     <div className="relative h-[300px] md:h-[400px] lg:h-[500px] bg-gray-100 rounded-lg overflow-hidden">
+      {badge && (
+        <span
+          className={`absolute top-3 left-3 z-10 px-3 py-1 rounded-full text-xs md:text-sm font-semibold shadow-md ${
+            badge === 'After' ? 'bg-brand-teal text-white' : 'bg-gray-900/75 text-white'
+          }`}
+        >
+          {badge}
+        </span>
+      )}
       <Image
         src={selectedImage.src}
         alt={selectedImage.alt}
@@ -823,6 +836,17 @@ const ProductGallery = ({
                 fill
                 className="object-cover"
               />
+              {(image as { badge?: string }).badge && (
+                <span
+                  className={`absolute bottom-1 left-1 z-10 px-1.5 py-0.5 rounded text-[10px] font-semibold ${
+                    (image as { badge?: string }).badge === 'After'
+                      ? 'bg-brand-teal text-white'
+                      : 'bg-gray-900/75 text-white'
+                  }`}
+                >
+                  {(image as { badge?: string }).badge}
+                </span>
+              )}
             </button>
           ))}
         </div>
