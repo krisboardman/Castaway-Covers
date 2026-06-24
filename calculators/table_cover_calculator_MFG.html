@@ -68,7 +68,7 @@
           <label class="lbl">Length L — long side<input id="L" type="number" step="1" value="96"></label>
           <label class="lbl">Width W — short side<input id="W" type="number" step="1" value="54"></label>
           <label class="lbl">Height H — top of cover to floor<input id="H" type="number" step="0.5" value="36"></label>
-          <label class="lbl">F2BS — floor to bottom of seat (only used for the "Over the seats" drape)<input id="F2BS" type="number" step="0.5" value="17"></label>
+          <label class="lbl" id="f2bsField">F2BS — floor to bottom of seat (only used for the "Over the seats" drape)<input id="F2BS" type="number" step="0.5" value="17"></label>
         </div>
         <div class="note" style="margin-top:8px;">
           The math is identical for all three — only the measuring guidance and drape choice differ. Height (H) drives the drape depth; F2BS is only needed for the "Over the seats" drape.
@@ -78,7 +78,7 @@
         <div class="title" style="margin-top:16px;">Drape Depth</div>
         <div class="drape-mode-row">
           <label><input type="radio" name="drapeMode" id="drapeTabletop" value="tabletop" checked> Tabletop only (10" drop)</label>
-          <label><input type="radio" name="drapeMode" id="drapeSeats" value="seats"> Over the seats (5" below the seats)</label>
+          <label id="drapeSeatsLabel"><input type="radio" name="drapeMode" id="drapeSeats" value="seats"> Over the seats (5" below the seats)</label>
           <label><input type="radio" name="drapeMode" id="drapeFull" value="full"> Full coverage (&approx;3" off the floor)</label>
         </div>
         <div id="drapeDetailTabletop" class="drape-detail">
@@ -194,8 +194,23 @@ function updateTypeNote() {
   };
   const el = document.getElementById('typeNote');
   if (el) el.textContent = notes[t];
+
+  // Only a table set has chair seats — hide the "Over the seats" drape option
+  // and the seat (F2BS) field for a plain table or a grill island.
+  const isSet = (t === 'set');
+  const seatsLabel = document.getElementById('drapeSeatsLabel');
+  const f2bsField  = document.getElementById('f2bsField');
+  if (seatsLabel) seatsLabel.classList.toggle('hidden', !isSet);
+  if (f2bsField)  f2bsField.classList.toggle('hidden', !isSet);
+  // If "Over the seats" was selected but no longer applies, fall back to Tabletop.
+  const seatsRadio = document.getElementById('drapeSeats');
+  if (!isSet && seatsRadio && seatsRadio.checked) {
+    const tabletop = document.getElementById('drapeTabletop');
+    if (tabletop) tabletop.checked = true;
+  }
+  updateDrapeVisibility();
 }
-document.querySelectorAll('input[name="coverType"]').forEach(r => r.addEventListener('change', updateTypeNote));
+document.querySelectorAll('input[name="coverType"]').forEach(r => r.addEventListener('change', () => { updateTypeNote(); compute(); }));
 updateTypeNote();
 
 // ── Main compute ─────────────────────────────────────────────────────────────
