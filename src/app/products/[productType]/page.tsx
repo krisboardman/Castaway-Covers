@@ -748,12 +748,12 @@ const getGalleryImages = (productType: string, selectedColor?: string) => {
     ],
     'tables': [
       // Lakefront tan table set
-      { src: '/images/Tables/tableset-lakefront.jpg', alt: 'Table Set Cover - Lakefront View' },
-      { src: '/images/Tablesets/tableset5.jpg', alt: 'Table Set - Additional View' },
-      { src: '/images/Tablesets/tableset6.jpg', alt: 'Table Set Cover - Winter Snow Protection' },
-      { src: '/images/Tables/table3.jpg', alt: 'Table Set Cover - Handle Detail' },
+      { src: '/images/Tables/tableset-lakefront.jpg', alt: 'Table set protected with Castaway Cover - Lakefront View', badge: 'After' },
+      { src: '/images/Tablesets/tableset5.jpg', alt: 'Teak table set before a Castaway Cover', badge: 'Before' },
+      { src: '/images/Tablesets/tableset6.jpg', alt: 'Table set protected with Castaway Cover - Winter Snow Protection', badge: 'After' },
       // Bayfront grill island
-      { src: '/images/Tables/grill-island.jpg', alt: 'Grill Island Cover - Waterfront Deck' },
+      { src: '/images/Tables/grill-before.jpg', alt: 'Stone grill island before a Castaway Cover', badge: 'Before' },
+      { src: '/images/Tables/grill-island.jpg', alt: 'Same grill island protected with Castaway Cover - Waterfront Deck', badge: 'After' },
       { src: '/images/Tables/river-view.jpg', alt: 'Table Set Cover - River View' },
       // Individual tables
       { src: '/images/Tables/table1.jpg', alt: 'Wine Table with Castaway Cover' },
