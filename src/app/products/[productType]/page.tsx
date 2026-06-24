@@ -754,7 +754,7 @@ const getGalleryImages = (productType: string, selectedColor?: string) => {
       // Bayfront grill island
       { src: '/images/Tables/grill-before.jpg', alt: 'Stone grill island before a Castaway Cover', badge: 'Before' },
       { src: '/images/Tables/grill-island.jpg', alt: 'Same grill island protected with Castaway Cover - Waterfront Deck', badge: 'After' },
-      { src: '/images/Tables/river-view.jpg', alt: 'Table Set Cover - River View' },
+      { src: '/images/Tables/river-view.jpg', alt: 'Table Set Cover - River View', badge: 'After' },
       // Individual tables
       { src: '/images/Tables/table1.jpg', alt: 'Wine Table with Castaway Cover' },
       { src: '/images/Tables/table4.jpg', alt: 'Table Cover - Scalloped Edge on Patio' }
