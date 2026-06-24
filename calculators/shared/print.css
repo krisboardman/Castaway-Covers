@@ -32,6 +32,11 @@
     width: 100% !important;
     height: auto !important;
     max-width: 100% !important;
+    /* Cap height to fit ONE portrait page (with room for the page header, card
+       title, and legend) for ANY input. Combined with preserveAspectRatio, the
+       diagram always fits one page regardless of the measurements entered —
+       very tall covers get small side margins rather than splitting. */
+    max-height: 8.4in !important;
     min-height: 0 !important;
     display: block;
     page-break-inside: avoid;

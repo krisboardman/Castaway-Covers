@@ -356,140 +356,19 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
       }).yards;
     }
 
-    // Calculation for sofas/loveseats — matches couch_cover_calculator_snap_back_MFG.html.
-    // Two main panels run front-to-back (each panelLen × bolt width). They join at a
-    // center snap-seam (loses 2*seam of usable width). If the assembled width
-    // (WB + 2*sideDrop) exceeds the joined usable width (2B - 2*seam), side
-    // extensions are added — 1 extra bolt if both fit across one bolt, else 2.
+    // Sofas/loveseats — delegated to the shared single-source module
+    // (calculators/shared/cover-math.js), ported from the v4 standalone couch
+    // calculator (two panels + center seam + side-extension scrap-nesting).
     if (productType === 'sofas-loveseats') {
       if (!width || !length || !height || !backrestDepth || !armrestHeight) return 0;
-
-      // Constants — match MFG calc defaults
-      const B = CoverMath.CONST.BOLT_WIDTH;        // shared 55.25" bolt (single source)
-      const FC = 3;        // floor clearance + wave allowance
-      const hem = 1;       // hem allowance
-      const seam = 1.5;    // center snap-seam overlap
-
-      const W = width;
-      const D = length;
-      const H = height;
-      const BR = backrestDepth;
-      const F2A = armrestHeight;
-      const WB = (measurements.backWidth && measurements.backWidth > 0) ? measurements.backWidth : W;
-
-      const AT2F = Math.sqrt(Math.max(0, H - F2A) ** 2 + Math.max(0, D - BR) ** 2);
-      const sideDrop = H - FC;
-      const frontExtDrop = F2A - FC;
-
-      // Panel-length build (mirrors MFG's chair-style flat layout for couches)
-      const backInset = hem + BR;                              // plateau zone
-      const frontInset = frontExtDrop;                         // front-drop straight zone
-      const totalFB = hem + BR + AT2F + frontExtDrop;          // physical front-to-back fabric path
-      const frontFlapShortage = Math.max(0, totalFB - B);
-      const frontFlapWidth = frontFlapShortage > 0 ? frontFlapShortage + hem : 0;
-      const taperLen = Math.max(0, B - backInset - frontInset);
-      const frontStraight = frontInset + frontFlapWidth;
-      const panelLen = sideDrop + backInset + taperLen + frontStraight;
-
-      // Assembled width across the back of the couch
-      const assembledW = WB + 2 * sideDrop;
-      const joinedUsableW = 2 * B - 2 * seam;
-      const extNeeded = assembledW > joinedUsableW;
-
-      let extraBolts = 0;
-      if (extNeeded) {
-        const extDeficit = assembledW - joinedUsableW;
-        const extEachUsable = extDeficit / 2;
-        const extSeamAllow = 1; // side-extension seam allowance
-        const extEachCut = extEachUsable + extSeamAllow;
-
-        // ── SCRAP-NESTING CHECK ─────────────────────────────────────
-        // If each side-extension piece (extEachCut wide × extActualLen
-        // long) fits in the leftover scrap of one main bolt, no extra
-        // bolt is needed — the extensions can be cut from material
-        // that would otherwise be thrown away.
-        // Mirrors the logic in couch_cover_calculator_snap_back_MFG.html.
-
-        // Compute extension actual length: the y-span where the
-        // assembled silhouette's half-width exceeds (B − extSeamAllow).
-        const halfBack  = WB / 2 + hem;
-        const halfMid   = assembledW / 2;
-        const halfFront = (W + 2 * frontExtDrop) / 2;
-        const yPointB   = sideDrop + backInset + taperLen;
-        const sideOff   = B - extSeamAllow;
-        const edge = [
-          [0,                                 halfBack],
-          [sideDrop,                          halfMid],
-          [sideDrop + backInset,              halfMid],
-          [yPointB,                           halfFront],
-          [panelLen,                          halfFront],
-        ];
-        let entryY: number | null = null;
-        let exitY: number | null = null;
-        for (let i = 0; i < edge.length - 1; i++) {
-          const [y1, h1] = edge[i];
-          const [y2, h2] = edge[i + 1];
-          const in1 = h1 >= sideOff;
-          const in2 = h2 >= sideOff;
-          if (entryY === null) {
-            if (in1) entryY = y1;
-            else if (in2) {
-              const t = (sideOff - h1) / (h2 - h1);
-              entryY = y1 + t * (y2 - y1);
-            }
-          }
-          if (entryY !== null) {
-            if (in2) exitY = y2;
-            else if (in1) {
-              const t = (sideOff - h1) / (h2 - h1);
-              exitY = y1 + t * (y2 - y1);
-              break;
-            }
-          }
-        }
-        const extActualLen = (entryY !== null && exitY !== null && exitY > entryY)
-          ? exitY - entryY
-          : panelLen;
-
-        // Scrap regions in each main bolt:
-        // 1. Front-skirt strip — clean rectangle, (panelLen − yPointB) ×
-        //    (B − halfFront)
-        // 2. Back-floor triangle — bounded by (0, halfBack), (0, B),
-        //    (x_back_cross, B). Inscribed-rectangle constraint:
-        //    w/x_back_cross + h/(B − halfBack) ≤ 1
-        const x_back_cross = (halfBack < B && halfMid > halfBack)
-          ? Math.min(sideDrop, sideDrop * (B - halfBack) / (halfMid - halfBack))
-          : 0;
-        const backScrapH = Math.max(0, B - halfBack);
-        const frontStripH = Math.max(0, B - halfFront);
-        const frontStripW = Math.max(0, panelLen - yPointB);
-
-        let extensionsFitInScrap = false;
-        const candidates = [
-          { w: extActualLen, h: extEachCut },
-          { w: extEachCut,   h: extActualLen },
-        ];
-        for (const c of candidates) {
-          if (c.w <= frontStripW && c.h <= frontStripH) {
-            extensionsFitInScrap = true;
-            break;
-          }
-          if (c.w > 0 && c.h > 0 && x_back_cross > 0 && backScrapH > 0
-              && (c.w / x_back_cross) + (c.h / backScrapH) <= 1.0) {
-            extensionsFitInScrap = true;
-            break;
-          }
-        }
-
-        // Only count an extra bolt if extensions DON'T fit in scrap.
-        if (!extensionsFitInScrap) {
-          extraBolts = (2 * extEachCut <= B) ? 1 : 2;
-        }
-      }
-
-      const totalBolts = 2 + extraBolts;
-      const totalInches = totalBolts * panelLen;
-      return Math.ceil(totalInches / 36);
+      return CoverMath.sofaCover({
+        width,
+        depth: length,            // our internal "length" is the front-to-back depth
+        height,
+        armrestHeight,
+        backrestDepth,
+        backWidth: (measurements.backWidth && measurements.backWidth > 0) ? measurements.backWidth : width,
+      }).yards;
     }
     
     // Calculation for ottomans — matches ottoman_cover_calculator_MFG.html.

@@ -42,6 +42,12 @@ check('dining 20x22x36 arm18 br3 wb18',    CoverMath.chairCover({ width: 20, dep
 check('lounge 34x38x34 arm20 br6 wb30',    CoverMath.chairCover({ width: 34, depth: 38, height: 34, armrestHeight: 20, backrestDepth: 6, backWidth: 30 }).yards, 6);
 check('wide 40x30x42 arm26 br5 wb36',      CoverMath.chairCover({ width: 40, depth: 30, height: 42, armrestHeight: 26, backrestDepth: 5, backWidth: 36 }).yards, 7);
 
+console.log('\nSofa / loveseat — golden yardage cases (v4: 2 panels + extension scrap-nesting):');
+check('loveseat 54x38x34 arm20 br4 wb50', CoverMath.sofaCover({ width: 54, depth: 38, height: 34, armrestHeight: 20, backrestDepth: 4, backWidth: 50 }).yards, 5);
+check('sofa 84x40x36 arm22 br5 wb80',      CoverMath.sofaCover({ width: 84, depth: 40, height: 36, armrestHeight: 22, backrestDepth: 5, backWidth: 80 }).yards, 8);
+check('big sofa 96x42x38 arm24 br6 wb92',  CoverMath.sofaCover({ width: 96, depth: 42, height: 38, armrestHeight: 24, backrestDepth: 6, backWidth: 92 }).yards, 9);
+check('sectional 120x44x36 arm22 br5 wb112',CoverMath.sofaCover({ width: 120, depth: 44, height: 36, armrestHeight: 22, backrestDepth: 5, backWidth: 112 }).yards, 11);
+
 console.log('\nCanonical constants:');
 check('bolt width', CoverMath.CONST.BOLT_WIDTH, 55.25);
 check('chair hem', CoverMath.CONST.CHAIR_HEM, 0);
@@ -53,15 +59,20 @@ check('floor clearance', CoverMath.CONST.FLOOR_CLEARANCE, 3);
 console.log('\nWiring — callers must use the shared module:');
 const html  = fs.readFileSync(path.join(__dirname, 'calculators', 'table_cover_calculator_MFG.html'), 'utf8');
 const chairHtml = fs.readFileSync(path.join(__dirname, 'calculators', 'chair_cover_calculator_snap_back_MFG_v2.html'), 'utf8');
+const couchHtml = fs.readFileSync(path.join(__dirname, 'calculators', 'couch_cover_calculator_snap_back_MFG_v4.html'), 'utf8');
 const react = fs.readFileSync(path.join(__dirname, 'src', 'components', 'MeasurementCalculator.tsx'), 'utf8');
 check('standalone table HTML loads + uses CoverMath',
   /shared\/cover-math\.js/.test(html) && /CoverMath\.(drapeFor|CONST|tableCover)/.test(html), true);
 check('standalone chair HTML loads + uses CoverMath',
   /shared\/cover-math\.js/.test(chairHtml) && /CoverMath\.(chairCover|CONST)/.test(chairHtml), true);
+check('standalone couch HTML loads + uses CoverMath',
+  /shared\/cover-math\.js/.test(couchHtml) && /CoverMath\.(sofaCover|CONST)/.test(couchHtml), true);
 check('website uses CoverMath.tableCover',
   /cover-math\.js/.test(react) && /CoverMath\.tableCover/.test(react), true);
 check('website uses CoverMath.chairCover',
   /CoverMath\.chairCover/.test(react), true);
+check('website uses CoverMath.sofaCover',
+  /CoverMath\.sofaCover/.test(react), true);
 
 if (failures) {
   console.log(`\n${failures} check(s) FAILED.`);

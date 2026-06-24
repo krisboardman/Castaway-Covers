@@ -256,5 +256,106 @@
     };
   }
 
-  return { CONST: CONST, ceilYards: ceilYards, drapeFor: drapeFor, tableCover: tableCover, chairCover: chairCover };
+  /**
+   * Sofa / loveseat snap-back cover yardage.
+   * Faithful port of couch_cover_calculator_snap_back_MFG_v4.html — two main
+   * panels run front-to-back and join at a center snap-seam; if the assembled
+   * width exceeds the joined usable width, side extensions are added, but only
+   * count as extra bolts when they don't fit in the main panels' scrap.
+   *
+   * @param {Object} p  width(W), depth(D), height(H), armrestHeight(F2A),
+   *                    backrestDepth(BR), backWidth(WB, defaults to width),
+   *                    plus optional bolt / fc / hem / seam overrides.
+   * @returns {Object} { yards, totalLength, panelLen, totalBolts, extNeeded,
+   *                      extBoltsNeeded, extensionsFitInScrap }
+   */
+  function sofaCover(p) {
+    p = p || {};
+    var W   = Math.max(0, Number(p.width)  || 0);
+    var D   = Math.max(0, Number(p.depth)  || 0);
+    var H   = Math.max(0, Number(p.height) || 0);
+    var F2A = Math.max(0, Number(p.armrestHeight) || 0);
+    var BR  = Math.max(0, Number(p.backrestDepth) || 0);
+    var WB  = (p.backWidth != null && Number(p.backWidth) > 0) ? Number(p.backWidth) : W;
+    var B   = (p.bolt != null) ? Number(p.bolt) : CONST.BOLT_WIDTH;
+    var FC  = (p.fc != null)   ? Number(p.fc)   : CONST.FLOOR_CLEARANCE;
+    var hem = (p.hem != null)  ? Number(p.hem)  : CONST.CHAIR_HEM; // v4 default 0
+    var seam = (p.seam != null) ? Number(p.seam) : CONST.SEAM_OVERLAP;
+
+    var AT2F = Math.sqrt(Math.max(0, H - F2A) * Math.max(0, H - F2A) + Math.max(0, D - BR) * Math.max(0, D - BR));
+    var sideDrop = H - FC;
+    var frontExtDrop = F2A - FC;
+
+    var backInset = hem + BR;
+    var frontInset = frontExtDrop;
+    var totalFB = hem + BR + AT2F + frontExtDrop;
+    var frontFlapShortage = Math.max(0, totalFB - B);
+    var frontFlapWidth = frontFlapShortage > 0 ? frontFlapShortage + hem : 0;
+    var taperLen = Math.max(0, B - backInset - frontInset);
+    var frontStraight = frontInset + frontFlapWidth;
+    var panelLen = sideDrop + backInset + taperLen + frontStraight;
+
+    var assembledW = WB + 2 * sideDrop;
+    var joinedUsableW = 2 * B - seam;           // v4: deduct the center seam once
+    var extNeeded = assembledW > joinedUsableW;
+    var extDeficit = Math.max(0, assembledW - joinedUsableW);
+    var extSeam = 1;
+    var extEachCut = extDeficit / 2 + extSeam;
+
+    // Extension actual length = the y-span where the assembled silhouette's
+    // half-width exceeds (B − extSeam).
+    var extActualLen = panelLen;
+    if (extNeeded) {
+      var sideOff = B - extSeam;
+      var halfBack = WB / 2 + hem, halfMid = assembledW / 2, halfFront = (W + 2 * frontExtDrop) / 2;
+      var edge = [
+        [0, halfBack],
+        [sideDrop, halfMid],
+        [sideDrop + backInset, halfMid],
+        [sideDrop + backInset + taperLen, halfFront],
+        [panelLen, halfFront],
+      ];
+      var entryY = null, exitY = null;
+      for (var i = 0; i < edge.length - 1; i++) {
+        var y1 = edge[i][0], h1 = edge[i][1], y2 = edge[i + 1][0], h2 = edge[i + 1][1];
+        var in1 = h1 >= sideOff, in2 = h2 >= sideOff, t;
+        if (entryY === null) {
+          if (in1) entryY = y1;
+          else if (in2) { t = (sideOff - h1) / (h2 - h1); entryY = y1 + t * (y2 - y1); }
+        }
+        if (entryY !== null) {
+          if (in2) exitY = y2;
+          else if (in1) { t = (sideOff - h1) / (h2 - h1); exitY = y1 + t * (y2 - y1); break; }
+        }
+      }
+      if (entryY !== null && exitY !== null && exitY > entryY) extActualLen = exitY - entryY;
+    }
+
+    // Do the side extensions fit in the main panels' scrap (front strip or back triangle)?
+    var extensionsFitInScrap = false;
+    if (extNeeded) {
+      var hb = WB / 2 + hem, hm = assembledW / 2, hf = (W + 2 * frontExtDrop) / 2;
+      var yPB = sideDrop + backInset + taperLen;
+      var xCross = (hb < B && hm > hb) ? Math.min(sideDrop, sideDrop * (B - hb) / (hm - hb)) : 0;
+      var bSH = Math.max(0, B - hb), fSH = Math.max(0, B - hf), fSW = Math.max(0, panelLen - yPB);
+      var cands = [{ w: extActualLen, h: extEachCut }, { w: extEachCut, h: extActualLen }];
+      for (var k = 0; k < cands.length; k++) {
+        var c = cands[k];
+        if (c.w <= fSW && c.h <= fSH) { extensionsFitInScrap = true; break; }
+        if (c.w > 0 && c.h > 0 && xCross > 0 && bSH > 0 && (c.w / xCross) + (c.h / bSH) <= 1) { extensionsFitInScrap = true; break; }
+      }
+    }
+
+    var extBoltsNeeded = (extNeeded && !extensionsFitInScrap) ? (2 * extEachCut <= B ? 1 : 2) : 0;
+    var totalBolts = 2 + extBoltsNeeded;
+    var totalInches = totalBolts * panelLen;
+
+    return {
+      yards: ceilYards(totalInches),
+      totalLength: totalInches, panelLen: panelLen, totalBolts: totalBolts,
+      extNeeded: extNeeded, extBoltsNeeded: extBoltsNeeded, extensionsFitInScrap: extensionsFitInScrap,
+    };
+  }
+
+  return { CONST: CONST, ceilYards: ceilYards, drapeFor: drapeFor, tableCover: tableCover, chairCover: chairCover, sofaCover: sofaCover };
 }));

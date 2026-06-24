@@ -210,6 +210,8 @@
 
 </div><!-- .wrap -->
 
+<!-- Shared yardage math (single source of truth, also used by the website). -->
+<script src="shared/cover-math.js"></script>
 <script>
 function parseNum(id){const el=document.getElementById(id);const v=Number(el.value);return isFinite(v)?v:0;}
 function fmtExact(val){return isFinite(val)?(Math.round(val*100)/100).toFixed(2):'–';}
@@ -1727,6 +1729,13 @@ function compute(){
     const couch_total_inches=couch_totalBolts*couch_panelLen;
     const couch_total_yards=couch_total_inches/36;
     totalLength=couch_total_inches;
+    // Single source of truth: the bolt length / yards come from the shared module
+    // (cover-math.js) — the same sofaCover() the website uses — so they can't drift.
+    // The couch_* locals above still drive the cut diagram and mirror this value.
+    totalLength = CoverMath.sofaCover({
+      width: W, depth: D, height: H, armrestHeight: F2A, backrestDepth: BR, backWidth: WB,
+      bolt: B, fc: FC, hem: hem, seam: seam
+    }).totalLength;
     if(couch_extensionsFitInScrap)nestingNote=`2 bolts × ${fmtExact(couch_panelLen)}" = ${fmtExact(couch_total_inches)}". Extensions from scrap.`;
     else if(couch_extNeeded)nestingNote=`${couch_totalBolts} bolts × ${fmtExact(couch_panelLen)}" = ${fmtExact(couch_total_inches)}".`;
     else nestingNote=`2 bolts × ${fmtExact(couch_panelLen)}" = ${fmtExact(couch_total_inches)}".`;

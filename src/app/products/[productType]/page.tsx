@@ -116,6 +116,9 @@ export default function ProductPage() {
   // chairs, or a grill island. Mutually exclusive — drives the measuring note
   // and whether the "Over the seats" drape applies.
   const [coverType, setCoverType] = useState<'table' | 'set' | 'grill'>('table');
+  // Sofas page only: sectionals are custom-quoted, so we hide the self-serve
+  // calculator/cart and route to contact instead.
+  const [isSofaSectional, setIsSofaSectional] = useState(false);
 
   const addToCart = useCartStore((state) => state.addToCart);
   const updateItem = useCartStore((state) => state.updateItem);
@@ -447,9 +450,66 @@ export default function ProductPage() {
           </div>
         )}
 
+        {/* Sofa vs sectional picker — sectionals are custom-quoted */}
+        {productType === 'sofas-loveseats' && (
+          <div className="mt-4">
+            <p className="text-sm font-medium text-gray-800 mb-2">What are you covering?</p>
+            <div className="flex flex-wrap gap-2">
+              {([
+                { value: false, label: 'Sofa or loveseat' },
+                { value: true, label: 'Sectional' },
+              ] as const).map((opt) => (
+                <label
+                  key={String(opt.value)}
+                  className={`flex items-center gap-2 cursor-pointer select-none rounded-lg border-2 px-4 py-2 text-sm font-medium transition-colors ${
+                    isSofaSectional === opt.value
+                      ? 'border-brand-teal bg-brand-teal/5 text-gray-900'
+                      : 'border-gray-200 text-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="sofaType"
+                    checked={isSofaSectional === opt.value}
+                    onChange={() => setIsSofaSectional(opt.value)}
+                    className="h-4 w-4 text-brand-teal border-gray-300 focus:ring-brand-teal"
+                  />
+                  {opt.label}
+                </label>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* In-Home Measurement Service CTA — right where measuring begins */}
         <MeasurementCTA className="mt-8" />
 
+        {isSofaSectional ? (
+          /* Sectional: no self-serve calculator — route to a custom quote. */
+          <div className="mt-8 bg-amber-50 border-2 border-amber-300 rounded-xl p-8 text-center">
+            <h3 className="text-2xl font-bold text-gray-900 mb-2">Sectionals are made to order</h3>
+            <p className="text-gray-700 max-w-xl mx-auto mb-5">
+              Every sectional is different, so we quote them personally to make sure the cover fits
+              perfectly. Reach out and we&apos;ll take it from there — and if you&apos;d like, we can
+              measure it for you.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Link
+                href="/contact"
+                className="inline-block bg-brand-teal text-white font-semibold px-6 py-3 rounded-lg hover:bg-brand-teal-dark transition-colors"
+              >
+                Contact us for a sectional quote
+              </Link>
+              <Link
+                href="/measurement-service"
+                className="inline-block border-2 border-brand-teal text-brand-teal font-semibold px-6 py-3 rounded-lg hover:bg-brand-teal/5 transition-colors"
+              >
+                See our measurement service
+              </Link>
+            </div>
+          </div>
+        ) : (
+        <>
         {/* Measurement Diagrams and Calculator Side by Side */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
           {/* Left: Measurement Diagrams */}
@@ -700,6 +760,8 @@ export default function ProductPage() {
             />
           </div>
         </div>
+        </>
+        )}
       </div>
     </div>
   );
