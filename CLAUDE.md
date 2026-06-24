@@ -80,7 +80,9 @@ Rules — follow these for ANY calculator work, including new calculators or a "
   in `package.json`). If it fails, the deploy fails. If you add a new calculator file, point the
   wiring check in `check-calculators.js` at it.
 
-**Migration status:** Tables/table-sets are unified on the shared module. Chairs, sofas, chaise, and
+**Migration status:** Tables, table sets, and grill islands are unified — one website calculator and
+one standalone calculator (`table_cover_calculator_MFG.html`) both drive off `cover-math.js`
+(`tableCover` with drape modes tabletop/seats/full + multi-strip layout). Chairs, sofas, chaise, and
 ottomans still have two copies and can still drift until they're migrated the same way.
 
 ### Framework

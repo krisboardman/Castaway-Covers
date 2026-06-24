@@ -432,7 +432,7 @@ export default function ProductPage() {
               </label>
               {isGrillIsland && (
                 <div className="mt-3 bg-amber-50 border border-amber-200 rounded-lg px-5 py-3 text-sm text-amber-800">
-                  <strong>Measuring a grill island:</strong> Measure the <strong>island itself</strong> (the counter/base) for length, depth, and height. Then take an <strong>additional height measurement for the grill</strong> wherever it (or its raised lid) sits above the island surface, so the cover clears it.
+                  <strong>Measuring a grill island:</strong> Measure the width, length, and height the same way you would a table — but for height, <strong>measure to the top of the grill</strong> (or its raised lid) so the cover clears it.
                 </div>
               )}
             </div>

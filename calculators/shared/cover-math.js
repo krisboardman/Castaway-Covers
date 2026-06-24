@@ -30,61 +30,79 @@
   // what caused price differences. It now lives here once.)
   var CONST = {
     BOLT_WIDTH: 55.25,    // usable fabric bolt width (in)
-    TABLE_DROP: 10,       // tablecloth-style side drop (in)
+    TABLE_DROP: 10,       // "tabletop only" side drop (in)
     FLOOR_CLEARANCE: 3,   // "full coverage" clearance above the floor (in)
-    SEAM_OVERLAP: 1.5,    // fabric consumed by a center join seam (in)
+    BELOW_SEAT: 5,        // "over the seats" drop past the seat bottom (in) —
+                          // covers the weave cut (~2-3") and leaves clearance
+    SEAM_OVERLAP: 1.5,    // fabric consumed per join seam (in)
   };
 
   function ceilYards(inches) { return Math.ceil(inches / 36); }
 
   /**
-   * Table / table-set cover yardage and cut layout.
+   * Resolve side-drop (in) from a drape mode.
+   * @param {string} mode    'tabletop' | 'seats' | 'full'
+   * @param {number} height  Top of cover to floor (table top, or chair/grill top — whichever is higher).
+   * @param {number} seatH   Floor to bottom of chair seat (only used by 'seats').
+   */
+  function drapeFor(mode, height, seatH) {
+    if (mode === 'full')  return Math.max(0, height - CONST.FLOOR_CLEARANCE);            // ~3" off the floor
+    if (mode === 'seats') return Math.max(0, (height - (Number(seatH) || 0)) + CONST.BELOW_SEAT); // 5" below seats
+    return CONST.TABLE_DROP;                                                            // 'tabletop' → 10"
+  }
+
+  /**
+   * Table / table-set / grill-island cover yardage and cut layout.
+   * Splits into as many strips as the size needs (handles a bare table all the
+   * way up to a full table set draped over the chairs).
    *
    * @param {Object} p
-   * @param {number} p.length   Long side — runs ALONG the bolt (→ ML).
-   * @param {number} p.width    Short side — runs ACROSS the bolt (→ MD).
-   * @param {number} p.height   Table height, top to floor.
-   * @param {string} [p.style]  'tablecloth' (fixed 10" drop) | 'full' (height − 3").
-   * @param {number} [p.drop]   Explicit side-drop override (in). Wins over style.
-   * @param {number} [p.bolt]   Bolt-width override (in). Defaults to CONST.BOLT_WIDTH.
-   * @returns {Object} { yards, totalBoltLen, ML, MD, drop, bolt, layout,
-   *                      pieceCount, pieceL, pieceW, fitsBolt }
+   * @param {number} p.length     Long side (chair-edge to chair-edge for a set).
+   * @param {number} p.width      Short side (chair-edge to chair-edge for a set).
+   * @param {number} p.height     Top of cover to floor (taller of table/chairs/grill).
+   * @param {string} [p.dropMode] 'tabletop' (10") | 'seats' (5" below seats) | 'full' (3" off floor).
+   * @param {number} [p.seatHeight] Floor to bottom of seat — required for 'seats'.
+   * @param {number} [p.drop]     Explicit side-drop override (in). Wins over dropMode.
+   * @param {number} [p.bolt]     Bolt-width override (in). Defaults to CONST.BOLT_WIDTH.
+   * @returns {Object} { yards, totalBoltLen, CL, CW, drop, bolt, dropMode,
+   *                      pieceCount, pieceL, pieceW, splitDir, fitsBolt }
    */
   function tableCover(p) {
     p = p || {};
     var length = Math.max(0, Number(p.length) || 0);
     var width  = Math.max(0, Number(p.width)  || 0);
     var height = Math.max(0, Number(p.height) || 0);
-    var style  = p.style || 'tablecloth';
-    var bolt   = (p.bolt != null) ? Number(p.bolt) : CONST.BOLT_WIDTH;
-    var drop   = (p.drop != null)
-      ? Number(p.drop)
-      : (style === 'full' ? Math.max(0, height - CONST.FLOOR_CLEARANCE) : CONST.TABLE_DROP);
+    // Back-compat: the old API used style: 'tablecloth' | 'full'.
+    var mode   = p.dropMode || (p.style === 'full' ? 'full' : p.style === 'tablecloth' ? 'tabletop' : 'tabletop');
+    var bolt   = (p.bolt != null)  ? Number(p.bolt)  : CONST.BOLT_WIDTH;
+    var drop   = (p.drop != null)  ? Number(p.drop)  : drapeFor(mode, height, p.seatHeight);
 
-    var ML = Math.max(0, length + 2 * drop);  // along the bolt
-    var MD = Math.max(0, width  + 2 * drop);  // across the bolt
+    var CL = Math.max(0, length + 2 * drop); // cover length (long axis)
+    var CW = Math.max(0, width  + 2 * drop); // cover width (short axis)
 
-    var layout, pieceCount, pieceL, pieceW, totalBoltLen, fitsBolt;
-    if (MD <= bolt) {
-      // Single piece: the cover fits across one bolt width.
-      layout = 'single'; pieceCount = 1;
-      pieceL = ML; pieceW = MD; totalBoltLen = ML;
-      fitsBolt = MD <= bolt;
-    } else {
-      // Two pieces run front-to-back, joined by a center seam.
-      layout = 'two-piece'; pieceCount = 2;
-      pieceL = MD; pieceW = (ML + CONST.SEAM_OVERLAP) / 2; totalBoltLen = 2 * MD;
-      fitsBolt = pieceW <= bolt;
+    var seamPerStrip = CONST.SEAM_OVERLAP / 2;
+    // span = dimension cut ACROSS the bolt (split into N strips); len = strip length ALONG the bolt.
+    function option(span, len) {
+      var N = Math.max(1, Math.ceil((span - seamPerStrip) / (bolt - seamPerStrip)));
+      return { pieces: N, stripW: (span + (N - 1) * seamPerStrip) / N, stripL: len, total: N * len };
     }
+    var optLong  = option(CW, CL); // seams run parallel to the long axis
+    var optShort = option(CL, CW); // seams run parallel to the short axis
+    var chosen, splitDir;
+    if (optLong.total < optShort.total)      { chosen = optLong;  splitDir = 'long'; }
+    else if (optShort.total < optLong.total) { chosen = optShort; splitDir = 'short'; }
+    else if (optLong.pieces <= optShort.pieces) { chosen = optLong;  splitDir = 'long'; }
+    else                                     { chosen = optShort; splitDir = 'short'; }
 
     return {
-      yards: ceilYards(totalBoltLen),
-      totalBoltLen: totalBoltLen,
-      ML: ML, MD: MD, drop: drop, bolt: bolt,
-      layout: layout, pieceCount: pieceCount,
-      pieceL: pieceL, pieceW: pieceW, fitsBolt: fitsBolt,
+      yards: ceilYards(chosen.total),
+      totalBoltLen: chosen.total,
+      CL: CL, CW: CW, drop: drop, bolt: bolt, dropMode: mode,
+      pieceCount: chosen.pieces, pieceL: chosen.stripL, pieceW: chosen.stripW,
+      seamCount: chosen.pieces - 1, seamOverlap: CONST.SEAM_OVERLAP,
+      splitDir: splitDir, fitsBolt: chosen.stripW <= bolt,
     };
   }
 
-  return { CONST: CONST, ceilYards: ceilYards, tableCover: tableCover };
+  return { CONST: CONST, ceilYards: ceilYards, drapeFor: drapeFor, tableCover: tableCover };
 }));

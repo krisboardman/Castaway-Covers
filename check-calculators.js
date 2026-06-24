@@ -23,22 +23,33 @@ function check(name, got, want) {
   if (!ok) failures++;
 }
 
-console.log('Table cover — golden yardage cases:');
-check('60x36x30 tablecloth',                CoverMath.tableCover({ length: 60, width: 36, height: 30, style: 'tablecloth' }).yards, 4);
-check('30x20x18 tablecloth (small/single)', CoverMath.tableCover({ length: 30, width: 20, height: 18, style: 'tablecloth' }).yards, 2);
-check('60x35x30 tablecloth (bolt-edge)',    CoverMath.tableCover({ length: 60, width: 35, height: 30, style: 'tablecloth' }).yards, 3);
-check('48x24x28 full coverage',             CoverMath.tableCover({ length: 48, width: 24, height: 28, style: 'full' }).yards,       5);
+console.log('Plain table — golden yardage cases (must stay unchanged):');
+check('60x36x30 tabletop',                CoverMath.tableCover({ length: 60, width: 36, height: 30, dropMode: 'tabletop' }).yards, 4);
+check('30x20x18 tabletop (small)',        CoverMath.tableCover({ length: 30, width: 20, height: 18, dropMode: 'tabletop' }).yards, 2);
+check('60x35x30 tabletop (bolt-edge)',    CoverMath.tableCover({ length: 60, width: 35, height: 30, dropMode: 'tabletop' }).yards, 3);
+check('48x24x28 full coverage',           CoverMath.tableCover({ length: 48, width: 24, height: 28, dropMode: 'full' }).yards,     5);
+check('legacy style:"full" still maps',   CoverMath.tableCover({ length: 48, width: 24, height: 28, style: 'full' }).yards,       5);
+
+console.log('\nTable set — multi-strip drape modes:');
+check('set 96x54x36 tabletop',            CoverMath.tableCover({ length: 96, width: 54, height: 36, dropMode: 'tabletop' }).yards,            7);
+check('set 96x54x36 over-seats (seat 17)',CoverMath.tableCover({ length: 96, width: 54, height: 36, dropMode: 'seats', seatHeight: 17 }).yards, 8);
+check('set 96x54x36 full',                CoverMath.tableCover({ length: 96, width: 54, height: 36, dropMode: 'full' }).yards,                10);
+check('big set 120x60x38 full (4 strips)', CoverMath.tableCover({ length: 120, width: 60, height: 38, dropMode: 'full' }).yards,            15);
 
 console.log('\nCanonical constants:');
 check('bolt width', CoverMath.CONST.BOLT_WIDTH, 55.25);
-check('tablecloth drop', CoverMath.CONST.TABLE_DROP, 10);
+check('tabletop drop', CoverMath.CONST.TABLE_DROP, 10);
+check('below-seat drop', CoverMath.CONST.BELOW_SEAT, 5);
+check('floor clearance', CoverMath.CONST.FLOOR_CLEARANCE, 3);
 
 console.log('\nWiring — both callers must use the shared module:');
 const html  = fs.readFileSync(path.join(__dirname, 'calculators', 'table_cover_calculator_MFG.html'), 'utf8');
 const react = fs.readFileSync(path.join(__dirname, 'src', 'components', 'MeasurementCalculator.tsx'), 'utf8');
-check('standalone HTML uses CoverMath',
-  /shared\/cover-math\.js/.test(html) && /CoverMath\.tableCover/.test(html), true);
-check('website imports + uses CoverMath',
+// The standalone table tool shares the bolt/drape CONSTANTS (the thing that
+// drifted before); the website uses the full multi-strip tableCover().
+check('standalone HTML loads + uses CoverMath',
+  /shared\/cover-math\.js/.test(html) && /CoverMath\.(drapeFor|CONST|tableCover)/.test(html), true);
+check('website imports + uses CoverMath.tableCover',
   /cover-math\.js/.test(react) && /CoverMath\.tableCover/.test(react), true);
 
 if (failures) {

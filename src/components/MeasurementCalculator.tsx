@@ -126,7 +126,9 @@ const fieldHints: Record<string, Record<string, string>> = {
     backWidth: 'Measure the back panel only — this is often shorter than the overall width, which spans arm-to-arm.',
   },
   'tables': {
-    width: 'Note: if the width exceeds 34″, the cover will have a seam down the middle.',
+    width: 'Short side. For a table set, measure to the outside edges of the chairs (pushed in). Wide covers are sewn from multiple fabric strips — that’s normal.',
+    length: 'Long side. For a table set, measure to the outside edges of the chairs (pushed in).',
+    height: 'To the top of the table — or the chairs/grill, whichever is taller.',
   },
   'chaise-lounge': {
     height: 'Measure from the floor to the top of the chaise frame — remove or ignore the cushion.',
@@ -190,8 +192,8 @@ const productConfigs = {
   'tables': {
     fields: ['width', 'length', 'height'],
     labels: {
-      width: 'Width',
-      length: 'Length',
+      width: 'Width (short side)',
+      length: 'Length (long side)',
       height: 'Height'
     },
     hasAngle: false,
@@ -225,11 +227,18 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
   // Tracks fields where the user attempted to enter a value above the hard cap.
   // Used to display a prominent error message so they know the value was clamped.
   const [capExceeded, setCapExceeded] = useState<Record<string, number | null>>({});
-  // Cover style for tables: 'tablecloth' = fixed 10" drop with legs visible;
-  // 'full' = drop derived from height so the cover hangs ~3" above the floor.
-  const [tableCoverStyle, setTableCoverStyle] = useState<'tablecloth' | 'full'>('tablecloth');
+  // Drape depth for tables / sets / grills:
+  //   'tabletop' = 10" drop (legs/chairs exposed)
+  //   'seats'    = ~5" below the chair seats (needs floor-to-seat height)
+  //   'full'     = ~3" above the floor (covers legs)
+  const [tableDropMode, setTableDropMode] = useState<'tabletop' | 'seats' | 'full'>('tabletop');
+  const [tableSeatHeight, setTableSeatHeight] = useState<number>(0);
 
   const config = productConfigs[productType as keyof typeof productConfigs] || productConfigs['sofas-loveseats'];
+
+  // "Over the seats" needs the floor-to-seat measurement before we can calculate.
+  const needsSeatHeight = (productType === 'tables' || productType === 'table-sets') && tableDropMode === 'seats';
+  const seatHeightOk = !needsSeatHeight || tableSeatHeight > 0;
 
   // Auto-calculate when initial measurements are provided (editing mode)
   useEffect(() => {
@@ -624,7 +633,8 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
         length,
         width,
         height,
-        style: tableCoverStyle, // 'tablecloth' | 'full'
+        dropMode: tableDropMode,        // 'tabletop' | 'seats' | 'full'
+        seatHeight: tableSeatHeight,    // floor to bottom of seat (used by 'seats')
       }).yards;
     }
     
@@ -641,8 +651,8 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
     // backWidth, armLength, and cushionThickness are optional — exclude from required fields validation
     const requiredFields = config.fields.filter(field => field !== 'armLength' && field !== 'cushionThickness');
     const hasAllMeasurements = requiredFields.every(field => measurements[field] > 0);
-    
-    if (hasAllMeasurements) {
+
+    if (hasAllMeasurements && seatHeightOk) {
       setHasCalculated(true);
       const displaySKU = calculateSKU(measurements); // Keep existing SKU for display
       const yards = calculateYards(measurements);
@@ -832,33 +842,71 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
 
       {(productType === 'tables' || productType === 'table-sets') && (
         <div className="mb-4 p-4 border border-gray-200 rounded-md bg-gray-50">
-          <p className="font-medium text-gray-800 mb-2">Cover style</p>
+          <p className="font-medium text-gray-800 mb-2">How far down should the cover hang?</p>
           <label className="flex items-start gap-2 mb-2 cursor-pointer">
             <input
               type="radio"
-              name="tableCoverStyle"
-              value="tablecloth"
-              checked={tableCoverStyle === 'tablecloth'}
-              onChange={() => setTableCoverStyle('tablecloth')}
+              name="tableDropMode"
+              value="tabletop"
+              checked={tableDropMode === 'tabletop'}
+              onChange={() => setTableDropMode('tabletop')}
               className="mt-1"
             />
             <span className="text-sm text-gray-700">
-              <strong>Tablecloth style</strong> — 10″ side drop, table legs visible (classic look for dining and console tables)
+              <strong>Tabletop only</strong> — 10″ side drop; table legs (and chairs) left exposed
+            </span>
+          </label>
+          <label className="flex items-start gap-2 mb-2 cursor-pointer">
+            <input
+              type="radio"
+              name="tableDropMode"
+              value="seats"
+              checked={tableDropMode === 'seats'}
+              onChange={() => setTableDropMode('seats')}
+              className="mt-1"
+            />
+            <span className="text-sm text-gray-700">
+              <strong>Over the seats</strong> — hangs about 5″ below the chair seats; covers the table and seats but not the legs
             </span>
           </label>
           <label className="flex items-start gap-2 cursor-pointer">
             <input
               type="radio"
-              name="tableCoverStyle"
+              name="tableDropMode"
               value="full"
-              checked={tableCoverStyle === 'full'}
-              onChange={() => setTableCoverStyle('full')}
+              checked={tableDropMode === 'full'}
+              onChange={() => setTableDropMode('full')}
               className="mt-1"
             />
             <span className="text-sm text-gray-700">
-              <strong>Full coverage</strong> — cover hangs about 3″ above the floor
+              <strong>Full coverage</strong> — hangs about 3″ above the floor; covers the legs too
             </span>
           </label>
+
+          {tableDropMode === 'seats' && (
+            <div className="mt-3">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Floor to bottom of chair seat (inches)
+              </label>
+              <input
+                type="number"
+                min="0"
+                step="1"
+                value={tableSeatHeight || ''}
+                onChange={(e) => setTableSeatHeight(parseFloat(e.target.value) || 0)}
+                className={`w-full max-w-xs px-3 py-2 border rounded-md focus:outline-none focus:ring-2 ${
+                  needsSeatHeight && !seatHeightOk ? 'border-amber-400 focus:ring-amber-400' : 'border-gray-300 focus:ring-brand-teal'
+                }`}
+                placeholder="0"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Measure from the floor to the underside of the chair seat. The cover hangs ~5″ below this point.
+              </p>
+              {needsSeatHeight && !seatHeightOk && (
+                <p className="text-xs text-amber-600 mt-1">⚠️ Enter the seat height to calculate an "Over the seats" cover.</p>
+              )}
+            </div>
+          )}
         </div>
       )}
 
@@ -869,7 +917,7 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
             ? 'bg-orange-600 hover:bg-orange-700 text-white animate-pulse'
             : 'bg-brand-teal hover:bg-brand-teal-dark text-white'
         }`}
-        disabled={!config.fields.filter(field => field !== 'armLength' && field !== 'cushionThickness').every(field => measurements[field] > 0) || Object.keys(capExceeded).length > 0}
+        disabled={!config.fields.filter(field => field !== 'armLength' && field !== 'cushionThickness').every(field => measurements[field] > 0) || !seatHeightOk || Object.keys(capExceeded).length > 0}
       >
         {Object.keys(capExceeded).length > 0
           ? '🚫 Cannot order — measurement exceeds maximum'
