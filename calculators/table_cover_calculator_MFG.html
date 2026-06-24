@@ -41,8 +41,8 @@
 </head>
 <body>
 <div class="wrap">
-  <h1>Table Set Cover Calculator</h1>
-  <div class="sub">Measurements taken with chairs tucked under the table. Width is measured chair-edge to chair-edge across the short axis; length is chair-edge to chair-edge along the long axis. Height is floor to the top of the chair back. Uniform drape on all four sides. Diagonal corner cuts with snaps at each corner. Bungees wrap around each short end (2 bungees total, 4 grommets).</div>
+  <h1>Table / Table Set / Grill Cover Calculator</h1>
+  <div class="sub">Handles three cases with the same math: a <strong>plain table</strong> (measure width/length to the table edges, height to the tabletop); a <strong>table set</strong> measured with the chairs tucked in, to the outer chair edges (height to the top of the chair back); or a <strong>grill island</strong> — measure width and length to the outer edges and measure HEIGHT TO THE TOP OF THE GRILL (or its raised lid). Uniform drape on all four sides. Diagonal corner cuts with snaps at each corner. Bungees wrap around each short end (2 bungees total, 4 grommets).</div>
   <div class="controls">
     <label><input id="round" type="checkbox" checked> Round inches up / yards to whole</label>
     <button class="btn" id="recalc">Recalculate</button>
@@ -69,28 +69,23 @@
         <!-- ── DRAPE DEPTH ─────────────────────────────────── -->
         <div class="title" style="margin-top:16px;">Drape Depth</div>
         <div class="drape-mode-row">
-          <label><input type="radio" name="drapeMode" id="drapeFloor" value="floor" checked> Floor clearance</label>
-          <label><input type="radio" name="drapeMode" id="drapeSeat" value="seat"> Below chair seat</label>
-          <label><input type="radio" name="drapeMode" id="drapeCustom" value="custom"> Custom</label>
+          <label><input type="radio" name="drapeMode" id="drapeTabletop" value="tabletop" checked> Tabletop only (10" drop)</label>
+          <label><input type="radio" name="drapeMode" id="drapeSeats" value="seats"> Over the seats (5" below the seats)</label>
+          <label><input type="radio" name="drapeMode" id="drapeFull" value="full"> Full coverage (&approx;3" off the floor)</label>
         </div>
-        <div id="drapeDetailFloor" class="drape-detail">
-          <label class="lbl">Floor clearance (inches from ground)<input id="floorClearance" type="number" step="0.5" value="3"></label>
-          <div class="note" style="align-self:end; padding-bottom:4px;">Drape = H &minus; floor clearance. Cover nearly reaches the ground.</div>
+        <div id="drapeDetailTabletop" class="drape-detail">
+          <div class="note" style="align-self:end; padding-bottom:4px;">Drape = 10". Cover hangs a short skirt just below the tabletop / outer edge.</div>
         </div>
-        <div id="drapeDetailSeat" class="drape-detail hidden">
-          <label class="lbl">Drop below seat bottom (inches past F2BS)<input id="belowSeat" type="number" step="0.5" value="2"></label>
-          <div class="note" style="align-self:end; padding-bottom:4px;">Drape = H &minus; F2BS + drop. Seat bottom hidden; chair legs visible.</div>
+        <div id="drapeDetailSeats" class="drape-detail hidden">
+          <div class="note" style="align-self:end; padding-bottom:4px;">Drape = H &minus; F2BS + 5, using the F2BS field in Measured Dimensions. Cover hangs 5" below the seats.</div>
         </div>
-        <div id="drapeDetailCustom" class="drape-detail hidden">
-          <label class="lbl">Custom drape depth (inches)<input id="customDrape" type="number" step="0.5" value="27"></label>
-          <div class="note" style="align-self:end; padding-bottom:4px;">Enter the exact drape depth to hang from the outer chair edge.</div>
+        <div id="drapeDetailFull" class="drape-detail hidden">
+          <div class="note" style="align-self:end; padding-bottom:4px;">Drape = H &minus; 3. Cover hangs to about 3" off the floor.</div>
         </div>
 
         <!-- ── LAYOUT & SEAMS ──────────────────────────────── -->
         <div class="title" style="margin-top:16px;">Layout &amp; Seams</div>
         <div class="inputs">
-          <label class="lbl">Bolt width (B)<input id="B" type="number" step="0.25" value="55.25"></label>
-          <label class="lbl">Slack (extra inches for loose fit)<input id="slack" type="number" step="0.5" value="3"></label>
           <label class="lbl" style="grid-column:span 2;">Split direction
             <select id="splitDir">
               <option value="auto" selected>Auto (default to less bolt material)</option>
@@ -163,6 +158,7 @@
   </div>
 </div><!-- /wrap -->
 
+<script src="shared/cover-math.js"></script>
 <script>
 function n(id){ const v=Number(document.getElementById(id).value); return isFinite(v)?v:0; }
 function fin(v,r){ return r?Math.ceil(v):Math.round(v*100)/100; }
@@ -171,9 +167,9 @@ function yds(inch,r){ const y=inch/36; return r?Math.ceil(y):Math.round(y*100)/1
 // ── Drape-mode visibility ────────────────────────────────────────────────────
 function updateDrapeVisibility() {
   const mode = document.querySelector('input[name="drapeMode"]:checked').value;
-  document.getElementById('drapeDetailFloor').classList.toggle('hidden', mode !== 'floor');
-  document.getElementById('drapeDetailSeat').classList.toggle('hidden', mode !== 'seat');
-  document.getElementById('drapeDetailCustom').classList.toggle('hidden', mode !== 'custom');
+  document.getElementById('drapeDetailTabletop').classList.toggle('hidden', mode !== 'tabletop');
+  document.getElementById('drapeDetailSeats').classList.toggle('hidden', mode !== 'seats');
+  document.getElementById('drapeDetailFull').classList.toggle('hidden', mode !== 'full');
 }
 document.querySelectorAll('input[name="drapeMode"]').forEach(r => r.addEventListener('change', () => { updateDrapeVisibility(); compute(); }));
 updateDrapeVisibility();
@@ -183,29 +179,19 @@ function compute() {
   const rounded = document.getElementById('round').checked;
   const r  = v => fin(v, rounded);
 
-  const B     = n('B');
+  const B     = CoverMath.CONST.BOLT_WIDTH;
   const L     = n('L');
   const W     = n('W');
   const H     = n('H');       // floor to top of chair back
   const F2BS  = n('F2BS');    // floor to bottom of seat
-  const slack = n('slack');
 
   // Drape depth
   const mode = document.querySelector('input[name="drapeMode"]:checked').value;
-  let drapeDepth;
-  if (mode === 'floor') {
-    const floorClearance = n('floorClearance');
-    drapeDepth = Math.max(0, H - floorClearance);
-  } else if (mode === 'seat') {
-    const belowSeat = n('belowSeat');
-    drapeDepth = Math.max(0, (H - F2BS) + belowSeat);
-  } else {
-    drapeDepth = Math.max(0, n('customDrape'));
-  }
+  const drapeDepth = CoverMath.drapeFor(mode, H, F2BS);
 
-  // Cover dimensions — L and W already include chairs, just add drape + slack
-  const CL = L + 2 * drapeDepth + slack;
-  const CW = W + 2 * drapeDepth + slack;
+  // Cover dimensions — L and W already include chairs, just add drape
+  const CL = L + 2 * drapeDepth;
+  const CW = W + 2 * drapeDepth;
 
   // Drape coverage note
   const drapeFloorGap = H - drapeDepth;
@@ -220,7 +206,7 @@ function compute() {
   }
 
   // Layout / seams
-  const seamOverlap = n('seamOverlap');
+  const seamOverlap = n('seamOverlap') || CoverMath.CONST.SEAM_OVERLAP;
   const seamPerStrip = seamOverlap / 2;
 
   function computeOption(span, length) {
@@ -271,7 +257,6 @@ function compute() {
     <div class='row'><span>Chair back height H</span><strong>${r(H)}"</strong></div>
     <div class='row'><span>Floor to bottom of seat (F2BS)</span><strong>${r(F2BS)}"</strong></div>
     <div class='row'><span>Drape depth (uniform all 4 sides)</span><strong>${r(drapeDepth)}"</strong></div>
-    <div class='row'><span>General slack</span><strong>+${r(slack)}"</strong></div>
     <div class='row'><span>Cover length CL (long axis total)</span><strong>${r(CL)}"</strong></div>
     <div class='row'><span>Cover width CW (short axis total)</span><strong>${r(CW)}"</strong></div>
     <div class='row'><span>Corner cuts (all 4 corners)</span><strong>${r(drapeDepth)}" × ${r(drapeDepth)}" diagonal — same on all corners</strong></div>
@@ -319,7 +304,7 @@ function compute() {
   `;
 
   const payload = {
-    rounded, B, L, W, H, F2BS, slack, drapeDepth,
+    rounded, B, L, W, H, F2BS, drapeDepth,
     CL, CW, gromOffset, gromDepthIn, bungeeLen,
     seamOverlap, splitDir, pieceCount, pieceL, pieceW, seamCount, totalBoltLen
   };
@@ -673,8 +658,8 @@ function drawAssemblyDiagram(p) {
 
 // ── Storage & wiring ─────────────────────────────────────────────────────────
 const STORAGE_KEY = 'tableSetCalcChairs_v1';
-const ALL_FIELDS  = ['B','L','W','H','F2BS','slack','floorClearance','belowSeat','customDrape','seamOverlap','splitDir','round','gromOffset','gromDepth'];
-const DEFAULTS    = {B:55.25, L:96, W:54, H:36, F2BS:17, slack:3, floorClearance:3, belowSeat:2, customDrape:27, seamOverlap:1.5, splitDir:'auto', round:true, gromOffset:5, gromDepth:0};
+const ALL_FIELDS  = ['L','W','H','F2BS','seamOverlap','splitDir','round','gromOffset','gromDepth'];
+const DEFAULTS    = {L:96, W:54, H:36, F2BS:17, seamOverlap:1.5, splitDir:'auto', round:true, gromOffset:5, gromDepth:0};
 
 function saveToStorage() {
   const saved = {};
@@ -714,7 +699,7 @@ function wire() {
       const el = document.getElementById(k); if(!el) continue;
       if (el.type==='checkbox') el.checked = DEFAULTS[k]; else el.value = DEFAULTS[k];
     }
-    const dm = document.getElementById('drapeFloor');
+    const dm = document.getElementById('drapeTabletop');
     if (dm) { dm.checked = true; updateDrapeVisibility(); }
     compute();
   });

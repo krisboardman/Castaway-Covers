@@ -903,7 +903,7 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
                 Measure from the floor to the underside of the chair seat. The cover hangs ~5″ below this point.
               </p>
               {needsSeatHeight && !seatHeightOk && (
-                <p className="text-xs text-amber-600 mt-1">⚠️ Enter the seat height to calculate an "Over the seats" cover.</p>
+                <p className="text-xs text-amber-600 mt-1">⚠️ Enter the seat height to price an over-the-seats cover.</p>
               )}
             </div>
           )}
