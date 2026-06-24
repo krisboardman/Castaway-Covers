@@ -53,17 +53,25 @@
     <div>
       <div class="card" id="inputsCard">
 
+        <!-- ── WHAT ARE YOU COVERING? ───────────────────────── -->
+        <div class="title">What are you covering?</div>
+        <div class="drape-mode-row">
+          <label><input type="radio" name="coverType" id="typeTable" value="table" checked> Table</label>
+          <label><input type="radio" name="coverType" id="typeSet" value="set"> Table set (with chairs)</label>
+          <label><input type="radio" name="coverType" id="typeGrill" value="grill"> Grill island</label>
+        </div>
+        <div class="info-box" id="typeNote"></div>
+
         <!-- ── MEASURED DIMENSIONS ──────────────────────────── -->
-        <div class="info-box">Measure with chairs tucked in. L and W span from the outer edge of the chairs on each side.</div>
-        <div class="title">Measured Dimensions (with chairs in place)</div>
+        <div class="title" style="margin-top:16px;">Measured Dimensions</div>
         <div class="inputs">
-          <label class="lbl">Length L — long axis, chair edge to chair edge<input id="L" type="number" step="1" value="96"></label>
-          <label class="lbl">Width W — short axis, chair edge to chair edge<input id="W" type="number" step="1" value="54"></label>
-          <label class="lbl">Height H — floor to top of chair back<input id="H" type="number" step="0.5" value="36"></label>
-          <label class="lbl">F2BS — floor to bottom of seat (for drape reference)<input id="F2BS" type="number" step="0.5" value="17"></label>
+          <label class="lbl">Length L — long side<input id="L" type="number" step="1" value="96"></label>
+          <label class="lbl">Width W — short side<input id="W" type="number" step="1" value="54"></label>
+          <label class="lbl">Height H — top of cover to floor<input id="H" type="number" step="0.5" value="36"></label>
+          <label class="lbl">F2BS — floor to bottom of seat (only used for the "Over the seats" drape)<input id="F2BS" type="number" step="0.5" value="17"></label>
         </div>
         <div class="note" style="margin-top:8px;">
-          L and W already include the chairs, so no chair seat overhang or leg-clearance checks are needed. H (chair back height) drives the drape depth. F2BS is used when the "below seat" drape mode is selected.
+          The math is identical for all three — only the measuring guidance and drape choice differ. Height (H) drives the drape depth; F2BS is only needed for the "Over the seats" drape.
         </div>
 
         <!-- ── DRAPE DEPTH ─────────────────────────────────── -->
@@ -173,6 +181,22 @@ function updateDrapeVisibility() {
 }
 document.querySelectorAll('input[name="drapeMode"]').forEach(r => r.addEventListener('change', () => { updateDrapeVisibility(); compute(); }));
 updateDrapeVisibility();
+
+// Cover-type guidance (table / table set / grill). Does not affect the math —
+// it only swaps the measuring instructions. All drape modes stay available.
+function updateTypeNote() {
+  const sel = document.querySelector('input[name="coverType"]:checked');
+  const t = sel ? sel.value : 'table';
+  const notes = {
+    table: 'Plain table: measure Width (short side) and Length (long side) to the table edges; Height = floor to the tabletop.',
+    set:   'Table set: measure with the chairs tucked in — Width and Length to the OUTER edges of the chairs; Height = floor to the top of the chair backs (or the table, whichever is taller). Use F2BS for the "Over the seats" drape.',
+    grill: 'Grill island: measure Width and Length to the outer edges; Height = floor to the TOP OF THE GRILL (or its raised lid) so the cover clears it.'
+  };
+  const el = document.getElementById('typeNote');
+  if (el) el.textContent = notes[t];
+}
+document.querySelectorAll('input[name="coverType"]').forEach(r => r.addEventListener('change', updateTypeNote));
+updateTypeNote();
 
 // ── Main compute ─────────────────────────────────────────────────────────────
 function compute() {
