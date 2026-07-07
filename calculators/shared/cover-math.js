@@ -42,6 +42,10 @@
     // Chaise-cover constants:
     CHAISE_FC_CUSHION: 4,   // floor clearance when a cushion is on (in)
     CHAISE_EXT_SEAM: 1,     // seam allowance for split-and-sew side extensions (in)
+    // Sofa-cover calibration:
+    SOFA_DRAPE_TAKEUP: 0,   // extra length the fabric loses to real-world settling
+                            // (in). Raises every finished hem by this much. Tune it
+                            // against a test build; 0 = pure geometry.
   };
 
   function ceilYards(inches) { return Math.ceil(inches / 36); }
@@ -285,16 +289,25 @@
     var hem = (p.hem != null)  ? Number(p.hem)  : CONST.CHAIR_HEM; // v4 default 0
     var seam = (p.seam != null) ? Number(p.seam) : CONST.SEAM_OVERLAP;
 
+    // takeup = real-world drape settling / measuring slack. Shortens every hanging
+    // edge (back, front, sides) so the finished hem rises by this amount. Default 0.
+    var takeup = (p.takeup != null) ? Math.max(0, Number(p.takeup)) : CONST.SOFA_DRAPE_TAKEUP;
+
     var AT2F = Math.sqrt(Math.max(0, H - F2A) * Math.max(0, H - F2A) + Math.max(0, D - BR) * Math.max(0, D - BR));
-    var sideDrop = H - FC;
-    var frontExtDrop = F2A - FC;
+    var sideDrop = Math.max(0, H - FC - takeup);
+    var frontExtDrop = Math.max(0, F2A - FC - takeup);
 
     var backInset = hem + BR;
     var frontInset = frontExtDrop;
     var totalFB = hem + BR + AT2F + frontExtDrop;
     var frontFlapShortage = Math.max(0, totalFB - B);
     var frontFlapWidth = frontFlapShortage > 0 ? frontFlapShortage + hem : 0;
-    var taperLen = Math.max(0, B - backInset - frontInset);
+    // FIX: the seat traverse is the TRUE diagonal (AT2F), not padded to fill the bolt.
+    // Only cap it to the bolt-limited length when the couch is deep enough to need a
+    // front flap (totalFB > B). The old `B - backInset - frontInset` always padded the
+    // panel to a full bolt width in the LENGTH direction — dead length that dropped the
+    // front hem to the floor and made FC do nothing up front.
+    var taperLen = Math.min(AT2F, Math.max(0, B - backInset - frontInset));
     var frontStraight = frontInset + frontFlapWidth;
     var panelLen = sideDrop + backInset + taperLen + frontStraight;
 

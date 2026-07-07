@@ -48,6 +48,16 @@ check('sofa 84x40x36 arm22 br5 wb80',      CoverMath.sofaCover({ width: 84, dept
 check('big sofa 96x42x38 arm24 br6 wb92',  CoverMath.sofaCover({ width: 96, depth: 42, height: 38, armrestHeight: 24, backrestDepth: 6, backWidth: 92 }).yards, 9);
 check('sectional 120x44x36 arm22 br5 wb112',CoverMath.sofaCover({ width: 120, depth: 44, height: 36, armrestHeight: 22, backrestDepth: 5, backWidth: 112 }).yards, 11);
 
+console.log('\nSofa panel-length fix (no length-direction bolt padding; take-up raises hems):');
+{
+  // Mike's couch. panelLen must equal true geometry = (H-FC) + BR + AT2F + (F2A-FC),
+  // NOT the old (H-FC)+B = 86.25 which padded a full bolt into the length.
+  var mike = { width: 47, depth: 31, height: 34, armrestHeight: 24, backrestDepth: 2, backWidth: 47 };
+  check('sofa panelLen uses true diagonal (no bolt padding)', Math.round(CoverMath.sofaCover(mike).panelLen * 100) / 100, 84.68);
+  // take-up of 2" must shorten the panel by 4" (2" off the back drop + 2" off the front drop).
+  check('sofa take-up 2" shortens panel by 4"', Math.round((CoverMath.sofaCover(mike).panelLen - CoverMath.sofaCover(Object.assign({}, mike, { takeup: 2 })).panelLen) * 100) / 100, 4);
+}
+
 console.log('\nOttoman — golden yardage cases (drop to floor; single or main+strips):');
 check('small 20x16x12',  CoverMath.ottomanCover({ length: 20, width: 16, height: 12 }).yards, 2);
 check('medium 30x24x18', CoverMath.ottomanCover({ length: 30, width: 24, height: 18 }).yards, 2);

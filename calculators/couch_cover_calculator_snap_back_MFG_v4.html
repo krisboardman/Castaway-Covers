@@ -104,6 +104,7 @@
           <label class="lbl">Hem allowance<input id="hem" type="number" value="0" step="0.5" /></label>
           <label class="lbl">Seam overlap<input id="seam" type="number" value="1.5" step="0.5" /></label>
           <label class="lbl">Bottom margin past arm<input id="bottomMargin" type="number" value="8" step="0.5" min="0" /></label>
+          <label class="lbl">Drape take-up (raises hems)<input id="takeup" type="number" value="0" step="0.5" min="0" /></label>
         </div>
 
         <!-- Sectional Section -->
@@ -245,6 +246,9 @@ function drawDiagram(params, opts){
   for(let i=0;i<edgeC.length-1;i++){const[y1,h1]=edgeC[i],[y2,h2]=edgeC[i+1];const in1=h1>=sideOff_cut,in2=h2>=sideOff_cut;if(extEntryY===null){if(in1)extEntryY=y1;else if(in2){const t=(sideOff_cut-h1)/(h2-h1);extEntryY=y1+t*(y2-y1);}}if(extEntryY!==null){if(in2)extExitY=y2;else if(in1){const t=(sideOff_cut-h1)/(h2-h1);extExitY=y1+t*(y2-y1);break;}}}
   const extActualLen=(extEntryY!==null&&extExitY!==null&&extExitY>extEntryY)?(extExitY-extEntryY):couch_panelLen;
   const rIn=v=>roundMode==='whole'?Math.ceil(v):roundMode==='half'?roundHalf(v):Math.round(v*100)/100;
+  // Bolt width is a FIXED material constant (e.g. 55.25"), not a cut dimension — never round it up
+  // with rIn(), or it can read wider than the actual fabric (e.g. 55.5") and overstate the material.
+  const fmtMat=v=>(+(Math.round(v*100)/100).toFixed(2)).toString();
   const svg=document.getElementById(svgId);
   if(!svg)return;
   while(svg.firstChild)svg.removeChild(svg.firstChild);
@@ -262,6 +266,10 @@ function drawDiagram(params, opts){
   const bothExtFitOneBolt=extNeeded&&(2*extW+(couch_extSeam||1))<=B;
   const halfBack=WB/2+hem, halfMid=couch_assembledW/2, halfFront=(W+2*frontExtDrop)/2;
   const taperLen=couch_taperLen, yPointB=sideDrop+couch_backInset+taperLen;
+  // Center-seam allowance: the two halves overlap by `seam` total at the center, so EACH half must
+  // be cut seam/2 wider on its seam edge (the finished half-width is measured from the cover center;
+  // the cut runs seam/2 past it). The yardage already accounts for this via joinedUsableW = 2B − seam.
+  const seamAllow = Math.max(0,(seam||0))/2;
 
   // Halfwidth in inches at cover-y x. This now mirrors the ASSEMBLY diagram's profile
   // (5 zones, including the front-floor diagonal between yPointB and couch_panelLen).
@@ -426,9 +434,14 @@ function drawDiagram(params, opts){
     const boltLeft=ox,boltRight=ox+boltWPx,boltTop=oy,boltBot=oy+boltLenPx;
     const bxy=(xLen,yWid)=>{const dx=(bolt.insideEdge==='left')?yWid:(B-yWid);return[ox+dx*sc,oy+xLen*sc];};
 
+    // Actual cut width of this half-panel = the widest finished half-width (halfMid) + the center-seam
+    // allowance, clamped to the bolt. The strip past it is scrap the cutting machine trims off the bolt.
+    const actualCutW=Math.min(halfMid+seamAllow,B);
+    const scrapW=Math.max(0,B-actualCutW);
+
     add('rect',{x:boltLeft,y:boltTop,width:boltWPx,height:boltLenPx,fill:'#f8fafc',stroke:'#94a3b8','stroke-width':1,'stroke-dasharray':'4,3'});
     add('text',{x:ox+boltWPx/2,y:boltTop-8,'text-anchor':'middle','font-size':11,fill:'#475569','font-weight':'bold'}).textContent=bolt.label;
-    if(bi===0)add('text',{x:ox+boltWPx/2,y:boltTop-22,'text-anchor':'middle','font-size':10,fill:'#475569'}).textContent=`${rIn(B)}"`;
+    add('text',{x:ox+boltWPx/2,y:boltTop-22,'text-anchor':'middle','font-size':10,fill:'#475569'}).textContent=`cut to ${fmtMat(actualCutW)}"  ·  ${fmtMat(B)}" bolt`;
     const lenArrowX=(bolt.insideEdge==='left')?boltRight+14:boltLeft-14;
     arrow(lenArrowX,boltTop,lenArrowX,boltBot);
     if(bi===0){add('text',{x:lenArrowX+(bolt.insideEdge==='left'?6:-6),y:oy+boltLenPx/2,'text-anchor':bolt.insideEdge==='left'?'start':'end','dominant-baseline':'middle','font-size':10,fill:'#475569',transform:`rotate(-90 ${lenArrowX+(bolt.insideEdge==='left'?6:-6)} ${oy+boltLenPx/2})`}).textContent=`Panel length: ${rIn(couch_panelLen)}`;}
@@ -449,46 +462,77 @@ function drawDiagram(params, opts){
     // the assembly diagram's mainArmStraight side. (This is the same bolt as isMainCutBolt.)
     const isMainConnBolt = mainStraight && bi === mainStraightBoltIndex;
     let polyOutlineToUse = polyOutline;
-    let connHalfWidth = 0, czT_yLen = 0;
+    let connHalfWidth = 0, czT_yLen = 0, connInnerHalfWidth = 0;
     if (isMainConnBolt) {
       polyOutlineToUse = buildStraightPanelOutline();
     } else if (isShortConnBolt) {
-      const connOverlap = opts.sectionalSnaps.connectingOverlap || 0;
-      connHalfWidth = Math.min(W/2 + connOverlap, B);
-      // czT_yLen: where the front of the couch footprint begins, matching the assembly diagram's
-      // furnTopY + furnD (the top of the corner cutout).
-      czT_yLen = sideDrop + (couch_backInset + couch_taperLen + D) / 2;
-      const cutoutInnerW = Math.max(0, connHalfWidth - connOverlap);  // = W/2 (the couch side)
+      // Match the ASSEMBLY diagram's short-piece connecting side exactly (shortArmStraight*):
+      //  - The connecting (outer) edge runs STRAIGHT at the FULL side-drop half-width (halfMid),
+      //    from the back hem all the way down to the front fold (yPointB). The side drape is kept
+      //    (it tucks under the main cover at the joint), so this side is NOT trimmed to the couch.
+      //  - A rectangular CORNER CUTOUT is then removed from the front-floor region only: the outer
+      //    edge pulls in from halfMid to W/2 (the joint / couch-footprint edge), spanning from the
+      //    front fold (yPointB) down to the front floor (couch_panelLen).
+      // (The old geometry trimmed this whole side to W/2 + overlap, which scrapped almost the entire
+      //  bolt and disagreed with the assembly diagram — that was the bug.)
+      connHalfWidth      = Math.min(halfMid, B);   // straight connecting edge — full side drop
+      connInnerHalfWidth = Math.min(W/2,   B);     // front-floor width = couch footprint half
+      czT_yLen = yPointB;                          // corner cutout starts at the front fold
       polyOutlineToUse = [
         [0, 0],
         [0, connHalfWidth],
-        [czT_yLen, connHalfWidth],
-        [czT_yLen, cutoutInnerW],
-        [couch_panelLen, cutoutInnerW],
+        [yPointB, connHalfWidth],
+        [yPointB, connInnerHalfWidth],
+        [couch_panelLen, connInnerHalfWidth],
         [couch_panelLen, 0],
       ];
     }
 
-    const polyPts=polyOutlineToUse.map(([xL,yW])=>bxy(xL,yW)).map(([x,y])=>`${x.toFixed(1)},${y.toFixed(1)}`).join(' ');
+    // Apply the center-seam allowance so the DRAWN polygon is the ACTUAL cut piece: shift every outer
+    // (finished) edge seam/2 further from the seam edge. Seam-edge vertices (width 0) stay on the
+    // bolt's seam selvage. Clamp at the bolt width so a fully-clamped panel never spills past the bolt.
+    const toCut=([xL,yW])=>[xL, yW>0.001 ? Math.min(yW+seamAllow,B) : yW];
+    const polyCut=polyOutlineToUse.map(toCut);
+
+    const polyPts=polyCut.map(([xL,yW])=>bxy(xL,yW)).map(([x,y])=>`${x.toFixed(1)},${y.toFixed(1)}`).join(' ');
     add('polygon',{points:polyPts,fill:bolt.panel.fill,stroke:'none'});
 
-    // Red cut lines
-    {const outerEdgePts=polyOutlineToUse.slice(1,polyOutlineToUse.length-1).map(([xL,yW])=>bxy(xL,yW));
+    // Red cut lines (outer edge of the actual cut piece)
+    {const outerEdgePts=polyCut.slice(1,polyCut.length-1).map(([xL,yW])=>bxy(xL,yW));
     if(outerEdgePts.length>=2){const cutD='M '+outerEdgePts.map(([x,y])=>`${x.toFixed(1)},${y.toFixed(1)}`).join(' L ');add('path',{d:cutD,fill:'none',stroke:'#dc2626','stroke-width':3});}
+    // Seam (sew) edge — the bolt selvage where this half joins the other half at the cover center.
     const s1=bxy(0,0),s2=bxy(couch_panelLen,0);
-    add('line',{x1:s1[0],y1:s1[1],x2:s2[0],y2:s2[1],stroke:bolt.panel.stroke,'stroke-width':1.5,'stroke-dasharray':'8,4'});}
+    add('line',{x1:s1[0],y1:s1[1],x2:s2[0],y2:s2[1],stroke:bolt.panel.stroke,'stroke-width':1.5,'stroke-dasharray':'8,4'});
+    // Finished center line — seam/2 in from the sew edge. The strip between them is the overlap that
+    // tucks behind the other half once sewn. Purple center-seam style.
+    if(seamAllow>0.01){const f1=bxy(0,seamAllow),f2=bxy(couch_panelLen,seamAllow);add('line',{x1:f1[0],y1:f1[1],x2:f2[0],y2:f2[1],stroke:'#9333ea','stroke-width':1.5,'stroke-dasharray':'6,3'});}
+    }
 
-    const lmp=bxy(sideDrop+couch_backInset/2,B/2);
+    // Panel label sits in the UPPER side-drop region (not the mid/widest band) so the cut-width
+    // dimension arrows below can span the full half-width without running through this text.
+    const lmp=bxy(Math.max(4,sideDrop*0.4),B/2);
     add('text',{x:lmp[0],y:lmp[1]-6,'text-anchor':'middle','font-size':15,fill:bolt.panel.stroke,'font-weight':'bold'}).textContent=bolt.panel.name;
-    add('text',{x:lmp[0],y:lmp[1]+14,'text-anchor':'middle','font-size':12,fill:bolt.panel.stroke}).textContent=`${rIn(couch_panelLen)}" × ${rIn(B)}"`;
-    add('text',{x:lmp[0],y:lmp[1]+30,'text-anchor':'middle','font-size':10,fill:'#dc2626','font-weight':'600'}).textContent='Red lines = cut edges';
+    add('text',{x:lmp[0],y:lmp[1]+14,'text-anchor':'middle','font-size':12,fill:bolt.panel.stroke,'font-weight':'bold'}).textContent=`cut ${rIn(actualCutW)}" × ${rIn(couch_panelLen)}"`;
+    add('text',{x:lmp[0],y:lmp[1]+30,'text-anchor':'middle','font-size':10,fill:'#475569'}).textContent=`${fmtMat(B)}" bolt · ${rIn(scrapW)}" scrap${seamAllow>0.01?` · incl. ${rIn(seamAllow)}" seam`:''}`;
+    add('text',{x:lmp[0],y:lmp[1]+46,'text-anchor':'middle','font-size':10,fill:'#dc2626','font-weight':'600'}).textContent='Red lines = cut edges';
 
     // Scrap shading
-    const polySvg=polyOutlineToUse.map(([xL,yW])=>bxy(xL,yW));
+    const polySvg=polyCut.map(([xL,yW])=>bxy(xL,yW));
     const scrapPath=[`M ${boltLeft},${boltTop}`,`L ${boltRight},${boltTop}`,`L ${boltRight},${boltBot}`,`L ${boltLeft},${boltBot}`,`Z`,`M ${polySvg[0][0].toFixed(1)},${polySvg[0][1].toFixed(1)}`,...polySvg.slice(1).map(([x,y])=>`L ${x.toFixed(1)},${y.toFixed(1)}`),`Z`].join(' ');
     add('path',{d:scrapPath,fill:'#cbd5e1','fill-rule':'evenodd',opacity:0.8,stroke:'none'});
-    if(backScrapH>4&&x_back_cross>8){const[lx,ly]=bxy(x_back_cross/3,halfBack+backScrapH*2/3);add('text',{x:lx,y:ly+3,'text-anchor':'middle','font-size':9,fill:'#475569','font-weight':'bold'}).textContent='SCRAP';}
-    if(frontStripH>4&&frontStripW>8){const[lx,ly]=bxy(yPointB+frontStripW/2,halfFront+frontStripH/2);add('text',{x:lx,y:ly+3,'text-anchor':'middle','font-size':9,fill:'#475569','font-weight':'bold'}).textContent='SCRAP';}
+    if(!isShortConnBolt&&backScrapH>4&&x_back_cross>8){const[lx,ly]=bxy(x_back_cross/3,halfBack+backScrapH*2/3);add('text',{x:lx,y:ly+3,'text-anchor':'middle','font-size':9,fill:'#475569','font-weight':'bold'}).textContent='SCRAP';}
+    if(!isShortConnBolt&&frontStripH>4&&frontStripW>8){const[lx,ly]=bxy(yPointB+frontStripW/2,halfFront+frontStripH/2);add('text',{x:lx,y:ly+3,'text-anchor':'middle','font-size':9,fill:'#475569','font-weight':'bold'}).textContent='SCRAP';}
+
+    // Outer "trim" strip — on the straight-edge bolts the panel is a constant cut width, so the
+    // outer scrap is a uniform strip the cutting machine trims off. Label it down the strip with the
+    // exact trim amount, at a y where the strip is constant (short conn: back region; main conn: front).
+    if((isMainConnBolt||isShortConnBolt)&&scrapW>0.05){
+      const selvageX=(bolt.insideEdge==='left')?boltRight:boltLeft;
+      const cutEdgeX=bxy(0,actualCutW)[0];
+      const stripMidX=(selvageX+cutEdgeX)/2;
+      const stripY=oy+(isShortConnBolt?sideDrop*0.5:(yPointB+couch_panelLen)/2)*sc;
+      add('text',{x:stripMidX,y:stripY,'text-anchor':'middle','dominant-baseline':'middle','font-size':9,fill:'#dc2626','font-weight':'bold',transform:`rotate(-90 ${stripMidX} ${stripY})`}).textContent=`trim ${fmtMat(scrapW)}"`;
+    }
 
     // Zone boundary dashed lines
     {const zC='#64748b';
@@ -498,6 +542,32 @@ function drawDiagram(params, opts){
     const la=(bolt.insideEdge==='left')?'start':'end';
     [{y0:0,y1:sideDrop,lbl:`side drop  ${rIn(sideDrop)}"`},{y0:sideDrop,y1:sideDrop+couch_backInset,lbl:`back inset  ${rIn(couch_backInset)}"`},{y0:sideDrop+couch_backInset,y1:sideDrop+couch_backInset+couch_taperLen,lbl:couch_taperLen>0.5?`taper  ${rIn(couch_taperLen)}"`:''},{y0:sideDrop+couch_backInset+couch_taperLen,y1:couch_panelLen,lbl:`front  ${rIn(couch_frontStraight)}"`}]
     .filter(z=>z.lbl&&(z.y1-z.y0)>0.5).forEach(z=>{const my=oy+(z.y0+z.y1)/2*sc;add('text',{x:lx,y:my,'text-anchor':la,'dominant-baseline':'middle','font-size':10,fill:zC,'font-weight':'600'}).textContent=z.lbl;});}
+
+    // === CUT-WIDTH DIMENSIONS (tapered panels) ===
+    // The diagonal red cut edges are defined by the panel HALF-WIDTH — the distance from the FINISHED
+    // CENTER seam line (the purple dashed line, seam/2 in from the sew edge) out to the cut — at each
+    // zone break. The zone labels give the vertical positions; these give the horizontal ones, so the
+    // maker can mark each cut point and connect them. These widths match the assembly diagram, halved
+    // at the center seam (the extra seam/2 of overlap is shown separately, between the two dashed lines).
+    if(polyOutlineToUse===polyOutline){
+      const outSign=(bolt.insideEdge==='left')?1:-1;          // toward the scrap / outer selvage
+      const wDims=[
+        {yLen:0,              w:Math.min(halfBack,B),  pad: 10},  // back hem (drop below the top edge)
+        {yLen:sideDrop,       w:Math.min(halfMid,B),   pad:  0},  // widest point (end of side drop)
+        {yLen:yPointB,        w:Math.min(halfFront,B), pad:  0},  // taper end (front fold)
+        {yLen:couch_panelLen, w:Math.min(halfFloor,B), pad:-10},  // front floor (lift above bottom edge)
+      ];
+      for(const d of wDims){
+        if(d.w<=0)continue;
+        const cenPt=bxy(d.yLen,seamAllow), cutPt=bxy(d.yLen,Math.min(d.w+seamAllow,B));
+        const ay=cenPt[1]+d.pad;
+        add('line',{x1:cenPt[0],y1:ay,x2:cutPt[0],y2:ay,stroke:'#334155','stroke-width':1,'marker-start':'url(#arr_'+svgId+')','marker-end':'url(#arr_'+svgId+')'});
+        const lblX=cutPt[0]+outSign*6;
+        add('text',{x:lblX,y:ay-3,'text-anchor':(outSign>0?'start':'end'),'font-size':10,fill:'#0f172a','font-weight':'bold'}).textContent=`${rIn(d.w)}"`;
+      }
+      // Clarify the reference once, beneath the panel label.
+      add('text',{x:lmp[0],y:lmp[1]+60,'text-anchor':'middle','font-size':9,fill:'#64748b','font-style':'italic'}).textContent='widths from center seam line';
+    }
 
     // Extension nesting
     if(bolt.extInScrap){const p=bolt.extInScrap.placement;const c1=bxy(p.x,p.y),c2=bxy(p.x+p.w,p.y),c3=bxy(p.x+p.w,p.y+p.h),c4=bxy(p.x,p.y+p.h);const xs=[c1[0],c2[0],c3[0],c4[0]],ys=[c1[1],c2[1],c3[1],c4[1]];const exL=Math.min(...xs),exR=Math.max(...xs),exT=Math.min(...ys),exB=Math.max(...ys);add('rect',{x:exL,y:exT,width:exR-exL,height:exB-exT,fill:'#d8b4fe55',stroke:'#7c3aed','stroke-width':1.5,'stroke-dasharray':'5,3'});add('text',{x:(exL+exR)/2,y:(exT+exB)/2+3,'text-anchor':'middle','font-size':9,fill:'#7c3aed','font-weight':'bold'}).textContent=bolt.extInScrap.name;add('text',{x:(exL+exR)/2,y:(exT+exB)/2+14,'text-anchor':'middle','font-size':8,fill:'#7c3aed'}).textContent=`${rIn(p.w)}"×${rIn(p.h)}"`;}
@@ -510,9 +580,10 @@ function drawDiagram(params, opts){
     if(isMainCutBolt){
       const sf=opts.sectionalFlap;
       const isLeftPanel=(bolt.insideEdge==='right');
-      // Slit position in yWid: cover-x = couch arm edge − cld → yWid = W/2 − cld
+      // Slit position in yWid: cover-x = couch arm edge − cld → yWid = W/2 − cld, plus the seam
+      // allowance so it lands on the shifted cut piece (measured from the sew edge).
       const cld = sf.cutLineDist || 0;
-      const slit_yWid = Math.max(0, W/2 - cld);
+      const slit_yWid = Math.min(Math.max(0, W/2 - cld) + seamAllow, B);
       // Slit endpoints: from the bottom hem (couch_panelLen) UP to the front-rest fold (yPointB).
       const [slitX_bot, slitY_bot] = bxy(couch_panelLen, slit_yWid);
       const [slitX_top, slitY_top] = bxy(yPointB,        slit_yWid);
@@ -538,20 +609,32 @@ function drawDiagram(params, opts){
     // === SHORT PIECE CORNER CUTOUT ANNOTATION ===
     // Sits at the OUTER edge of the connecting bolt (at connHalfWidth, not halfFront), spanning from
     // the front of the couch footprint (czT_yLen) down to the bottom hem — matches the assembly diagram.
-    if(opts.sectionalSnaps&&opts.sectionalSnaps.isShortPiece&&bi===opts.sectionalSnaps.boltIndex){
-      const ss=opts.sectionalSnaps;
-      const connOverlap = ss.connectingOverlap || 0;
-      const cutoutW = connOverlap;                                // matches the overlap strip width
-      const cutoutH = couch_panelLen - czT_yLen;                  // front of couch footprint → bottom hem
-      const isLeftPanel=(bolt.insideEdge==='right');
-      let co_x_start,co_x_end;
-      if(isLeftPanel){co_x_start=ox+(B-connHalfWidth)*sc;co_x_end=co_x_start+cutoutW*sc;}
-      else{co_x_end=ox+connHalfWidth*sc;co_x_start=co_x_end-cutoutW*sc;}
-      const co_y1=oy+czT_yLen*sc,co_y2=oy+couch_panelLen*sc;
-      const co_left=Math.min(co_x_start,co_x_end),co_w=Math.abs(co_x_end-co_x_start),co_h=cutoutH*sc;
-      add('rect',{x:co_left,y:co_y1,width:co_w,height:co_h,fill:'#fef9c3','fill-opacity':0.85,stroke:'#ca8a04','stroke-width':1.5,'stroke-dasharray':'4,3'});
-      add('text',{x:co_left+co_w/2,y:co_y1+co_h/2-6,'text-anchor':'middle','font-size':8,fill:'#92400e','font-weight':'bold'}).textContent='CORNER';
-      add('text',{x:co_left+co_w/2,y:co_y1+co_h/2+7,'text-anchor':'middle','font-size':8,fill:'#92400e','font-weight':'bold'}).textContent='CUTOUT';
+    if(isShortConnBolt){
+      // CORNER CUTOUT — the rectangular notch removed from the front-floor connecting corner.
+      //   Outer edge = the straight connecting edge (connHalfWidth = halfMid).
+      //   Inner edge = the couch-footprint joint (connInnerHalfWidth = W/2).
+      //   Vertical span = front fold (yPointB) → front floor (couch_panelLen).
+      // Geometry matches the assembly diagram; dimensions are labelled so the maker can cut it.
+      const cutoutW = Math.max(0, connHalfWidth - connInnerHalfWidth);  // halfMid − W/2 (inches)
+      const cutoutH = Math.max(0, couch_panelLen - yPointB);            // yPointB → bottom hem (inches)
+      if(cutoutW>0&&cutoutH>0){
+        const cOut = bxy(yPointB, Math.min(connHalfWidth+seamAllow,B));  // top-outer corner (+ seam allowance)
+        const cIn  = bxy(yPointB, connInnerHalfWidth+seamAllow);         // top-inner corner (+ seam allowance)
+        const co_left=Math.min(cOut[0],cIn[0]), co_right=Math.max(cOut[0],cIn[0]);
+        const co_w=co_right-co_left, co_y1=oy+yPointB*sc, co_h=cutoutH*sc;
+        const outerIsLeft=(bolt.insideEdge==='right');   // connecting edge sits on the outer side
+        add('rect',{x:co_left,y:co_y1,width:co_w,height:co_h,fill:'#fef9c3','fill-opacity':0.85,stroke:'#ca8a04','stroke-width':1.5,'stroke-dasharray':'4,3'});
+        add('text',{x:co_left+co_w/2,y:co_y1+co_h/2-5,'text-anchor':'middle','font-size':8,fill:'#92400e','font-weight':'bold'}).textContent='CORNER';
+        add('text',{x:co_left+co_w/2,y:co_y1+co_h/2+6,'text-anchor':'middle','font-size':8,fill:'#92400e','font-weight':'bold'}).textContent='CUTOUT';
+        // Width dimension — arrow across the TOP of the notch.
+        arrow(co_left,co_y1-8,co_right,co_y1-8);
+        add('text',{x:co_left+co_w/2,y:co_y1-12,'text-anchor':'middle','font-size':9,fill:'#0f172a','font-weight':'bold'}).textContent=`${rIn(cutoutW)}"`;
+        // Height dimension — arrow down the OUTER side of the notch.
+        const hx=outerIsLeft?co_left-8:co_right+8;
+        arrow(hx,co_y1,hx,co_y1+co_h);
+        const htx=outerIsLeft?hx-3:hx+3;
+        add('text',{x:htx,y:co_y1+co_h/2,'text-anchor':outerIsLeft?'end':'start','dominant-baseline':'middle','font-size':9,fill:'#0f172a','font-weight':'bold',transform:`rotate(-90 ${htx} ${co_y1+co_h/2})`}).textContent=`${rIn(cutoutH)}"`;
+      }
     }
 
     // (Snap dots intentionally NOT drawn on the cut diagram — see the assembly diagram for snap
@@ -1655,21 +1738,24 @@ function compute(){
     const connectingOverlap=0; // input removed; handled manually at install
     const snapStrapsOpt=false;
 
+    // takeup = real-world drape settling / measuring slack. Shortens every hanging
+    // edge (back, front, sides) so the finished hem rises by this much. Default 0.
+    const takeup=Math.max(0,parseNum('takeup')||0);
     const AT2F=Math.sqrt(Math.max(0,H-F2A)**2+Math.max(0,D-BR)**2);
-    const sideDrop=H-FC;
-    const frontExtDrop=F2A-FC;
+    const sideDrop=Math.max(0,H-FC-takeup);
+    const frontExtDrop=Math.max(0,F2A-FC-takeup);
     const ML=WB+2*sideDrop;
     const totalFB=hem+BR+AT2F+frontExtDrop;
-    const backDrop=H-FC;
-    const MW=WB+2*(H-FC);
+    const backDrop=sideDrop;
+    const MW=WB+2*sideDrop;
     const backInset=hem+BR;
-    const frontInset=F2A-FC;
+    const frontInset=frontExtDrop;
     const taperZoneLength=Math.max(0,B-frontInset-backInset);
     const frontWidthAfterCut=W+2*frontExtDrop;
     const markFromSideEdge=Math.max(0,(ML-frontWidthAfterCut)/2);
     const markFromCenter=frontWidthAfterCut/2;
     const backPieceTopWidth=ML+seam,backPieceBottomWidth=WB+2*hem;
-    const backPieceHeight=H-FC,backPieceLength=backPieceTopWidth,backPieceWidth=backPieceHeight;
+    const backPieceHeight=sideDrop,backPieceLength=backPieceTopWidth,backPieceWidth=backPieceHeight;
     const splitBackCenterSeam=seam,splitBackHalfTop=backPieceTopWidth/2+splitBackCenterSeam;
     const splitBackHalfBot=backPieceBottomWidth/2+splitBackCenterSeam;
     const splitBackNestedWidth=splitBackHalfTop+splitBackHalfBot;
@@ -1696,7 +1782,10 @@ function compute(){
     const couch_frontFlapShortage=Math.max(0,couch_totalFB-B);
     const couch_frontFlapNeeded=couch_frontFlapShortage>0;
     const couch_frontFlapWidth=couch_frontFlapNeeded?couch_frontFlapShortage+hem:0;
-    const couch_taperLen=Math.max(0,B-couch_backInset-couch_frontInset);
+    // FIX: seat traverse = TRUE diagonal (AT2F), capped to the bolt-limited length only
+    // when a front flap is needed. The old `B - backInset - frontInset` padded the panel
+    // to a full bolt width in the length direction — dead length that dropped the front hem.
+    const couch_taperLen=Math.min(AT2F,Math.max(0,B-couch_backInset-couch_frontInset));
     const couch_frontStraight=couch_frontInset+couch_frontFlapWidth;
     const couch_panelLen=sideDrop+couch_backInset+couch_taperLen+couch_frontStraight;
     const couch_assembledW=WB+2*sideDrop;
@@ -1735,7 +1824,7 @@ function compute(){
     // The couch_* locals above still drive the cut diagram and mirror this value.
     totalLength = CoverMath.sofaCover({
       width: W, depth: D, height: H, armrestHeight: F2A, backrestDepth: BR, backWidth: WB,
-      bolt: B, fc: FC, hem: hem, seam: seam
+      bolt: B, fc: FC, hem: hem, seam: seam, takeup: takeup
     }).totalLength;
     if(couch_extensionsFitInScrap)nestingNote=`2 bolts × ${fmtExact(couch_panelLen)}" = ${fmtExact(couch_total_inches)}". Extensions from scrap.`;
     else if(couch_extNeeded)nestingNote=`${couch_totalBolts} bolts × ${fmtExact(couch_panelLen)}" = ${fmtExact(couch_total_inches)}".`;
