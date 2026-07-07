@@ -85,6 +85,21 @@ one standalone calculator (`table_cover_calculator_MFG.html`) both drive off `co
 (`tableCover` with drape modes tabletop/seats/full + multi-strip layout). Chairs, sofas, chaise, and
 ottomans still have two copies and can still drift until they're migrated the same way.
 
+**Sofa drape take-up (calibration) — keep it in ONE place.** `cover-math.js` exposes
+`CONST.SOFA_DRAPE_TAKEUP` (default 0) and a `takeup` param on `sofaCover()`. It shortens every hanging
+edge so the finished hem rises by that much, compensating for real-world settling the flat geometry
+doesn't model. The standalone couch calculator has a per-quote "Drape take-up" input, but the WEBSITE
+does not pass `takeup` — so it uses the constant. **To apply a standard take-up to both the website
+quote and the standalone, set `CONST.SOFA_DRAPE_TAKEUP` (one line) — do NOT rely only on the standalone
+input, or the website's yardage/price will drift from the fabric you actually use.** The standalone
+input stays for one-off overrides. (Same idea applies if chairs get a take-up when they're cleaned up.)
+
+**Sofa panel length — no length-direction bolt padding.** `sofaCover()`'s seat traverse uses the true
+diagonal `AT2F`, capped to the bolt only when a front flap is genuinely needed. Do NOT restore the old
+`taperLen = B - backInset - frontInset` (it padded the panel to a full bolt in the length direction,
+dropping the front hem to the floor and cancelling floor clearance up front). Because this lives in
+`cover-math.js`, the website and standalone stay in sync — but the website needs a redeploy to pick it up.
+
 ### Framework
 
 The `docs/framework/` directory contains durable reference docs.
