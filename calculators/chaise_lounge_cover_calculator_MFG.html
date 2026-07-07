@@ -259,6 +259,9 @@ function drawDiagram(params){
   const extActualLen = (extEntryY !== null && extExitY !== null && extExitY > extEntryY)
     ? (extExitY - extEntryY) : couch_panelLen;
   const rIn = v => roundMode === 'whole' ? Math.ceil(v) : roundMode === 'half' ? roundHalf(v) : Math.round(v*100)/100;
+  // Bolt width is a FIXED material constant (e.g. 55.25") — never round it with rIn(), or it reads
+  // wider than the actual fabric (56" in whole mode, 55.5" in half mode) and overstates the material.
+  const fmtMat = v => (+(Math.round(v*100)/100).toFixed(2)).toString();
   const svg = document.getElementById('diagram');
   if (!svg) return;
   while (svg.firstChild) svg.removeChild(svg.firstChild);
@@ -333,7 +336,7 @@ function drawDiagram(params){
     // Bolt width arrow (right side)
     arrow(sx + thisBoltLenPx + 8, sy, sx + thisBoltLenPx + 8, sy + boltWPx);
     add('text',{x:sx + thisBoltLenPx + 14, y:sy + boltWPx/2, 'dominant-baseline':'middle', 'font-size':10,
-      fill:'#475569'}).textContent=`${rIn(B)}"`;
+      fill:'#475569'}).textContent=`${fmtMat(B)}"`;
 
     // Pieces
     let extGroupX1 = null, extGroupX2 = null, extGroupH = 0;
@@ -412,7 +415,7 @@ function drawDiagram(params){
       `${rIn(couch_panelLen)}" panel + ${rIn(extPull)}" for 4 extension half-strips (${rIn(stripW)}" wide × ~${rIn(couch_panelLen/2 + 1)}" long, cut across bolt, sewn at center)`;
   } else {
     add('text',{x:VBW/2, y:sy + 34, 'text-anchor':'middle', 'font-size':10, fill:'#475569'}).textContent=
-      `Single panel — assembled width (${rIn(couch_assembledW)}") fits within bolt width (${rIn(B)}").`;
+      `Single panel — assembled width (${rIn(couch_assembledW)}") fits within bolt width (${fmtMat(B)}").`;
   }
 }
 
@@ -424,6 +427,9 @@ function _drawDiagram_chair_legacy(params){
          useSplitBack, splitBackHalfTop, splitBackHalfBot, splitBackBoltLength,
          splitBackMinOffset, splitBackNestedWidth, splitBackCenterSeam} = params;
   const rIn = v => roundMode === 'whole' ? Math.ceil(v) : roundMode === 'half' ? roundHalf(v) : Math.round(v*100)/100;
+  // Bolt width is a FIXED material constant (e.g. 55.25") — never round it with rIn(), or it reads
+  // wider than the actual fabric (56" in whole mode, 55.5" in half mode) and overstates the material.
+  const fmtMat = v => (+(Math.round(v*100)/100).toFixed(2)).toString();
   const svg = document.getElementById('diagram');
   while (svg.firstChild) svg.removeChild(svg.firstChild);
   const VBW = svg.viewBox.baseVal.width, VBH = svg.viewBox.baseVal.height;
@@ -450,14 +456,14 @@ function _drawDiagram_chair_legacy(params){
   const mainH = B * scale;
   add('rect',{x:sx, y:sy, width:mainW, height:mainH, fill:'#eef2ff', stroke:'#0f172a'});
   add('text',{x:sx + mainW/2, y:sy + mainH/2 - 8, 'text-anchor':'middle', 'font-size':12, fill:'#334155', 'font-weight':'bold'}).textContent='MAIN PIECE';
-  add('text',{x:sx + mainW/2, y:sy + mainH/2 + 8, 'text-anchor':'middle', 'font-size':11, fill:'#475569'}).textContent=`${rIn(ML)}" × ${rIn(B)}" (side-to-side)`;
+  add('text',{x:sx + mainW/2, y:sy + mainH/2 + 8, 'text-anchor':'middle', 'font-size':11, fill:'#475569'}).textContent=`${rIn(ML)}" × ${fmtMat(B)}" (side-to-side)`;
 
   // ML dimension arrow
   arrow(sx, sy - 18, sx + mainW, sy - 18);
   add('text',{x:sx + mainW/2, y:sy - 24, 'text-anchor':'middle', 'font-size':12, fill:'#334155'}).textContent=`ML: ${rIn(ML)}"`;
   // Bolt width arrow
   arrow(sx - 18, sy, sx - 18, sy + mainH);
-  add('text',{x:sx - 22, y:sy + mainH/2, 'text-anchor':'end', 'dominant-baseline':'middle', 'font-size':12, fill:'#334155', transform:`rotate(-90 ${sx-22} ${sy + mainH/2})`}).textContent=`Bolt (B): ${rIn(B)}"`;
+  add('text',{x:sx - 22, y:sy + mainH/2, 'text-anchor':'end', 'dominant-baseline':'middle', 'font-size':12, fill:'#334155', transform:`rotate(-90 ${sx-22} ${sy + mainH/2})`}).textContent=`Bolt (B): ${fmtMat(B)}"`;
   add('circle',{cx:sx + mainW/2, cy:sy + mainH/2, r:4, fill:'#dc2626', stroke:'#ffffff', 'stroke-width':1.5});
 
   let rightEdgeX = sx + mainW;
@@ -755,6 +761,9 @@ function drawAssemblyDiagramSide(params){
          totalFB, frontFlapNeeded, frontFlapWidth, backPieceLength,
          rounded, roundMode, hem, seam} = params;
   const rIn = v => roundMode === 'whole' ? Math.ceil(v) : roundMode === 'half' ? roundHalf(v) : Math.round(v*100)/100;
+  // Bolt width is a FIXED material constant (e.g. 55.25") — never round it with rIn(), or it reads
+  // wider than the actual fabric (56" in whole mode, 55.5" in half mode) and overstates the material.
+  const fmtMat = v => (+(Math.round(v*100)/100).toFixed(2)).toString();
   const svg = document.getElementById('assemblyDiagramSide');
   while(svg.firstChild) svg.removeChild(svg.firstChild);
   const add = (t,a,p=svg)=>{const e=document.createElementNS('http://www.w3.org/2000/svg',t); for(const k in a) e.setAttribute(k,a[k]); p.appendChild(e); return e;};
@@ -905,6 +914,9 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
          couch_backInset, couch_taperLen, couch_frontStraight, couch_frontInset, couch_frontFlapWidth, couch_frontFlapNeeded,
          couch_extNeeded, couch_extEachCut, couch_extSeam, couch_extBoltsNeeded, couch_totalBolts} = params;
   const rIn = v => roundMode === 'whole' ? Math.ceil(v) : roundMode === 'half' ? roundHalf(v) : Math.round(v*100)/100;
+  // Bolt width is a FIXED material constant (e.g. 55.25") — never round it with rIn(), or it reads
+  // wider than the actual fabric (56" in whole mode, 55.5" in half mode) and overstates the material.
+  const fmtMat = v => (+(Math.round(v*100)/100).toFixed(2)).toString();
   const svg = document.getElementById(svgId);
   if (!svg) return;
   svg.setAttribute('viewBox', `0 0 ${vbw} ${vbh}`);
@@ -1203,7 +1215,7 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
   arrow(cx - halfMid, totDimY, cx + halfMid, totDimY, '#0f172a');
   add('text',{x:cx, y:totDimY + 16, 'text-anchor':'middle', 'font-size':12,
     fill:'#0f172a', 'font-weight':'bold'}).textContent=
-    `Cut from 1 bolt (${rIn(B)}" wide) — assembled width ${rIn(couch_assembledW)}" fits within bolt.`;
+    `Cut from 1 bolt (${fmtMat(B)}" wide) — assembled width ${rIn(couch_assembledW)}" fits within bolt.`;
 
   // (Trim-per-side removed — chaise cover is a plain rectangle, no side trim.)
 
@@ -1352,8 +1364,8 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
   row += 14;
   add('text',{x:keyX + 12, y:row, 'font-size':10, fill:'#334155'}).textContent=
     couch_extNeeded
-      ? `One ${rIn(couch_panelLen)}" × ${rIn(B)}" panel + two ${rIn(couch_assembledW/2 - B/2)}" extension strips sewn to each side.`
-      : `One ${rIn(couch_panelLen)}" × ${rIn(B)}" panel cut from a single bolt. No center snap seam, no extensions.`;
+      ? `One ${rIn(couch_panelLen)}" × ${fmtMat(B)}" panel + two ${rIn(couch_assembledW/2 - B/2)}" extension strips sewn to each side.`
+      : `One ${rIn(couch_panelLen)}" × ${fmtMat(B)}" panel cut from a single bolt. No center snap seam, no extensions.`;
   row += 18;
   add('text',{x:keyX + 12, y:row, 'font-size':11, fill:'#059669', 'font-weight':'bold'}).textContent='Installation';
   row += 14;
@@ -1388,6 +1400,9 @@ function _drawAssemblyDiagramFlat_chair_legacy(params, svgId, vbw, vbh){
          backPieceWidth, backPieceLength, frontFlapNeeded, frontFlapWidth, frontFlapLength,
          backInset, frontInset, markFromSideEdge, frontWidthAfterCut, taperZoneLength} = params;
   const rIn = v => roundMode === 'whole' ? Math.ceil(v) : roundMode === 'half' ? roundHalf(v) : Math.round(v*100)/100;
+  // Bolt width is a FIXED material constant (e.g. 55.25") — never round it with rIn(), or it reads
+  // wider than the actual fabric (56" in whole mode, 55.5" in half mode) and overstates the material.
+  const fmtMat = v => (+(Math.round(v*100)/100).toFixed(2)).toString();
   const svg = document.getElementById(svgId);
   if (!svg) return;
   svg.setAttribute('viewBox', `0 0 ${vbw} ${vbh}`);
@@ -1747,7 +1762,7 @@ function _drawAssemblyDiagramFlat_chair_legacy(params, svgId, vbw, vbh){
   add('text', {x:cx, y:mainTopY + mainH/2 - 10, 'text-anchor':'middle', 'font-size':14,
     fill:'#991b1b', 'font-weight':'bold'}).textContent='MAIN PIECE (side-to-side)';
   add('text', {x:cx, y:mainTopY + mainH/2 + 8, 'text-anchor':'middle', 'font-size':11,
-    fill:'#991b1b'}).textContent=`${rIn(ML)}" × ${rIn(B)}" (bolt width)`;
+    fill:'#991b1b'}).textContent=`${rIn(ML)}" × ${fmtMat(B)}" (bolt width)`;
 
   // Side drop labels
   const leftDropW = sideDrop * sc;
@@ -1850,7 +1865,7 @@ function _drawAssemblyDiagramFlat_chair_legacy(params, svgId, vbw, vbh){
   const bDimX = mainX + mainW + 20;
   arrow(bDimX, mainTopY, bDimX, mainBotY, '#334155');
   add('text',{x:bDimX + 4, y:mainTopY + mainH/2 + 4, 'font-size':11, fill:'#334155', 'font-weight':'bold',
-    transform:`rotate(90 ${bDimX+4} ${mainTopY + mainH/2 + 4})`}).textContent=`B: ${rIn(B)}" (bolt width, front-to-back)`;
+    transform:`rotate(90 ${bDimX+4} ${mainTopY + mainH/2 + 4})`}).textContent=`B: ${fmtMat(B)}" (bolt width, front-to-back)`;
 
   // Back piece dimension (vertical, left side)
   if (backPieceHeight > 0) {

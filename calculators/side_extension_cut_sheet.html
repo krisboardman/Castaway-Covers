@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Side Extension — Assembly &amp; Cut Sheet</title>
+<style>
+  :root { --bg:#f8fafc; --card:#fff; --text:#0f172a; --sub:#475569; --muted:#e2e8f0; }
+  body { font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; background:var(--bg); color:var(--text); margin:0; padding:24px; }
+  .wrap { max-width: 1200px; margin: 0 auto; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  .sub { color:var(--sub); font-size:13px; margin:0 0 16px; }
+  .grid { display:grid; grid-template-columns: 320px 1fr; gap:16px; }
+  .card { background:var(--card); border:1px solid var(--muted); border-radius:14px; padding:16px; box-shadow: 0 1px 8px rgba(0,0,0,0.04); }
+  .title { font-weight:600; margin-bottom:10px; }
+  .inputs { display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
+  label.lbl { display:grid; gap:5px; font-size:12px; color:var(--sub); }
+  input[type="number"] { border:1px solid var(--muted); border-radius:10px; padding:9px 11px; font-size:14px; }
+  .full { grid-column: 1 / -1; }
+  .row { display:flex; justify-content:space-between; align-items:baseline; font-size:14px; padding:7px 0; gap:10px; }
+  .row + .row { border-top:1px dashed var(--muted); }
+  .row strong { text-align:right; }
+  .note { font-size:12px; color:var(--sub); margin-top:8px; line-height:1.5; }
+  .big { font-size:20px; font-weight:700; color:#0369a1; }
+  svg { width:100%; border:1px dashed #cbd5e1; border-radius:12px; background:#fcfdff; }
+  .legend { display:flex; gap:14px; align-items:center; font-size:12px; color:var(--sub); flex-wrap:wrap; margin-top:8px; }
+  .chip { display:inline-block; width:14px; height:10px; border-radius:2px; border:1px solid #0f172a22; vertical-align:middle; }
+  .warn { color:#b91c1c; font-weight:600; }
+  h2 { font-size:15px; margin:0 0 8px; }
+  .stack > * + * { margin-top:16px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Side Extension — Assembly &amp; Cut Sheet</h1>
+  <p class="sub">Two add-on strips sewn onto the existing cover's left and right side edges to bring each side down to the floor with clearance. Estimates for now — update after you re-measure.</p>
+
+  <div class="grid">
+    <div class="stack">
+      <div class="card">
+        <div class="title">Inputs (inches)</div>
+        <div class="inputs">
+          <label class="lbl">Bolt width<input id="bolt" type="number" value="55.25" step="0.25"></label>
+          <label class="lbl">Floor clearance<input id="fc" type="number" value="3" step="0.5"></label>
+          <label class="lbl">Wave trimmed off existing<input id="wave" type="number" value="2" step="0.5"></label>
+          <label class="lbl">Topstitch overlap<input id="seam" type="number" value="1" step="0.5"></label>
+          <label class="lbl">LEFT — gap to floor now<input id="lShort" type="number" value="20" step="0.5"></label>
+          <label class="lbl">LEFT — run length<input id="lLen" type="number" value="52" step="0.5"></label>
+          <label class="lbl">RIGHT — gap to floor now<input id="rShort" type="number" value="30" step="0.5"></label>
+          <label class="lbl">RIGHT — run length<input id="rLen" type="number" value="59.5" step="0.5"></label>
+          <label class="lbl full">Connecting (straight) side<select id="connSide" style="border:1px solid var(--muted);border-radius:10px;padding:9px 11px;font-size:14px;background:#fff;">
+            <option value="right" selected>Right — straight, goes back (no diagonal)</option>
+            <option value="left">Left</option>
+            <option value="none">Neither — both sides taper</option>
+          </select></label>
+        </div>
+        <div class="note">
+          <b>Gap to floor now</b> = how far the current (waved) edge stops short of floor&minus;clearance.
+          Each strip's cut width adds the <b>wave you cut off</b> and the <b>topstitch overlap</b> on top of that gap.
+          <b>Run length</b> = how far it travels along the side, front-to-back, including the back-corner wrap.
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="title">Cut sizes &amp; material</div>
+        <div id="results"></div>
+      </div>
+    </div>
+
+    <div class="stack">
+      <div class="card">
+        <h2>Assembly — existing cover + new strips (top-down)</h2>
+        <svg id="assembly" viewBox="0 0 1060 560" preserveAspectRatio="xMidYMid meet"></svg>
+        <div class="legend">
+          <span class="chip" style="background:#eef2ff;"></span> Existing cover
+          <span class="chip" style="background:#fde68a;"></span> Wave cut off (&minus;2&quot;)
+          <span class="chip" style="background:#bbf7d0;"></span> New strip
+          <span style="color:#dc2626;font-weight:600;">— cut / floor edge</span>
+          <span style="color:#9333ea;font-weight:600;">- - topstitch seam</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Cut layout — strips nested on the bolt</h2>
+        <svg id="cutlay" viewBox="0 0 1060 470" preserveAspectRatio="xMidYMid meet"></svg>
+        <div class="note" id="shapeNote"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function num(id){return Number(document.getElementById(id).value)||0;}
+function ceilYd(inches){return Math.ceil(inches/36);}
+function r1(v){return (Math.round(v*100)/100).toString();}
+const NS='http://www.w3.org/2000/svg';
+function mk(svg){svg.innerHTML='';const add=(t,a,p=svg)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);p.appendChild(e);return e;};
+  const defs=add('defs',{});const m=add('marker',{id:svg.id+'ar',markerWidth:8,markerHeight:8,refX:4,refY:4,orient:'auto',viewBox:'0 0 8 8'},defs);
+  add('path',{d:'M0,0 L8,4 L0,8 Z',fill:'#334155'},m);
+  const arrow=(x1,y1,x2,y2)=>add('line',{x1,y1,x2,y2,stroke:'#334155','stroke-width':1,'marker-start':'url(#'+svg.id+'ar)','marker-end':'url(#'+svg.id+'ar)'});
+  const txt=(x,y,s,o={})=>{const e=add('text',Object.assign({x,y},o));e.textContent=s;return e;};
+  return {add,arrow,txt};
+}
+
+// Schematic cover half-width (in) at panel-y (0 = back, panelLen = front)
+const PANEL_LEN=89.5;
+function _interp(P,y){
+  if(y<=P[0][0])return P[0][1];
+  for(let i=0;i<P.length-1;i++){const a=P[i],b=P[i+1];if(y<=b[0])return a[1]+(b[1]-a[1])*(y-a[0])/(b[0]-a[0]);}
+  return P[P.length-1][1];
+}
+// Outer / free side: normal taper + front-corner diagonal.
+function taperHalf(y){return _interp([[0,58.25],[30,88.25],[34,88.25],[64,81.5],[89.5,68.25]],y);}
+// Connecting side (sectional): widen over the side drop, then STRAIGHT to the front floor — no taper, no diagonal.
+function straightHalf(y){return _interp([[0,58.25],[30,88.25],[89.5,88.25]],y);}
+
+function drawAssembly(v){
+  const svg=document.getElementById('assembly');const{add,arrow,txt}=mk(svg);
+  const VBW=1060,VBH=560,padS=150,padT=64,padB=96;
+  const maxHalf=88.25, maxOut=Math.max(v.lNet,v.rNet);
+  const regionW=2*(maxHalf+maxOut), regionH=PANEL_LEN;
+  const s=Math.min((VBW-2*padS)/regionW,(VBH-padT-padB)/regionH);
+  const cx=VBW/2, oy=padT;
+  const X=(half,side)=>cx+side*half*s;   // half = inches from center, side ±1
+  const Y=(y)=>oy+y*s;
+  // Which side is the straight connecting side (no taper/diagonal)?
+  const leftFn  = (v.connSide==='left')  ? straightHalf : taperHalf;
+  const rightFn = (v.connSide==='right') ? straightHalf : taperHalf;
+
+  // orientation labels
+  txt(cx,oy-34,'▲  BACK',{'text-anchor':'middle','font-size':14,fill:'#0f172a','font-weight':'bold','letter-spacing':'2'});
+  txt(cx,Y(PANEL_LEN)+50,'▼  FRONT',{'text-anchor':'middle','font-size':14,fill:'#0f172a','font-weight':'bold','letter-spacing':'2'});
+
+  // cover polygon — right edge via rightFn, left edge via leftFn (asymmetric for a sectional)
+  const ys=[];for(let y=0;y<=PANEL_LEN+0.01;y+=PANEL_LEN/24)ys.push(y);
+  let pts=[];
+  ys.forEach(y=>pts.push([X(rightFn(y),1),Y(y)]));
+  for(let i=ys.length-1;i>=0;i--){const y=ys[i];pts.push([X(leftFn(y),-1),Y(y)]);}
+  add('polygon',{points:pts.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' '),fill:'#eef2ff',stroke:'#0f172a','stroke-width':2});
+
+  // center + existing extension seams
+  [0,53.5,-53.5].forEach(h=>{add('line',{x1:X(h,1),y1:Y(0),x2:X(h,1),y2:Y(PANEL_LEN),stroke:'#9333ea','stroke-width':1.5,'stroke-dasharray':'8,4',opacity:0.55});});
+  txt(cx+6,Y(10),'center seam',{'font-size':10,fill:'#7c3aed'});
+  txt(X(53.5,1)+4,Y(10),'existing seam',{'font-size':9,fill:'#7c3aed'});
+  txt(X(53.5,-1)-4,Y(10),'existing seam',{'font-size':9,fill:'#7c3aed','text-anchor':'end'});
+
+  // one side detail
+  function side(sd, halfFn, net, cut, run, name, straight){
+    const yTop=PANEL_LEN-run;
+    const band=[];
+    // trimmed existing edge (inner/seam) top->bottom
+    for(let y=yTop;y<=PANEL_LEN+0.01;y+=run/16){const h=halfFn(y)-v.wave;band.push([X(h,sd),Y(y)]);}
+    // outer floor edge bottom->top
+    for(let y=PANEL_LEN;y>=yTop-0.01;y-=run/16){const h=halfFn(y)-v.wave+net;band.push([X(h,sd),Y(y)]);}
+    add('polygon',{points:band.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' '),fill:'#bbf7d0',stroke:'none'});
+
+    // wave-to-be-removed sliver (between trimmed edge and current cover edge)
+    const wv=[];
+    for(let y=yTop;y<=PANEL_LEN+0.01;y+=run/16){wv.push([X(halfFn(y)-v.wave,sd),Y(y)]);}
+    for(let y=PANEL_LEN;y>=yTop-0.01;y-=run/16){wv.push([X(halfFn(y),sd),Y(y)]);}
+    add('polygon',{points:wv.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' '),fill:'#fde68a','fill-opacity':0.8,stroke:'#d97706','stroke-width':1,'stroke-dasharray':'4,3'});
+
+    // topstitch seam line (trimmed edge)
+    const seamPts=[];for(let y=yTop;y<=PANEL_LEN+0.01;y+=run/16)seamPts.push(X(halfFn(y)-v.wave,sd).toFixed(1)+','+Y(y).toFixed(1));
+    add('polyline',{points:seamPts.join(' '),fill:'none',stroke:'#9333ea','stroke-width':2.5,'stroke-dasharray':'8,4'});
+
+    // outer floor edge (red cut)
+    const floorPts=[];for(let y=yTop;y<=PANEL_LEN+0.01;y+=run/16)floorPts.push(X(halfFn(y)-v.wave+net,sd).toFixed(1)+','+Y(y).toFixed(1));
+    add('polyline',{points:floorPts.join(' '),fill:'none',stroke:'#dc2626','stroke-width':3});
+    // end caps (red cut) at top + bottom of the strip
+    [yTop,PANEL_LEN].forEach(y=>{add('line',{x1:X(halfFn(y)-v.wave,sd),y1:Y(y),x2:X(halfFn(y)-v.wave+net,sd),y2:Y(y),stroke:'#dc2626','stroke-width':2.5});});
+
+    // labels
+    const my=(yTop+PANEL_LEN)/2;
+    const midOut=halfFn(my)-v.wave+net/2;
+    txt(X(midOut,sd),Y(my)-4,name,{'text-anchor':'middle','font-size':12,fill:'#166534','font-weight':'bold'});
+    txt(X(midOut,sd),Y(my)+12,`${straight?'straight · ':''}cut ${r1(cut)}" × ${r1(run)}"`,{'text-anchor':'middle','font-size':11,fill:'#166534'});
+    // floor edge label
+    txt(X(halfFn(PANEL_LEN)-v.wave+net,sd)+sd*4,Y(PANEL_LEN)+16,`floor edge · wave-cut · ${r1(v.fc)}" clr`,{'text-anchor':sd>0?'end':'start','font-size':9.5,fill:'#dc2626','font-weight':'bold'});
+    // seam label
+    txt(X(halfFn(yTop)-v.wave,sd),Y(yTop)-6,`topstitch ${r1(v.seam)}" overlap`,{'text-anchor':'middle','font-size':9.5,fill:'#7c3aed','font-weight':'bold'});
+    // back-wrap note
+    txt(X(halfFn(yTop)-v.wave+net/2,sd),Y(yTop)-20,'↑ wraps back corner',{'text-anchor':'middle','font-size':9,fill:'#475569','font-style':'italic'});
+    // width dim near bottom
+    const yd=PANEL_LEN-2;
+    arrow(X(halfFn(yd)-v.wave,sd),Y(yd),X(halfFn(yd)-v.wave+net,sd),Y(yd));
+    txt(X(halfFn(yd)-v.wave+net/2,sd),Y(yd)-4,`${r1(net)}" drop`,{'text-anchor':'middle','font-size':10,fill:'#0f172a','font-weight':'bold'});
+  }
+  side(-1, leftFn,  v.lNet, v.lCut, v.lLen, 'LEFT strip',  v.connSide==='left');
+  side( 1, rightFn, v.rNet, v.rCut, v.rLen, 'RIGHT strip', v.connSide==='right');
+}
+
+function drawCut(v){
+  const svg=document.getElementById('cutlay');const{add,arrow,txt}=mk(svg);
+  const VBW=1060,VBH=470,padL=210,padR=70,padT=54,padB=110;
+  const sideBySide=(v.lCut+v.rCut)<=v.bolt+1e-6;
+  const regionLen=sideBySide?Math.max(v.lLen,v.rLen):(v.lLen+v.rLen);
+  const s=Math.min((VBW-padL-padR)/regionLen,(VBH-padT-padB)/v.bolt);
+  const ox=padL,oy=padT;
+  add('rect',{x:ox,y:oy,width:regionLen*s,height:v.bolt*s,fill:'#cbd5e1','fill-opacity':0.5,stroke:'#94a3b8','stroke-width':1,'stroke-dasharray':'5,4'});
+  arrow(ox-70,oy,ox-70,oy+v.bolt*s);
+  txt(ox-78,oy+v.bolt*s/2,`bolt ${r1(v.bolt)}"`,{'text-anchor':'middle','font-size':12,fill:'#334155','font-weight':'bold',transform:`rotate(-90 ${ox-78} ${oy+v.bolt*s/2})`});
+  if(sideBySide){
+    const lH=v.lCut*s,rH=v.rCut*s;
+    add('rect',{x:ox,y:oy,width:v.lLen*s,height:lH,fill:'#eef2ff'});
+    add('rect',{x:ox,y:oy+lH,width:v.rLen*s,height:rH,fill:'#dbeafe'});
+    const rc={stroke:'#dc2626','stroke-width':3,fill:'none'};
+    add('rect',Object.assign({x:ox,y:oy,width:v.lLen*s,height:lH},rc));
+    add('rect',Object.assign({x:ox,y:oy+lH,width:v.rLen*s,height:rH},rc));
+    add('line',{x1:ox,y1:oy+lH,x2:ox+Math.max(v.lLen,v.rLen)*s,y2:oy+lH,stroke:'#9333ea','stroke-width':2.5,'stroke-dasharray':'8,4'});
+    txt(ox+8,oy+14,'floor edge (wave-cut)',{'font-size':10,fill:'#dc2626','font-weight':'bold'});
+    txt(ox+8,oy+lH-6,'topstitch / seam edges — cut apart here',{'font-size':10,fill:'#7c3aed','font-weight':'bold'});
+    txt(ox+8,oy+lH+rH-6,'floor edge (wave-cut)',{'font-size':10,fill:'#dc2626','font-weight':'bold'});
+    txt(ox+v.lLen*s/2,oy+lH/2+4,`LEFT  cut ${r1(v.lCut)}"×${r1(v.lLen)}"`,{'text-anchor':'middle','font-size':13,fill:'#1e3a8a','font-weight':'bold'});
+    txt(ox+v.rLen*s/2,oy+lH+rH/2+4,`RIGHT  cut ${r1(v.rCut)}"×${r1(v.rLen)}"`,{'text-anchor':'middle','font-size':13,fill:'#1e40af','font-weight':'bold'});
+    txt(ox+4,oy+v.bolt*s-6,'◄ FRONT',{'font-size':10,fill:'#475569','font-weight':'bold'});
+    txt(ox+Math.max(v.lLen,v.rLen)*s-4,oy+v.bolt*s-6,'BACK (wraps corner) ►',{'text-anchor':'end','font-size':10,fill:'#475569','font-weight':'bold'});
+    const dx=ox+Math.max(v.lLen,v.rLen)*s+16;
+    arrow(dx,oy,dx,oy+lH);txt(dx+6,oy+lH/2,`${r1(v.lCut)}"`,{'font-size':11,fill:'#0f172a','font-weight':'bold','dominant-baseline':'middle'});
+    arrow(dx,oy+lH,dx,oy+lH+rH);txt(dx+6,oy+lH+rH/2,`${r1(v.rCut)}"`,{'font-size':11,fill:'#0f172a','font-weight':'bold','dominant-baseline':'middle'});
+  } else {
+    add('rect',{x:ox,y:oy,width:v.lLen*s,height:v.lCut*s,fill:'#eef2ff',stroke:'#dc2626','stroke-width':3});
+    add('rect',{x:ox+v.lLen*s,y:oy,width:v.rLen*s,height:v.rCut*s,fill:'#dbeafe',stroke:'#dc2626','stroke-width':3});
+    txt(ox+v.lLen*s/2,oy+v.lCut*s/2,`LEFT ${r1(v.lCut)}"×${r1(v.lLen)}"`,{'text-anchor':'middle','font-size':12,fill:'#1e3a8a','font-weight':'bold'});
+    txt(ox+v.lLen*s+v.rLen*s/2,oy+v.rCut*s/2,`RIGHT ${r1(v.rCut)}"×${r1(v.rLen)}"`,{'text-anchor':'middle','font-size':12,fill:'#1e40af','font-weight':'bold'});
+    txt(VBW/2,oy+v.bolt*s+30,`Strips too wide to nest (${r1(v.lCut+v.rCut)}" > ${r1(v.bolt)}") — run end-to-end.`,{'text-anchor':'middle','font-size':12,fill:'#b91c1c','font-weight':'bold'});
+  }
+}
+
+function draw(){
+  const v={bolt:num('bolt'),fc:num('fc'),wave:num('wave'),seam:num('seam'),
+           lShort:num('lShort'),lLen:num('lLen'),rShort:num('rShort'),rLen:num('rLen'),
+           connSide:document.getElementById('connSide').value};
+  v.lNet=v.lShort+v.wave; v.rNet=v.rShort+v.wave;      // finished drop from the trimmed edge
+  v.lCut=v.lNet+v.seam;   v.rCut=v.rNet+v.seam;         // + topstitch overlap
+  const sideBySide=(v.lCut+v.rCut)<=v.bolt+1e-6;
+  const usedLen=sideBySide?Math.max(v.lLen,v.rLen):(v.lLen+v.rLen);
+  const yards=ceilYd(usedLen), safeYards=ceilYd(usedLen+6);
+  const over=v.lCut+v.rCut-v.bolt;
+
+  document.getElementById('results').innerHTML=
+    `<div class="row"><span>LEFT — cut</span><strong>${r1(v.lCut)}" &times; ${r1(v.lLen)}"</strong></div>`+
+    `<div class="row"><span style="padding-left:10px;color:#64748b;">= ${r1(v.lShort)} gap + ${r1(v.wave)} wave + ${r1(v.seam)} stitch</span><strong style="color:#64748b;">nets ${r1(v.lNet)}" drop</strong></div>`+
+    `<div class="row"><span>RIGHT — cut</span><strong>${r1(v.rCut)}" &times; ${r1(v.rLen)}"</strong></div>`+
+    `<div class="row"><span style="padding-left:10px;color:#64748b;">= ${r1(v.rShort)} gap + ${r1(v.wave)} wave + ${r1(v.seam)} stitch</span><strong style="color:#64748b;">nets ${r1(v.rNet)}" drop</strong></div>`+
+    `<div class="row"><span>Nest across bolt?</span><strong>${sideBySide?`<span style="color:#166534;font-weight:600;">Yes</span> — ${r1(v.lCut+v.rCut)}" &le; ${r1(v.bolt)}"`:`<span class="warn">No</span> — over by ${r1(over)}"`}</strong></div>`+
+    `<div class="row"><span>Bolt length used</span><strong>${r1(usedLen)}"</strong></div>`+
+    `<div class="row"><span>Buy (with cushion)</span><strong class="big">${safeYards} yd</strong></div>`+
+    (sideBySide?'':`<div class="note warn">The two cut widths are ${r1(v.lCut+v.rCut)}" — ${r1(over)}" wider than the bolt. Shave ${r1(over)}" off the topstitch or a drop to nest both in one ${r1(Math.max(v.lLen,v.rLen))}" run; otherwise they run end-to-end (${r1(v.lLen+v.rLen)}").</div>`);
+
+  document.getElementById('shapeNote').innerHTML=
+    `Each strip's <b style="color:#9333ea;">seam edge</b> topstitches onto the existing cover after you cut the old wave off (that trim raises the edge ${r1(v.wave)}", which is why the cut adds it back). The <b style="color:#dc2626;">floor edge</b> is wave-cut to land ${r1(v.fc)}" off the deck. `+
+    `The <b>${v.connSide==='none'?'—':v.connSide}</b> side is the sectional connecting side: it runs <b>straight</b>, so that strip is a clean rectangle. The opposite (outer/free) side keeps the front-corner diagonal, so its seam edge follows that taper. `+
+    `Cut both a hair oversized and true the seam edge to the cover's real edge once it's in front of you.`;
+
+  drawAssembly(v);
+  drawCut(v);
+}
+['bolt','fc','wave','seam','lShort','lLen','rShort','rLen'].forEach(id=>document.getElementById(id).addEventListener('input',draw));
+document.getElementById('connSide').addEventListener('change',draw);
+draw();
+</script>
+</body>
+</html>

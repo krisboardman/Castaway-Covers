@@ -158,7 +158,7 @@
   <!-- Cut Diagram -->
   <div class="card cut-diagram-card" style="margin-top:16px;">
     <div class="title" id="cutDiagramTitle">Cut Diagram (to scale)</div>
-    <div id="cutlist" style="margin-bottom:12px;"></div>
+    <div id="cutlist" style="margin-bottom:12px; display:none;"></div>
     <div class="diagramBox">
       <svg id="diagram" viewBox="0 0 1200 920" preserveAspectRatio="xMidYMid meet" style="height:760px;"></svg>
       <div class="legend">
@@ -172,8 +172,8 @@
     </div>
   </div>
 
-  <!-- Grommets | Snaps -->
-  <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px; margin-top:16px;">
+  <!-- Grommets | Snaps — hidden: repetitive of the assembly diagram. Bungee length now lives in the Results card. -->
+  <div style="display:none; grid-template-columns: 1fr 1fr; gap:16px; margin-top:16px;">
     <div class="card">
       <div class="title">Grommet Placement</div>
       <div id="grommets"></div>
@@ -184,8 +184,8 @@
     </div>
   </div>
 
-  <!-- Sewing Reference -->
-  <div class="card" style="margin-top:16px;">
+  <!-- Sewing Reference — hidden: repetitive of the assembly diagram. -->
+  <div class="card" style="margin-top:16px; display:none;">
     <div class="title">Sewing Reference — Hardware Placement from Panel Edges</div>
     <div id="sewingRef"></div>
   </div>
@@ -563,10 +563,23 @@ function drawDiagram(params, opts){
         const ay=cenPt[1]+d.pad;
         add('line',{x1:cenPt[0],y1:ay,x2:cutPt[0],y2:ay,stroke:'#334155','stroke-width':1,'marker-start':'url(#arr_'+svgId+')','marker-end':'url(#arr_'+svgId+')'});
         const lblX=cutPt[0]+outSign*6;
-        add('text',{x:lblX,y:ay-3,'text-anchor':(outSign>0?'start':'end'),'font-size':10,fill:'#0f172a','font-weight':'bold'}).textContent=`${rIn(d.w)}"`;
+        const tAnchor=(outSign>0?'start':'end');
+        // Position of this width mark along the panel, measured UP from the front floor
+        // edge, so the maker can mark it directly without summing the zone lengths. Only
+        // the two interior marks need it — the endpoints are the panel's own edges.
+        const upFromFront=couch_panelLen-d.yLen;
+        const interior=upFromFront>0.5 && upFromFront<couch_panelLen-0.5;
+        if(interior){
+          // Stack the width value AND its "up from front" position ABOVE the arrow, so they
+          // clear the zone label (e.g. "back inset") that sits just below the mark.
+          add('text',{x:lblX,y:ay-16,'text-anchor':tAnchor,'font-size':10,fill:'#0f172a','font-weight':'bold'}).textContent=`${rIn(d.w)}"`;
+          add('text',{x:lblX,y:ay-5,'text-anchor':tAnchor,'font-size':8.5,fill:'#475569'}).textContent=`${rIn(upFromFront)}" up from front`;
+        } else {
+          add('text',{x:lblX,y:ay-3,'text-anchor':tAnchor,'font-size':10,fill:'#0f172a','font-weight':'bold'}).textContent=`${rIn(d.w)}"`;
+        }
       }
       // Clarify the reference once, beneath the panel label.
-      add('text',{x:lmp[0],y:lmp[1]+60,'text-anchor':'middle','font-size':9,fill:'#64748b','font-style':'italic'}).textContent='widths from center seam line';
+      add('text',{x:lmp[0],y:lmp[1]+60,'text-anchor':'middle','font-size':9,fill:'#64748b','font-style':'italic'}).textContent='widths from center seam line · "up" = from front floor edge';
     }
 
     // Extension nesting
@@ -1227,21 +1240,22 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh, sectOpts){
     add('line',{x1:x-tk,y1:yb,x2:x+tk,y2:yb,stroke:sc2,'stroke-width':1});
     add('text',{x:right?x+5:x-5,y:(ya+yb)/2+4,'text-anchor':right?'start':'end','font-size':9,fill:sc2,'font-weight':'bold'}).textContent=label;
   };
-  // Pre-compute the corner strip half-distance in inches for consistent rounding on both labels.
-  const cornerInR = rIn(cornerStripHalfR / sc);
-  const cornerInL = rIn(cornerStripHalfL / sc);
+  // Snaps dimensioned from the two STRAIGHT edges — the center seam (horizontal) and the back
+  // hem (vertical) — matching the grommet convention. The outer side edge is diagonal, so it
+  // can't be used as a reference. "from center seam" is the horizontal arrow; "from back hem"
+  // (a larger but honest number, since the snaps sit high on the back drape) is the text tag.
+  const fromBackIn   = y => rIn((y - yBackFloor) / sc);
+  const fromCenterIn = x => rIn(Math.abs(x - cx) / sc);
   if (!suppressRight) {
-    // Snap A dims: 2" perpendicular from side dotted line + distance from stud DOWN to corner
-    sDimH(furnX + furnW, snapR_A_x, snapR_A_y - 10, `${snapInIn}"`, true);
-    sDimV(snapR_A_x + 10, snapR_A_y, furnTopY, `${cornerInR}"`, true);
-    // Snap B dims: 2" perpendicular from back dotted line + midpoint distance from couch corner
-    sDimV(snapR_B_x + 10, furnTopY, snapR_B_y, `${snapInIn}"`, true);
-    sDimH(furnX + furnW, snapR_B_x, snapR_B_y - 10, `${cornerInR}"`, true);
+    sDimH(cx, snapR_A_x, snapR_A_y - 10, `${fromCenterIn(snapR_A_x)}" from center seam`, true);
+    add('text',{x:snapR_A_x+8,y:snapR_A_y+3,'text-anchor':'start','font-size':9,fill:sc2,'font-weight':'bold'}).textContent=`${fromBackIn(snapR_A_y)}" from back hem`;
+    sDimH(cx, snapR_B_x, snapR_B_y + 14, `${fromCenterIn(snapR_B_x)}" from center seam`, false);
+    add('text',{x:snapR_B_x+8,y:snapR_B_y+3,'text-anchor':'start','font-size':9,fill:sc2,'font-weight':'bold'}).textContent=`${fromBackIn(snapR_B_y)}" from back hem`;
   } else if (!suppressLeft) {
-    sDimH(snapL_A_x, furnX, snapL_A_y - 10, `${snapInIn}"`, true);
-    sDimV(snapL_A_x - 10, snapL_A_y, furnTopY, `${cornerInL}"`, false);
-    sDimV(snapL_B_x - 10, furnTopY, snapL_B_y, `${snapInIn}"`, false);
-    sDimH(snapL_B_x, furnX, snapL_B_y - 10, `${cornerInL}"`, true);
+    sDimH(snapL_A_x, cx, snapL_A_y - 10, `${fromCenterIn(snapL_A_x)}" from center seam`, true);
+    add('text',{x:snapL_A_x-8,y:snapL_A_y+3,'text-anchor':'end','font-size':9,fill:sc2,'font-weight':'bold'}).textContent=`${fromBackIn(snapL_A_y)}" from back hem`;
+    sDimH(snapL_B_x, cx, snapL_B_y + 14, `${fromCenterIn(snapL_B_x)}" from center seam`, false);
+    add('text',{x:snapL_B_x-8,y:snapL_B_y+3,'text-anchor':'end','font-size':9,fill:sc2,'font-weight':'bold'}).textContent=`${fromBackIn(snapL_B_y)}" from back hem`;
   }
   // ── Bungee tabs — oriented strips with HEM at the cushion-top end and LOOP at the ground end.
   // Physical: a strip of fabric folded into a loop and hemmed (sewn) to the cover. The bungee
@@ -1314,20 +1328,16 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh, sectOpts){
   //          (3) vertical total distance from back hem (yBackFloor) to tab hem.
   const btDimC = tabBorder;
   // (1) Horizontal: cx → kept tab, drawn above the tabs near the back hem
-  const btDimY = Math.max(yBackFloor + 14, tabLoopY - 14);
-  add('line',{x1:cx,y1:btDimY,x2:btTabX,y2:btDimY,stroke:btDimC,'stroke-width':1});
-  add('line',{x1:cx,y1:btDimY-3,x2:cx,y2:btDimY+3,stroke:btDimC,'stroke-width':1});
-  add('line',{x1:btTabX,y1:btDimY-3,x2:btTabX,y2:btDimY+3,stroke:btDimC,'stroke-width':1});
-  add('text',{x:(cx+btTabX)/2,y:btDimY-3,'text-anchor':'middle',
-    'font-size':9,fill:btDimC,'font-weight':'bold'})
-    .textContent=`${rIn(gromBackHorizFromCenter)}" from center seam`;
-  // (2) Vertical 2" tag: from yBackrestTop (fold line) up to tabHemY, on the toward-center side of the tab
+  // (2) Vertical: from the BACK cut edge (back-hem / floor edge) to the tab hem — measured from
+  //     a real, markable edge instead of the unmarked fold line. The old "from center seam"
+  //     horizontal tag is dropped; the "from side" tag below already gives the horizontal from
+  //     a real edge, so it isn't duplicated.
   const btDimX2 = btTabX - btSide*(tabW/2 + 6);
-  add('line',{x1:btDimX2,y1:tabHemY,x2:btDimX2,y2:yBackrestTop,stroke:btDimC,'stroke-width':1});
+  add('line',{x1:btDimX2,y1:tabHemY,x2:btDimX2,y2:yBackFloor,stroke:btDimC,'stroke-width':1});
   add('line',{x1:btDimX2-3,y1:tabHemY,x2:btDimX2+3,y2:tabHemY,stroke:btDimC,'stroke-width':1});
-  add('line',{x1:btDimX2-3,y1:yBackrestTop,x2:btDimX2+3,y2:yBackrestTop,stroke:btDimC,'stroke-width':1});
-  add('text',{x:btDimX2-btSide*4,y:(tabHemY+yBackrestTop)/2+3,'text-anchor':btSide>0?'end':'start',
-    'font-size':8,fill:btDimC,'font-weight':'bold'}).textContent=`2" from fold`;
+  add('line',{x1:btDimX2-3,y1:yBackFloor,x2:btDimX2+3,y2:yBackFloor,stroke:btDimC,'stroke-width':1});
+  add('text',{x:btDimX2-btSide*4,y:(tabHemY+yBackFloor)/2+3,'text-anchor':btSide>0?'end':'start',
+    'font-size':8,fill:btDimC,'font-weight':'bold'}).textContent=`${rIn((tabHemY-yBackFloor)/sc)}" from back edge`;
   // (3) Horizontal: from the cover's side (back-hem) edge to the tab center — matches grommet inset.
   const btSideEdgeX = cx + (btSide > 0 ? halfBack : -halfBack);  // outer back-hem edge on this side
   const btDimY3 = tabHemY + 10;
@@ -1842,6 +1852,10 @@ function compute(){
     const shortConnSide = sideSelector==='right' ? 'left' : 'right';
 
     // Results
+    // Bungee runs along the SIDE of the couch: it spans the couch depth (D) plus a
+    // grommet inset at each end (~5" each) plus slack for the hooks (~6"). It does NOT
+    // wrap the whole drape length.
+    const bungeeLen=Math.ceil(D + 5 + 5 + 6);
     const rows=[
       ['Diagonal drape (AT2F)',`${fmtInch(AT2F,rounded)}"`],
       ['Side drop (H − FC)',`${fmtInch(sideDrop,rounded)}"`],
@@ -1849,6 +1863,7 @@ function compute(){
       ['Panel length',`${fmtInch(couch_panelLen,rounded)}"`],
       ['Assembled width',`${fmtInch(couch_assembledW,rounded)}"`],
       ['Extensions needed',couch_extNeeded?`Yes — ${fmtInch(couch_extEachCut,rounded)}" each`:'No'],
+      ['Bungee length',isSectional?`1 × ${bungeeLen}" (outer side) + 2 short joint bungees`:`2 pieces × ${bungeeLen}"`],
     ];
     const results=document.getElementById('results');
     results.innerHTML='';
@@ -1867,7 +1882,7 @@ function compute(){
     ];
     bRows.forEach(([label,value],i)=>{const div=document.createElement('div');div.className='row';div.style.display='block';div.style.padding='8px 0';if(i>0)div.style.borderTop='1px dashed var(--muted)';div.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;"><span>${label}</span><strong>${value}</strong></div>`;buy.appendChild(div);});
 
-    const bungeeLen=Math.ceil(couch_panelLen+6);
+    // bungeeLen is defined above (with the Results rows) as D + inset + inset + slack.
     let gromHTML;
     if(isSectional){
       // Connecting side carries no grommets, no bungee, no bungee tab. Outer side keeps both
