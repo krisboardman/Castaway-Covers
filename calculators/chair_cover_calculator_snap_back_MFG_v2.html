@@ -118,7 +118,7 @@
     <!-- Cut Diagram (with Cut List folded in) — full width -->
     <div class="card cut-diagram-card" style="margin-top:16px;">
       <div class="title">Cut Diagram (to scale)</div>
-      <div id="cutlist" style="margin-bottom:12px;"></div>
+      <div id="cutlist" style="margin-bottom:12px; display:none;"></div>
       <div class="diagramBox">
         <svg id="diagram" viewBox="0 0 1200 560" preserveAspectRatio="xMidYMid meet" style="height:480px;"></svg>
         <div class="legend">
@@ -132,8 +132,8 @@
       </div>
     </div>
 
-    <!-- Grommets | Snap Straps — side by side -->
-    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px; margin-top:16px;">
+    <!-- Grommets | Snap Straps — hidden: repetitive of the assembly diagram. Bungee length now lives in the Results card. -->
+    <div style="display:none; grid-template-columns: 1fr 1fr; gap:16px; margin-top:16px;">
       <div class="card">
         <div class="title">Grommet Placement</div>
         <div id="grommets"></div>
@@ -198,7 +198,7 @@ function drawDiagram(params){
          flapTopWidth, flapBottomWidth, flapDiagonalHoriz, waveAllowance, bottomMargin,
          hem, seam, backInset, frontInset, markFromSideEdge, taperZoneLength,
          useSplitBack, splitBackHalfTop, splitBackHalfBot, splitBackBoltLength,
-         splitBackMinOffset, splitBackNestedWidth, splitBackCenterSeam} = params;
+         splitBackMinOffset, splitBackNestedWidth, splitBackCenterSeam, mainFB} = params;
   const rIn = v => roundMode === 'whole' ? Math.ceil(v) : roundMode === 'half' ? roundHalf(v) : Math.round(v*100)/100;
   // Bolt width is a FIXED material constant (e.g. 55.25") — never round it with rIn(), or it reads
   // wider than the actual fabric (56" in whole mode, 55.5" in half mode) and overstates the material.
@@ -225,18 +225,28 @@ function drawDiagram(params){
   const gap = 10 * scale;
 
   // === MAIN PIECE ===
+  // Front-to-back is cut to the TRUE coverage (mainFB = min(totalFB, B)), NOT padded to the
+  // full bolt width. When totalFB < B the leftover bolt (B − mainFB) is scrap, shown below.
+  // This is the chair equivalent of the couch's "no length-direction bolt padding" fix — it
+  // stops the front hem from hanging past the floor-clearance line.
   const mainW = ML * scale;
-  const mainH = B * scale;
+  const mainH = mainFB * scale;
+  const boltH = B * scale;
   add('rect',{x:sx, y:sy, width:mainW, height:mainH, fill:'#eef2ff', stroke:'#0f172a'});
   add('text',{x:sx + mainW/2, y:sy + mainH/2 - 8, 'text-anchor':'middle', 'font-size':12, fill:'#334155', 'font-weight':'bold'}).textContent='MAIN PIECE';
-  add('text',{x:sx + mainW/2, y:sy + mainH/2 + 8, 'text-anchor':'middle', 'font-size':11, fill:'#475569'}).textContent=`${rIn(ML)}" × ${fmtMat(B)}" (side-to-side)`;
+  add('text',{x:sx + mainW/2, y:sy + mainH/2 + 8, 'text-anchor':'middle', 'font-size':11, fill:'#475569'}).textContent=`${rIn(ML)}" × ${rIn(mainFB)}" (side-to-side)`;
+  // Scrap strip (leftover bolt width below the main piece) when front-to-back < bolt width
+  if (boltH - mainH > 2) {
+    add('rect',{x:sx, y:sy + mainH, width:mainW, height:boltH - mainH, fill:'#cbd5e1', 'fill-opacity':0.55, stroke:'#94a3b8', 'stroke-dasharray':'4,3'});
+    add('text',{x:sx + mainW/2, y:sy + mainH + (boltH - mainH)/2 + 3, 'text-anchor':'middle', 'font-size':9, fill:'#475569', 'font-weight':'bold'}).textContent=`scrap ${rIn(B - mainFB)}" (bolt ${fmtMat(B)}")`;
+  }
 
   // ML dimension arrow
   arrow(sx, sy - 18, sx + mainW, sy - 18);
   add('text',{x:sx + mainW/2, y:sy - 24, 'text-anchor':'middle', 'font-size':12, fill:'#334155'}).textContent=`ML: ${rIn(ML)}"`;
-  // Bolt width arrow
+  // Front-to-back arrow (the actual cut depth of the main piece)
   arrow(sx - 18, sy, sx - 18, sy + mainH);
-  add('text',{x:sx - 22, y:sy + mainH/2, 'text-anchor':'end', 'dominant-baseline':'middle', 'font-size':12, fill:'#334155', transform:`rotate(-90 ${sx-22} ${sy + mainH/2})`}).textContent=`Bolt (B): ${fmtMat(B)}"`;
+  add('text',{x:sx - 22, y:sy + mainH/2, 'text-anchor':'end', 'dominant-baseline':'middle', 'font-size':12, fill:'#334155', transform:`rotate(-90 ${sx-22} ${sy + mainH/2})`}).textContent=`Front-to-back: ${rIn(mainFB)}"`;
   add('circle',{cx:sx + mainW/2, cy:sy + mainH/2, r:4, fill:'#dc2626', stroke:'#ffffff', 'stroke-width':1.5});
 
   // === FRONT CORNER ANGLE CUTS (12" in from outer edge, 6" up from front) ===
@@ -577,7 +587,7 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
          backPieceTopWidth, backPieceBottomWidth, backPieceHeight,
          frontFlapNeeded, frontFlapWidth, flapTopWidth, flapBottomWidth,
          roundMode,
-         backInset, frontInset, markFromSideEdge, frontWidthAfterCut} = params;
+         backInset, frontInset, markFromSideEdge, frontWidthAfterCut, mainFB} = params;
   const rIn = v => roundMode === 'whole' ? Math.ceil(v) : roundMode === 'half' ? roundHalf(v) : Math.round(v*100)/100;
   // Bolt width is a FIXED material constant (e.g. 55.25") — never round it with rIn(), or it reads
   // wider than the actual fabric (56" in whole mode, 55.5" in half mode) and overstates the material.
@@ -607,7 +617,7 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
   const extraBack  = backPieceHeight;
   const extraFront = frontFlapNeeded ? frontFlapWidth : 0;
   const topLabelSpace = 60;
-  const totalDiagH = B + extraBack + extraFront + 40 + topLabelSpace;
+  const totalDiagH = mainFB + extraBack + extraFront + 40 + topLabelSpace;
   const totalDiagW = ML + 80;
 
   const sc = Math.min((VBW - pad*2) / totalDiagW, (VBH - pad*2) / totalDiagH);
@@ -615,7 +625,7 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
   const cx = VBW / 2;
   const backPieceTopY = pad + 10 + topLabelSpace;
   const mainTopY = backPieceTopY + extraBack * sc;
-  const mainBotY = mainTopY + B * sc;
+  const mainBotY = mainTopY + mainFB * sc;   // front-to-back = true coverage, not padded to bolt
 
   const bpPhysH = backPieceHeight * sc;
   const bpTopW  = backPieceTopWidth * sc;
@@ -623,7 +633,7 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
   const bpTopY  = mainTopY - bpPhysH;
 
   const mainW = ML * sc;
-  const mainH = B * sc;
+  const mainH = mainFB * sc;
   const mainX = cx - mainW / 2;
   const trimPx = (markFromSideEdge || 0) * sc;
   const bkInPx = (backInset || 0) * sc;
@@ -879,7 +889,7 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
     'font-size':13, fill:'#0f172a', 'font-weight':'bold'}).textContent = `ML: ${rIn(ML)}\"`;
   const fbDimX = topRightX + dOff;
   dimLine(fbDimX, bpTopY, fbDimX, frontBottomY);
-  const totalCoverageIn = backPieceHeight + B + (frontFlapNeeded ? frontFlapWidth : 0);
+  const totalCoverageIn = backPieceHeight + mainFB + (frontFlapNeeded ? frontFlapWidth : 0);
   add('text', {x: fbDimX + 15, y: (bpTopY + frontBottomY)/2, 'text-anchor':'middle',
     'font-size':13, fill:'#0f172a', 'font-weight':'bold',
     transform: `rotate(-90 ${fbDimX+15} ${(bpTopY + frontBottomY)/2})`})
@@ -1331,6 +1341,7 @@ function compute(){
       ['Split-back nesting', useSplitBack
           ? `<span style="color:#059669;">Active — saves ${fmtInch(splitBackSavings, rounded)}"</span>`
           : `<span style="color:#94a3b8;">Not used${!splitBackFits ? ' (won\'t fit)' : ' (full trapezoid + flap nesting is more efficient)'}</span>`],
+      ['Bungee length', `2 pieces &times; ${fmtInch(D + (sideDrop/3)*2 + 10, rounded)}"`],
     ];
 
     const results = document.getElementById('results');
@@ -1650,7 +1661,7 @@ function compute(){
       sidePanelsNeeded, sideEach, addWidth, sidePanelLength, setbackFromFront,
       backDrop, frontExtDrop, frontWidth, frontWidthAfterCut, confirmCoverageWidth, backWidth,
       startCutFromCenterLine, totalLength, nestingStrategy, rounded, roundMode, diagCrossDist,
-      diagSpan, ML_eff, totalFB, sideDrop, sideEase, flapExtension,
+      diagSpan, ML_eff, totalFB, mainFB: Math.min(totalFB, B), sideDrop, sideEase, flapExtension,
       markFromSideEdge, markFromCenter, backInset, frontInset, taperZoneLength,
       backPieceTopWidth, backPieceBottomWidth, backPieceHeight, backPieceLength, backPieceWidth,
       frontFlapNeeded, frontFlapWidth, frontFlapLength,
