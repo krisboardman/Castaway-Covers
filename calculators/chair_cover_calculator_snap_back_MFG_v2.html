@@ -249,20 +249,36 @@ function drawDiagram(params){
   add('text',{x:sx - 22, y:sy + mainH/2, 'text-anchor':'end', 'dominant-baseline':'middle', 'font-size':12, fill:'#334155', transform:`rotate(-90 ${sx-22} ${sy + mainH/2})`}).textContent=`Front-to-back: ${rIn(mainFB)}"`;
   add('circle',{cx:sx + mainW/2, cy:sy + mainH/2, r:4, fill:'#dc2626', stroke:'#ffffff', 'stroke-width':1.5});
 
-  // === FRONT CORNER ANGLE CUTS (12" in from outer edge, 6" up from front) ===
+  // === MAIN PIECE SIDE CUTS ===
+  // The main piece is NOT a plain rectangle: it holds the full ML width down to the back-inset
+  // line, then tapers IN on both sides to the trimmed front width (markFromSideEdge cut off each
+  // side), then runs straight down the front. Draw the real cut path (red) and shade the trimmed
+  // corner scrap so the maker sees where to cut, not just the bolt outline.
   {
-    const frontTrimPx    = (markFromSideEdge || 0) * scale;
-    const frontAngleInPx = 12 * scale;
-    const frontAngleUpPx =  6 * scale;
-    // Left front corner: from (sx+trim, bottom-6") diagonally to (sx+trim+12", bottom)
-    add('line',{x1:sx + frontTrimPx,              y1:sy + mainH - frontAngleUpPx,
-                x2:sx + frontTrimPx + frontAngleInPx, y2:sy + mainH,
-                stroke:cutColor, 'stroke-width':2, 'stroke-dasharray':'8,4'});
-    // Right front corner: from (sx+mainW-trim, bottom-6") diagonally to (sx+mainW-trim-12", bottom)
-    add('line',{x1:sx + mainW - frontTrimPx,               y1:sy + mainH - frontAngleUpPx,
-                x2:sx + mainW - frontTrimPx - frontAngleInPx, y2:sy + mainH,
-                stroke:cutColor, 'stroke-width':2, 'stroke-dasharray':'8,4'});
+    const bkInsetPx = (backInset || 0) * scale;
+    const frInsetPx = (frontInset || 0) * scale;
+    const trimPx    = (markFromSideEdge || 0) * scale;
+    if (trimPx > 1) {
+      add('polygon',{points:`${sx},${sy+bkInsetPx} ${sx+trimPx},${sy+mainH-frInsetPx} ${sx+trimPx},${sy+mainH} ${sx},${sy+mainH}`, fill:'#cbd5e1', 'fill-opacity':0.5, stroke:'none'});
+      add('polygon',{points:`${sx+mainW},${sy+bkInsetPx} ${sx+mainW-trimPx},${sy+mainH-frInsetPx} ${sx+mainW-trimPx},${sy+mainH} ${sx+mainW},${sy+mainH}`, fill:'#cbd5e1', 'fill-opacity':0.5, stroke:'none'});
+      // red cut path: diagonal taper, then straight down the front, on each side
+      add('line',{x1:sx, y1:sy+bkInsetPx, x2:sx+trimPx, y2:sy+mainH-frInsetPx, stroke:cutColor, 'stroke-width':2});
+      add('line',{x1:sx+trimPx, y1:sy+mainH-frInsetPx, x2:sx+trimPx, y2:sy+mainH, stroke:cutColor, 'stroke-width':2});
+      add('line',{x1:sx+mainW, y1:sy+bkInsetPx, x2:sx+mainW-trimPx, y2:sy+mainH-frInsetPx, stroke:cutColor, 'stroke-width':2});
+      add('line',{x1:sx+mainW-trimPx, y1:sy+mainH-frInsetPx, x2:sx+mainW-trimPx, y2:sy+mainH, stroke:cutColor, 'stroke-width':2});
+      add('text',{x:sx+trimPx/2 - 2, y:sy+mainH-frInsetPx/2, 'text-anchor':'end', 'font-size':8, fill:'#475569', 'font-weight':'bold'}).textContent=`trim ${rIn(markFromSideEdge)}"`;
+      // Two turn-point marks (front-to-back): where the taper ENDS at full width (back-inset line,
+      // a couple inches down from the top) and where it STARTS (front-inset line, up from the front).
+      add('line',{x1:sx, y1:sy+bkInsetPx, x2:sx+trimPx, y2:sy+bkInsetPx, stroke:'#475569','stroke-width':1});
+      add('text',{x:sx+trimPx+4, y:sy+bkInsetPx+3, 'text-anchor':'start','font-size':8,fill:'#475569','font-weight':'bold'}).textContent=`full width to ${rIn(backInset)}" from back`;
+      add('line',{x1:sx, y1:sy+mainH-frInsetPx, x2:sx+trimPx, y2:sy+mainH-frInsetPx, stroke:'#475569','stroke-width':1});
+      add('text',{x:sx+trimPx+4, y:sy+mainH-frInsetPx+3, 'text-anchor':'start','font-size':8,fill:'#475569','font-weight':'bold'}).textContent=`taper starts ${rIn(frontInset)}" up from front`;
+    }
   }
+
+  // (Removed the old "front corner angle cuts" (12" × 6"): the main piece front is straight —
+  // the diagonal shaping is on the FRONT FLAP (flapTopWidth → flapBottomWidth), as the assembly
+  // diagram shows. There is no corner cut on the main piece.)
 
   let rightEdgeX = sx + mainW;
 
@@ -341,6 +357,11 @@ function drawDiagram(params){
       'font-weight':'bold',
       transform:`rotate(-90 ${bpX-16} ${bpY + acrossPx/2})`})
       .textContent=`${rIn(Math.min(splitBackNestedWidth, B))}"`;
+    // Finished trapezoid dimensions — the nested rectangle above is only the material layout,
+    // so spell out the top (attaches to main), bottom (back hem) and height of the sewn piece.
+    add('text',{x:bpX + boltLenPx/2, y:bpY + Math.max(acrossPx, acrossPx/2 + 50) + 16, 'text-anchor':'middle', 'font-size':8,
+      fill:'#1e40af', 'font-weight':'bold'})
+      .textContent=`Finished trapezoid — top ${rIn(backPieceTopWidth)}" · bottom ${rIn(backPieceBottomWidth)}" · height ${rIn(backPieceHeight)}"`;
   } else {
     // FULL TRAPEZOID: Draw single trapezoid
     const topWidthPx = backPieceTopWidth * scale;
@@ -857,8 +878,9 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
   // back snap: 2" past WB/2 fold, half height down
   sDimV(snRB[0] + 12, mainTopY, snRB[1], `${rIn(backDownFromSeam)}\"`, true);
   sDimH(cx, snRB[0], snRB[1] + 14, `${rIn(backFromCenter)}\" from center`, false);
-  // front snap: 2" from seam, at (WB/2 + (H-FC)/2) from center
+  // front snap (socket): 2" from seam, at (WB/2 + (H-FC)/2) from center
   sDimV(snRF[0] + 12, mainTopY, snRF[1], `${rIn(frontDownFromSeam)}\"`, true);
+  sDimH(cx, snRF[0], snRF[1] - 8, `${rIn(frontFromCenter)}\" from center`, true);
 
   // Bungee tabs (diamonds) sewn into the back seam at mainTopY
   const tabC = '#0ea5e9';
@@ -878,9 +900,12 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
     add('line', {x1: tx, y1: tabY - tabH + 2, x2: tx, y2: tabY + tabH - 2,
       stroke: '#fff', 'stroke-width': 1.2});
   }
-  // BT label on LEFT tab only
+  // BT label + placement on LEFT tab only. Tabs are sewn ON the back seam line (mainTopY),
+  // aligned with the back grommets — gromBackHorizFromCenter from center on each side.
   add('text', {x: tabLX - 10, y: tabY + 4, 'text-anchor':'end',
     'font-size':9, fill: tabBorder, 'font-weight':'bold'}).textContent = 'BT';
+  add('text', {x: tabLX - 10, y: tabY + 16, 'text-anchor':'end',
+    'font-size':8, fill: tabBorder}).textContent = `on seam · ${rIn(gromBackHorizFromCenter)}\" from center (each side)`;
 
   // Overall dimensions (charcoal, bold 13)
   const dOff = 50;
@@ -1341,7 +1366,7 @@ function compute(){
       ['Split-back nesting', useSplitBack
           ? `<span style="color:#059669;">Active — saves ${fmtInch(splitBackSavings, rounded)}"</span>`
           : `<span style="color:#94a3b8;">Not used${!splitBackFits ? ' (won\'t fit)' : ' (full trapezoid + flap nesting is more efficient)'}</span>`],
-      ['Bungee length', `2 pieces &times; ${fmtInch(D + (sideDrop/3)*2 + 10, rounded)}"`],
+      ['Bungee length', `2 pieces &times; ${fmtInch(D + 5 + 5 + 6, rounded)}"`],
     ];
 
     const results = document.getElementById('results');
@@ -1391,7 +1416,8 @@ function compute(){
     const gromBackHorizFromCenter = WB / 2 - 5;  // 5" in from each chair-back edge
     const gromFrontEdgeInset = gromInsetFromFloor;  // same plane as back grommets
     const gromBackUpFromFloor = gromInsetFromFloor;
-    const bungeeLength = D + gromInsetFromFloor * 2 + 10;
+    // Depth + a grommet inset (5") at each end + slack (6"), matching the couch formula.
+    const bungeeLength = D + 5 + 5 + 6;
 
     const grommetsSection = document.getElementById('grommets');
     grommetsSection.innerHTML = `
