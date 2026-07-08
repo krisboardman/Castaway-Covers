@@ -123,8 +123,8 @@
       </div>
     </div>
 
-    <!-- Cut List — placed after grid so it prints with measurements -->
-    <div class="card" style="margin-top:16px;">
+    <!-- Cut List hidden: the visual cut diagram + Results cover what's needed. -->
+    <div class="card" style="margin-top:16px; display:none;">
       <div class="title">Cut List</div>
       <div id="cutlist"></div>
     </div>
@@ -148,8 +148,8 @@
       </div>
     </div>
 
-    <!-- Grommets | Snap Straps — side by side -->
-    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px; margin-top:16px;">
+    <!-- Grommets | Snap Straps hidden: repetitive of the assembly diagram. Bungee + hardware counts now live in the Results card. -->
+    <div style="display:none; grid-template-columns: 1fr 1fr; gap:16px; margin-top:16px;">
       <div class="card">
         <div class="title">Grommet Placement (for Bungee)</div>
         <div id="grommets"></div>
@@ -2356,6 +2356,10 @@ function compute(){
         `D + 2×sideDrop = ${D} + 2×${fmtExact(sideDrop)} = ${fmtExact(couch_panelLen)}"<br/>Chaise depth plus side drop at the head and foot.`],
       ['Fits in bolt width', couch_assembledW <= B ? `Yes — ${fmtInch(B - couch_assembledW, rounded)}" of bolt waste per length` : `No — exceeds ${B}" bolt`,
         `Cover width ${fmtExact(couch_assembledW)}" vs bolt ${B}" — single panel cut from one bolt.`],
+      ['Corner snaps / grommets', '4 snap sets (8 pieces) · 4 grommets',
+        'One mating snap pair at each of the 4 corners; one grommet per corner for the bungees.'],
+      ['Bungee length', `2 pieces × ${fmtInch(W + 2*3 + 6, rounded)}"`,
+        `One bungee at the head, one at the foot — each runs side-to-side: the ${W}" width + a 3" grommet offset on each side + 6" slack to cinch under the chaise.`],
     );
 
     const results = document.getElementById('results');
@@ -2422,7 +2426,7 @@ function compute(){
     const chaiseGromSideOut = 3;
     const chaiseGromEndIn  = 5;
     const chaiseGromHorizFromCenter = (W / 2) + chaiseGromSideOut;     // 17"
-    const chaiseBungeeLen = W + 2 * chaiseGromSideOut;                  // 34" — runs side-to-side under the chaise
+    const chaiseBungeeLen = W + 2 * chaiseGromSideOut + 6;              // width + grommet offsets + 6" slack (cinch under the chaise)
     const grommetsSection = document.getElementById('grommets');
     if (grommetsSection) grommetsSection.innerHTML = `
       <div class='row'><span>Total grommets</span><strong>4 — 1 per corner</strong></div>
