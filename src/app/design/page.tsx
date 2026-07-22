@@ -16,7 +16,7 @@ export default function DesignPage() {
       popular: true
     },
     {
-      name: "Sofas / Loveseats",
+      name: "Sofas / Sectionals",
       href: "/products/sofas-loveseats",
       image: "/images/sketch-icons/sketchsofa.png",
       description: "Any length, optional snap closures for oversized covers"

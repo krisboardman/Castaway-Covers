@@ -78,7 +78,7 @@ function MeasurementDiagrams({ productType }: { productType: string }) {
 
 const productTypes = {
   'chairs-recliners': 'Chairs / Recliners',
-  'sofas-loveseats': 'Sofas / Loveseats',
+  'sofas-loveseats': 'Sofas / Sectionals',
   'chaise-lounge': 'Chaise Lounge',
   'chaise-lounges': 'Chaise Lounge',  // Support both singular and plural URLs
   'ottomans': 'Ottomans',
@@ -800,6 +800,9 @@ const getGalleryImages = (productType: string, selectedColor?: string) => {
       { src: '/images/Chairs-Recliners/chair8.6.jpg', alt: 'Same wicker chair protected with Castaway Cover', badge: 'After' }
     ],
     'sofas-loveseats': [
+      { src: '/images/Sofas-Loveseats/sofa8.jpg', alt: 'Outdoor sectional before a Castaway Cover', badge: 'Before' },
+      { src: '/images/Sofas-Loveseats/sofa9.jpg', alt: 'Same sectional protected with a Castaway Cover', badge: 'After' },
+      { src: '/images/Sofas-Loveseats/sofa10.jpg', alt: 'Sectional Castaway Cover on a waterfront deck', badge: 'After' },
       { src: '/images/Sofas-Loveseats/sofa4.jpg', alt: 'Wicker sofa before a Castaway Cover', badge: 'Before' },
       { src: '/images/Sofas-Loveseats/sofa1.jpg', alt: 'Same wicker sofa protected with a Castaway Cover', badge: 'After' },
       { src: '/images/Sofas-Loveseats/sofa6.jpg', alt: 'Loveseat Cover in Blue - Outdoor View' },

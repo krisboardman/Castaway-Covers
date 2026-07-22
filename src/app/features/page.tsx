@@ -78,15 +78,15 @@ export default function FeaturesPage() {
             blurFill
           />
 
-          {/* Feature 6: Double-Reinforced Weather-Rated Grommets */}
+          {/* Feature 6: Reinforced Weather-Rated Grommets */}
           <FeatureSection
-            imagePath="/images/features/grommet-detail.jpg"
-            title="Double-Reinforced Weather-Rated Grommets"
-            description="Strong tie-down points start with smart construction. Each grommet is installed through a double layer of vinyl, providing reinforced strength at these critical stress points. This thoughtful design prevents pull-through and tearing, keeping your cover secure in all weather conditions."
+            imagePath="/images/features/grommet-detail-v2.jpg"
+            title="Reinforced Weather-Rated Grommets"
+            description="Strong tie-down points start with smart construction. Each grommet is a weather-rated metal ring set securely into the cover, giving the bungee system a solid, reinforced anchor at every critical stress point. Built to resist corrosion and hold tension, they keep your cover secure in all weather conditions."
             benefits={[
               "Weather-rated grommets resist corrosion and UV damage",
-              "Extra vinyl layer at each grommet adds reinforcement",
-              "Double-layer construction prevents tearing at stress points",
+              "Solid metal construction won't rust, crack, or corrode",
+              "Reinforced anchor points give the bungee system a secure hold",
               "Secure tie-down points that last season after season"
             ]}
             imagePosition="right"

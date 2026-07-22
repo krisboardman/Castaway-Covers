@@ -90,8 +90,8 @@ const productData: { [key: string]: { name: string; description: string; image: 
     price: '90',
   },
   'sofas-loveseats': {
-    name: 'Custom Sofa & Loveseat Covers',
-    description: 'Premium custom-fit covers for outdoor sofas and loveseats. Marine-grade vinyl with optional magnetic closures for easy daily use. Waterproof and UV-resistant.',
+    name: 'Custom Sofa & Sectional Covers',
+    description: 'Premium custom-fit covers for outdoor sofas and sectionals. Marine-grade vinyl with optional magnetic closures for easy daily use. Waterproof and UV-resistant.',
     image: 'https://castawaycovers.com/images/Sofas-Loveseats/sofa1.jpg',
     category: 'Outdoor Furniture Covers',
     price: '135',
