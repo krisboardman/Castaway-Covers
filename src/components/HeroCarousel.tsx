@@ -5,14 +5,14 @@ import Image from 'next/image';
 
 const slides = [
   {
-    image: '/images/hero/hero1-v3.webp',
-    title: '',
-    subtitle: ''
-  },
-  {
     image: '/images/hero/hero5.webp',
     title: 'Protection Meets the View',
     subtitle: 'Covers that blend into the scene so you never have to choose between protection and beauty.'
+  },
+  {
+    image: '/images/hero/hero1-v3.webp',
+    title: '',
+    subtitle: ''
   },
   {
     image: '/images/hero/hero2-v2.webp',
