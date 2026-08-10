@@ -48,6 +48,20 @@ export function getOrganizationSchema() {
   };
 }
 
+// Date the current price list took effect. Update this when prices change.
+const PRICE_VALID_FROM = "2026-01-01";
+
+// Custom-made covers are non-returnable and non-refundable per /returns. Defect and
+// shipping-damage claims are handled as warranty replacements, store credit, or repair,
+// which is a warranty remedy rather than a return, so the policy category stays
+// MerchantReturnNotPermitted.
+const RETURN_POLICY = {
+  "@type": "MerchantReturnPolicy",
+  "applicableCountry": "US",
+  "returnPolicyCategory": "https://schema.org/MerchantReturnNotPermitted",
+  "merchantReturnLink": "https://castawaycovers.com/returns"
+};
+
 export function getProductSchema(product: {
   name: string;
   description: string;
@@ -69,7 +83,12 @@ export function getProductSchema(product: {
       "@type": "Offer",
       "priceCurrency": "USD",
       "price": product.price,
+      "validFrom": PRICE_VALID_FROM,
       "availability": "https://schema.org/InStock",
+      "hasMerchantReturnPolicy": RETURN_POLICY,
+      // shippingDetails is deliberately omitted: Google requires a concrete shippingRate,
+      // and shipping is quoted per order on the Stripe invoice rather than being a fixed
+      // rate. Search Console will keep reporting it as a non-critical missing field.
       "seller": {
         "@type": "Organization",
         "name": "Castaway Covers"
