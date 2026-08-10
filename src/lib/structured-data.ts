@@ -49,7 +49,7 @@ export function getOrganizationSchema() {
 }
 
 // Date the current price list took effect. Update this when prices change.
-const PRICE_VALID_FROM = "2026-01-01";
+const PRICE_VALID_FROM = "2025-06-01";
 
 // Custom-made covers are non-returnable and non-refundable per /returns. Defect and
 // shipping-damage claims are handled as warranty replacements, store credit, or repair,
