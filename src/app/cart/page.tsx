@@ -2,7 +2,7 @@
 
 import { useCartStore } from '@/store/cartStore';
 import { getMeasurementLabel } from '@/lib/measurement-labels';
-import { ORDER_MINIMUM } from '@/config/pricing';
+import { ORDER_MINIMUM, MULTI_PIECE_NOTE } from '@/config/pricing';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
@@ -12,6 +12,7 @@ export default function CartPage() {
   const removeFromCart = useCartStore((state) => state.removeFromCart);
   const getTotalPrice = useCartStore((state) => state.getTotalPrice);
   const getSubtotal = useCartStore((state) => state.getSubtotal);
+  const getTotalItems = useCartStore((state) => state.getTotalItems);
   const clearCart = useCartStore((state) => state.clearCart);
   const [loading, setLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -434,6 +435,9 @@ export default function CartPage() {
                 <span>Total</span>
                 <span>${getTotalPrice().toFixed(2)}</span>
               </div>
+              {getTotalItems() > 1 && (
+                <p className="text-xs text-gray-500">{MULTI_PIECE_NOTE}</p>
+              )}
             </div>
 
             {isManualCheckout ? (
