@@ -7,6 +7,7 @@ import StormVideo from "@/components/StormVideo";
 import CastawayVideo from "@/components/CastawayVideo";
 import ColorShowcase from "@/components/ColorShowcase";
 import MeasurementCTA from "@/components/MeasurementCTA";
+import ServiceSteps from "@/components/ServiceSteps";
 
 export const metadata = generateMeta('home');
 
@@ -46,6 +47,9 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Our services: measure, design, build, install */}
+      <ServiceSteps />
 
       {/* In-Home Measurement Service CTA */}
       <section className="py-6 px-4">

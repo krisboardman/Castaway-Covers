@@ -11,6 +11,7 @@ import ColorSelector from '@/components/ColorSelector';
 import ShopifyBuyButton from '@/components/ShopifyBuyButton';
 import { useCartStore } from '@/store/cartStore';
 import { getProductSchemaForType } from '@/lib/structured-data';
+import { MULTI_PIECE_NOTE } from '@/config/pricing';
 
 const measurementImages: Record<string, { main: string; curvedBack?: string; backrestThickness?: string }> = {
   'chairs-recliners': {
@@ -719,6 +720,9 @@ export default function ProductPage() {
                   <span>${calculateTotal().toFixed(2)}</span>
                 </div>
               </div>
+              <p className="text-xs text-gray-500 pt-2">
+                {MULTI_PIECE_NOTE}
+              </p>
             </div>
             
             {/* Measurement confirmation checkbox */}

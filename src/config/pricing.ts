@@ -10,6 +10,11 @@ export const PRICE_PER_YARD = {
   tableSet: 70,
 } as const;
 
+// Each rate covers measuring, design and install for one piece, so
+// matching pieces in one order are discounted on the final invoice.
+export const MULTI_PIECE_NOTE =
+  'Prices are per cover. Ordering several of the same piece, like four matching chairs? You\'ll get a discount, because we design them once and measure and install them in the same visit. Your final invoice will reflect it.';
+
 // Orders below this are billed at the minimum.
 export const ORDER_MINIMUM = 350;
 
