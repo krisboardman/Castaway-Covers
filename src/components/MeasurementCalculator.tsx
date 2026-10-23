@@ -23,6 +23,7 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { getShopifyClient, findVariantBySKU, clearProductCache } from '@/lib/shopify-client';
 import { MEASUREMENT_PROMO_ACTIVE } from '@/config/site';
+import { pricePerYard } from '@/config/pricing';
 // Single source of truth for yardage math, shared with the standalone HTML
 // calculators in /calculators. Pilot scope: tables/table-sets.
 // @ts-ignore — plain JS module, no type declarations.
@@ -266,7 +267,7 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
   // Reset calculated state when measurements change
   useEffect(() => {
     setHasCalculated(false);
-  }, [measurements]);
+  }, [measurements, coverType]);
 
   // Calculate AT2F (Armrest-Top to Front) for furniture with backrests
   // This uses the HTML calculator formula: √[(H - F2A)² + D²]
@@ -382,8 +383,7 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
   };
 
   const calculatePrice = (yards: number): number => {
-    const pricePerYard = 45;
-    return yards * pricePerYard;
+    return yards * pricePerYard(productType, coverType);
   };
 
 
@@ -403,8 +403,7 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
       const variantInfo = await findVariantBySKU(shopifySKU);
 
       if (variantInfo) {
-        // Use the actual price from Shopify if available
-        const finalPrice = parseFloat(variantInfo.price) || price;
+        const finalPrice = price;
         const angle = config.hasAngle ? calculateAngle() : 0;
         onCalculate(displaySKU, variantInfo.variantId, finalPrice, yards, angle, measurements);
       } else {
@@ -445,7 +444,7 @@ const MeasurementCalculator: React.FC<MeasurementCalculatorProps> = ({ productTy
             }
             
             if (foundVariant) {
-              const finalPrice = parseFloat(foundVariant.price) || price;
+              const finalPrice = price;
               const angle = config.hasAngle ? calculateAngle() : 0;
               onCalculate(displaySKU, foundVariant.variantId, finalPrice, yards, angle, measurements);
               return;

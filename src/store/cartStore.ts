@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
+import { ORDER_MINIMUM } from '@/config/pricing';
 
 interface CartItem {
   id: string;
@@ -35,6 +36,7 @@ interface CartStore {
   updateItem: (id: string, item: Omit<CartItem, 'id'>) => void;
   clearCart: () => void;
   getTotalItems: () => number;
+  getSubtotal: () => number;
   getTotalPrice: () => number;
 }
 
@@ -93,9 +95,14 @@ export const useCartStore = create<CartStore>()(
         return state.items.reduce((total, item) => total + item.quantity, 0);
       },
       
-      getTotalPrice: () => {
+      getSubtotal: () => {
         const state = get();
         return state.items.reduce((total, item) => total + item.total, 0);
+      },
+
+      getTotalPrice: () => {
+        const subtotal = get().getSubtotal();
+        return subtotal > 0 ? Math.max(subtotal, ORDER_MINIMUM) : 0;
       }
     }),
     {

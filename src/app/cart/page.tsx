@@ -2,6 +2,7 @@
 
 import { useCartStore } from '@/store/cartStore';
 import { getMeasurementLabel } from '@/lib/measurement-labels';
+import { ORDER_MINIMUM } from '@/config/pricing';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
@@ -10,6 +11,7 @@ export default function CartPage() {
   const items = useCartStore((state) => state.items);
   const removeFromCart = useCartStore((state) => state.removeFromCart);
   const getTotalPrice = useCartStore((state) => state.getTotalPrice);
+  const getSubtotal = useCartStore((state) => state.getSubtotal);
   const clearCart = useCartStore((state) => state.clearCart);
   const [loading, setLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -415,6 +417,19 @@ export default function CartPage() {
             <h2 className="text-xl font-semibold mb-4">Order Summary</h2>
 
             <div className="space-y-2 mb-6">
+              {getSubtotal() > 0 && getSubtotal() < ORDER_MINIMUM && (
+                <>
+                  <div className="flex justify-between text-gray-700">
+                    <span>Subtotal</span>
+                    <span>${getSubtotal().toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between text-gray-700">
+                    <span>Order minimum adjustment</span>
+                    <span>${(ORDER_MINIMUM - getSubtotal()).toFixed(2)}</span>
+                  </div>
+                  <p className="text-xs text-gray-500">Custom orders have a ${ORDER_MINIMUM} minimum.</p>
+                </>
+              )}
               <div className="flex justify-between font-semibold text-lg">
                 <span>Total</span>
                 <span>${getTotalPrice().toFixed(2)}</span>
