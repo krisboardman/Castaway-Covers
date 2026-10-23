@@ -11,6 +11,7 @@ import ColorSelector from '@/components/ColorSelector';
 import ShopifyBuyButton from '@/components/ShopifyBuyButton';
 import { useCartStore } from '@/store/cartStore';
 import { getProductSchemaForType } from '@/lib/structured-data';
+import { PRICE_PER_YARD } from '@/config/pricing';
 
 const measurementImages: Record<string, { main: string; curvedBack?: string; backrestThickness?: string }> = {
   'chairs-recliners': {
@@ -493,6 +494,10 @@ export default function ProductPage() {
               Every sectional is different, so we quote them personally to make sure the cover fits
               perfectly. Reach out and we&apos;ll take it from there — and if you&apos;d like, we can
               measure it for you.
+            </p>
+            <p className="text-gray-700 max-w-xl mx-auto mb-5">
+              Sectional covers are priced at <strong>${PRICE_PER_YARD.sectional} per yard</strong> of vinyl.
+              Most run about ${(15 * PRICE_PER_YARD.sectional).toLocaleString()}–${(20 * PRICE_PER_YARD.sectional).toLocaleString()}.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Link
