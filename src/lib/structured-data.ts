@@ -1,3 +1,4 @@
+import { SHOW_SOCIAL_LINKS } from '@/config/site';
 export function getOrganizationSchema() {
   return {
     "@context": "https://schema.org",
@@ -35,10 +36,10 @@ export function getOrganizationSchema() {
       "contactType": "customer service"
     },
     "priceRange": "$$",
-    "sameAs": [
+    ...(SHOW_SOCIAL_LINKS ? { "sameAs": [
       "https://www.instagram.com/castaway_covers/",
       "https://www.facebook.com/CastawayCovers"
-    ],
+    ] } : {}),
     "openingHoursSpecification": {
       "@type": "OpeningHoursSpecification",
       "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],

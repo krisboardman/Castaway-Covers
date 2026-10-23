@@ -8,7 +8,6 @@ export const PRICE_PER_YARD = {
   chaise: 70,
   sofa: 70,
   tableSet: 70,
-  grillIsland: 80,
 } as const;
 
 // Orders below this are billed at the minimum.
@@ -23,7 +22,6 @@ export function pricePerYard(productType: string, coverType?: 'table' | 'set' | 
     case 'ottomans': return PRICE_PER_YARD.ottoman;
     case 'table-sets': return PRICE_PER_YARD.tableSet;
     case 'tables':
-      if (coverType === 'grill') return PRICE_PER_YARD.grillIsland;
       if (coverType === 'set') return PRICE_PER_YARD.tableSet;
       return PRICE_PER_YARD.table;
     default: return PRICE_PER_YARD.chair;

@@ -1,5 +1,7 @@
 // Shared social media links (Instagram + Facebook).
 // Used in both the Header and Footer so the URLs live in one place.
+import { SHOW_SOCIAL_LINKS } from '@/config/site';
+
 const INSTAGRAM_URL = 'https://www.instagram.com/castaway_covers/';
 const FACEBOOK_URL = 'https://www.facebook.com/CastawayCovers';
 
@@ -12,6 +14,7 @@ export default function SocialLinks({
   iconClassName?: string;
   linkClassName?: string;
 }) {
+  if (!SHOW_SOCIAL_LINKS) return null;
   return (
     <div className={`flex items-center gap-4 ${className}`}>
       <a
