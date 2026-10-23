@@ -120,6 +120,9 @@ export default function ProductPage() {
   // Sofas page only: sectionals are custom-quoted, so we hide the self-serve
   // calculator/cart and route to contact instead.
   const [isSofaSectional, setIsSofaSectional] = useState(false);
+  // Tables page: grill islands are custom-quoted like sectionals.
+  const isGrillIsland = productType === 'tables' && coverType === 'grill';
+  const customQuoteLabel = isGrillIsland ? 'Grill island' : 'Sectional';
 
   const addToCart = useCartStore((state) => state.addToCart);
   const updateItem = useCartStore((state) => state.updateItem);
@@ -485,12 +488,12 @@ export default function ProductPage() {
         {/* In-Home Measurement Service CTA — right where measuring begins */}
         <MeasurementCTA className="mt-8" />
 
-        {isSofaSectional ? (
-          /* Sectional: no self-serve calculator — route to a custom quote. */
+        {isSofaSectional || isGrillIsland ? (
+          /* Sectionals and grill islands: no self-serve calculator — route to a custom quote. */
           <div className="mt-8 bg-amber-50 border-2 border-amber-300 rounded-xl p-8 text-center">
-            <h3 className="text-2xl font-bold text-gray-900 mb-2">Sectionals are made to order</h3>
+            <h3 className="text-2xl font-bold text-gray-900 mb-2">{customQuoteLabel}s are made to order</h3>
             <p className="text-gray-700 max-w-xl mx-auto mb-5">
-              Every sectional is different, so we quote them personally to make sure the cover fits
+              Every {customQuoteLabel.toLowerCase()} is different, so we quote them personally to make sure the cover fits
               perfectly. Reach out and we&apos;ll take it from there — and if you&apos;d like, we can
               measure it for you.
             </p>
@@ -499,7 +502,7 @@ export default function ProductPage() {
                 href="/contact"
                 className="inline-block bg-brand-teal text-white font-semibold px-6 py-3 rounded-lg hover:bg-brand-teal-dark transition-colors"
               >
-                Contact us for a sectional quote
+                Contact us for a {customQuoteLabel.toLowerCase()} quote
               </Link>
               <Link
                 href="/measurement-service"

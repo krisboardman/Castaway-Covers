@@ -9,3 +9,7 @@ export const siteConfig = {
 // Set this to false to END the promotion and restore the $75 fee everywhere
 // in one place — no other files need editing.
 export const MEASUREMENT_PROMO_ACTIVE = true;
+
+// Social media links (Instagram + Facebook icons in the header and footer).
+// Hidden until the pages are live. Set to true to show them again.
+export const SHOW_SOCIAL_LINKS = false;

@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import SocialLinks from '@/components/SocialLinks';
+import { SHOW_SOCIAL_LINKS } from '@/config/site';
 
 export default function Footer() {
   return (
@@ -83,8 +84,12 @@ export default function Footer() {
               <a href="tel:+17326390162" className="hover:text-white transition-colors">732-639-0162</a>
             </p>
 
-            <h3 className="text-lg font-semibold mt-6 mb-3 text-white">Follow Us</h3>
-            <SocialLinks linkClassName="text-gray-300 hover:text-white" />
+            {SHOW_SOCIAL_LINKS && (
+              <>
+                <h3 className="text-lg font-semibold mt-6 mb-3 text-white">Follow Us</h3>
+                <SocialLinks linkClassName="text-gray-300 hover:text-white" />
+              </>
+            )}
           </div>
         </div>
 
