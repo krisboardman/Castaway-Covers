@@ -7,7 +7,7 @@ const STEPS = [
   {
     title: MEASUREMENT_PROMO_ACTIVE ? 'Free On-Site Measuring' : 'On-Site Measuring',
     text: 'We come to you and measure every piece, so you never have to guess.',
-    icon: 'M3 17l6-6 4 4 8-8M14 7h7v7',
+    icon: 'M17.657 16.657L13.414 20.9a2 2 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0zM15 11a3 3 0 11-6 0 3 3 0 016 0z',
   },
   {
     title: 'Custom Design',
