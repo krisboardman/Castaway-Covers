@@ -440,6 +440,7 @@ export default function ProductPage() {
                 </label>
               ))}
             </div>
+            {coverType !== 'grill' && (
             <div className="mt-3 bg-amber-50 border border-amber-200 rounded-lg px-5 py-3 text-sm text-amber-800">
               {coverType === 'table' && (
                 <><strong>Measuring a table:</strong> Measure the width and length to the table edges, and the height from the floor to the tabletop.</>
@@ -447,10 +448,8 @@ export default function ProductPage() {
               {coverType === 'set' && (
                 <><strong>Measuring a table set:</strong> Take your measurements with the chairs pushed in under the table. Measure the width and length to the <strong>outside edges of the chairs</strong> (not just the table), and for height use the <strong>chairs or the table — whichever is taller</strong>.</>
               )}
-              {coverType === 'grill' && (
-                <><strong>Measuring a grill island:</strong> Measure the width and length to the outer edges, and for height <strong>measure to the top of the grill</strong> (or its raised lid) so the cover clears it.</>
-              )}
             </div>
+            )}
           </div>
         )}
 
