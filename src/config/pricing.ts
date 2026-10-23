@@ -8,7 +8,6 @@ export const PRICE_PER_YARD = {
   chaise: 70,
   sofa: 70,
   tableSet: 70,
-  sectional: 75, // custom-quoted; shown as guidance on the sofas page
   grillIsland: 80,
 } as const;
 
