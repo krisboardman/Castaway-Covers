@@ -45,7 +45,14 @@
   <h1>Table / Table Set / Grill Cover Calculator</h1>
   <div class="sub">Handles three cases with the same math: a <strong>plain table</strong> (measure width/length to the table edges, height to the tabletop); a <strong>table set</strong> measured with the chairs tucked in, to the outer chair edges (height to the top of the chair back); or a <strong>grill island</strong> — measure width and length to the outer edges and measure HEIGHT TO THE TOP OF THE GRILL (or its raised lid). Uniform drape on all four sides. Diagonal corner cuts with snaps at each corner. Bungees wrap around each short end (2 bungees total, 4 grommets).</div>
   <div class="controls">
-    <label><input id="round" type="checkbox" checked> Round inches up / yards to whole</label>
+    <label>Bolt width (fabric size, in): <input id="bolt" type="number" step="0.25" value="55.25" style="width:72px;"></label>
+    <label>Rounding:
+      <select id="roundMode">
+        <option value="whole">Whole inch (round up)</option>
+        <option value="half" selected>Half inch (round up)</option>
+        <option value="exact">Exact</option>
+      </select>
+    </label>
     <button class="btn" id="recalc">Recalculate</button>
     <button class="btn" id="reset">Reset sample</button>
   </div>
@@ -68,7 +75,7 @@
         <div class="inputs">
           <label class="lbl">Length L — long side<input id="L" type="number" step="1" value="96"></label>
           <label class="lbl">Width W — short side<input id="W" type="number" step="1" value="54"></label>
-          <label class="lbl">Height H — top of cover to floor<input id="H" type="number" step="0.5" value="36"></label>
+          <label class="lbl">Height H — floor to the top of the table or the top of the chair back, whichever is taller<input id="H" type="number" step="0.5" value="36"></label>
           <label class="lbl" id="f2bsField">F2BS — floor to bottom of seat (only used for the "Over the seats" drape)<input id="F2BS" type="number" step="0.5" value="17"></label>
         </div>
         <div class="note" style="margin-top:8px;">
@@ -114,13 +121,14 @@
 
       </div><!-- /inputsCard -->
 
-      <div class="card" style="margin-top:16px;">
+      <!-- Grommets & Corner Snaps cards hidden: repetitive of the assembly diagram. Bungee length + grommet count now live in the Results card. -->
+      <div class="card" style="margin-top:16px; display:none;">
         <div class="title">Grommets &amp; Bungees</div>
         <div id="grommets"></div>
         <div class="note">G1 &amp; G3 are on the front drape near the left and right short-end corners; G2 &amp; G4 mirror them on the back drape. Left bungee: G1&rarr;G3 (wraps left short end). Right bungee: G2&rarr;G4 (wraps right short end).</div>
       </div>
 
-      <div class="card" style="margin-top:16px;">
+      <div class="card" style="margin-top:16px; display:none;">
         <div class="title">Corner Snaps</div>
         <div id="snaps"></div>
         <div class="note">Diagonal cut at all 4 corners. The two adjacent drape flaps fold together along the cut and are held closed by a snap set (1 stud + 1 socket per corner).</div>
@@ -143,7 +151,7 @@
       <span class="chip" style="background:#eef2ff; border-color:#0f172a;"></span> Cover panel piece(s)
       <span class="chip" style="background:#fef2f2; border-color:#fca5a5;"></span> Bolt waste
     </div>
-    <div style="border-top:1px solid var(--muted); margin-top:14px; padding-top:12px;">
+    <div style="border-top:1px solid var(--muted); margin-top:14px; padding-top:12px; display:none;">
       <div class="title">Cut List</div>
       <div id="cutlist"></div>
     </div>
@@ -171,7 +179,7 @@
 <script src="shared/fit-diagrams.js"></script>
 <script>
 function n(id){ const v=Number(document.getElementById(id).value); return isFinite(v)?v:0; }
-function fin(v,r){ return r?Math.ceil(v):Math.round(v*100)/100; }
+function fin(v,mode){ if(mode==='whole')return Math.ceil(v); if(mode==='half')return Math.ceil(v*2)/2; return Math.round(v*100)/100; }
 function yds(inch,r){ const y=inch/36; return r?Math.ceil(y):Math.round(y*100)/100; }
 
 // ── Drape-mode visibility ────────────────────────────────────────────────────
@@ -217,10 +225,11 @@ updateTypeNote();
 
 // ── Main compute ─────────────────────────────────────────────────────────────
 function compute() {
-  const rounded = document.getElementById('round').checked;
-  const r  = v => fin(v, rounded);
+  const roundMode = (document.getElementById('roundMode') || {}).value || 'half';
+  const rounded = roundMode !== 'exact';   // yards still round up to whole unless "exact"
+  const r  = v => fin(v, roundMode);
 
-  const B     = CoverMath.CONST.BOLT_WIDTH;
+  const B     = n('bolt') || CoverMath.CONST.BOLT_WIDTH;
   const L     = n('L');
   const W     = n('W');
   const H     = n('H');       // floor to top of chair back
@@ -278,7 +287,7 @@ function compute() {
   // Grommets & bungees
   const gromOffset  = n('gromOffset') || 5;
   const gromDepthIn = n('gromDepth') > 0 ? n('gromDepth') : drapeDepth * (2/3);
-  const bungeeSlack = 10;
+  const bungeeSlack = 6;   // match the couch/chair slack
   const bungeeLen   = W + 2 * Math.sqrt(gromOffset*gromOffset + gromDepthIn*gromDepthIn) + bungeeSlack;
 
   const totalSnaps = 4;
@@ -303,6 +312,8 @@ function compute() {
     <div class='row'><span>Corner cuts (all 4 corners)</span><strong>${r(drapeDepth)}" × ${r(drapeDepth)}" diagonal — same on all corners</strong></div>
     <div class='row'><span>Drape coverage</span><strong>${drapeNote}</strong></div>
     <div class='row'><span>Snaps per corner / total sets / total pieces</span><strong>1 snap set × 4 corners = ${totalSnaps} sets (${totalSnaps*2} pieces)</strong></div>
+    <div class='row'><span>Grommets</span><strong>4 — ${r(gromOffset)}" from each short-end corner, ${r(gromDepthIn)}" into the drape</strong></div>
+    <div class='row'><span>Bungee length</span><strong>2 pieces × ${r(bungeeLen)}"</strong></div>
     <div class='row' style='display:block;'>
       <div style='font-weight:600;margin-bottom:6px;'>Layout comparison:</div>
       <div style='font-size:13px;line-height:1.6;padding-left:8px;border-left:3px solid #e2e8f0;'>
@@ -345,7 +356,7 @@ function compute() {
   `;
 
   const payload = {
-    rounded, B, L, W, H, F2BS, drapeDepth,
+    rounded, roundMode, B, L, W, H, F2BS, drapeDepth,
     CL, CW, gromOffset, gromDepthIn, bungeeLen,
     seamOverlap, splitDir, pieceCount, pieceL, pieceW, seamCount, totalBoltLen
   };
@@ -355,13 +366,13 @@ function compute() {
 
 // ── Cut Diagram ──────────────────────────────────────────────────────────────
 function drawCutDiagram(p) {
-  const { rounded, B, CL, CW, drapeDepth,
+  const { rounded, roundMode, B, CL, CW, drapeDepth,
           pieceCount, pieceL, pieceW, splitDir, seamOverlap, seamCount, totalBoltLen } = p;
   const svg = document.getElementById('cutDiagram');
   while (svg.firstChild) svg.removeChild(svg.firstChild);
   const VBW = 1200, VBH = 460;
   const pad = 60;
-  const r = v => rounded ? Math.ceil(v) : Math.round(v*100)/100;
+  const r = v => fin(v, roundMode);
   const add = (t, a) => {
     const e = document.createElementNS('http://www.w3.org/2000/svg', t);
     for (const k in a) e.setAttribute(k, a[k]);
@@ -419,6 +430,10 @@ function drawCutDiagram(p) {
     drawCornerCut(x0, y0, +1, +1);
     const snRX = x0 + (pieceCount-1)*stripPxL + stripPxL;
     drawCornerCut(snRX, y0, -1, +1);
+    // Short split: the strips lay end-to-end AS the cover, so the layout's own four corners are
+    // the cover's four corners — draw the bottom two as well.
+    drawCornerCut(x0,   y0+stripPxW, +1, -1);
+    drawCornerCut(snRX, y0+stripPxW, -1, -1);
     add('text', {x:x0-6, y:y0+stripPxW/2+4, 'text-anchor':'end', 'font-size':10, fill:'#334155', 'font-weight':'bold'}).textContent = '◀ FRONT';
     add('text', {x:snRX+6, y:y0+stripPxW/2+4, 'text-anchor':'start', 'font-size':10, fill:'#334155', 'font-weight':'bold'}).textContent = 'BACK ▶';
     if (dPx > 18) {
@@ -435,6 +450,12 @@ function drawCutDiagram(p) {
   } else {
     drawCornerCut(x0, y0, +1, +1);
     drawCornerCut(x0+stripPxL, y0, -1, +1);
+    // Long split (or single piece): strips sit side-by-side in the finished cover, so the FIRST
+    // strip carries two corners (its outer/top edge) and the LAST strip carries the other two
+    // (its outer/bottom edge). For a single piece, first strip = last strip = the whole panel.
+    const lastX = x0 + (pieceCount-1)*stripPxL;
+    drawCornerCut(lastX,          y0+stripPxW, +1, -1);
+    drawCornerCut(lastX+stripPxL, y0+stripPxW, -1, -1);
     add('text', {x:x0+stripPxL/2, y:y0-7, 'text-anchor':'middle', 'font-size':10, fill:'#334155', 'font-weight':'bold'}).textContent = '▼ FRONT END (top of Strip 1)';
     if (dPx > 18) {
       add('line', {x1:x0-14, y1:y0, x2:x0-14, y2:y0+dPx, stroke:cutC, 'stroke-width':1});
@@ -450,7 +471,9 @@ function drawCutDiagram(p) {
   }
 
   add('text', {x:x0+boltW/2, y:y0+boltH+18, 'text-anchor':'middle', 'font-size':10, fill:cutC, 'font-weight':'bold'})
-    .textContent = 'All 4 corners cut diagonally — repeat same cut at all corner positions';
+    .textContent = pieceCount === 1
+      ? `All 4 corners cut diagonally — ${r(drapeDepth)}" × ${r(drapeDepth)}" each`
+      : 'All 4 cover corners cut diagonally — repeat the same cut at each corner position';
 
   if (pieceCount > 1) {
     add('text', {x:x0+boltW/2, y:y0+boltH+32, 'text-anchor':'middle', 'font-size':10, fill:'#7e22ce', 'font-weight':'bold'})
@@ -471,7 +494,7 @@ function drawCutDiagram(p) {
 
 // ── Assembly Diagram ─────────────────────────────────────────────────────────
 function drawAssemblyDiagram(p) {
-  const { rounded, L, W, H, F2BS,
+  const { rounded, roundMode, L, W, H, F2BS,
           drapeDepth, CL, CW,
           gromOffset, gromDepthIn, splitDir, pieceCount, seamOverlap } = p;
 
@@ -479,7 +502,7 @@ function drawAssemblyDiagram(p) {
   while (svg.firstChild) svg.removeChild(svg.firstChild);
   const VBW = 1200, VBH = 780;
   const pad = 90;
-  const r = v => rounded ? Math.ceil(v) : Math.round(v*100)/100;
+  const r = v => fin(v, roundMode);
 
   const add = (t, a, par) => {
     const e = document.createElementNS('http://www.w3.org/2000/svg', t);
@@ -595,20 +618,24 @@ function drawAssemblyDiagram(p) {
     add('text', {x:lx, y:gy+4, 'text-anchor':anchor, 'font-size':9, fill:'#92400e', 'font-weight':'bold'}).textContent = gromLabels[i];
   }
 
-  // Grommet annotations
+  // Grommet annotations — measured from the MATERIAL EDGES (the front hem cut edge, yT, and the
+  // corner where the diagonal corner cut meets that hem at xLeft), NOT the fold/footprint lines.
   const gc = '#92400e';
   const gf = 9;
-  if (gOffPx > 10) {
-    add('line',{x1:xLeft,y1:g1[1]-14,x2:g1[0],y2:g1[1]-14,stroke:gc,'stroke-width':1});
-    add('line',{x1:xLeft,y1:g1[1]-18,x2:xLeft,y2:g1[1]-10,stroke:gc,'stroke-width':1});
-    add('line',{x1:g1[0],y1:g1[1]-18,x2:g1[0],y2:g1[1]-10,stroke:gc,'stroke-width':1});
-    add('text',{x:(xLeft+g1[0])/2,y:g1[1]-19,'text-anchor':'middle','font-size':gf,fill:gc,'font-weight':'bold'}).textContent=r(gromOffset)+'"';
+  // Horizontal: along the front hem from the corner where the corner cut ends.
+  if (gOffPx > 8) {
+    const hy = yT - 14;
+    add('line',{x1:xLeft,y1:hy,x2:g1[0],y2:hy,stroke:gc,'stroke-width':1});
+    add('line',{x1:xLeft,y1:hy-4,x2:xLeft,y2:hy+4,stroke:gc,'stroke-width':1});
+    add('line',{x1:g1[0],y1:hy-4,x2:g1[0],y2:hy+4,stroke:gc,'stroke-width':1});
+    add('text',{x:(xLeft+g1[0])/2,y:hy-4,'text-anchor':'middle','font-size':gf,fill:gc,'font-weight':'bold'}).textContent=r(gromOffset)+'" from corner';
   }
-  if (gDepPx > 10) {
-    add('line',{x1:g1[0]-14,y1:yFront,x2:g1[0]-14,y2:g1[1],stroke:gc,'stroke-width':1});
-    add('line',{x1:g1[0]-18,y1:yFront,x2:g1[0]-10,y2:yFront,stroke:gc,'stroke-width':1});
+  // Vertical: perpendicular in from the front hem edge (yT).
+  if (g1[1] - yT > 8) {
+    add('line',{x1:g1[0]-14,y1:yT,x2:g1[0]-14,y2:g1[1],stroke:gc,'stroke-width':1});
+    add('line',{x1:g1[0]-18,y1:yT,x2:g1[0]-10,y2:yT,stroke:gc,'stroke-width':1});
     add('line',{x1:g1[0]-18,y1:g1[1],x2:g1[0]-10,y2:g1[1],stroke:gc,'stroke-width':1});
-    add('text',{x:g1[0]-20,y:(yFront+g1[1])/2+4,'text-anchor':'end','font-size':gf,fill:gc,'font-weight':'bold'}).textContent=r(gromDepthIn)+'"';
+    add('text',{x:g1[0]-20,y:(yT+g1[1])/2+4,'text-anchor':'end','font-size':gf,fill:gc,'font-weight':'bold'}).textContent=r((g1[1]-yT)/scale)+'" from edge';
   }
 
   // ── Snaps — first half of each pair = STUD (green), second half = SOCKET (magenta)
@@ -636,21 +663,40 @@ function drawAssemblyDiagram(p) {
   const sf  = 9;
   const tk2 = 3;
 
-  // Dim 1 — horizontal: "½ drape depth" along the back fold from corner to snap A
+  // STUD dims — from MATERIAL EDGES: "½ drape" is measured in from the RIGHT HEM edge (xR); the
+  // "2"" is down from where the diagonal cut starts on that edge. No fold/corner references.
   const saDimY = yBack + snapIn + 18;
-  add('line',{x1:xRight,       y1:saDimY, x2:xRight+snapD, y2:saDimY, stroke:sc2,'stroke-width':1});
-  add('line',{x1:xRight,       y1:saDimY-tk2, x2:xRight,       y2:saDimY+tk2, stroke:sc2,'stroke-width':1});
+  add('line',{x1:xR,           y1:saDimY, x2:xRight+snapD, y2:saDimY, stroke:sc2,'stroke-width':1});
+  add('line',{x1:xR,           y1:saDimY-tk2, x2:xR,           y2:saDimY+tk2, stroke:sc2,'stroke-width':1});
   add('line',{x1:xRight+snapD,  y1:saDimY-tk2, x2:xRight+snapD,  y2:saDimY+tk2, stroke:sc2,'stroke-width':1});
-  add('text',{x:xRight+snapD/2, y:saDimY+10, 'text-anchor':'middle','font-size':sf, fill:sc2,'font-weight':'bold'})
-    .textContent = r(drapeDepth/2) + '" (½ drape)';
+  add('text',{x:(xR+xRight+snapD)/2, y:saDimY+10, 'text-anchor':'middle','font-size':sf, fill:sc2,'font-weight':'bold'})
+    .textContent = r(drapeDepth/2) + '" from right edge';
 
-  // Dim 2 — vertical: "2"" perpendicular into the drape from the back fold line
   const saDimX = xRight + snapD + 18;
   add('line',{x1:saDimX, y1:yBack,        x2:saDimX, y2:yBack+snapIn, stroke:sc2,'stroke-width':1});
   add('line',{x1:saDimX-tk2, y1:yBack,        x2:saDimX+tk2, y2:yBack,        stroke:sc2,'stroke-width':1});
   add('line',{x1:saDimX-tk2, y1:yBack+snapIn,  x2:saDimX+tk2, y2:yBack+snapIn, stroke:sc2,'stroke-width':1});
   add('text',{x:saDimX+5, y:yBack+snapIn/2+4, 'text-anchor':'start','font-size':sf, fill:sc2,'font-weight':'bold'})
-    .textContent = '2" in';
+    .textContent = '2" from where cut starts';
+
+  // SOCKET dims — mirror: "½ drape" in from the BACK HEM edge (yB); "2"" over from the cut start.
+  const sbDimX = xRight - 18;
+  add('line',{x1:sbDimX, y1:yB, x2:sbDimX, y2:yBack+snapD, stroke:sc2,'stroke-width':1});
+  add('line',{x1:sbDimX-tk2, y1:yB, x2:sbDimX+tk2, y2:yB, stroke:sc2,'stroke-width':1});
+  add('line',{x1:sbDimX-tk2, y1:yBack+snapD, x2:sbDimX+tk2, y2:yBack+snapD, stroke:sc2,'stroke-width':1});
+  add('text',{x:sbDimX-5, y:(yB+yBack+snapD)/2+4, 'text-anchor':'end','font-size':sf, fill:sc2,'font-weight':'bold'})
+    .textContent = r(drapeDepth/2) + '" from back edge';
+
+  const sbDimY = yBack + snapD + 18;
+  add('line',{x1:xRight, y1:sbDimY, x2:xRight+snapIn, y2:sbDimY, stroke:sc2,'stroke-width':1});
+  add('line',{x1:xRight, y1:sbDimY-tk2, x2:xRight, y2:sbDimY+tk2, stroke:sc2,'stroke-width':1});
+  add('line',{x1:xRight+snapIn, y1:sbDimY-tk2, x2:xRight+snapIn, y2:sbDimY+tk2, stroke:sc2,'stroke-width':1});
+  add('text',{x:xRight+snapIn+3, y:sbDimY+10, 'text-anchor':'start','font-size':sf, fill:sc2,'font-weight':'bold'})
+    .textContent = '2" from where cut starts';
+
+  // Label which half is which (stud vs socket) at the annotated corner.
+  add('text',{x:xRight+snapD, y:yBack+snapIn-7, 'text-anchor':'middle','font-size':8, fill:STUD_STROKE,'font-weight':'bold'}).textContent='stud';
+  add('text',{x:xRight+snapIn-7, y:yBack+snapD+3, 'text-anchor':'end','font-size':8, fill:SOCKET_STROKE,'font-weight':'bold'}).textContent='socket';
 
   // ── Overall dimension arrows
   const dOff = 50;
@@ -699,8 +745,8 @@ function drawAssemblyDiagram(p) {
 
 // ── Storage & wiring ─────────────────────────────────────────────────────────
 const STORAGE_KEY = 'tableSetCalcChairs_v1';
-const ALL_FIELDS  = ['L','W','H','F2BS','seamOverlap','splitDir','round','gromOffset','gromDepth'];
-const DEFAULTS    = {L:96, W:54, H:36, F2BS:17, seamOverlap:1.5, splitDir:'auto', round:true, gromOffset:5, gromDepth:0};
+const ALL_FIELDS  = ['L','W','H','F2BS','seamOverlap','splitDir','bolt','roundMode','gromOffset','gromDepth'];
+const DEFAULTS    = {L:96, W:54, H:36, F2BS:17, seamOverlap:1.5, splitDir:'auto', bolt:55.25, roundMode:'half', gromOffset:5, gromDepth:0};
 
 function saveToStorage() {
   const saved = {};
@@ -733,6 +779,8 @@ function loadFromStorage() {
 function wire() {
   const inputsCard = document.getElementById('inputsCard');
   ['input','change','keyup'].forEach(ev => inputsCard.addEventListener(ev, () => { saveToStorage(); compute(); }));
+  // Bolt width + rounding live in the top controls bar (outside inputsCard) — wire them too.
+  ['bolt','roundMode'].forEach(id => { const el = document.getElementById(id); if (el) el.addEventListener('change', () => { saveToStorage(); compute(); }); });
   document.getElementById('recalc').addEventListener('click', compute);
   document.getElementById('reset').addEventListener('click', () => {
     try { localStorage.removeItem(STORAGE_KEY); } catch(e){}

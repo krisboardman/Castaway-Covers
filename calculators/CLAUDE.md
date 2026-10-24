@@ -32,6 +32,9 @@ the cut diagram.
 | Snap socket (female half) | `#db2777` | `#831843` | solid circle r=4 or r=5 |
 | Bungee tab body | `#0ea5e9` @ 0.6 opacity | `#0369a1` | see "Bungee tab" section |
 | Overlap flap | `#fde68a` @ 0.55 | `#d97706` | dashed `5,3`, 1.5px |
+| Strip seams (cut diagram, labeled S1, S2…) | — | `#7e22ce` | dotted, 2px |
+| Wear patch (underside, where cover rubs a fixture) | `#7c2d12` @ 0.25 | `#7c2d12` | solid 1.5px |
+| Second piece of a multi-piece custom cover | `#f5f5f4` | `#57534e` | solid 2px; never pink (too close to socket magenta) |
 | Cut-line indicator (sectional) | — | `#f97316` (orange) | dashed `10,4`, 2.5px |
 | Overall dimension labels | `#0f172a` (black) | — | bold 13px |
 | Sub-dimension labels | `#64748b` (slate) | — | bold 10px |
@@ -122,6 +125,10 @@ This lets the user match descriptions to dots in the diagram at a glance.
 - **Standard placement**: 5" from the nearest corner along the hem, 2/3 of the
   drape depth in from the hem (or 1/3 of the drape depth, depending on which
   end is being measured — match the calculator's existing convention).
+- **Exception: free-hanging drapes** (bars, islands, anything with no frame
+  behind the drape): grommets go 6" above the hem, or 3" at a house-wall end.
+- Keep every grommet at least 4" away from a strip seam.
+- Grommets sit on a doubled 5×5 patch.
 - Lives on the assembly diagram only.
 
 ---
@@ -297,6 +304,9 @@ For an L-shape sectional with a main piece and a short piece:
 | Bungee tab hem | 2" into the back drape from the back fold line |
 | Bungee tab length | ~3" (so the loop sits ~3" away from the hem, toward the ground) |
 | Floor clearance | as input by the user (always honor this — don't hard-code) |
+| Grommet, free-hanging drape | 6" above the hem (3" at a wall end), ≥4" off any seam |
+| Wall upturn flap | 4", straight raw edge, drapes notched back |
+| Wear patch | 8×8" doubled, underside, centered on the fixture |
 
 ---
 
@@ -360,6 +370,50 @@ Format:
 
 This format is mandatory on every calculator that has corner snaps. Use
 **stud** and **socket** — never "male" or "female" — in user-facing text.
+
+---
+
+## Custom one-off covers (bars, islands, L-shapes)
+
+For a design that isn't one of the standard calculators, no calculator is
+built. Deliver a cut diagram and an assembly diagram in this file's style.
+First used on the L-shaped outdoor bar (Oct 2026).
+
+### Allowances
+- **Fixture tent.** When the cover drapes over a tap, faucet or other raised
+  fixture, add length both ways. Across the width, add the extra drape the tent
+  uses up on each side. Along the run, add the length the tent uses up (about
+  +10" for a 23" tap plus a 13.5" faucet). Measure each fixture's height and
+  its distance from a fixed edge.
+- **Counter step bridge.** When the cover spans two counter heights, it bridges
+  the step on a slant rather than following it down. Add the slant length to
+  the top panel (about +1" for a 6" step).
+- **Wall upturn flap.** Where a cover meets a house wall, add a 4" upturn flap
+  with a straight raw edge (no wave cut). Notch the drapes back so it lies flat.
+- **Derived dimensions.** A dimension calculated instead of measured (e.g. run
+  = outside length − width) is labeled "derived" on the cut diagram and in the
+  build notes.
+
+### Diagrams
+- Strip seams on the cut diagram: dotted `#7e22ce`, labeled S1, S2…, plus a
+  small "How it sews together" map with numbered steps on the same page.
+- Orientation arrows on every diagram; hardware counts and bungee lengths shown
+  on the assembly diagram.
+- A bungee-route sketch is allowed only as a separate explainer, never on the
+  production diagrams (see "No bungee path lines").
+
+### Hardware
+- Corner snaps can be skipped on a corner a bungee already pulls tight. Use
+  them on outside corners that would otherwise gap.
+- Two-piece join snaps: placed center-out at 6", studs on piece A, sockets on B.
+- U-hooks: screw into the bar's baseboard, through to the framing behind it. At
+  a house wall, use trim or a solid strip. **Never into vinyl siding.**
+
+### Materials
+- Marine vinyl: shingle the top seams (uphill strip laps over downhill), then
+  seal them.
+- Confirm the bolt width before cutting. Marine vinyl is often 54", not 55.25",
+  and the narrower bolt can change the strip count.
 
 ---
 
