@@ -33,7 +33,8 @@ export default function ShippingPage() {
             <section className="mb-8">
               <h2 className="text-2xl font-semibold text-gray-900 mb-4">Shipping Costs</h2>
               <p className="text-gray-700">
-                Shipping costs are calculated at checkout based on your location and order size.
+                Shipping is quoted per order based on your location and order size. Your shipping
+                cost is included on the invoice we email you for payment.
               </p>
             </section>
 

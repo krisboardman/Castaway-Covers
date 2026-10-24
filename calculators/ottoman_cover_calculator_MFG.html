@@ -32,7 +32,13 @@
   <h1>Ottoman Cover Calculator</h1>
   <div class="sub">Single-panel rectangular cover with diagonal corner cuts, corner snaps, and bungees that wrap each end (short side). Material drops all the way to the ground (height − floor clearance).</div>
   <div class="controls">
-    <label><input id="round" type="checkbox" checked> Round inches up / yards to whole</label>
+    <label>Rounding:
+      <select id="roundMode">
+        <option value="whole">Whole inch (round up)</option>
+        <option value="half" selected>Half inch (round up)</option>
+        <option value="exact">Exact</option>
+      </select>
+    </label>
     <button class="btn" id="recalc">Recalculate</button>
     <button class="btn" id="reset">Reset sample</button>
   </div>
@@ -53,13 +59,14 @@
         </div>
       </div>
 
-      <div class="card" style="margin-top:16px;">
+      <!-- Grommets & Corner Snaps cards hidden: repetitive of the assembly diagram. Bungee length + snap/grommet counts now live in the Results card. -->
+      <div class="card" style="margin-top:16px; display:none;">
         <div class="title">Grommets &amp; Bungees</div>
         <div id="grommets"></div>
         <div class="note">4 corner grommets (one at each corner of the long sides), set in from the outer edge by drop ÷ 3 so they hang about two-thirds of the way down the side of the ottoman. Two bungees, one at each short end, run through the two corner grommets and wrap under the short side of the ottoman to cinch the cover.</div>
       </div>
 
-      <div class="card" style="margin-top:16px;">
+      <div class="card" style="margin-top:16px; display:none;">
         <div class="title">Corner Snaps</div>
         <div id="snaps"></div>
         <div class="note">A diagonal cut at each corner removes the outer triangle and leaves a triangular flap. The two adjacent side drops fold together at 45°, and snaps hold the seam closed.</div>
@@ -87,7 +94,7 @@
     </div>
   </div>
 
-  <div class="card" style="margin-top:16px;">
+  <div class="card" style="margin-top:16px; display:none;">
     <div class="title">Cut List</div>
     <div id="cutlist"></div>
   </div>
@@ -100,11 +107,12 @@
 <script>
 function n(id){const v=Number(document.getElementById(id).value);return isFinite(v)?v:0;}
 function nOpt(id){const el=document.getElementById(id);if(!el||el.value===''||el.value==null)return null;const v=Number(el.value);return isFinite(v)?v:null;}
-function fin(v,r){return r?Math.ceil(v):Math.round(v*100)/100}
+function fin(v,mode){if(mode==='whole')return Math.ceil(v);if(mode==='half')return Math.ceil(v*2)/2;return Math.round(v*100)/100}
 function yds(inch,r){const y=inch/36;return r?Math.ceil(y):Math.round(y*100)/100}
 
 function compute(){
-  const rounded=document.getElementById('round').checked;
+  const roundMode=(document.getElementById('roundMode')||{}).value||'half';
+  const rounded=roundMode!=='exact';   // yards still round up to whole unless "exact"
   const B=n('B'), L=n('L'), W=n('W'), H=n('H'), FC=n('FC');
   const drop=Math.max(0, H - FC);
 
@@ -163,7 +171,7 @@ function compute(){
   totalBoltLen = CoverMath.ottomanCover({ length: L, width: W, height: H, bolt: B, fc: FC }).totalLength;
   const fitsBolt = (MD <= B);
 
-  const r=v=>fin(v,rounded);
+  const r=v=>fin(v,roundMode);
 
   // Results
   document.getElementById('results').innerHTML = `
@@ -175,6 +183,8 @@ function compute(){
     <div class='row'><span>Fits in bolt width?</span><strong>${fitsBolt
       ? `Yes — single piece, ${r(B-MD)}" of bolt waste per length`
       : `No — cover width ${r(MD)}" exceeds ${r(B)}" bolt; ${r(B)}" main panel + two ${r(stripWidth)}"-wide side strips (chamfer-trimmed)`}</strong></div>
+    <div class='row'><span>Corner snaps / grommets</span><strong>4 snap sets (8 pieces) · 4 grommets</strong></div>
+    <div class='row'><span>Bungee length</span><strong>2 pieces × ${r(bungeeLen)}"</strong></div>
   `;
 
   // Material to buy
@@ -215,14 +225,14 @@ function compute(){
   `;
 
   // Diagram
-  drawDiagram({rounded, B, L, W, drop, ML, MD, snapsPerCorner, gromInset, gromDownIn, gromAlongIn, layout, stripWidth, stripLength});
+  drawDiagram({rounded, roundMode, B, L, W, drop, ML, MD, snapsPerCorner, gromInset, gromDownIn, gromAlongIn, layout, stripWidth, stripLength});
 }
 
 function drawDiagram(p){
-  const {rounded, B, L, W, drop, ML, MD, snapsPerCorner, gromInset, gromDownIn, gromAlongIn, layout, stripWidth, stripLength} = p;
+  const {rounded, roundMode, B, L, W, drop, ML, MD, snapsPerCorner, gromInset, gromDownIn, gromAlongIn, layout, stripWidth, stripLength} = p;
   const svg = document.getElementById('diagram'); while(svg.firstChild) svg.removeChild(svg.firstChild);
   const VBW = svg.viewBox.baseVal.width, VBH = svg.viewBox.baseVal.height; const pad = 60;
-  const r = v => rounded ? Math.ceil(v) : Math.round(v*100)/100;
+  const r = v => fin(v, roundMode);
   const add = (t,a) => { const e=document.createElementNS('http://www.w3.org/2000/svg',t); for (const k in a) e.setAttribute(k,a[k]); svg.appendChild(e); return e; };
 
   // Scale: MD wide × ML long. Draw with ML horizontal so the long side reads left-to-right.
@@ -482,6 +492,24 @@ function drawDiagram(p){
     // Light leader lines from the dimensions to the actual snap point
     add('line',{x1:sx1, y1:bl.oy+7, x2:sx1, y2:sy1, stroke:'#16a34a','stroke-width':0.5,'stroke-dasharray':'2 2'});
     add('line',{x1:bl.ox-9, y1:sy1, x2:sx1, y2:sy1, stroke:'#16a34a','stroke-width':0.5,'stroke-dasharray':'2 2'});
+
+    // Short-side flap snap (SOCKET) — the mirror of the stud across the diagonal: measured in
+    // from the LEFT edge and up the LEFT edge from the bottom-left corner. Both outer material edges.
+    const sx2 = bl.ox + perpFracCallout  * dPx;   // perp: drop/2 in from the left edge
+    const sy2 = bl.oy - alongFracCallout * dPx;   // along: drop-2 up from the bottom-left corner
+    add('line',{x1:bl.ox-30, y1:bl.oy, x2:bl.ox-30, y2:sy2, stroke:'#831843','stroke-width':1});
+    add('line',{x1:bl.ox-33, y1:bl.oy, x2:bl.ox-27, y2:bl.oy, stroke:'#831843','stroke-width':1});
+    add('line',{x1:bl.ox-33, y1:sy2,   x2:bl.ox-27, y2:sy2,   stroke:'#831843','stroke-width':1});
+    add('text',{x:bl.ox-34, y:(bl.oy+sy2)/2+4,'text-anchor':'end','font-size':9, fill:'#831843'})
+      .textContent = `${alongIn}" up left edge`;
+    add('line',{x1:bl.ox, y1:sy2, x2:sx2, y2:sy2, stroke:'#831843','stroke-width':1});
+    add('line',{x1:bl.ox, y1:sy2-3, x2:bl.ox, y2:sy2+3, stroke:'#831843','stroke-width':1});
+    add('line',{x1:sx2,   y1:sy2-3, x2:sx2,   y2:sy2+3, stroke:'#831843','stroke-width':1});
+    add('text',{x:(bl.ox+sx2)/2, y:sy2-4,'text-anchor':'middle','font-size':9, fill:'#831843'})
+      .textContent = `${perpIn}" in from left edge`;
+
+    add('text',{x:sx1, y:sy1-6,'text-anchor':'middle','font-size':8, fill:'#166534','font-weight':'bold'}).textContent='stud';
+    add('text',{x:sx2, y:sy2-8,'text-anchor':'middle','font-size':8, fill:'#831843','font-weight':'bold'}).textContent='socket';
   }
 
   // Outer dimension arrows
@@ -518,11 +546,13 @@ function loadFromURL(){
 
 function wire(){
   const inputsCard=document.getElementById('inputsCard'); ['input','change','keyup'].forEach(ev=>inputsCard.addEventListener(ev,compute));
+  // Rounding lives in the top controls bar (outside inputsCard) — wire it too.
+  const rm=document.getElementById('roundMode'); if(rm) rm.addEventListener('change',compute);
   document.getElementById('recalc').addEventListener('click',compute);
   document.getElementById('reset').addEventListener('click',()=>{
     const d={B:55.25,L:36,W:24,H:16,FC:3};
     for(const k in d) document.getElementById(k).value=d[k];
-    document.getElementById('round').checked=true; compute();
+    if(rm) rm.value='half'; compute();
   });
   loadFromURL();
   compute();

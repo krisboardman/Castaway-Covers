@@ -85,18 +85,22 @@
           <label class="lbl">Furniture type
             <select id="furnitureType">
               <option value="chair">Chair</option>
-              <option value="sofa1">Sofa — Center Seam</option>
-              <option value="sofa2">Sofa — Center Snaps</option>
+              <option value="sofa">Sofa</option>
               <option value="chaise">Chaise Lounge</option>
               <option value="table">Table</option>
               <option value="ottoman">Ottoman</option>
+              <option value="tableset">Table Set</option>
+              <option value="sectional">Sectional</option>
+              <option value="grill">Grill / Grill Island</option>
             </select>
           </label>
         </div>
+        <div class="note">Your hours, manufacturer hours, grommets, snaps and bungees auto-fill by furniture type. Adjust as needed.</div>
       </div>
 
       <div class="card" style="margin-top:16px;" id="materialCard">
-        <div class="title">Material</div>
+        <div class="title">Materials</div>
+        <div class="section-label">Vinyl</div>
         <div class="inputs">
           <label class="lbl">Vinyl yards needed
             <input id="fabricYards" type="number" value="5" step="0.25" min="0" />
@@ -104,90 +108,90 @@
           <label class="lbl">Vinyl cost per yard $
             <input id="fabricPrice" type="number" value="15.00" step="0.25" min="0" />
           </label>
+        </div>
+        <div class="section-label">Hardware</div>
+        <div class="inputs">
           <label class="lbl">Bungee cords (qty)
             <input id="bungeeQty" type="number" value="2" step="1" min="0" />
           </label>
           <label class="lbl">Bungee cost each $
             <input id="bungeeCost" type="number" value="1.00" step="0.05" min="0" />
           </label>
+          <label class="lbl">Cord locks (qty)
+            <input id="cordLockQty" type="number" value="2" step="1" min="0" />
+          </label>
+          <label class="lbl">Cord lock cost each $
+            <input id="cordLockCost" type="number" value="0.30" step="0.05" min="0" />
+          </label>
+          <label class="lbl">Hooks (qty)
+            <input id="hookQty" type="number" value="2" step="1" min="0" />
+          </label>
+          <label class="lbl">Hook cost each $
+            <input id="hookCost" type="number" value="0.48" step="0.01" min="0" />
+          </label>
+          <label class="lbl">Grommets (qty)
+            <input id="grommetQty" type="number" value="2" step="1" min="0" />
+          </label>
+          <label class="lbl">Grommet cost each $
+            <input id="grommetCost" type="number" value="0.50" step="0.05" min="0" />
+          </label>
+          <label class="lbl">Snaps $
+            <input id="snapsCost" type="number" value="2" step="0.50" min="0" />
+          </label>
+          <label class="lbl">Center snaps $
+            <input id="centerSnapsCost" type="number" value="0" step="1" min="0" />
+          </label>
         </div>
         <div class="note">Bungee cord is $0.20/ft. Average cord is 60 in (5 ft) → $1.00 each.</div>
       </div>
 
-      <div class="card" style="margin-top:16px;" id="mfgCard">
-        <div class="title">Manufacturer Cost</div>
-        <div class="section-label">Labor</div>
+      <div class="card" style="margin-top:16px;" id="laborCard">
+        <div class="title">Labor Cost</div>
+        <div class="section-label">Manufacturer labor</div>
         <div class="inputs">
-          <label class="lbl">Time required
-            <select id="mfgTime">
-              <option value="0.5">30 minutes</option>
-              <option value="0.75">45 minutes</option>
-              <option value="1">1 hour</option>
-              <option value="1.5">1.5 hours</option>
-            </select>
+          <label class="lbl">Labor fee $/hr
+            <input id="mfgRate" type="number" value="60" step="5" min="0" />
           </label>
-          <label class="lbl">Hourly rate $
-            <input id="mfgHourly" type="number" value="60" step="5" min="0" />
+          <label class="lbl">Hours worked
+            <input id="mfgHours" type="number" value="0.75" step="0.25" min="0" />
           </label>
         </div>
         <div class="note">Covers dimension updates, machine cutting, base sewing, additional seams, hardware install, and wavy cuts.</div>
-        <div class="section-label">Hardware Parts</div>
+        <div class="section-label">Castaway Covers labor</div>
         <div class="inputs">
-          <label class="lbl">Grommets $
-            <input id="mfgGrommets" type="number" value="2" step="0.50" min="0" />
+          <label class="lbl full">Labor fee $/hr
+            <input id="ccRate" type="number" value="30" step="5" min="0" />
           </label>
-          <label class="lbl">Snaps $
-            <input id="mfgSnaps" type="number" value="2" step="0.50" min="0" />
+          <label class="lbl">Travel + measurement (hrs)
+            <input id="ccTravelHours" type="number" value="0.25" step="0.25" min="0" />
           </label>
-          <label class="lbl">Center snaps $
-            <input id="mfgCenterSnaps" type="number" value="0" step="1" min="0" />
+          <label class="lbl">Design (hrs)
+            <input id="ccDesignHours" type="number" value="0.25" step="0.25" min="0" />
           </label>
-        </div>
-        <div class="section-label">Add-ons</div>
-        <div class="inputs">
-          <label class="lbl">Handles (qty)
-            <input id="handleQty" type="number" value="0" step="1" min="0" />
+          <label class="lbl">Cover build (hrs)
+            <input id="ccBuildHours" type="number" value="0.25" step="0.25" min="0" />
           </label>
-          <label class="lbl">Cost per handle $
-            <input id="handleCost" type="number" value="3" step="0.50" min="0" />
-          </label>
-          <label class="lbl">Snap straps (qty)
-            <input id="strapQty" type="number" value="0" step="1" min="0" />
-          </label>
-          <label class="lbl">Cost per snap strap $
-            <input id="strapCost" type="number" value="4" step="0.50" min="0" />
+          <label class="lbl">Installation (hrs)
+            <input id="ccInstallHours" type="number" value="0.25" step="0.25" min="0" />
           </label>
         </div>
-        <div class="note">Time and parts auto-fill by furniture type. Adjust as needed.</div>
-      </div>
-
-      <div class="card" style="margin-top:16px;" id="myLaborCard">
-        <div class="title">Your Labor (Castaway)</div>
-        <div class="inputs single">
-          <label class="lbl">Your labor fee $
-            <input id="myLaborFee" type="number" value="30" step="5" min="0" />
-          </label>
-        </div>
-        <div class="note">Flat fee for your time on this cover. Adjust per order.</div>
+        <div class="note" id="ccLaborNote"></div>
       </div>
 
       <div class="card" style="margin-top:16px;" id="overheadCard">
-        <div class="title">Overhead & Fees (per cover)</div>
+        <div class="title">Overhead &amp; Tax (per cover)</div>
         <div class="inputs">
           <label class="lbl">Shipping / packaging $
             <input id="shippingCost" type="number" value="0.00" step="0.50" min="0" />
           </label>
-          <label class="lbl">Platform / listing fee $
-            <input id="platformFee" type="number" value="3.00" step="0.50" min="0" />
-          </label>
-          <label class="lbl">Marketing / ads (per unit) $
-            <input id="marketingCost" type="number" value="2.00" step="0.50" min="0" />
-          </label>
           <label class="lbl">Other overhead $
             <input id="otherOverhead" type="number" value="0.00" step="0.50" min="0" />
           </label>
+          <label class="lbl">NJ sales tax %
+            <input id="salesTaxRate" type="number" value="6.625" step="0.125" min="0" />
+          </label>
         </div>
-        <div class="note">Customer pays shipping by default ($0). Override if you absorb it.</div>
+        <div class="note">Customer pays shipping by default ($0). Override if you absorb it. NJ sales tax (6.625%) is added on top of all other costs.</div>
       </div>
 
       <div class="card" style="margin-top:16px;" id="pricingCard">
@@ -200,7 +204,7 @@
             <input id="targetMargin" type="number" value="50" step="5" min="0" max="95" />
           </label>
         </div>
-        <div class="note">Retail is yards x $45. Adjust selling price to match or set your own.</div>
+        <div class="note">Website price is yards x the furniture type's rate: $65/yd tables and ottomans, $70/yd chairs, sofas, chaises and table sets. Sectionals and grill islands are custom quotes. Orders under $350 are billed at $350.</div>
       </div>
     </div>
 
@@ -263,45 +267,33 @@
 </div>
 
 <script>
-// Manufacturer pricing presets (time in hours, parts in dollars)
+// Furniture presets (manufacturer hours, grommet count, snap $, bungee count,
+// your hours per step, and the website's $/yard rate; null rate = custom quote)
+const BASIC_HOURS = { ccTravelHours: 0.5, ccDesignHours: 0.5, ccBuildHours: 1, ccInstallHours: 0.5 };
 const PRESETS = {
-  chair: {
-    label: 'Chair',
-    mfgTime: 0.75,
-    mfgGrommets: 2, mfgSnaps: 2, mfgCenterSnaps: 0,
-    bungeeQty: 2
-  },
-  sofa1: {
-    label: 'Sofa — Center Seam',
-    mfgTime: 1,
-    mfgGrommets: 2, mfgSnaps: 2, mfgCenterSnaps: 0,
-    bungeeQty: 2
-  },
-  sofa2: {
-    label: 'Sofa — Center Snaps',
-    mfgTime: 1.5,
-    mfgGrommets: 2, mfgSnaps: 2, mfgCenterSnaps: 8,
-    bungeeQty: 2
-  },
-  chaise: {
-    label: 'Chaise Lounge',
-    mfgTime: 0.5,
-    mfgGrommets: 2, mfgSnaps: 3, mfgCenterSnaps: 0,
-    bungeeQty: 2
-  },
-  table: {
-    label: 'Table',
-    mfgTime: 0.5,
-    mfgGrommets: 2, mfgSnaps: 3, mfgCenterSnaps: 0,
-    bungeeQty: 2
-  },
-  ottoman: {
-    label: 'Ottoman',
-    mfgTime: 0.5,
-    mfgGrommets: 2, mfgSnaps: 3, mfgCenterSnaps: 0,
-    bungeeQty: 2
-  }
+  chair:     { label: 'Chair',                mfgHours: 0.75, grommetQty: 2, snapsCost: 2, centerSnapsCost: 0, bungeeQty: 2, ...BASIC_HOURS, retailRate: 70 },
+  sofa:      { label: 'Sofa',                 mfgHours: 1,    grommetQty: 2, snapsCost: 2, centerSnapsCost: 0, bungeeQty: 2, ...BASIC_HOURS, retailRate: 70 },
+  chaise:    { label: 'Chaise Lounge',        mfgHours: 0.5,  grommetQty: 2, snapsCost: 3, centerSnapsCost: 0, bungeeQty: 2, ...BASIC_HOURS, retailRate: 70 },
+  table:     { label: 'Table',                mfgHours: 0.5,  grommetQty: 2, snapsCost: 3, centerSnapsCost: 0, bungeeQty: 2, ...BASIC_HOURS, retailRate: 65 },
+  ottoman:   { label: 'Ottoman',              mfgHours: 0.5,  grommetQty: 2, snapsCost: 3, centerSnapsCost: 0, bungeeQty: 2, ...BASIC_HOURS, retailRate: 65 },
+  tableset:  { label: 'Table Set',            mfgHours: 0.5,  grommetQty: 2, snapsCost: 3, centerSnapsCost: 0, bungeeQty: 2, ...BASIC_HOURS, retailRate: 70 },
+  sectional: { label: 'Sectional',            mfgHours: 1.5,  grommetQty: 2, snapsCost: 3, centerSnapsCost: 0, bungeeQty: 2, ccTravelHours: 1, ccDesignHours: 2, ccBuildHours: 3, ccInstallHours: 1, retailRate: null },
+  grill:     { label: 'Grill / Grill Island', mfgHours: 1,    grommetQty: 2, snapsCost: 3, centerSnapsCost: 0, bungeeQty: 2, ccTravelHours: 1, ccDesignHours: 3, ccBuildHours: 4, ccInstallHours: 1, retailRate: null }
 };
+const ORDER_MINIMUM = 350;
+
+const DEFAULTS = {
+  furnitureType: 'chair',
+  fabricYards: 5, fabricPrice: 15.95,
+  bungeeQty: 2, bungeeCost: 1, cordLockQty: 2, cordLockCost: 0.3, hookQty: 2, hookCost: 0.48,
+  grommetQty: 2, grommetCost: 0.5, snapsCost: 2, centerSnapsCost: 0,
+  mfgRate: 0, mfgHours: 0.75,
+  ccRate: 50, ccTravelHours: 0.5, ccDesignHours: 0.5, ccBuildHours: 1, ccInstallHours: 0.5,
+  shippingCost: 0, otherOverhead: 0, salesTaxRate: 0,
+  sellingPrice: 350, targetMargin: 50
+};
+const FIELDS = Object.keys(DEFAULTS);
+const STORAGE_KEY = 'castawayProfitCalcV5';
 
 function parseNum(id) {
   const el = document.getElementById(id);
@@ -313,193 +305,180 @@ function fmt(val) { return '$' + val.toFixed(2); }
 function fmtPct(val) { return val.toFixed(1) + '%'; }
 
 function applyPreset() {
-  const type = document.getElementById('furnitureType').value;
-  const p = PRESETS[type];
+  const p = PRESETS[document.getElementById('furnitureType').value];
   if (!p) return;
-
-  document.getElementById('mfgTime').value = p.mfgTime;
-  document.getElementById('mfgGrommets').value = p.mfgGrommets;
-  document.getElementById('mfgSnaps').value = p.mfgSnaps;
-  document.getElementById('mfgCenterSnaps').value = p.mfgCenterSnaps;
-  document.getElementById('bungeeQty').value = p.bungeeQty;
-
+  ['mfgHours','grommetQty','snapsCost','centerSnapsCost','bungeeQty','ccTravelHours','ccDesignHours','ccBuildHours','ccInstallHours'].forEach(f => {
+    document.getElementById(f).value = p[f];
+  });
   compute();
 }
 
-function compute() {
+// All the math lives here so the page, the export and the copy all agree
+function calc() {
+  const c = {};
   const type = document.getElementById('furnitureType').value;
-  const preset = PRESETS[type];
+  c.typeLabel = PRESETS[type] ? PRESETS[type].label : type;
+  c.retailRate = PRESETS[type] ? PRESETS[type].retailRate : null;
 
-  // Material
-  const fabricYards = parseNum('fabricYards');
-  const fabricPrice = parseNum('fabricPrice');
-  const fabricTotal = fabricYards * fabricPrice;
-  const bungeeQty = parseNum('bungeeQty');
-  const bungeeCost = parseNum('bungeeCost');
-  const bungeeTotal = bungeeQty * bungeeCost;
-  const totalMaterial = fabricTotal + bungeeTotal;
+  // Materials
+  c.fabricYards = parseNum('fabricYards');
+  c.fabricPrice = parseNum('fabricPrice');
+  c.fabricTotal = c.fabricYards * c.fabricPrice;
+  c.items = [
+    ['Bungee cords', parseNum('bungeeQty'), parseNum('bungeeCost')],
+    ['Cord locks',   parseNum('cordLockQty'), parseNum('cordLockCost')],
+    ['Hooks',        parseNum('hookQty'), parseNum('hookCost')],
+    ['Grommets',     parseNum('grommetQty'), parseNum('grommetCost')]
+  ].map(([name, qty, each]) => ({ name, qty, each, total: qty * each }));
+  c.snapsCost = parseNum('snapsCost');
+  c.centerSnapsCost = parseNum('centerSnapsCost');
+  c.totalMaterial = c.fabricTotal + c.items.reduce((s, i) => s + i.total, 0) + c.snapsCost + c.centerSnapsCost;
 
-  // Manufacturer
-  const mfgTime = parseNum('mfgTime');
-  const mfgHourly = parseNum('mfgHourly');
-  const mfgLabor = mfgTime * mfgHourly;
-  const mfgGrommets = parseNum('mfgGrommets');
-  const mfgSnaps = parseNum('mfgSnaps');
-  const mfgCenterSnaps = parseNum('mfgCenterSnaps');
-  const handleQty = parseNum('handleQty');
-  const handleCost = parseNum('handleCost');
-  const handleTotal = handleQty * handleCost;
-  const strapQty = parseNum('strapQty');
-  const strapCost = parseNum('strapCost');
-  const strapTotal = strapQty * strapCost;
-
-  const totalMfg = mfgLabor + mfgGrommets + mfgSnaps + mfgCenterSnaps + handleTotal + strapTotal;
-
-  // Your labor
-  const myLaborFee = parseNum('myLaborFee');
-  const totalMyLabor = myLaborFee;
+  // Labor
+  c.mfgRate = parseNum('mfgRate');
+  c.mfgHours = parseNum('mfgHours');
+  c.mfgLabor = c.mfgRate * c.mfgHours;
+  c.ccRate = parseNum('ccRate');
+  c.ccTasks = [
+    ['Travel + measurement', parseNum('ccTravelHours')],
+    ['Design',               parseNum('ccDesignHours')],
+    ['Cover build',          parseNum('ccBuildHours')],
+    ['Installation',         parseNum('ccInstallHours')]
+  ].map(([name, hours]) => ({ name, hours, total: hours * c.ccRate }));
+  c.ccHours = c.ccTasks.reduce((s, t) => s + t.hours, 0);
+  c.ccLabor = c.ccHours * c.ccRate;
+  c.totalLabor = c.mfgLabor + c.ccLabor;
 
   // Overhead
-  const shippingCost = parseNum('shippingCost');
-  const platformFee = parseNum('platformFee');
-  const marketingCost = parseNum('marketingCost');
-  const otherOverhead = parseNum('otherOverhead');
-  const totalOverhead = shippingCost + platformFee + marketingCost + otherOverhead;
+  c.shippingCost = parseNum('shippingCost');
+  c.otherOverhead = parseNum('otherOverhead');
+  c.totalOverhead = c.shippingCost + c.otherOverhead;
 
   // Totals
-  const totalCost = totalMaterial + totalMfg + totalMyLabor + totalOverhead;
-  const sellingPrice = parseNum('sellingPrice');
-  const targetMargin = parseNum('targetMargin');
-  const profit = sellingPrice - totalCost;
-  const margin = sellingPrice > 0 ? (profit / sellingPrice) * 100 : 0;
-  const markup = totalCost > 0 ? (profit / totalCost) * 100 : 0;
-  const suggestedPrice = targetMargin < 100 ? totalCost / (1 - targetMargin / 100) : totalCost;
-  const breakEvenPrice = totalCost;
+  c.preTaxCost = c.totalMaterial + c.totalLabor + c.totalOverhead;
+  c.salesTaxRate = parseNum('salesTaxRate');
+  c.salesTax = c.preTaxCost * c.salesTaxRate / 100;
+  c.totalCost = c.preTaxCost + c.salesTax;
+  c.sellingPrice = parseNum('sellingPrice');
+  c.targetMargin = parseNum('targetMargin');
+  c.profit = c.sellingPrice - c.totalCost;
+  c.margin = c.sellingPrice > 0 ? (c.profit / c.sellingPrice) * 100 : 0;
+  c.markup = c.totalCost > 0 ? (c.profit / c.totalCost) * 100 : 0;
+  c.suggestedPrice = c.targetMargin < 100 ? c.totalCost / (1 - c.targetMargin / 100) : c.totalCost;
+  return c;
+}
+
+function compute() {
+  const c = calc();
 
   // Cost Breakdown
   const rows = [];
+  rows.push(['— MATERIALS —', '', 'header']);
+  rows.push([`Vinyl (${c.fabricYards} yd x ${fmt(c.fabricPrice)}/yd)`, fmt(c.fabricTotal)]);
+  c.items.forEach(i => rows.push([`${i.name} (${i.qty} x ${fmt(i.each)})`, fmt(i.total)]));
+  rows.push(['Snaps', fmt(c.snapsCost)]);
+  if (c.centerSnapsCost > 0) rows.push(['Center snaps', fmt(c.centerSnapsCost)]);
+  rows.push(['Materials subtotal', fmt(c.totalMaterial), 'subtotal']);
 
-  // Material section
-  rows.push(['— MATERIAL —', '', 'header']);
-  rows.push([`Vinyl fabric (${fabricYards} yd x ${fmt(fabricPrice)}/yd)`, fmt(fabricTotal)]);
-  rows.push([`Bungee cords (${bungeeQty} x ${fmt(bungeeCost)})`, fmt(bungeeTotal)]);
-  rows.push(['Material subtotal', fmt(totalMaterial), 'subtotal']);
+  rows.push(['— LABOR COST —', '', 'header']);
+  rows.push([`Manufacturer labor (${c.mfgHours} hr × ${fmt(c.mfgRate)}/hr)`, fmt(c.mfgLabor)]);
+  rows.push([`Castaway Covers labor (${c.ccHours} hr × ${fmt(c.ccRate)}/hr)`, fmt(c.ccLabor)]);
+  c.ccTasks.forEach(t => rows.push([`&nbsp;&nbsp;&nbsp;${t.name} (${t.hours} hr)`, fmt(t.total), 'sub']));
+  rows.push(['Labor subtotal', fmt(c.totalLabor), 'subtotal']);
 
-  // Manufacturer section
-  rows.push(['— MANUFACTURER —', '', 'header']);
-  const minutes = (mfgTime * 60).toFixed(0);
-  rows.push([`Labor (${minutes} min × $${mfgHourly}/hr)`, fmt(mfgLabor)]);
-  rows.push(['Grommets (parts)', fmt(mfgGrommets)]);
-  rows.push(['Snaps (parts)', fmt(mfgSnaps)]);
-  if (mfgCenterSnaps > 0) {
-    rows.push(['Center snaps (parts)', fmt(mfgCenterSnaps)]);
-  }
-  if (handleQty > 0) rows.push([`Handles (${handleQty} x ${fmt(handleCost)})`, fmt(handleTotal)]);
-  if (strapQty > 0) rows.push([`Snap straps (${strapQty} x ${fmt(strapCost)})`, fmt(strapTotal)]);
-  rows.push(['Manufacturer subtotal', fmt(totalMfg), 'subtotal']);
-
-  // Your labor section
-  rows.push(['— YOUR LABOR —', '', 'header']);
-  rows.push(['Your labor fee', fmt(myLaborFee)]);
-  rows.push(['Your labor subtotal', fmt(totalMyLabor), 'subtotal']);
-
-  // Overhead section
   rows.push(['— OVERHEAD —', '', 'header']);
-  if (shippingCost > 0) rows.push(['Shipping / packaging', fmt(shippingCost)]);
-  rows.push(['Platform / listing fee', fmt(platformFee)]);
-  rows.push(['Marketing / ads', fmt(marketingCost)]);
-  if (otherOverhead > 0) rows.push(['Other overhead', fmt(otherOverhead)]);
-  rows.push(['Overhead subtotal', fmt(totalOverhead), 'subtotal']);
+  rows.push(['Shipping / packaging', fmt(c.shippingCost)]);
+  if (c.otherOverhead > 0) rows.push(['Other overhead', fmt(c.otherOverhead)]);
+  rows.push(['Overhead subtotal', fmt(c.totalOverhead), 'subtotal']);
 
-  const breakdown = document.getElementById('costBreakdown');
-  breakdown.innerHTML = rows.map(r => {
+  rows.push(['— NJ SALES TAX —', '', 'header']);
+  rows.push(['Cost before tax', fmt(c.preTaxCost)]);
+  rows.push([`NJ sales tax (${c.salesTaxRate}%)`, fmt(c.salesTax), 'subtotal']);
+
+  document.getElementById('costBreakdown').innerHTML = rows.map(r => {
     if (r[2] === 'header') {
       return `<div style="font-size:11px;font-weight:600;color:var(--sub);text-transform:uppercase;letter-spacing:0.5px;margin-top:12px;padding-bottom:4px;border-bottom:1px solid var(--muted);">${r[0]}</div>`;
     }
+    if (r[2] === 'sub') {
+      return `<div class="row" style="font-size:12px;color:var(--sub);padding:3px 0;border-top:none;"><span>${r[0]}</span><span>${r[1]}</span></div>`;
+    }
     const cls = r[2] === 'subtotal' ? ' subtotal' : '';
     return `<div class="row${cls}"><span>${r[0]}</span><span>${r[1]}</span></div>`;
-  }).join('') + `<div class="row total"><span>Total Cost Per Cover</span><span>${fmt(totalCost)}</span></div>`;
+  }).join('') + `<div class="row total"><span>Total Cost Per Cover</span><span>${fmt(c.totalCost)}</span></div>`;
+
+  document.getElementById('ccLaborNote').textContent =
+    `${c.ccHours} hr total × ${fmt(c.ccRate)}/hr = ${fmt(c.ccLabor)}`;
 
   // Cost bar
-  const barColors = ['#6366f1', '#f97316', '#3b82f6', '#f59e0b'];
-  const barLabels = ['Material', 'Manufacturer', 'Your Labor', 'Overhead'];
-  const barValues = [totalMaterial, totalMfg, totalMyLabor, totalOverhead];
+  const barColors = ['#6366f1', '#f97316', '#3b82f6', '#f59e0b', '#94a3b8'];
+  const barLabels = ['Materials', 'Manufacturer Labor', 'Castaway Labor', 'Overhead', 'Sales Tax'];
+  const barValues = [c.totalMaterial, c.mfgLabor, c.ccLabor, c.totalOverhead, c.salesTax];
   const costBar = document.getElementById('costBar');
   const legend = document.getElementById('costBarLegend');
-
-  if (totalCost > 0) {
-    costBar.innerHTML = barValues.map((v, i) => {
-      const pct = (v / totalCost) * 100;
-      return `<div class="bar-segment" style="width:${pct}%; background:${barColors[i]};"></div>`;
-    }).join('');
-    legend.innerHTML = barValues.map((v, i) => {
-      const pct = ((v / totalCost) * 100).toFixed(0);
-      return `<span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:${barColors[i]};margin-right:4px;vertical-align:middle;"></span>${barLabels[i]}: ${fmt(v)} (${pct}%)</span>`;
-    }).join('');
+  if (c.totalCost > 0) {
+    costBar.innerHTML = barValues.map((v, i) =>
+      `<div class="bar-segment" style="width:${(v / c.totalCost) * 100}%; background:${barColors[i]};"></div>`).join('');
+    legend.innerHTML = barValues.map((v, i) =>
+      `<span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:${barColors[i]};margin-right:4px;vertical-align:middle;"></span>${barLabels[i]}: ${fmt(v)} (${((v / c.totalCost) * 100).toFixed(0)}%)</span>`).join('');
   } else {
     costBar.innerHTML = '';
     legend.innerHTML = '<span>No costs entered</span>';
   }
 
   // Profit results
-  const profitResults = document.getElementById('profitResults');
-  const profitColor = profit >= 0 ? 'green' : 'red';
-  const marginColor = margin >= targetMargin ? 'green' : margin >= 0 ? 'amber' : 'red';
-
-  profitResults.innerHTML = `
-    <div class="row"><span>Selling price</span><strong>${fmt(sellingPrice)}</strong></div>
-    <div class="row"><span>Total cost</span><strong>${fmt(totalCost)}</strong></div>
-    <div class="row total"><span>Profit per cover</span><strong class="${profitColor}">${fmt(profit)}</strong></div>
-    <div class="row"><span>Profit margin</span><strong class="${marginColor}">${fmtPct(margin)}</strong></div>
-    <div class="row"><span>Markup on cost</span><strong>${fmtPct(markup)}</strong></div>
+  const profitColor = c.profit >= 0 ? 'green' : 'red';
+  const marginColor = c.margin >= c.targetMargin ? 'green' : c.margin >= 0 ? 'amber' : 'red';
+  document.getElementById('profitResults').innerHTML = `
+    <div class="row"><span>Selling price</span><strong>${fmt(c.sellingPrice)}</strong></div>
+    <div class="row"><span>Total cost</span><strong>${fmt(c.totalCost)}</strong></div>
+    <div class="row total"><span>Profit per cover</span><strong class="${profitColor}">${fmt(c.profit)}</strong></div>
+    <div class="row"><span>Profit margin</span><strong class="${marginColor}">${fmtPct(c.margin)}</strong></div>
+    <div class="row"><span>Markup on cost</span><strong>${fmtPct(c.markup)}</strong></div>
   `;
 
   // Suggested pricing
-  const suggestedPricing = document.getElementById('suggestedPricing');
-  suggestedPricing.innerHTML = `
-    <div class="row"><span>Break-even price (cost only)</span><strong>${fmt(breakEvenPrice)}</strong></div>
-    <div class="row"><span>Suggested price for ${targetMargin}% margin</span><strong class="green">${fmt(suggestedPrice)}</strong></div>
-    <div class="row"><span>Profit at suggested price</span><strong>${fmt(suggestedPrice - totalCost)}</strong></div>
-    <div class="note">Retail reference: ${fabricYards} yards x $45/yd = <strong>${fmt(fabricYards * 45)}</strong>. Your current price of ${fmt(sellingPrice)} gives you a ${fmtPct(margin)} margin.</div>
+  document.getElementById('suggestedPricing').innerHTML = `
+    <div class="row"><span>Break-even price (cost only)</span><strong>${fmt(c.totalCost)}</strong></div>
+    <div class="row"><span>Suggested price for ${c.targetMargin}% margin</span><strong class="green">${fmt(c.suggestedPrice)}</strong></div>
+    <div class="row"><span>Profit at suggested price</span><strong>${fmt(c.suggestedPrice - c.totalCost)}</strong></div>
+    <div class="note">${c.retailRate
+      ? `Website price: ${c.fabricYards} yards x $${c.retailRate}/yd = <strong>${fmt(c.fabricYards * c.retailRate)}</strong>${c.fabricYards * c.retailRate < ORDER_MINIMUM ? ` (billed at the ${fmt(ORDER_MINIMUM)} minimum if it's the whole order)` : ''}.`
+      : `${c.typeLabel} covers are custom quotes on the website, so use the suggested price above.`} Your current price of ${fmt(c.sellingPrice)} gives you a ${fmtPct(c.margin)} margin.</div>
   `;
 
   // Metric cards
-  document.getElementById('metricProfit').textContent = fmt(profit);
-  document.getElementById('metricProfit').className = 'metric-value ' + profitColor;
-  document.getElementById('metricProfitSub').textContent = 'on ' + fmt(sellingPrice) + ' selling price';
-
-  document.getElementById('metricMargin').textContent = fmtPct(margin);
-  document.getElementById('metricMargin').className = 'metric-value ' + marginColor;
-  document.getElementById('metricMarginSub').textContent = margin >= targetMargin ? 'Meets target of ' + targetMargin + '%' : 'Below target of ' + targetMargin + '%';
-
-  document.getElementById('metricSuggested').textContent = fmt(suggestedPrice);
-  document.getElementById('metricSuggested').className = 'metric-value green';
-  document.getElementById('metricSuggestedSub').textContent = 'for ' + targetMargin + '% margin';
+  const mp = document.getElementById('metricProfit');
+  mp.textContent = fmt(c.profit);
+  mp.className = 'metric-value ' + profitColor;
+  document.getElementById('metricProfitSub').textContent = 'on ' + fmt(c.sellingPrice) + ' selling price';
+  const mm = document.getElementById('metricMargin');
+  mm.textContent = fmtPct(c.margin);
+  mm.className = 'metric-value ' + marginColor;
+  document.getElementById('metricMarginSub').textContent = (c.margin >= c.targetMargin ? 'Meets' : 'Below') + ' target of ' + c.targetMargin + '%';
+  const ms = document.getElementById('metricSuggested');
+  ms.textContent = fmt(c.suggestedPrice);
+  ms.className = 'metric-value green';
+  document.getElementById('metricSuggestedSub').textContent = 'for ' + c.targetMargin + '% margin';
 
   // Volume scenarios
-  const volumes = [5, 10, 20, 30, 50];
-  const scenariosDiv = document.getElementById('volumeScenarios');
-  scenariosDiv.innerHTML = volumes.map(qty => {
-    const rev = qty * sellingPrice;
-    const cost = qty * totalCost;
-    const prof = qty * profit;
-    const annual = prof * 12;
+  document.getElementById('volumeScenarios').innerHTML = [5, 10, 20, 30, 50].map(qty => {
+    const prof = qty * c.profit;
     const profClass = prof >= 0 ? 'green' : 'red';
     return `<div class="scenario-row">
       <span><strong>${qty}</strong></span>
-      <span>${fmt(rev)}</span>
-      <span>${fmt(cost)}</span>
+      <span>${fmt(qty * c.sellingPrice)}</span>
+      <span>${fmt(qty * c.totalCost)}</span>
       <span class="${profClass}"><strong>${fmt(prof)}</strong></span>
-      <span class="${profClass}"><strong>${fmt(annual)}</strong></span>
+      <span class="${profClass}"><strong>${fmt(prof * 12)}</strong></span>
     </div>`;
   }).join('');
 
   // Status pill
   const pill = document.getElementById('statusPill');
-  if (profit > 0 && margin >= targetMargin) {
+  if (c.profit > 0 && c.margin >= c.targetMargin) {
     pill.textContent = 'Profitable';
     pill.style.background = '#dcfce7'; pill.style.borderColor = '#86efac'; pill.style.color = '#166534';
-  } else if (profit > 0) {
+  } else if (c.profit > 0) {
     pill.textContent = 'Profitable (below target)';
     pill.style.background = '#fef3c7'; pill.style.borderColor = '#fcd34d'; pill.style.color = '#92400e';
   } else {
@@ -511,23 +490,16 @@ function compute() {
 }
 
 function saveInputs() {
-  const fields = ['furnitureType','fabricYards','fabricPrice','bungeeQty','bungeeCost',
-    'mfgTime','mfgHourly','mfgGrommets','mfgSnaps','mfgCenterSnaps',
-    'handleQty','handleCost','strapQty','strapCost',
-    'myLaborFee',
-    'shippingCost','platformFee','marketingCost','otherOverhead',
-    'sellingPrice','targetMargin'];
   const values = {};
-  fields.forEach(f => { const el = document.getElementById(f); if (el) values[f] = el.value; });
-  localStorage.setItem('castawayProfitCalcV3', JSON.stringify(values));
+  FIELDS.forEach(f => { const el = document.getElementById(f); if (el) values[f] = el.value; });
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(values)); } catch (e) {}
 }
 
 function loadSavedInputs() {
   try {
-    const saved = localStorage.getItem('castawayProfitCalcV3');
+    const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
-      const values = JSON.parse(saved);
-      Object.entries(values).forEach(([field, value]) => {
+      Object.entries(JSON.parse(saved)).forEach(([field, value]) => {
         const el = document.getElementById(field);
         if (el) el.value = value;
       });
@@ -538,113 +510,59 @@ function loadSavedInputs() {
 }
 
 function exportAsText() {
+  const c = calc();
   const date = new Date().toLocaleDateString();
-  const type = document.getElementById('furnitureType').value;
-  const preset = PRESETS[type];
-  const fabricYards = parseNum('fabricYards');
-  const fabricPrice = parseNum('fabricPrice');
-  const fabricTotal = fabricYards * fabricPrice;
-  const bungeeTotal = parseNum('bungeeQty') * parseNum('bungeeCost');
-  const totalMaterial = fabricTotal + bungeeTotal;
-
-  const mfgLabor = parseNum('mfgTime') * parseNum('mfgHourly');
-  const mfgGrommets = parseNum('mfgGrommets');
-  const mfgSnaps = parseNum('mfgSnaps');
-  const mfgCenterSnaps = parseNum('mfgCenterSnaps');
-  const handleTotal = parseNum('handleQty') * parseNum('handleCost');
-  const strapTotal = parseNum('strapQty') * parseNum('strapCost');
-  const totalMfg = mfgLabor + mfgGrommets + mfgSnaps + mfgCenterSnaps + handleTotal + strapTotal;
-
-  const totalMyLabor = parseNum('myLaborFee');
-  const totalOverhead = parseNum('shippingCost') + parseNum('platformFee') + parseNum('marketingCost') + parseNum('otherOverhead');
-  const totalCost = totalMaterial + totalMfg + totalMyLabor + totalOverhead;
-  const sellingPrice = parseNum('sellingPrice');
-  const profit = sellingPrice - totalCost;
-  const margin = sellingPrice > 0 ? (profit / sellingPrice) * 100 : 0;
-
   let text = 'CASTAWAY COVERS — PROFIT CALCULATOR\n';
   text += 'Generated: ' + date + '\n';
-  text += 'Cover type: ' + (preset ? preset.label : type) + '\n\n';
+  text += 'Cover type: ' + c.typeLabel + '\n\n';
   text += 'COSTS:\n';
-  text += '  Material: ' + fmt(totalMaterial) + '\n';
-  text += '  Manufacturer: ' + fmt(totalMfg) + '\n';
-  text += '  Your Labor: ' + fmt(totalMyLabor) + '\n';
-  text += '  Overhead: ' + fmt(totalOverhead) + '\n';
-  text += '  TOTAL COST: ' + fmt(totalCost) + '\n\n';
+  text += '  Materials: ' + fmt(c.totalMaterial) + '\n';
+  text += '  Manufacturer Labor: ' + fmt(c.mfgLabor) + ' (' + c.mfgHours + ' hr)\n';
+  text += '  Castaway Covers Labor: ' + fmt(c.ccLabor) + ' (' + c.ccHours + ' hr)\n';
+  c.ccTasks.forEach(t => { text += '    ' + t.name + ': ' + t.hours + ' hr, ' + fmt(t.total) + '\n'; });
+  text += '  Overhead: ' + fmt(c.totalOverhead) + '\n';
+  text += '  NJ Sales Tax (' + c.salesTaxRate + '%): ' + fmt(c.salesTax) + '\n';
+  text += '  TOTAL COST: ' + fmt(c.totalCost) + '\n\n';
   text += 'PRICING:\n';
-  text += '  Selling Price: ' + fmt(sellingPrice) + '\n';
-  text += '  Profit Per Cover: ' + fmt(profit) + '\n';
-  text += '  Profit Margin: ' + fmtPct(margin) + '\n';
+  text += '  Selling Price: ' + fmt(c.sellingPrice) + '\n';
+  text += '  Profit Per Cover: ' + fmt(c.profit) + '\n';
+  text += '  Profit Margin: ' + fmtPct(c.margin) + '\n';
 
   const blob = new Blob([text], {type:'text/plain'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = 'profit-calc-' + type + '-' + date.replace(/\//g,'-') + '.txt';
+  a.download = 'profit-calc-' + document.getElementById('furnitureType').value + '-' + date.replace(/\//g,'-') + '.txt';
   a.click();
   URL.revokeObjectURL(url);
 }
 
 function copyToClipboard() {
-  const type = document.getElementById('furnitureType').value;
-  const preset = PRESETS[type];
-  const fabricTotal = parseNum('fabricYards') * parseNum('fabricPrice');
-  const bungeeTotal = parseNum('bungeeQty') * parseNum('bungeeCost');
-  const totalMaterial = fabricTotal + bungeeTotal;
-  const totalMfg = parseNum('mfgTime') * parseNum('mfgHourly')
-    + parseNum('mfgGrommets') + parseNum('mfgSnaps') + parseNum('mfgCenterSnaps')
-    + parseNum('handleQty') * parseNum('handleCost') + parseNum('strapQty') * parseNum('strapCost');
-  const totalMyLabor = parseNum('myLaborFee');
-  const totalOverhead = parseNum('shippingCost') + parseNum('platformFee') + parseNum('marketingCost') + parseNum('otherOverhead');
-  const totalCost = totalMaterial + totalMfg + totalMyLabor + totalOverhead;
-  const sellingPrice = parseNum('sellingPrice');
-  const profit = sellingPrice - totalCost;
-  const margin = sellingPrice > 0 ? (profit / sellingPrice) * 100 : 0;
-
-  let text = `Castaway Covers — ${preset ? preset.label : type}\n`;
-  text += `Cost: ${fmt(totalCost)} | Price: ${fmt(sellingPrice)} | Profit: ${fmt(profit)} | Margin: ${fmtPct(margin)}`;
-
+  const c = calc();
+  let text = `Castaway Covers — ${c.typeLabel}\n`;
+  text += `Cost: ${fmt(c.totalCost)} | Price: ${fmt(c.sellingPrice)} | Profit: ${fmt(c.profit)} | Margin: ${fmtPct(c.margin)}`;
   navigator.clipboard.writeText(text).then(() => alert('Copied!')).catch(() => alert('Failed to copy.'));
 }
 
 function wire() {
   const loaded = loadSavedInputs();
+  if (!loaded) FIELDS.forEach(f => { document.getElementById(f).value = DEFAULTS[f]; });
 
-  // Type change triggers preset
   document.getElementById('furnitureType').addEventListener('change', applyPreset);
-
-  // Listen to all input changes
-  ['typeCard','materialCard','mfgCard','myLaborCard','overheadCard','pricingCard'].forEach(cardId => {
+  ['materialCard','laborCard','overheadCard','pricingCard'].forEach(cardId => {
     const card = document.getElementById(cardId);
-    if (card) ['input','change','keyup'].forEach(ev => card.addEventListener(ev, compute));
+    if (card) ['input','change'].forEach(ev => card.addEventListener(ev, compute));
   });
 
   document.getElementById('recalc').addEventListener('click', compute);
   document.getElementById('resetBtn').addEventListener('click', () => {
-    document.getElementById('furnitureType').value = 'chair';
-    document.getElementById('fabricYards').value = 5;
-    document.getElementById('fabricPrice').value = 15;
-    document.getElementById('bungeeQty').value = 2;
-    document.getElementById('bungeeCost').value = 1;
-    document.getElementById('mfgHourly').value = 60;
-    document.getElementById('handleQty').value = 0;
-    document.getElementById('handleCost').value = 3;
-    document.getElementById('strapQty').value = 0;
-    document.getElementById('strapCost').value = 4;
-    document.getElementById('myLaborFee').value = 30;
-    document.getElementById('shippingCost').value = 0;
-    document.getElementById('platformFee').value = 3;
-    document.getElementById('marketingCost').value = 2;
-    document.getElementById('otherOverhead').value = 0;
-    document.getElementById('sellingPrice').value = 225;
-    document.getElementById('targetMargin').value = 50;
+    FIELDS.forEach(f => { document.getElementById(f).value = DEFAULTS[f]; });
     applyPreset();
   });
   document.getElementById('exportTxt').addEventListener('click', exportAsText);
   document.getElementById('printPage').addEventListener('click', () => window.print());
   document.getElementById('copyResults').addEventListener('click', copyToClipboard);
 
-  // If no saved state, apply chair preset
   if (!loaded) applyPreset();
   compute();
 }
