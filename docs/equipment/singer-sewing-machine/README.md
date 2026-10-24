@@ -43,6 +43,7 @@ When the machine contradicts a document, trust the machine and update these file
 | [motor.md](motor.md) | anything about the removed motor: inspect, clean, brushes, wiring, refit |
 | [troubleshooting.md](troubleshooting.md) | a symptom: won't run, slow, sparks, hums, skips stitches, thread nests |
 | [sources.md](sources.md) | checking where a fact came from and how much to trust it |
+| [model/](model/README.md) | 3D Blender model of the BU7 motor: exploded and assembled renders |
 
 ## Camera presets (OBSBOT, set 2026-10-23)
 

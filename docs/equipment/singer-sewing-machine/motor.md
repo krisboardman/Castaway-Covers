@@ -5,6 +5,19 @@ updated: 2026-10-23
 
 # Motor
 
+## Data plate [observed 2026-10-23]
+
+The plate is on the curved sheet-metal cover, not the motor body:
+
+> SEWING MOTOR, Patented U.S.A. — 100-110 volts 0.6 amps, D.C. & 25 to 75
+> cycles — Catalog **B.U.7-8** (last character worn; could be "B") — Motor No.
+> 4867674 (digits worn) — SIMANCO U.S.A.
+
+- **Singer BU7** universal motor (AC or DC). A parts seller lists BU7 motors as
+  fitting the 15-series, 28, 66, 99 and 128 ([listing](https://www.vintagesingerparts.com/en-au/products/genuine-simanco-singer-sewing-machine-motor-cat-no-b-u-7-a-110-120v.oembed)).
+- "10" stamped on the mounting arm is not a model number.
+- No BU7 wiring diagram found online; trace leads by eye before cutting.
+
 ## What is on the towel [observed 2026-10-23]
 
 - A small black-enamelled motor. Its laminated field core and coil are exposed in

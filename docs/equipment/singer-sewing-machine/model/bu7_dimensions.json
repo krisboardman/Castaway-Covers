@@ -1,0 +1,93 @@
+{
+  "_units": "inches",
+  "_note": "Every value is an estimate from camera photos on 2026-10-23 unless 'measured' is true. Replace with ruler or caliper readings and set measured=true.",
+  "body_length": {
+    "value": 2.2,
+    "measured": false,
+    "what": "field core (striped laminations), along the shaft"
+  },
+  "body_width": {
+    "value": 2.6,
+    "measured": false,
+    "what": "field core, side to side"
+  },
+  "body_height": {
+    "value": 2.6,
+    "measured": false,
+    "what": "field core, top to bottom"
+  },
+  "end_housing_dia": {
+    "value": 2.7,
+    "measured": false,
+    "what": "black cast end housings"
+  },
+  "end_housing_len": {
+    "value": 0.9,
+    "measured": false,
+    "what": "each end housing, along the shaft"
+  },
+  "armature_dia": {
+    "value": 1.7,
+    "measured": false,
+    "what": "armature core inside the field"
+  },
+  "armature_len": {
+    "value": 1.8,
+    "measured": false,
+    "what": "armature core length"
+  },
+  "commutator_dia": {
+    "value": 0.8,
+    "measured": false,
+    "what": "copper commutator at the brush end"
+  },
+  "commutator_len": {
+    "value": 0.45,
+    "measured": false,
+    "what": "commutator length"
+  },
+  "shaft_dia": {
+    "value": 0.25,
+    "measured": false,
+    "what": "steel shaft"
+  },
+  "shaft_len": {
+    "value": 5.6,
+    "measured": false,
+    "what": "shaft end to end"
+  },
+  "pulley_dia": {
+    "value": 0.9,
+    "measured": false,
+    "what": "drive pulley outside diameter"
+  },
+  "pulley_len": {
+    "value": 0.35,
+    "measured": false,
+    "what": "pulley width"
+  },
+  "brush_tube_dia": {
+    "value": 0.5,
+    "measured": false,
+    "what": "brush holder boss / cap diameter"
+  },
+  "brush_size": {
+    "value": [
+      0.22,
+      0.22,
+      0.55
+    ],
+    "measured": false,
+    "what": "carbon brush W x D x L; measure when removed \u2014 decides replacement part"
+  },
+  "cover_radius": {
+    "value": 1.72,
+    "measured": false,
+    "what": "curved sheet-metal cover with the data plate"
+  },
+  "arm_length": {
+    "value": 2.8,
+    "measured": false,
+    "what": "mounting arm, stamped '10'"
+  }
+}
