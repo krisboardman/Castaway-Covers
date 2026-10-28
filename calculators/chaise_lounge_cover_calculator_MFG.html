@@ -85,7 +85,7 @@
         <div class="card" id="inputsCard">
           <div class="title">Inputs</div>
           <div class="inputs">
-            <label class="lbl">B (Bolt width - Fabric size)<input id="B" type="number" value="55.25" step="0.25" /></label>
+            <label class="lbl">B (Bolt width - Fabric size)<input id="B" type="number" value="54.5" step="0.25" /></label>
             <label class="lbl">W (Chaise width)<input id="W" type="number" value="24" step="1" /></label>
             <label class="lbl">Length — head-to-foot (D)<input id="D" type="number" value="72" step="1" /></label>
             <label class="lbl">H (Height — frame top to floor, <strong>no cushion</strong>)<input id="H" type="number" value="18" step="1" /></label>
@@ -259,7 +259,7 @@ function drawDiagram(params){
   const extActualLen = (extEntryY !== null && extExitY !== null && extExitY > extEntryY)
     ? (extExitY - extEntryY) : couch_panelLen;
   const rIn = v => roundMode === 'whole' ? Math.ceil(v) : roundMode === 'half' ? roundHalf(v) : Math.round(v*100)/100;
-  // Bolt width is a FIXED material constant (e.g. 55.25") — never round it with rIn(), or it reads
+  // Bolt width is a FIXED material constant (e.g. 54.5") — never round it with rIn(), or it reads
   // wider than the actual fabric (56" in whole mode, 55.5" in half mode) and overstates the material.
   const fmtMat = v => (+(Math.round(v*100)/100).toFixed(2)).toString();
   const svg = document.getElementById('diagram');
@@ -427,7 +427,7 @@ function _drawDiagram_chair_legacy(params){
          useSplitBack, splitBackHalfTop, splitBackHalfBot, splitBackBoltLength,
          splitBackMinOffset, splitBackNestedWidth, splitBackCenterSeam} = params;
   const rIn = v => roundMode === 'whole' ? Math.ceil(v) : roundMode === 'half' ? roundHalf(v) : Math.round(v*100)/100;
-  // Bolt width is a FIXED material constant (e.g. 55.25") — never round it with rIn(), or it reads
+  // Bolt width is a FIXED material constant (e.g. 54.5") — never round it with rIn(), or it reads
   // wider than the actual fabric (56" in whole mode, 55.5" in half mode) and overstates the material.
   const fmtMat = v => (+(Math.round(v*100)/100).toFixed(2)).toString();
   const svg = document.getElementById('diagram');
@@ -761,7 +761,7 @@ function drawAssemblyDiagramSide(params){
          totalFB, frontFlapNeeded, frontFlapWidth, backPieceLength,
          rounded, roundMode, hem, seam} = params;
   const rIn = v => roundMode === 'whole' ? Math.ceil(v) : roundMode === 'half' ? roundHalf(v) : Math.round(v*100)/100;
-  // Bolt width is a FIXED material constant (e.g. 55.25") — never round it with rIn(), or it reads
+  // Bolt width is a FIXED material constant (e.g. 54.5") — never round it with rIn(), or it reads
   // wider than the actual fabric (56" in whole mode, 55.5" in half mode) and overstates the material.
   const fmtMat = v => (+(Math.round(v*100)/100).toFixed(2)).toString();
   const svg = document.getElementById('assemblyDiagramSide');
@@ -914,7 +914,7 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
          couch_backInset, couch_taperLen, couch_frontStraight, couch_frontInset, couch_frontFlapWidth, couch_frontFlapNeeded,
          couch_extNeeded, couch_extEachCut, couch_extSeam, couch_extBoltsNeeded, couch_totalBolts} = params;
   const rIn = v => roundMode === 'whole' ? Math.ceil(v) : roundMode === 'half' ? roundHalf(v) : Math.round(v*100)/100;
-  // Bolt width is a FIXED material constant (e.g. 55.25") — never round it with rIn(), or it reads
+  // Bolt width is a FIXED material constant (e.g. 54.5") — never round it with rIn(), or it reads
   // wider than the actual fabric (56" in whole mode, 55.5" in half mode) and overstates the material.
   const fmtMat = v => (+(Math.round(v*100)/100).toFixed(2)).toString();
   const svg = document.getElementById(svgId);
@@ -1400,7 +1400,7 @@ function _drawAssemblyDiagramFlat_chair_legacy(params, svgId, vbw, vbh){
          backPieceWidth, backPieceLength, frontFlapNeeded, frontFlapWidth, frontFlapLength,
          backInset, frontInset, markFromSideEdge, frontWidthAfterCut, taperZoneLength} = params;
   const rIn = v => roundMode === 'whole' ? Math.ceil(v) : roundMode === 'half' ? roundHalf(v) : Math.round(v*100)/100;
-  // Bolt width is a FIXED material constant (e.g. 55.25") — never round it with rIn(), or it reads
+  // Bolt width is a FIXED material constant (e.g. 54.5") — never round it with rIn(), or it reads
   // wider than the actual fabric (56" in whole mode, 55.5" in half mode) and overstates the material.
   const fmtMat = v => (+(Math.round(v*100)/100).toFixed(2)).toString();
   const svg = document.getElementById(svgId);
@@ -2854,7 +2854,7 @@ function wire(){
 
   document.getElementById('recalc').addEventListener('click', compute);
   document.getElementById('resetBtn').addEventListener('click', ()=>{
-    const defaults = {B:55.25, W:36, D:80, H:13, FC:4, CT:3};
+    const defaults = {B:54.5, W:36, D:80, H:13, FC:4, CT:3};
     Object.entries(defaults).forEach(([id,val])=>{ const el=document.getElementById(id); if(el) el.value=val; });
     const ccEl = document.getElementById('CC'); if(ccEl) ccEl.value = '';
     document.getElementById('roundMode').value = 'whole';

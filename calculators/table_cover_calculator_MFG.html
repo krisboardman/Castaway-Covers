@@ -45,7 +45,7 @@
   <h1>Table / Table Set / Grill Cover Calculator</h1>
   <div class="sub">Handles three cases with the same math: a <strong>plain table</strong> (measure width/length to the table edges, height to the tabletop); a <strong>table set</strong> measured with the chairs tucked in, to the outer chair edges (height to the top of the chair back); or a <strong>grill island</strong> — measure width and length to the outer edges and measure HEIGHT TO THE TOP OF THE GRILL (or its raised lid). Uniform drape on all four sides. Diagonal corner cuts with snaps at each corner. Bungees wrap around each short end (2 bungees total, 4 grommets).</div>
   <div class="controls">
-    <label>Bolt width (fabric size, in): <input id="bolt" type="number" step="0.25" value="55.25" style="width:72px;"></label>
+    <label>Bolt width (fabric size, in): <input id="bolt" type="number" step="0.25" value="54.5" style="width:72px;"></label>
     <label>Rounding:
       <select id="roundMode">
         <option value="whole">Whole inch (round up)</option>
@@ -97,6 +97,7 @@
         </div>
         <div id="drapeDetailFull" class="drape-detail hidden">
           <div class="note" style="align-self:end; padding-bottom:4px;">Drape = H &minus; 3. Cover hangs to about 3" off the floor.</div>
+          <label style="display:flex; gap:6px; align-items:center; font-size:12px;"><input id="autoFC" type="checkbox" checked> Auto-raise clearance 3"&rarr;4" if that saves a yard (flagged on the cut sheet)</label>
         </div>
 
         <!-- ── LAYOUT & SEAMS ──────────────────────────────── -->
@@ -237,7 +238,30 @@ function compute() {
 
   // Drape depth
   const mode = document.querySelector('input[name="drapeMode"]:checked').value;
-  const drapeDepth = CoverMath.drapeFor(mode, H, F2BS);
+  let drapeDepth = CoverMath.drapeFor(mode, H, F2BS);
+
+  // Auto-clearance rule (full coverage only): if raising the floor clearance by 1"
+  // (3" -> 4") saves a yard, do it and FLAG it on the results card and both diagrams.
+  const autoFC = !!(document.getElementById('autoFC') || {}).checked;
+  let fcNote = '';
+  if (mode === 'full' && autoFC) {
+    const sps = (n('seamOverlap') || CoverMath.CONST.SEAM_OVERLAP) / 2;
+    const sdc = document.getElementById('splitDir').value;
+    const boltFor = d => {
+      const cl = L + 2*d, cw = W + 2*d;
+      const tot = (span, len) => Math.max(1, Math.ceil((span - sps) / (B - sps))) * len;
+      const a = tot(cw, cl), b = tot(cl, cw);
+      return sdc === 'long' ? a : sdc === 'short' ? b : Math.min(a, b);
+    };
+    const stdYd = Math.ceil(boltFor(drapeDepth) / 36);
+    const altYd = Math.ceil(boltFor(drapeDepth - CoverMath.CONST.CLEARANCE_BUMP) / 36);
+    if (altYd < stdYd) {
+      drapeDepth -= CoverMath.CONST.CLEARANCE_BUMP;
+      const std = CoverMath.CONST.FLOOR_CLEARANCE;
+      fcNote = CoverMath.clearanceNote({ clearanceAdjusted: true, floorClearance: std + CoverMath.CONST.CLEARANCE_BUMP,
+        standardFloorClearance: std, yards: altYd, yardsAtStandardClearance: stdYd });
+    }
+  }
 
   // Cover dimensions — L and W already include chairs, just add drape
   const CL = L + 2 * drapeDepth;
@@ -303,6 +327,7 @@ function compute() {
   const shortActive = splitDir === 'short' ? ' <span style="color:#16a34a;font-weight:bold">[selected]</span>' : '';
 
   document.getElementById('results').innerHTML = `
+    ${fcNote ? `<div class='row' style='background:#fef3c7;border-radius:6px;padding:4px 6px;'><span>Floor clearance</span><strong>${fcNote}</strong></div>` : ''}
     <div class='row'><span>Measured footprint (L × W, chairs tucked in)</span><strong>${r(L)}" × ${r(W)}"</strong></div>
     <div class='row'><span>Chair back height H</span><strong>${r(H)}"</strong></div>
     <div class='row'><span>Floor to bottom of seat (F2BS)</span><strong>${r(F2BS)}"</strong></div>
@@ -362,6 +387,15 @@ function compute() {
   };
   drawCutDiagram(payload);
   drawAssemblyDiagram(payload);
+  if (fcNote) {
+    [['cutDiagram', 1200, 460], ['assemblyDiagram', 1200, 780]].forEach(([id, w, h]) => {
+      const t = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      t.setAttribute('x', w/2); t.setAttribute('y', h - 8); t.setAttribute('text-anchor', 'middle');
+      t.setAttribute('font-size', 13); t.setAttribute('font-weight', 'bold'); t.setAttribute('fill', '#0f172a');
+      t.textContent = fcNote;
+      document.getElementById(id).appendChild(t);
+    });
+  }
 }
 
 // ── Cut Diagram ──────────────────────────────────────────────────────────────
@@ -746,7 +780,7 @@ function drawAssemblyDiagram(p) {
 // ── Storage & wiring ─────────────────────────────────────────────────────────
 const STORAGE_KEY = 'tableSetCalcChairs_v1';
 const ALL_FIELDS  = ['L','W','H','F2BS','seamOverlap','splitDir','bolt','roundMode','gromOffset','gromDepth'];
-const DEFAULTS    = {L:96, W:54, H:36, F2BS:17, seamOverlap:1.5, splitDir:'auto', bolt:55.25, roundMode:'half', gromOffset:5, gromDepth:0};
+const DEFAULTS    = {L:96, W:54, H:36, F2BS:17, seamOverlap:1.5, splitDir:'auto', bolt:54.5, roundMode:'half', gromOffset:5, gromDepth:0};
 
 function saveToStorage() {
   const saved = {};

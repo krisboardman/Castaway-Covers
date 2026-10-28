@@ -475,8 +475,21 @@ First used on the L-shaped outdoor bar (Oct 2026).
 ### Materials
 - Marine vinyl: shingle the top seams (uphill strip laps over downhill), then
   seal them.
-- Confirm the bolt width before cutting. Marine vinyl is often 54", not 55.25",
-  and the narrower bolt can change the strip count.
+- Bolt width is **54.5"** (what our vendor actually ships as of Oct 2026; the
+  calculators and `cover-math.js` default to it). Marine vinyl is sometimes 54"
+  or 55.25" from other sources, so still confirm the bolt before cutting; a
+  narrower bolt can change the strip count.
+
+### Auto-clearance (3" → 4") instead of an extra strip
+
+If a cover is only an inch or two wider than a bolt/strip threshold, don't buy
+the extra strip. Raise the floor clearance from 3" to **4"** (1" less drop per
+side) when that saves yardage, and **say so**: the cut sheet, results card and
+quote note must read "floor clearance raised to 4" to fit the bolt (standard 3")".
+`cover-math.js` implements it as the opt-in `autoClearance: true` flag on
+`tableCover` (full coverage), `ottomanCover` and `chaiseCover`; results carry
+`clearanceAdjusted`, `floorClearance` and `yardsAtStandardClearance`. It never
+raises clearance more than 1".
 
 ### Before delivering a revision
 - Re-run the whole check, not just the changed number: panel widths and lengths
