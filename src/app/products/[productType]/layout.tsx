@@ -23,7 +23,11 @@ export async function generateMetadata(
       },
     };
   }
-  return {};
+  return {
+    alternates: {
+      canonical: `/products/${resolved.productType}`,
+    },
+  };
 }
 
 export default function ProductTypeLayout({

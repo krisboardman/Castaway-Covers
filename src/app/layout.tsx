@@ -47,9 +47,9 @@ export const metadata: Metadata = {
     description: 'Custom-fit covers for your outdoor furniture with marine-grade materials',
     images: ['https://castawaycovers.com/images-optimized/og-image.jpg'],
   },
-  alternates: {
-    canonical: 'https://castawaycovers.com'
-  },
+  // NOTE: no site-wide canonical here. A canonical set in the root layout is
+  // inherited by every page and tells Google all pages are duplicates of the
+  // homepage. Each page sets its own canonical via generateMetadata().
   robots: {
     index: true,
     follow: true,

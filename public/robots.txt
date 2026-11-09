@@ -4,11 +4,11 @@
 User-agent: *
 Allow: /
 
-# Block cart, checkout, API, and Next.js internals
+# Block cart, checkout, and API. (Do NOT block /_next/static/ - Google needs
+# the CSS/JS there to render pages.)
 Disallow: /cart
 Disallow: /checkout
 Disallow: /api/
-Disallow: /_next/static/
 
 # Block WordPress leftover URLs
 Disallow: /feed/
