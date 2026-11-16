@@ -12,8 +12,7 @@ export default function DesignPage() {
       name: "Chairs / Recliners",
       href: "/products/chairs-recliners",
       image: "/images/sketch-icons/sketchchair.png",
-      description: "Armchairs, club chairs, and recliners",
-      popular: true
+      description: "Armchairs, club chairs, and recliners"
     },
     {
       name: "Sofas / Sectionals",
@@ -30,8 +29,9 @@ export default function DesignPage() {
     {
       name: "Tables, Grills & Islands",
       href: "/products/tables",
-      image: "/images/sketch-icons/sketchtable.png",
-      description: "Dining tables, coffee tables, table sets, and grill islands"
+      image: "/images/sketch-icons/sketchtable-grill.png",
+      description: "Dining tables, coffee tables, table sets, and grill islands",
+      popular: true
     },
     {
       name: "Ottomans",
@@ -83,8 +83,8 @@ export default function DesignPage() {
                   <Image
                     src={type.image}
                     alt={type.name}
-                    width={200}
-                    height={200}
+                    width={400}
+                    height={400}
                     className="max-w-full max-h-full object-contain p-6 transition-all duration-500 group-hover:scale-110 group-hover:opacity-80"
                   />
                   ) : (
