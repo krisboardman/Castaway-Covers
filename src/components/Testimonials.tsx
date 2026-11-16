@@ -8,6 +8,10 @@ const TESTIMONIALS = [
       'The cover is great! Thanks for being creative to find a solution that worked for our set up. We will gladly recommend you in the future to others.',
     town: 'Sea Girt, NJ',
   },
+  {
+    quote: 'It looks great and fits perfectly.',
+    town: 'Rumson, NJ',
+  },
 ];
 
 const STORM_TESTIMONIAL = {
