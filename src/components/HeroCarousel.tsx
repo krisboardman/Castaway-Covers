@@ -5,19 +5,19 @@ import Image from 'next/image';
 
 const slides = [
   {
-    image: '/images/hero/hero5.webp',
-    title: 'Protection Meets the View',
-    subtitle: 'Covers that blend into the scene so you never have to choose between protection and beauty.'
-  },
-  {
     image: '/images/hero/hero6.webp',
-    title: '',
-    subtitle: ''
+    title: 'Hard-to-Fit Covers, Made to Fit',
+    subtitle: 'L-shaped bars, grill islands and tricky corners, measured in person and cut to fit.'
   },
   {
     image: '/images/hero/hero1-v3.webp',
-    title: '',
-    subtitle: ''
+    title: 'Big Pieces, Covered Edge to Edge',
+    subtitle: 'Large dining tables and oversized outdoor pieces, made to fit the whole thing.'
+  },
+  {
+    image: '/images/hero/hero5.webp',
+    title: 'Protection Meets the View',
+    subtitle: 'Covers that blend into the scene so you never have to choose between protection and beauty.'
   },
   {
     image: '/images/hero/hero2-v2.webp',
