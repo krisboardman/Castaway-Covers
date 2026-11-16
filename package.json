@@ -10,6 +10,7 @@
     "start": "next start",
     "lint": "eslint src",
     "check-orphans": "node check-orphans.js",
+    "check-images": "node check-images.js",
     "check-calculators": "node check-calculators.js",
     "dev:next": "next dev",
     "build:next": "next build",
