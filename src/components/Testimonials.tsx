@@ -20,9 +20,9 @@ const TESTIMONIALS = [
 
 const STORM_TESTIMONIAL = {
   quote: 'Your covers stand up to the storm.',
-  town: 'Rumson, NJ',
-  image: '/images/testimonials/rumson-storm.jpg',
-  alt: 'Castaway Cover still in place on a Rumson deck after a storm, with leaves and branches scattered around it',
+  town: 'Red Bank, NJ',
+  image: '/images/testimonials/red-bank-storm.jpg',
+  alt: 'Castaway Cover still in place on a Red Bank deck after a storm, with leaves and branches scattered around it',
 };
 
 export default function Testimonials() {
