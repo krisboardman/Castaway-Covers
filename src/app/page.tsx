@@ -59,9 +59,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Local service area: Monmouth County, NJ */}
-      <ServiceAreaSection />
-
       {/* Product Gallery Section */}
       <section className="py-8 px-4 bg-white">
         <div className="max-w-7xl mx-auto">
@@ -167,6 +164,9 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Local service area: Monmouth County, NJ */}
+      <ServiceAreaSection />
 
       {/* Why We're Different Section */}
       <section className="pt-6 pb-8 px-4 relative">

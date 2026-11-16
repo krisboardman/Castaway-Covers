@@ -7,17 +7,12 @@ export default function ServiceAreaSection() {
   return (
     <section className="py-8 px-4 bg-white">
       <div className="max-w-5xl mx-auto text-center">
-        <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">
+        <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-3">
           Custom Outdoor Covers, Made in Rumson and Installed Across Monmouth County, NJ
         </h2>
-        <p className="text-lg text-gray-600 max-w-3xl mx-auto mb-4">
-          Castaway Covers is a local Monmouth County business. We come to your home to measure,
-          make your marine-grade vinyl covers in Rumson, and install them ourselves, so your patio
-          furniture is protected and the fit is right.
-        </p>
-        <p className="text-sm text-gray-600 max-w-3xl mx-auto mb-5">
-          <span className="font-semibold text-gray-900">Proudly serving: </span>
-          {FEATURED_TOWNS.join(', ')}, and every other town in Monmouth County.
+        <p className="text-base text-gray-600 max-w-2xl mx-auto mb-4">
+          A local Monmouth County business. We measure at your home, build your covers in Rumson and
+          install them ourselves. Serving {FEATURED_TOWNS.slice(0, 6).join(', ')} and every town in the county.
         </p>
         <p className="text-sm text-gray-600 mb-5">
           Call or text{' '}
