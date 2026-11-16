@@ -1,4 +1,6 @@
 import { SHOW_SOCIAL_LINKS } from '@/config/site';
+import { SERVICE_AREA_TOWNS, LOCAL_FAQS } from '@/config/service-area';
+
 export function getOrganizationSchema() {
   return {
     "@context": "https://schema.org",
@@ -7,7 +9,7 @@ export function getOrganizationSchema() {
     "url": "https://castawaycovers.com",
     "logo": "https://castawaycovers.com/images/logos/castaway-logo.png",
     "image": "https://castawaycovers.com/images-optimized/og-image.jpg",
-    "description": "Premium custom-fit outdoor furniture covers handcrafted in Rumson, NJ. Marine-grade vinyl, waterproof, UV-resistant covers for chairs, sofas, tables, and more.",
+    "description": "Custom-fit marine-grade vinyl covers for outdoor furniture, designed, made and installed by a local business in Rumson, NJ. Serving homeowners throughout Monmouth County, NJ.",
     "address": {
       "@type": "PostalAddress",
       "addressLocality": "Rumson",
@@ -20,15 +22,21 @@ export function getOrganizationSchema() {
       "latitude": 40.3726,
       "longitude": -73.9990
     },
-    "areaServed": {
-      "@type": "GeoCircle",
-      "geoMidpoint": {
-        "@type": "GeoCoordinates",
-        "latitude": 40.3726,
-        "longitude": -73.9990
+    // Local service area: Monmouth County plus each of its municipalities.
+    "areaServed": [
+      {
+        "@type": "AdministrativeArea",
+        "name": "Monmouth County, New Jersey"
       },
-      "geoRadius": "50000"
-    },
+      ...SERVICE_AREA_TOWNS.map((town) => ({
+        "@type": "AdministrativeArea",
+        "name": `${town}, NJ`,
+        "containedInPlace": {
+          "@type": "AdministrativeArea",
+          "name": "Monmouth County, New Jersey"
+        }
+      }))
+    ],
     "contactPoint": {
       "@type": "ContactPoint",
       "email": "support@castawaycovers.com",
@@ -164,6 +172,14 @@ export function getFAQSchema() {
     "@context": "https://schema.org",
     "@type": "FAQPage",
     "mainEntity": [
+      ...LOCAL_FAQS.map((faq) => ({
+        "@type": "Question",
+        "name": faq.question,
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": faq.answer
+        }
+      })),
       {
         "@type": "Question",
         "name": "How do I know what size cover to order?",

@@ -59,6 +59,11 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
+                <Link href="/service-area" className="text-gray-300 hover:text-white transition-colors">
+                  Service Area
+                </Link>
+              </li>
+              <li>
                 <Link href="/shipping" className="text-gray-300 hover:text-white transition-colors">
                   Shipping Info
                 </Link>
