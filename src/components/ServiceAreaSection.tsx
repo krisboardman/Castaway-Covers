@@ -19,6 +19,10 @@ export default function ServiceAreaSection() {
           <span className="font-semibold text-gray-900">Proudly serving: </span>
           {FEATURED_TOWNS.join(', ')}, and every other town in Monmouth County.
         </p>
+        <p className="text-sm text-gray-600 mb-5">
+          Call or text{' '}
+          <a href="tel:+17326390162" className="font-semibold text-[#2C8B80] hover:text-[#1F6259] underline">732-639-0162</a>
+        </p>
         <Link
           href="/service-area"
           className="inline-block bg-[#2C8B80] hover:bg-[#1F6259] text-white font-semibold px-6 py-3 rounded-full transition-colors duration-200 shadow-md hover:shadow-lg"

@@ -54,6 +54,10 @@ export default function ServiceAreaPage() {
 
           <section>
             <h2 className="text-2xl font-semibold text-gray-900 mb-4">Get Started</h2>
+            <p className="text-gray-700 mb-4">
+              Questions? Call or text us at{' '}
+              <a href="tel:+17326390162" className="text-blue-600 hover:text-blue-800 underline">732-639-0162</a>.
+            </p>
             <div className="flex flex-wrap gap-3">
               <Link
                 href="/measurement-service"
