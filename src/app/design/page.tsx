@@ -28,7 +28,7 @@ export default function DesignPage() {
       description: "Pool and patio loungers"
     },
     {
-      name: "Tables & Grills",
+      name: "Tables, Grills & Islands",
       href: "/products/tables",
       image: "/images/sketch-icons/sketchtable.png",
       description: "Dining tables, coffee tables, table sets, and grill islands"
