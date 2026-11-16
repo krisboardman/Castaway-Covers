@@ -11,8 +11,8 @@ const slides = [
   },
   {
     image: '/images/hero/hero1-v3.webp',
-    title: 'Big Pieces, Covered Edge to Edge',
-    subtitle: 'Large dining tables and oversized outdoor pieces, made to fit the whole thing.'
+    title: 'Cut to Fit Your Layout',
+    subtitle: 'A grill island that backs up to a dining table, measured and made to fit the space around it.'
   },
   {
     image: '/images/hero/hero5.webp',
