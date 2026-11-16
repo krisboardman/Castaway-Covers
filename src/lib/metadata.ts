@@ -6,8 +6,8 @@ export const pageMetadata = {
   home: {
     path: '/',
     title: 'Castaway Covers - Premium Custom Patio Furniture Covers',
-    description: 'Protect your outdoor furniture with custom-fit, marine-grade covers. Handcrafted in Rumson, NJ. Waterproof, UV-resistant, and built to last. Free measurement service available.',
-    keywords: 'patio furniture covers, outdoor furniture covers, custom covers, waterproof covers, UV resistant, New Jersey, Rumson',
+    description: 'Custom marine-grade vinyl covers for outdoor furniture, made in Rumson, NJ and installed across Monmouth County. We measure at your home and install every cover. Waterproof, UV-resistant, built to last.',
+    keywords: 'custom outdoor furniture covers Monmouth County NJ, patio furniture covers, marine vinyl covers, Rumson NJ, Red Bank NJ, waterproof covers, UV resistant',
   },
   design: {
     path: '/design',
@@ -35,10 +35,16 @@ export const pageMetadata = {
     description: 'Get in touch with Castaway Covers for custom outdoor furniture covers. Email support@castawaycovers.com or use our contact form.',
     keywords: 'contact castaway covers, customer service, furniture cover help',
   },
+  serviceArea: {
+    path: '/service-area',
+    title: 'Custom Covers in Monmouth County, NJ | Castaway Covers',
+    description: 'Custom marine-grade vinyl covers for outdoor furniture, measured, made and installed by a local Rumson, NJ business. Serving Rumson, Red Bank, Long Branch, Middletown and all of Monmouth County.',
+    keywords: 'custom boat and patio covers Monmouth County NJ, outdoor furniture covers near me, Rumson, Red Bank, Long Branch, Middletown, Holmdel',
+  },
   faqs: {
     path: '/faqs',
     title: 'Frequently Asked Questions | Castaway Covers',
-    description: 'Find answers about our custom patio furniture covers, materials, sizing, shipping, and care instructions. Marine-grade vinyl with 2-year warranty.',
+    description: 'Local questions and answers about custom outdoor furniture covers in Monmouth County, NJ, plus materials, sizing, shipping, care and warranty. Marine-grade vinyl with 2-year warranty.',
     keywords: 'furniture cover FAQs, cover care, warranty information, sizing guide',
   },
   instructions: {

@@ -8,6 +8,8 @@ import CastawayVideo from "@/components/CastawayVideo";
 import ColorShowcase from "@/components/ColorShowcase";
 import MeasurementCTA from "@/components/MeasurementCTA";
 import ServiceSteps from "@/components/ServiceSteps";
+import ServiceAreaSection from "@/components/ServiceAreaSection";
+import Testimonials from "@/components/Testimonials";
 
 export const metadata = generateMeta('home');
 
@@ -163,6 +165,12 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Local service area: Monmouth County, NJ */}
+      <ServiceAreaSection />
+
+      {/* Customer testimonials */}
+      <Testimonials />
 
       {/* Why We're Different Section */}
       <section className="pt-6 pb-8 px-4 relative">

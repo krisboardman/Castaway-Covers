@@ -83,7 +83,7 @@ const productTypes = {
   'chaise-lounge': 'Chaise Lounge',
   'chaise-lounges': 'Chaise Lounge',  // Support both singular and plural URLs
   'ottomans': 'Ottomans',
-  'tables': 'Tables & Grills',
+  'tables': 'Tables, Grills & Islands',
   'table-sets': 'Table Sets'
 };
 
@@ -827,17 +827,22 @@ const getGalleryImages = (productType: string, selectedColor?: string) => {
       { src: '/images/Ottomans/ottoman4.jpg', alt: 'Ottoman Cover - Gray Outdoor View' }
     ],
     'tables': [
-      // Lakefront teak table set — before, then covered in summer & winter
-      { src: '/images/Tablesets/tableset5.jpg', alt: 'Teak table set before a Castaway Cover', badge: 'Before' },
-      { src: '/images/Tables/tableset-lakefront.jpg', alt: 'Same table set protected with a Castaway Cover - Summer', badge: 'After' },
-      { src: '/images/Tablesets/tableset6.jpg', alt: 'Same table set protected with a Castaway Cover - Winter', badge: 'After' },
+      // Covered outdoor bar and grill island — before, then covered (two views)
+      { src: '/images/Tables/lbar-before.jpg', alt: 'L-shaped outdoor bar and grill island before a Castaway Cover', badge: 'Before' },
+      { src: '/images/Tables/lbar-after-1.jpg', alt: 'Same outdoor bar and grill island protected with a Castaway Cover', badge: 'After' },
+      { src: '/images/Tables/lbar-after-2.jpg', alt: 'Castaway Cover on an L-shaped outdoor bar, side view', badge: 'After' },
       // Bayfront grill island
       { src: '/images/Tables/grill-before.jpg', alt: 'Stone grill island before a Castaway Cover', badge: 'Before' },
       { src: '/images/Tables/grill-island.jpg', alt: 'Same grill island protected with Castaway Cover - Waterfront Deck', badge: 'After' },
       { src: '/images/Tables/river-view.jpg', alt: 'Table Set Cover - River View', badge: 'After' },
+      // Table with the yellow cover
+      { src: '/images/Tables/table4.jpg', alt: 'Table Cover - Scalloped Edge on Patio' },
+      // Lakefront teak table set — before, then covered in summer & winter
+      { src: '/images/Tablesets/tableset5.jpg', alt: 'Teak table set before a Castaway Cover', badge: 'Before' },
+      { src: '/images/Tables/tableset-lakefront.jpg', alt: 'Same table set protected with a Castaway Cover - Summer', badge: 'After' },
+      { src: '/images/Tablesets/tableset6.jpg', alt: 'Same table set protected with a Castaway Cover - Winter', badge: 'After' },
       // Individual tables
-      { src: '/images/Tables/table1.jpg', alt: 'Wine Table with Castaway Cover' },
-      { src: '/images/Tables/table4.jpg', alt: 'Table Cover - Scalloped Edge on Patio' }
+      { src: '/images/Tables/table1.jpg', alt: 'Wine Table with Castaway Cover' }
     ],
     'table-sets': [
       { src: '/images/Tablesets/tableset6.jpg', alt: 'Table Set Cover - Winter Snow Protection' },

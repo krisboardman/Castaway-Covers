@@ -1,5 +1,6 @@
 import { generateMetadata as generateMeta } from "@/lib/metadata";
 import { getFAQSchema } from "@/lib/structured-data";
+import { LOCAL_FAQS } from "@/config/service-area";
 
 export const metadata = generateMeta('faqs');
 export default function FAQsPage() {
@@ -16,6 +17,23 @@ export default function FAQsPage() {
           <h1 className="text-4xl font-bold text-gray-900 mb-8">Frequently Asked Questions</h1>
           
           <div className="space-y-8">
+            {/* Local service in Monmouth County */}
+            <section>
+              <h2 className="text-2xl font-semibold text-gray-900 mb-4">Local Service in Monmouth County, NJ</h2>
+
+              <div className="space-y-4">
+                {LOCAL_FAQS.map((faq) => (
+                  <div key={faq.question}>
+                    <h3 className="font-semibold text-gray-900 mb-2">{faq.question}</h3>
+                    <p className="text-gray-700">{faq.answer}</p>
+                  </div>
+                ))}
+                <p className="text-gray-700">
+                  <a href="/service-area" className="text-blue-600 hover:text-blue-800 underline">See the full list of towns we serve</a>
+                </p>
+              </div>
+            </section>
+
             {/* Ordering & Sizing */}
             <section>
               <h2 className="text-2xl font-semibold text-gray-900 mb-4">Ordering & Sizing</h2>
