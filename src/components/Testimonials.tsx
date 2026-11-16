@@ -1,5 +1,7 @@
 // Customer testimonials for the homepage. Each one is labeled with the customer's town,
 // which also reinforces our local service area.
+import Image from 'next/image';
+
 const TESTIMONIALS = [
   {
     quote:
@@ -12,6 +14,13 @@ const TESTIMONIALS = [
   },
 ];
 
+const STORM_TESTIMONIAL = {
+  quote: 'Your covers stand up to the storm.',
+  town: 'Rumson, NJ',
+  image: '/images/testimonials/rumson-storm.jpg',
+  alt: 'Castaway Cover still in place on a Rumson deck after a storm, with leaves and branches scattered around it',
+};
+
 export default function Testimonials() {
   return (
     <section className="py-8 px-4 bg-[#FAF5ED]/40">
@@ -20,8 +29,30 @@ export default function Testimonials() {
           What Our Neighbors Are Saying
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          {/* Storm photo card: sits on the right and spans both text cards on desktop */}
+          <figure className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden md:col-start-2 md:row-start-1 md:row-span-2">
+            <div className="relative aspect-[4/5]">
+              <Image
+                src={STORM_TESTIMONIAL.image}
+                alt={STORM_TESTIMONIAL.alt}
+                fill
+                sizes="(max-width: 768px) 100vw, 512px"
+                className="object-cover"
+                loading="lazy"
+              />
+            </div>
+            <div className="p-6">
+              <blockquote className="text-gray-700 text-lg leading-relaxed">
+                &ldquo;{STORM_TESTIMONIAL.quote}&rdquo;
+              </blockquote>
+              <figcaption className="mt-4 text-sm font-semibold text-brand-teal">
+                Castaway Covers customer, {STORM_TESTIMONIAL.town}
+              </figcaption>
+            </div>
+          </figure>
+
           {TESTIMONIALS.map((t) => (
-            <figure key={t.town} className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm flex flex-col justify-between">
+            <figure key={t.town} className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm flex flex-col justify-center md:col-start-1">
               <blockquote className="text-gray-700 text-lg leading-relaxed">
                 &ldquo;{t.quote}&rdquo;
               </blockquote>
