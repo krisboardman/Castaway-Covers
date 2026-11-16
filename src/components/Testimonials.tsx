@@ -12,6 +12,10 @@ const TESTIMONIALS = [
     quote: 'It looks great and fits perfectly.',
     town: 'Rumson, NJ',
   },
+  {
+    quote: 'So glad I have the covers, that storm ripped through here! We love them!',
+    town: 'Brielle, NJ',
+  },
 ];
 
 const STORM_TESTIMONIAL = {
@@ -30,7 +34,7 @@ export default function Testimonials() {
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {/* Storm photo card: sits on the right and spans both text cards on desktop */}
-          <figure className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden md:col-start-2 md:row-start-1 md:row-span-2">
+          <figure className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden md:col-start-2 md:row-start-1 md:row-span-3">
             <div className="relative aspect-[4/5]">
               <Image
                 src={STORM_TESTIMONIAL.image}
@@ -52,7 +56,7 @@ export default function Testimonials() {
           </figure>
 
           {TESTIMONIALS.map((t) => (
-            <figure key={t.town} className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm flex flex-col justify-center md:col-start-1">
+            <figure key={t.quote} className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm flex flex-col justify-center md:col-start-1">
               <blockquote className="text-gray-700 text-lg leading-relaxed">
                 &ldquo;{t.quote}&rdquo;
               </blockquote>
