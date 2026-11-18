@@ -30,9 +30,9 @@ const slides = [
     subtitle: 'Innovative snap straps let you fold back covers for instant relaxing'
   },
   {
-    image: '/images/hero/hero4-v2.webp',
-    title: 'Beautiful Styling',
-    subtitle: 'Elegant wavy edges and premium marine-grade colors that complement any outdoor space'
+    image: '/images/hero/hero8-grill.webp',
+    title: 'Stop Struggling With Your Grill Cover',
+    subtitle: 'Drape it on and hook the preset bungees to secure it. Custom-fit marine vinyl that comes off just as easily.'
   }
 ];
 
