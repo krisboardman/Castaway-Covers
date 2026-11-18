@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 
-const slides: Slide[] = [
+const slides = [
   {
     image: '/images/hero/hero6.webp',
     title: 'Hard-to-Fit Covers, Made to Fit',
@@ -30,20 +30,11 @@ const slides: Slide[] = [
     subtitle: 'Innovative snap straps let you fold back covers for instant relaxing'
   },
   {
-    // Portrait photo: desktop uses a wide crop, mobile uses a 4:3 crop so the whole cover shows.
     image: '/images/hero/hero7-grill.webp',
-    mobileImage: '/images/hero/hero7-grill-mobile.webp',
     title: 'Stop Struggling With Your Grill Cover',
     subtitle: 'Drape it on and hook the preset bungees to secure it. Custom-fit marine vinyl that comes off just as easily.'
   }
 ];
-
-type Slide = {
-  image: string;
-  mobileImage?: string;
-  title: string;
-  subtitle: string;
-};
 
 export default function HeroCarousel() {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -62,19 +53,10 @@ export default function HeroCarousel() {
             src={slide.image}
             alt={slide.title}
             fill
-            className={`object-contain md:object-cover ${slide.mobileImage ? 'hidden md:block' : ''}`}
+            className="object-contain md:object-cover"
             priority={index === 0}
             sizes="(max-width: 1280px) 100vw, 1280px"
           />
-          {slide.mobileImage && (
-            <Image
-              src={slide.mobileImage}
-              alt={slide.title}
-              fill
-              className="object-contain md:hidden"
-              sizes="100vw"
-            />
-          )}
           
           {/* Text content (only if slide has text) */}
           {(slide.title || slide.subtitle) && (
