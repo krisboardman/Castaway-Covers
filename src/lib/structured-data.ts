@@ -141,7 +141,7 @@ const productData: { [key: string]: { name: string; description: string; image: 
   'tables': {
     name: 'Custom Table Covers',
     description: 'Premium custom-fit covers for outdoor dining and coffee tables. Marine-grade vinyl, waterproof, UV-resistant with reinforced grommets.',
-    image: 'https://castawaycovers.com/images/Tables/table1.jpg',
+    image: 'https://castawaycovers.com/images/Tables/table4.jpg',
     category: 'Outdoor Furniture Covers',
     price: '90',
   },

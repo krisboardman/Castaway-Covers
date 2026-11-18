@@ -144,8 +144,8 @@ export default function Home() {
             </div>
             <div className="relative aspect-square rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-shadow">
               <Image
-                src="/images/gallery/Gallery8.webp"
-                alt="Ottoman Cover"
+                src="/images/gallery/Gallery8-grill.webp"
+                alt="Tan marine vinyl grill cover on a deck in Monmouth County, NJ"
                 fill
                 sizes="(max-width: 768px) 50vw, 33vw"
                 className="object-cover"
