@@ -831,6 +831,10 @@ const getGalleryImages = (productType: string, selectedColor?: string) => {
       { src: '/images/Tables/lbar-before.jpg', alt: 'L-shaped outdoor bar and grill island before a Castaway Cover', badge: 'Before' },
       { src: '/images/Tables/lbar-after-1.jpg', alt: 'Same outdoor bar and grill island protected with a Castaway Cover', badge: 'After' },
       { src: '/images/Tables/lbar-after-2.jpg', alt: 'Castaway Cover on an L-shaped outdoor bar, side view', badge: 'After' },
+      // Blackstone grill on the deck — old worn cover, bare grill, then the new Castaway Cover
+      { src: '/images/Tables/grill-cover-before-old.jpg', alt: 'Blackstone grill under an old, worn, faded store-bought cover', badge: 'Before' },
+      { src: '/images/Tables/grill-cover-before-bare.jpg', alt: 'Blackstone grill on a deck with no cover', badge: 'Before' },
+      { src: '/images/Tables/grill-cover-after.jpg', alt: 'Same Blackstone grill protected with a tan custom Castaway Cover', badge: 'After' },
       // Bayfront grill island
       { src: '/images/Tables/grill-before.jpg', alt: 'Stone grill island before a Castaway Cover', badge: 'Before' },
       { src: '/images/Tables/grill-island.jpg', alt: 'Same grill island protected with Castaway Cover - Waterfront Deck', badge: 'After' },
