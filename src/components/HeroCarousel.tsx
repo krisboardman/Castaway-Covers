@@ -30,11 +30,9 @@ const slides: Slide[] = [
     subtitle: 'Innovative snap straps let you fold back covers for instant relaxing'
   },
   {
-    // Portrait photo: desktop uses a wide composite (photo on the right, text on the left),
-    // mobile uses a 4:3 crop so the whole cover shows.
+    // Portrait photo: desktop uses a wide crop, mobile uses a 4:3 crop so the whole cover shows.
     image: '/images/hero/hero7-grill.webp',
     mobileImage: '/images/hero/hero7-grill-mobile.webp',
-    textClass: 'md:max-w-[52%]',
     title: 'Stop Struggling With Your Grill Cover',
     subtitle: 'Drape it on and hook the preset bungees to secure it. Custom-fit marine vinyl that comes off just as easily.'
   }
@@ -43,7 +41,6 @@ const slides: Slide[] = [
 type Slide = {
   image: string;
   mobileImage?: string;
-  textClass?: string;
   title: string;
   subtitle: string;
 };
@@ -82,14 +79,12 @@ export default function HeroCarousel() {
           {/* Text content (only if slide has text) */}
           {(slide.title || slide.subtitle) && (
             <div className="absolute bottom-0 left-0 right-0 p-4 md:p-16 bg-gradient-to-t from-black/60 via-black/20 to-transparent">
-              <div className={slide.textClass}>
               <h2 className="text-2xl md:text-6xl font-bold text-white mb-1 md:mb-3 drop-shadow-lg">
                 {slide.title}
               </h2>
               <p className="text-sm md:text-2xl text-white/95 drop-shadow-md">
                 {slide.subtitle}
               </p>
-              </div>
             </div>
           )}
         </div>
