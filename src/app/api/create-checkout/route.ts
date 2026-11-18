@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
     }
     
     // Build line items with all properties
-    const allLineItems = [];
+    const allLineItems: Record<string, unknown>[] = [];
 
     // Add cover items and their add-ons
     items.forEach((item: any) => {

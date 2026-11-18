@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 import { Resend } from 'resend';
 import { getMeasurementLabel } from '@/lib/measurement-labels';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
 const SENDER_ADDRESS = process.env.RESEND_FROM_EMAIL || 'Castaway Covers <orders@castawaycovers.com>';
 
 export async function POST(request: Request) {
@@ -165,6 +164,9 @@ www.castawaycovers.com
 
     // Send emails using Resend
     try {
+      // Built here, not at import time, so building the site does not need the key.
+      const resend = new Resend(process.env.RESEND_API_KEY);
+
       // Prepare attachments from photos
       const attachments = await Promise.all(
         photos.map(async (photo, index) => {
