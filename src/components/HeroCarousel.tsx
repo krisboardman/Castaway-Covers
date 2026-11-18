@@ -36,7 +36,7 @@ const slides: Slide[] = [
     mobileImage: '/images/hero/hero7-grill-mobile.webp',
     textClass: 'md:max-w-[52%]',
     title: 'Stop Struggling With Your Grill Cover',
-    subtitle: 'Drop it on, hook a quick bungee to secure it, and you\u2019re done. Custom-fit marine vinyl that comes off just as easily.'
+    subtitle: 'Drape it on and hook the preset bungees to secure it. Custom-fit marine vinyl that comes off just as easily.'
   }
 ];
 
