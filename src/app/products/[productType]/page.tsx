@@ -840,9 +840,7 @@ const getGalleryImages = (productType: string, selectedColor?: string) => {
       // Lakefront teak table set — before, then covered in summer & winter
       { src: '/images/Tablesets/tableset5.jpg', alt: 'Teak table set before a Castaway Cover', badge: 'Before' },
       { src: '/images/Tables/tableset-lakefront.jpg', alt: 'Same table set protected with a Castaway Cover - Summer', badge: 'After' },
-      { src: '/images/Tablesets/tableset6.jpg', alt: 'Same table set protected with a Castaway Cover - Winter', badge: 'After' },
-      // Individual tables
-      { src: '/images/Tables/table1.jpg', alt: 'Wine Table with Castaway Cover' }
+      { src: '/images/Tablesets/tableset6.jpg', alt: 'Same table set protected with a Castaway Cover - Winter', badge: 'After' }
     ],
     'table-sets': [
       { src: '/images/Tablesets/tableset6.jpg', alt: 'Table Set Cover - Winter Snow Protection' },
