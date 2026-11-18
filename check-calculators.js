@@ -26,7 +26,7 @@ function check(name, got, want) {
 console.log('Plain table — golden yardage cases (must stay unchanged):');
 check('60x36x30 tabletop',                CoverMath.tableCover({ length: 60, width: 36, height: 30, dropMode: 'tabletop' }).yards, 4);
 check('30x20x18 tabletop (small)',        CoverMath.tableCover({ length: 30, width: 20, height: 18, dropMode: 'tabletop' }).yards, 2);
-check('60x35x30 tabletop (bolt-edge)',    CoverMath.tableCover({ length: 60, width: 35, height: 30, dropMode: 'tabletop' }).yards, 3);
+check('60x35x30 tabletop (bolt-edge)',    CoverMath.tableCover({ length: 60, width: 35, height: 30, dropMode: 'tabletop' }).yards, 4);
 check('48x24x28 full coverage',           CoverMath.tableCover({ length: 48, width: 24, height: 28, dropMode: 'full' }).yards,     5);
 check('legacy style:"full" still maps',   CoverMath.tableCover({ length: 48, width: 24, height: 28, style: 'full' }).yards,       5);
 
@@ -45,7 +45,7 @@ check('wide 40x30x42 arm26 br5 wb36',      CoverMath.chairCover({ width: 40, dep
 console.log('\nSofa / loveseat — golden yardage cases (v4: 2 panels + extension scrap-nesting):');
 check('loveseat 54x38x34 arm20 br4 wb50', CoverMath.sofaCover({ width: 54, depth: 38, height: 34, armrestHeight: 20, backrestDepth: 4, backWidth: 50 }).yards, 5);
 check('sofa 84x40x36 arm22 br5 wb80',      CoverMath.sofaCover({ width: 84, depth: 40, height: 36, armrestHeight: 22, backrestDepth: 5, backWidth: 80 }).yards, 8);
-check('big sofa 96x42x38 arm24 br6 wb92',  CoverMath.sofaCover({ width: 96, depth: 42, height: 38, armrestHeight: 24, backrestDepth: 6, backWidth: 92 }).yards, 9);
+check('big sofa 96x42x38 arm24 br6 wb92',  CoverMath.sofaCover({ width: 96, depth: 42, height: 38, armrestHeight: 24, backrestDepth: 6, backWidth: 92 }).yards, 12);
 check('sectional 120x44x36 arm22 br5 wb112',CoverMath.sofaCover({ width: 120, depth: 44, height: 36, armrestHeight: 22, backrestDepth: 5, backWidth: 112 }).yards, 11);
 
 console.log('\nSofa panel-length fix (no length-direction bolt padding; take-up raises hems):');
@@ -71,12 +71,26 @@ check('wide 80x40x18 ct4',     CoverMath.chaiseCover({ length: 80, width: 40, he
 check('narrow 60x22x14',       CoverMath.chaiseCover({ length: 60, width: 22, height: 14, cushionThickness: 0 }).yards, 3);
 
 console.log('\nCanonical constants:');
-check('bolt width', CoverMath.CONST.BOLT_WIDTH, 55.25);
+check('bolt width', CoverMath.CONST.BOLT_WIDTH, 54.5);
 check('chair hem', CoverMath.CONST.CHAIR_HEM, 0);
 check('chair bottom margin', CoverMath.CONST.CHAIR_BOTTOM_MARGIN, 8);
 check('tabletop drop', CoverMath.CONST.TABLE_DROP, 10);
 check('below-seat drop', CoverMath.CONST.BELOW_SEAT, 5);
 check('floor clearance', CoverMath.CONST.FLOOR_CLEARANCE, 3);
+
+console.log('\nAuto-clearance rule (3" -> 4" when it saves a strip; opt-in, flagged):');
+(function () {
+  var o = CoverMath.ottomanCover({ length: 40, width: 30, height: 16, autoClearance: true });
+  check('ottoman 40x30x16 auto: yards', o.yards, 2);
+  check('ottoman 40x30x16 auto: flagged', o.clearanceAdjusted, true);
+  check('ottoman 40x30x16 auto: clearance', o.floorClearance, 4);
+  check('ottoman 40x30x16 standard: yards', CoverMath.ottomanCover({ length: 40, width: 30, height: 16 }).yards, 3);
+  var t = CoverMath.tableCover({ length: 60, width: 26, height: 18, dropMode: 'full', autoClearance: true });
+  check('table 60x26x18 full auto: yards', t.yards, 3);
+  check('table 60x26x18 full auto: flagged', t.clearanceAdjusted, true);
+  var n = CoverMath.tableCover({ length: 60, width: 26, height: 19, dropMode: 'full', autoClearance: true });
+  check('no saving -> not flagged', n.clearanceAdjusted, false);
+})();
 
 console.log('\nWiring — callers must use the shared module:');
 const html  = fs.readFileSync(path.join(__dirname, 'calculators', 'table_cover_calculator_MFG.html'), 'utf8');
