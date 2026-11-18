@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 
-const slides = [
+const slides: Slide[] = [
   {
     image: '/images/hero/hero6.webp',
     title: 'Hard-to-Fit Covers, Made to Fit',
@@ -30,11 +30,23 @@ const slides = [
     subtitle: 'Innovative snap straps let you fold back covers for instant relaxing'
   },
   {
-    image: '/images/hero/hero4-v2.webp',
-    title: 'Beautiful Styling',
-    subtitle: 'Elegant wavy edges and premium marine-grade colors that complement any outdoor space'
+    // Portrait photo: desktop uses a wide composite (photo on the right, text on the left),
+    // mobile uses a 4:3 crop so the whole cover shows.
+    image: '/images/hero/hero7-grill.webp',
+    mobileImage: '/images/hero/hero7-grill-mobile.webp',
+    textClass: 'md:max-w-[52%]',
+    title: 'Stop Struggling With Your Grill Cover',
+    subtitle: 'Drop it on, hook a quick bungee to secure it, and you\u2019re done. Custom-fit marine vinyl that comes off just as easily.'
   }
 ];
+
+type Slide = {
+  image: string;
+  mobileImage?: string;
+  textClass?: string;
+  title: string;
+  subtitle: string;
+};
 
 export default function HeroCarousel() {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -53,20 +65,31 @@ export default function HeroCarousel() {
             src={slide.image}
             alt={slide.title}
             fill
-            className="object-contain md:object-cover"
+            className={`object-contain md:object-cover ${slide.mobileImage ? 'hidden md:block' : ''}`}
             priority={index === 0}
             sizes="(max-width: 1280px) 100vw, 1280px"
           />
+          {slide.mobileImage && (
+            <Image
+              src={slide.mobileImage}
+              alt={slide.title}
+              fill
+              className="object-contain md:hidden"
+              sizes="100vw"
+            />
+          )}
           
           {/* Text content (only if slide has text) */}
           {(slide.title || slide.subtitle) && (
             <div className="absolute bottom-0 left-0 right-0 p-4 md:p-16 bg-gradient-to-t from-black/60 via-black/20 to-transparent">
+              <div className={slide.textClass}>
               <h2 className="text-2xl md:text-6xl font-bold text-white mb-1 md:mb-3 drop-shadow-lg">
                 {slide.title}
               </h2>
               <p className="text-sm md:text-2xl text-white/95 drop-shadow-md">
                 {slide.subtitle}
               </p>
+              </div>
             </div>
           )}
         </div>
