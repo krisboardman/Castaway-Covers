@@ -83,7 +83,7 @@
         <div class="card" id="inputsCard">
           <div class="title">Inputs</div>
           <div class="inputs">
-            <label class="lbl">B (Bolt width - Fabric size)<input id="B" type="number" value="55.25" step="0.25" /></label>
+            <label class="lbl">B (Bolt width - Fabric size)<input id="B" type="number" value="54.5" step="0.25" /></label>
             <label class="lbl">W (Chair width arm-to-arm)<input id="W" type="number" value="36" step="1" /></label>
             <label class="lbl">WB (Back width)<input id="WB" type="number" value="25" step="1" /></label>
             <label class="lbl">H (Height)<input id="H" type="number" value="39" step="1" /></label>
@@ -200,7 +200,7 @@ function drawDiagram(params){
          useSplitBack, splitBackHalfTop, splitBackHalfBot, splitBackBoltLength,
          splitBackMinOffset, splitBackNestedWidth, splitBackCenterSeam, mainFB} = params;
   const rIn = v => roundMode === 'whole' ? Math.ceil(v) : roundMode === 'half' ? roundHalf(v) : Math.round(v*100)/100;
-  // Bolt width is a FIXED material constant (e.g. 55.25") — never round it with rIn(), or it reads
+  // Bolt width is a FIXED material constant (e.g. 54.5") — never round it with rIn(), or it reads
   // wider than the actual fabric (56" in whole mode, 55.5" in half mode) and overstates the material.
   const fmtMat = v => (+(Math.round(v*100)/100).toFixed(2)).toString();
   const svg = document.getElementById('diagram');
@@ -610,7 +610,7 @@ function drawAssemblyDiagramFlat(params, svgId, vbw, vbh){
          roundMode,
          backInset, frontInset, markFromSideEdge, frontWidthAfterCut, mainFB} = params;
   const rIn = v => roundMode === 'whole' ? Math.ceil(v) : roundMode === 'half' ? roundHalf(v) : Math.round(v*100)/100;
-  // Bolt width is a FIXED material constant (e.g. 55.25") — never round it with rIn(), or it reads
+  // Bolt width is a FIXED material constant (e.g. 54.5") — never round it with rIn(), or it reads
   // wider than the actual fabric (56" in whole mode, 55.5" in half mode) and overstates the material.
   const fmtMat = v => (+(Math.round(v*100)/100).toFixed(2)).toString();
   const svg = document.getElementById(svgId);
@@ -1808,7 +1808,7 @@ function wire(){
 
   document.getElementById('recalc').addEventListener('click', compute);
   document.getElementById('resetBtn').addEventListener('click', ()=>{
-    const defaults = {B:55.25, W:36, WB:25, H:39, D:30, F2A:26, F2BS:18, BR:4, FC:3, hem:0, seam:1.5};
+    const defaults = {B:54.5, W:36, WB:25, H:39, D:30, F2A:26, F2BS:18, BR:4, FC:3, hem:0, seam:1.5};
     Object.entries(defaults).forEach(([id,val])=>{ const el=document.getElementById(id); if(el) el.value=val; });
     document.getElementById('roundMode').value = 'whole';
     compute();

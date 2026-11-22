@@ -27,9 +27,10 @@
   // ── Canonical constants ───────────────────────────────────────────────────
   // The ONE place these values are defined. (Bolt width was previously 55.25"
   // in the standalone calculators but 54" in the website — that mismatch is
-  // what caused price differences. It now lives here once.)
+  // what caused price differences. It now lives here once, set to the 54.5"
+  // bolts actually being received as of Oct 2026.)
   var CONST = {
-    BOLT_WIDTH: 55.25,    // usable fabric bolt width (in)
+    BOLT_WIDTH: 54.5,     // usable fabric bolt width (in) — actual bolts received are 54.5" (Oct 2026)
     TABLE_DROP: 10,       // "tabletop only" side drop (in)
     FLOOR_CLEARANCE: 3,   // "full coverage" clearance above the floor (in)
     BELOW_SEAT: 5,        // "over the seats" drop past the seat bottom (in) —
@@ -41,6 +42,7 @@
     CHAIR_SPLIT_FLAP_SEAM: 0.5, // per-half center join for a split front flap (in)
     // Chaise-cover constants:
     CHAISE_FC_CUSHION: 4,   // floor clearance when a cushion is on (in)
+    CLEARANCE_BUMP: 1,      // max extra floor clearance (in) the auto-clearance rule may add (3" -> 4")
     CHAISE_EXT_SEAM: 1,     // seam allowance for split-and-sew side extensions (in)
     // Sofa-cover calibration:
     SOFA_DRAPE_TAKEUP: 0,   // extra length the fabric loses to real-world settling
@@ -63,6 +65,30 @@
   }
 
   /**
+   * Auto-clearance rule (opt-in via p.autoClearance === true).
+   * If raising the floor clearance by CLEARANCE_BUMP (3" -> 4") saves yardage —
+   * typically because the cover is only an inch or two wider than a bolt/strip
+   * threshold — use the higher clearance instead of buying the extra fabric, and
+   * FLAG it so the cut sheet can say so. `run(bump)` must return a result with
+   * `.yards`; `bump` is the extra clearance in inches.
+   */
+  function withAutoClearance(p, baseFC, run) {
+    var base = run(0);
+    if (!p || p.autoClearance !== true) return base;
+    var alt = run(CONST.CLEARANCE_BUMP);
+    if (alt.yards < base.yards) {
+      alt.clearanceAdjusted = true;
+      alt.floorClearance = baseFC + CONST.CLEARANCE_BUMP;
+      alt.standardFloorClearance = baseFC;
+      alt.yardsAtStandardClearance = base.yards;
+      return alt;
+    }
+    base.clearanceAdjusted = false;
+    base.floorClearance = baseFC;
+    return base;
+  }
+
+  /**
    * Table / table-set / grill-island cover yardage and cut layout.
    * Splits into as many strips as the size needs (handles a bare table all the
    * way up to a full table set draped over the chairs).
@@ -80,6 +106,15 @@
    */
   function tableCover(p) {
     p = p || {};
+    // Floor-clearance auto-adjust only applies to full coverage with no explicit drop.
+    if (p.autoClearance === true && p.drop == null && (p.dropMode === 'full' || p.style === 'full')) {
+      return withAutoClearance(p, CONST.FLOOR_CLEARANCE, function (bump) {
+        var q = {}; for (var k in p) q[k] = p[k];
+        q.autoClearance = false;
+        if (bump) q.drop = Math.max(0, (Number(p.height) || 0) - CONST.FLOOR_CLEARANCE - bump);
+        return tableCover(q);
+      });
+    }
     var length = Math.max(0, Number(p.length) || 0);
     var width  = Math.max(0, Number(p.width)  || 0);
     var height = Math.max(0, Number(p.height) || 0);
@@ -385,6 +420,14 @@
    */
   function ottomanCover(p) {
     p = p || {};
+    if (p.autoClearance === true) {
+      var fc0 = (p.fc != null) ? Number(p.fc) : CONST.FLOOR_CLEARANCE;
+      return withAutoClearance(p, fc0, function (bump) {
+        var q = {}; for (var k in p) q[k] = p[k];
+        q.autoClearance = false; q.fc = fc0 + bump;
+        return ottomanCover(q);
+      });
+    }
     var L = Math.max(0, Number(p.length) || 0);
     var W = Math.max(0, Number(p.width)  || 0);
     var H = Math.max(0, Number(p.height) || 0);
@@ -425,6 +468,15 @@
    */
   function chaiseCover(p) {
     p = p || {};
+    if (p.autoClearance === true && !p._bump) {
+      var cushion = Math.max(0, Number(p.cushionThickness) || 0) > 0;
+      var fc0 = cushion ? CONST.CHAISE_FC_CUSHION : CONST.FLOOR_CLEARANCE;
+      return withAutoClearance(p, fc0, function (bump) {
+        var q = {}; for (var k in p) q[k] = p[k];
+        q.autoClearance = false; q._bump = bump;
+        return chaiseCover(q);
+      });
+    }
     var L  = Math.max(0, Number(p.length) || 0);
     var W  = Math.max(0, Number(p.width)  || 0);
     var H  = Math.max(0, Number(p.height) || 0);
@@ -434,7 +486,7 @@
     // Cushion-aware side drop: size for frame+cushion with 4" clearance when a
     // cushion is on, or frame-only with 3" clearance when there isn't one.
     var effectiveHeight = CT > 0 ? H + CT : H;
-    var effectiveFC = CT > 0 ? CONST.CHAISE_FC_CUSHION : CONST.FLOOR_CLEARANCE;
+    var effectiveFC = (CT > 0 ? CONST.CHAISE_FC_CUSHION : CONST.FLOOR_CLEARANCE) + (Number(p._bump) || 0);
     var sideDrop = Math.max(0, effectiveHeight - effectiveFC);
 
     var ML = L + 2 * sideDrop; // along the bolt (head-to-foot)
@@ -459,8 +511,15 @@
     };
   }
 
+  /** Human-readable flag text for a result that auto-raised floor clearance ('' if not). */
+  function clearanceNote(res) {
+    if (!res || !res.clearanceAdjusted) return '';
+    return 'Floor clearance raised to ' + res.floorClearance + '" to fit the bolt (standard ' +
+      res.standardFloorClearance + '") \u2014 saves ' + (res.yardsAtStandardClearance - res.yards) + ' yd';
+  }
+
   return {
-    CONST: CONST, ceilYards: ceilYards, drapeFor: drapeFor,
+    CONST: CONST, clearanceNote: clearanceNote, ceilYards: ceilYards, drapeFor: drapeFor,
     tableCover: tableCover, chairCover: chairCover, sofaCover: sofaCover,
     ottomanCover: ottomanCover, chaiseCover: chaiseCover,
   };
