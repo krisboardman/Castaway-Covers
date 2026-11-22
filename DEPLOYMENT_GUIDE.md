@@ -56,7 +56,7 @@ Make sure these are set in Vercel:
 Currently DISABLED. To re-enable:
 - Edit `/src/components/ComingSoonRedirect.tsx`
 - Change `COMING_SOON_ENABLED = false` to `true`
-- Preview URL: yoursite.com?preview=castaway2025
+- Preview URL: yoursite.com?preview=<your NEXT_PUBLIC_PREVIEW_TOKEN value>
 
 ## Post-Deployment Checklist
 - [ ] Test all navigation links
