@@ -52,3 +52,7 @@ find-color-upcharge-variant.js
 
 # local-only source photos (originals kept on disk, not deployed)
 /source-images/
+
+# private business files: kept locally, not in the public repo
+/private-archive/
+/calculators/pricing-assumptions.md
