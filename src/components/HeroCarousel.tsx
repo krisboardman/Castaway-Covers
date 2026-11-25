@@ -5,7 +5,7 @@ import Image from 'next/image';
 
 const slides = [
   {
-    image: '/images/hero/hero6.webp',
+    image: '/images/hero/hero6-v2.webp',
     title: 'Hard-to-Fit Covers, Made to Fit',
     subtitle: 'L-shaped bars, grill islands and tricky corners, measured in person and cut to fit.'
   },
