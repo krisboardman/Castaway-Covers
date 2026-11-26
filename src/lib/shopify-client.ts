@@ -22,12 +22,80 @@ export async function getShopifyClient() {
   }
 }
 
+interface VariantInfo {
+  variantId: string;
+  price: string;
+  title: string;
+  productTitle: string;
+}
+
+interface CachedVariantEntry {
+  data: VariantInfo;
+  timestamp: number;
+}
+
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minute cache
+
 // Cache for product queries to avoid repeated API calls
-const productCache = new Map();
+const productCache = new Map<string, CachedVariantEntry>();
+let catalogFetchedAt: number | null = null;
+let inFlightCatalogFetch: Promise<Map<string, VariantInfo>> | null = null;
+let cacheEpoch = 0;
 
 // Add a cache clear function for debugging
 export function clearProductCache() {
   productCache.clear();
+  catalogFetchedAt = null;
+  inFlightCatalogFetch = null;
+  cacheEpoch += 1;
+}
+
+async function fetchAndIndexCatalog(client: any): Promise<Map<string, VariantInfo>> {
+  if (inFlightCatalogFetch) {
+    return inFlightCatalogFetch;
+  }
+
+  const epoch = cacheEpoch;
+  const fetchPromise = (async () => {
+    const products = await client.product.fetchAll(250); // Fetch up to 250 products
+    const indexed = new Map<string, VariantInfo>();
+
+    for (const product of products ?? []) {
+      for (const variant of product.variants ?? []) {
+        if (!variant?.sku) continue;
+
+        // Extract numeric ID from the base64 encoded variant ID
+        // Shopify returns IDs like "gid://shopify/ProductVariant/1234567890"
+        const variantIdString = variant.id.toString();
+        const numericId = variantIdString.split('/').pop() || variantIdString;
+
+        indexed.set(`variant-${variant.sku}`, {
+          variantId: numericId,
+          price: variant.price.amount,
+          title: variant.title,
+          productTitle: product.title,
+        });
+      }
+    }
+
+    if (epoch === cacheEpoch) {
+      const now = Date.now();
+      productCache.clear();
+      for (const [key, data] of indexed) {
+        productCache.set(key, { data, timestamp: now });
+      }
+      catalogFetchedAt = now;
+    }
+
+    return indexed;
+  })().finally(() => {
+    if (epoch === cacheEpoch) {
+      inFlightCatalogFetch = null;
+    }
+  });
+
+  inFlightCatalogFetch = fetchPromise;
+  return fetchPromise;
 }
 
 export async function findVariantBySKU(sku: string) {
@@ -35,48 +103,21 @@ export async function findVariantBySKU(sku: string) {
   if (!client) return null;
 
   try {
-    // Check cache first - but add a timestamp to prevent stale data
+    // Check cache first - with TTL to prevent stale data
+    const now = Date.now();
     const cacheKey = `variant-${sku}`;
     const cached = productCache.get(cacheKey);
-    if (cached && cached.timestamp && Date.now() - cached.timestamp < 5 * 60 * 1000) { // 5 minute cache
+    if (cached && cached.timestamp && now - cached.timestamp < CACHE_TTL_MS) {
       return cached.data;
     }
 
-    // Fetch all products (you might want to filter by collection if you have many products)
-    const products = await client.product.fetchAll(250); // Fetch up to 250 products
-    
-    // Log all available SKUs for debugging
-    const allSKUs: string[] = [];
-    
-    // Search through all products and their variants
-    for (const product of products) {
-      for (const variant of product.variants) {
-        allSKUs.push(variant.sku);
-
-        if (variant.sku === sku) {
-          // Extract numeric ID from the base64 encoded variant ID
-          // Shopify returns IDs like "gid://shopify/ProductVariant/1234567890"
-          const variantIdString = variant.id.toString();
-          const numericId = variantIdString.split('/').pop() || variantIdString;
-          
-          // Cache the result with timestamp
-          const result = {
-            variantId: numericId,
-            price: variant.price.amount,
-            title: variant.title,
-            productTitle: product.title
-          };
-          productCache.set(cacheKey, {
-            data: result,
-            timestamp: Date.now()
-          });
-          
-          return result;
-        }
-      }
+    // If the full catalog was fetched within TTL, a missing SKU is a known miss
+    if (catalogFetchedAt !== null && now - catalogFetchedAt < CACHE_TTL_MS) {
+      return null;
     }
 
-    return null;
+    const indexed = await fetchAndIndexCatalog(client);
+    return indexed.get(cacheKey) ?? null;
   } catch (error) {
     return null;
   }
