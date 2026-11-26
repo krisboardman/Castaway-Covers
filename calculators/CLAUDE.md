@@ -127,7 +127,7 @@ This lets the user match descriptions to dots in the diagram at a glance.
   end is being measured — match the calculator's existing convention).
 - **Exception: free-hanging drapes** (bars, islands, anything with no frame
   behind the drape): grommets go 6" above the hem, or 3" at a house-wall end.
-- Keep every grommet at least 4" away from a strip seam.
+- Keep every grommet at least 6" away from a strip seam and 5" from any cut or notch edge.
 - Grommets sit on a doubled 5×5 patch.
 - Lives on the assembly diagram only.
 
@@ -199,7 +199,20 @@ panel polygons inside.
 - Red lines = the actual cut path. The polygon outline determines this.
 - Scrap = the part of the bolt outside the polygon, shaded gray
   `#cbd5e1` at 0.8 opacity.
+- **Full bolt width, every design.** Strips are cut at the full bolt width;
+  only one strip per panel is ripped narrower to take up the remainder. Never
+  split the width evenly across strips (that means ripping every strip).
 - Notches (sectional flap) and corner cutouts ARE material cuts — show them.
+- **Every notch or cutout inside a strip is dimensioned on that strip**
+  (width × depth), saying which edge each number is measured from. The cutter
+  should never have to scale it off the drawing.
+- **Tapers and slant cuts count too.** Label where the slant starts (e.g.
+  "5" down" at the raw edge) and where it ends ("taper ends 17.5" in"), plus
+  any end cut-away (e.g. "cut away 4" × 44""). Keep these labels clear of the
+  strip's name box.
+- **Each strip is cut only as long as the outline reaches inside it.** Label
+  each strip's own length (e.g. A1 87", A2–A4 119"); don't default every strip
+  to the panel's full length.
 - Hardware (snaps, grommets, tabs) is NOT a material cut — do not show them.
 - Zone labels along the panel ("side drop", "back inset", "taper", "front")
   in slate `#64748b` bold 10px.
@@ -304,7 +317,7 @@ For an L-shape sectional with a main piece and a short piece:
 | Bungee tab hem | 2" into the back drape from the back fold line |
 | Bungee tab length | ~3" (so the loop sits ~3" away from the hem, toward the ground) |
 | Floor clearance | as input by the user (always honor this — don't hard-code) |
-| Grommet, free-hanging drape | 6" above the hem (3" at a wall end), ≥4" off any seam |
+| Grommet, free-hanging drape | 6" above the hem (3" at a wall end), ≥6" off any seam |
 | Wall upturn flap | 4", straight raw edge, drapes notched back |
 | Wear patch | 8×8" doubled, underside, centered on the fixture |
 
@@ -379,20 +392,66 @@ For a design that isn't one of the standard calculators, no calculator is
 built. Deliver a cut diagram and an assembly diagram in this file's style.
 First used on the L-shaped outdoor bar (Oct 2026).
 
+### Workflow: measure diagram first
+1. Kristen sends photos of what's being covered.
+2. Make a printable **measure diagram** first: a simple top-down outline (plus
+   a side view if anything sticks up) with a lettered blank (A, B, C…) on every
+   dimension the design needs, each showing where it starts and stops.
+   Include every column, faucet, tap or other obstruction: its size,
+   its height, and its distance from a fixed edge. Also include drop heights to
+   the deck/floor.
+3. List every assumption on it as a blank too, rather than guessing.
+4. Only after the filled-in sheet comes back, check that the numbers agree
+   with each other, then draw the cut and assembly diagrams.
+
 ### Allowances
 - **Fixture tent.** When the cover drapes over a tap, faucet or other raised
   fixture, add length both ways. Across the width, add the extra drape the tent
   uses up on each side. Along the run, add the length the tent uses up (about
-  +10" for a 23" tap plus a 13.5" faucet). Measure each fixture's height and
-  its distance from a fixed edge.
+  +14" for a 23" tap plus a 15" faucet ~20" apart, 17" from the wall). Work it
+  out as the sum of the slope extras (each rise over its run, including the
+  drop from the last fixture to the wall), then add ~3" slack so the cover
+  drapes instead of pulling taut. Measure each fixture's height, its distance
+  from the wall, the spacing between fixtures, and where it sits across the
+  counter. Carry the full across-width extra from the wall back past the LAST
+  fixture before tapering to the join, or the hem rides up there.
 - **Counter step bridge.** When the cover spans two counter heights, it bridges
   the step on a slant rather than following it down. Add the slant length to
   the top panel (about +1" for a 6" step).
 - **Wall upturn flap.** Where a cover meets a house wall, add a 4" upturn flap
   with a straight raw edge (no wave cut). Notch the drapes back so it lies flat.
+- **Hemmed notch around a column/post.** 1" single-fold hem on both notch
+  edges: cut the notch 1" smaller each way than the finished size, clip the
+  inside corner, and sew a 5"×5" doubled patch over it.
+- **Sewn joins between pieces:** 1" seam allowance on each piece (Kristen's
+  default, a bit more than ¾"). No join snaps unless the customer buys the
+  two-piece option.
 - **Derived dimensions.** A dimension calculated instead of measured (e.g. run
   = outside length − width) is labeled "derived" on the cut diagram and in the
   build notes.
+
+### Measurements: pin down start and end points
+- For every length, record where it starts and stops (e.g. "outside long side
+  to the column face" vs "to the end of the bar"). A column or post inside the
+  footprint: record its size and its distance from the end.
+- Sanity-check lengths against each other (outside − inside = the other run's
+  ledge depth; 31.5" + 14" column ≈ 46" width) and flag anything that doesn't
+  close.
+
+### Strip math (cut diagram)
+- Each seam uses the FULL overlap: strips n = ceil((span − overlap)/(bolt −
+  overlap)). All strips are full bolt width except one, which is ripped to
+  span − (n−1)·(bolt − overlap). Check the widths minus (n−1)·overlap = span
+  before delivering.
+- **Use the full bolt width.** Cut every strip at full bolt width and rip only
+  ONE strip narrower to take up the remainder, so the cutter isn't ripping
+  every strip. Pick which strip gets ripped so no seam lands within 6" of a
+  grommet or notch edge.
+- **Don't cut fabric that's all notch.** If a notch runs the full width of a
+  strip, start that strip at the notch edge instead of cutting it full length
+  and throwing the notch away (A4 on the L-bar: 67" instead of 119").
+- Yardage: total of the actual strip lengths, then round up to whole yards plus
+  ~1 yd spare for squaring ends.
 
 ### Diagrams
 - Strip seams on the cut diagram: dotted `#7e22ce`, labeled S1, S2…, plus a
@@ -401,11 +460,15 @@ First used on the L-shaped outdoor bar (Oct 2026).
   on the assembly diagram.
 - A bungee-route sketch is allowed only as a separate explainer, never on the
   production diagrams (see "No bungee path lines").
+- Dimension labels must add up as written. If an allowance sits inside an
+  overall dimension, say so; don't write "(+2")" when it isn't added on top.
 
 ### Hardware
 - Corner snaps can be skipped on a corner a bungee already pulls tight. Use
   them on outside corners that would otherwise gap.
 - Two-piece join snaps: placed center-out at 6", studs on piece A, sockets on B.
+- Grommets: at least 5" from any cut or notch edge (measured from the finished
+  hem line) and at least 6" from any strip seam.
 - U-hooks: screw into the bar's baseboard, through to the framing behind it. At
   a house wall, use trim or a solid strip. **Never into vinyl siding.**
 
@@ -417,8 +480,6 @@ First used on the L-shaped outdoor bar (Oct 2026).
   or 55.25" from other sources, so still confirm the bolt before cutting; a
   narrower bolt can change the strip count.
 
----
-
 ### Auto-clearance (3" → 4") instead of an extra strip
 
 If a cover is only an inch or two wider than a bolt/strip threshold, don't buy
@@ -429,6 +490,17 @@ quote note must read "floor clearance raised to 4" to fit the bolt (standard 3")
 `tableCover` (full coverage), `ottomanCover` and `chaiseCover`; results carry
 `clearanceAdjusted`, `floorClearance` and `yardsAtStandardClearance`. It never
 raises clearance more than 1".
+
+### Before delivering a revision
+- Re-run the whole check, not just the changed number: panel widths and lengths
+  add up, join edges on both pieces match, strip widths close with the
+  overlaps, grommets clear seams and edges, notch sizes are labeled, yardage
+  is current.
+- Carry every change into ALL outputs (cut diagram, assembly diagram, build
+  notes, customer text). Name any output that is now out of date (e.g. old
+  mockups) instead of leaving it silently stale.
+
+---
 
 ## Things to NOT include
 
