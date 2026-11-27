@@ -17,8 +17,9 @@ const path = require('path');
 
 const ROOT = __dirname;
 const CODE_RE = /\.(tsx|ts|jsx|js|json|css|mjs)$/i;
-// "/images/..." up to a quote, space, bracket or ${ — must end in an image extension.
-const PATH_RE = /\/images\/[^"'`\s)(<>?#$]+?\.(?:jpg|jpeg|png|webp|avif|gif|svg)(?![\w])/gi;
+// Quoted "/images/..." (preserving embedded spaces up to closing quote) or unquoted "/images/...".
+const PATH_RE =
+  /(["'`])(\/images\/[^"'`\r\n<>?#$]+?\.(?:jpg|jpeg|png|webp|avif|gif|svg))\1|(\/images\/[^"'`\s)(<>?#$]+?\.(?:jpg|jpeg|png|webp|avif|gif|svg)(?![\w]))/gi;
 
 function walk(dir, out = []) {
   if (!fs.existsSync(dir)) return out;
@@ -37,12 +38,13 @@ for (const file of walk(path.join(ROOT, 'src'))) {
   if (!CODE_RE.test(file)) continue;
   const text = fs.readFileSync(file, 'utf8');
   for (const match of text.matchAll(PATH_RE)) {
+    const raw = match[2] || match[3];
     checked++;
-    let rel = match[0];
+    let rel = raw;
     try { rel = decodeURIComponent(rel); } catch (e) { /* keep as written */ }
     if (fs.existsSync(path.join(ROOT, 'public', rel))) continue;
-    if (!missing.has(match[0])) missing.set(match[0], new Set());
-    missing.get(match[0]).add(path.relative(ROOT, file));
+    if (!missing.has(raw)) missing.set(raw, new Set());
+    missing.get(raw).add(path.relative(ROOT, file));
   }
 }
 
