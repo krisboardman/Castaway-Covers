@@ -155,7 +155,7 @@ const productData: { [key: string]: { name: string; description: string; image: 
   'ottomans': {
     name: 'Custom Ottoman Covers',
     description: 'Premium custom-fit covers for outdoor ottomans and footrests. Marine-grade vinyl, waterproof, UV-resistant with reinforced grommets.',
-    image: 'https://castawaycovers.com/images/Ottomans/ottoman2.jpg',
+    image: 'https://castawaycovers.com/images/Ottomans/ottoman1.jpg',
     category: 'Outdoor Furniture Covers',
     price: '90',
   },

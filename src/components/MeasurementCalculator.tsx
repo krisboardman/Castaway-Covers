@@ -27,7 +27,12 @@ import { pricePerYard } from '@/config/pricing';
 // Single source of truth for yardage math, shared with the standalone HTML
 // calculators in /calculators. Pilot scope: tables/table-sets.
 // @ts-ignore — plain JS module, no type declarations.
-import CoverMath from '../../calculators/shared/cover-math.js';
+import CoverMathJs from '../../calculators/shared/cover-math.js';
+// The module's JSDoc types every result as a bare Object; every calculator returns at least { yards }.
+const CoverMath = CoverMathJs as unknown as Record<
+  'tableCover' | 'chairCover' | 'sofaCover' | 'ottomanCover' | 'chaiseCover',
+  (p: Record<string, unknown>) => { yards: number }
+>;
 
 interface MeasurementCalculatorProps {
   productType: string;

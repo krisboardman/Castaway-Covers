@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
     }
     
     // Build line items including add-ons as separate items
-    const lineItems = [];
+    const lineItems: Record<string, unknown>[] = [];
     
     items.forEach((item: any) => {
       // Add the main cover item
